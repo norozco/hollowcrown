@@ -9,6 +9,7 @@ import {
   type DialogueState,
 } from '../engine/dialogue';
 import { useQuestStore } from './questStore';
+import { usePlayerStore } from './playerStore';
 
 /**
  * Holds the currently-active dialogue, if any. Null means no dialogue
@@ -32,6 +33,7 @@ interface DialogueStoreState {
 function applyEffects(effects: readonly DialogueEffect[] | undefined): void {
   if (!effects || effects.length === 0) return;
   const quests = useQuestStore.getState();
+  const player = usePlayerStore.getState();
   for (const e of effects) {
     switch (e.type) {
       case 'accept-quest':
@@ -39,6 +41,15 @@ function applyEffects(effects: readonly DialogueEffect[] | undefined): void {
         break;
       case 'complete-objective':
         quests.completeObjective(e.questId, e.objectiveId);
+        break;
+      case 'turn-in-quest':
+        quests.turnIn(e.questId);
+        break;
+      case 'give-gold':
+        player.giveGold(e.amount);
+        break;
+      case 'give-xp':
+        player.giveXp(e.amount);
         break;
     }
   }

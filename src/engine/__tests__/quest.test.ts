@@ -3,6 +3,7 @@ import {
   completeObjective,
   currentObjective,
   startQuest,
+  turnInQuest,
   type Quest,
 } from '../quest';
 import { getQuest, ALL_QUEST_IDS } from '../quests';
@@ -24,6 +25,7 @@ describe('startQuest', () => {
     expect(s.questId).toBe('sample');
     expect(s.completedObjectiveIds).toEqual([]);
     expect(s.isComplete).toBe(false);
+    expect(s.turnedIn).toBe(false);
     expect(s.acceptedAt).toBe(1000);
   });
 
@@ -94,6 +96,33 @@ describe('currentObjective', () => {
     const s2 = completeObjective(sample, s1, 'b');
     // 'a' is still incomplete — should be the current one.
     expect(currentObjective(sample, s2)?.id).toBe('a');
+  });
+});
+
+describe('turnInQuest', () => {
+  it('throws if quest is not complete', () => {
+const s = startQuest(sample);
+    expect(() => turnInQuest(s)).toThrow();
+  });
+
+  it('marks a completed quest as turned in', () => {
+let s = startQuest(sample);
+    s = completeObjective(sample, s, 'a');
+    s = completeObjective(sample, s, 'b');
+    s = completeObjective(sample, s, 'c');
+    expect(s.turnedIn).toBe(false);
+    const t = turnInQuest(s);
+    expect(t.turnedIn).toBe(true);
+  });
+
+  it('is idempotent once turned in', () => {
+let s = startQuest(sample);
+    s = completeObjective(sample, s, 'a');
+    s = completeObjective(sample, s, 'b');
+    s = completeObjective(sample, s, 'c');
+    const t = turnInQuest(s);
+    const t2 = turnInQuest(t);
+    expect(t2).toBe(t);
   });
 });
 

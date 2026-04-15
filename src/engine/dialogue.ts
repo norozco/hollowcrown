@@ -21,10 +21,22 @@ export type Expression =
   | 'shocked'
   | 'thoughtful';
 
+/**
+ * Conditions on a DialogueChoice that gate its visibility. If any
+ * requirement is unmet, the choice is hidden from the player.
+ */
+export type DialogueRequirement =
+  | { type: 'quest-complete'; questId: string }
+  | { type: 'quest-active'; questId: string }
+  | { type: 'quest-not-started'; questId: string }
+  | { type: 'quest-not-turned-in'; questId: string };
+
 export interface DialogueChoice {
   text: string;
   /** The id of the next node, or null to end the dialogue on this choice. */
   next: string | null;
+  /** If present, ALL requirements must hold for the choice to be shown. */
+  requires?: readonly DialogueRequirement[];
 }
 
 /**
@@ -32,10 +44,48 @@ export interface DialogueChoice {
  * Effects are idempotent — re-entering the same node fires them again,
  * but receivers (e.g. questStore) treat repeated calls as no-ops, so
  * the player can revisit dialogue without breaking progress.
+ *
+ * For reward effects (give-gold / give-xp), idempotency is enforced at
+ * the authoring level: put rewards on a node only reachable via a
+ * choice gated with `quest-not-turned-in`, and pair with `turn-in-quest`
+ * so the gate flips closed after the first visit.
  */
 export type DialogueEffect =
   | { type: 'accept-quest'; questId: string }
-  | { type: 'complete-objective'; questId: string; objectiveId: string };
+  | { type: 'complete-objective'; questId: string; objectiveId: string }
+  | { type: 'turn-in-quest'; questId: string }
+  | { type: 'give-gold'; amount: number }
+  | { type: 'give-xp'; amount: number };
+
+/**
+ * Pure evaluator — given a map of {questId → {isComplete, turnedIn}},
+ * return whether the requirement holds. Works on the QuestState shape
+ * from questStore.active without importing the store.
+ */
+export function meetsRequirement(
+  req: DialogueRequirement,
+  quests: Readonly<Record<string, { isComplete: boolean; turnedIn: boolean }>>,
+): boolean {
+  const q = quests[req.questId];
+  switch (req.type) {
+    case 'quest-complete':
+      return q !== undefined && q.isComplete;
+    case 'quest-active':
+      return q !== undefined && !q.isComplete;
+    case 'quest-not-started':
+      return q === undefined;
+    case 'quest-not-turned-in':
+      return q !== undefined && !q.turnedIn;
+  }
+}
+
+export function meetsAllRequirements(
+  reqs: readonly DialogueRequirement[] | undefined,
+  quests: Readonly<Record<string, { isComplete: boolean; turnedIn: boolean }>>,
+): boolean {
+  if (!reqs || reqs.length === 0) return true;
+  return reqs.every((r) => meetsRequirement(r, quests));
+}
 
 export interface DialogueNode {
   id: string;

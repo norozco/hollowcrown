@@ -16,6 +16,9 @@ import './InGameOverlay.css';
  */
 export function InGameOverlay() {
   const character = usePlayerStore((s) => s.character);
+  // Subscribing to `version` forces re-renders when character fields
+  // (gold, xp, hp, level, mp) mutate — the object reference stays stable.
+  usePlayerStore((s) => s.version);
   const setScreen = useUIStore((s) => s.setScreen);
   const clearPlayer = usePlayerStore((s) => s.clear);
   const dialogueActive = useDialogueStore((s) => s.dialogue !== null);
@@ -79,6 +82,7 @@ export function InGameOverlay() {
           <span>HP {character.hp}/{d.maxHp}</span>
           {d.maxMp > 0 && <span>MP {character.mp}/{d.maxMp}</span>}
           <span>XP {character.xp}</span>
+          <span className="ig__gold" title="Gold">◆ {character.gold}g</span>
           <span className="ig__weapon" title={character.weapon.description}>
             ⚔ {character.weapon.name}
           </span>

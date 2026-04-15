@@ -225,6 +225,48 @@ describe('Character.spendMp / restoreMp', () => {
   });
 });
 
+describe('Character.gold', () => {
+  it('starts at 0 by default', () => {
+    const c = new Character(baseInit);
+    expect(c.gold).toBe(0);
+  });
+
+  it('honors an initial gold value', () => {
+    const c = new Character({ ...baseInit, gold: 50 });
+    expect(c.gold).toBe(50);
+  });
+
+  it('rejects negative starting gold', () => {
+    expect(() => new Character({ ...baseInit, gold: -1 })).toThrow();
+  });
+
+  it('addGold credits the purse', () => {
+    const c = new Character(baseInit);
+    c.addGold(100);
+    expect(c.gold).toBe(100);
+    c.addGold(50);
+    expect(c.gold).toBe(150);
+  });
+
+  it('loseGold debits and returns the amount spent', () => {
+    const c = new Character({ ...baseInit, gold: 80 });
+    expect(c.loseGold(30)).toBe(30);
+    expect(c.gold).toBe(50);
+  });
+
+  it('loseGold clamps at current purse and returns actual spend', () => {
+    const c = new Character({ ...baseInit, gold: 20 });
+    expect(c.loseGold(100)).toBe(20);
+    expect(c.gold).toBe(0);
+  });
+
+  it('rejects negative amounts on both sides', () => {
+    const c = new Character(baseInit);
+    expect(() => c.addGold(-1)).toThrow();
+    expect(() => c.loseGold(-1)).toThrow();
+  });
+});
+
 describe('Character.gainXp', () => {
   it('returns 0 levels gained when below threshold', () => {
     const c = new Character(baseInit);

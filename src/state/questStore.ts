@@ -4,6 +4,7 @@ import {
   type QuestState,
   startQuest,
   completeObjective,
+  turnInQuest,
 } from '../engine/quest';
 import { getQuest } from '../engine/quests';
 
@@ -25,6 +26,9 @@ interface QuestStoreState {
   /** Complete the named objective on the named quest. No-op if the
    *  quest isn't active or the objective is already done. */
   completeObjective: (questId: string, objectiveId: string) => void;
+  /** Mark a completed quest as turned in. No-op if quest isn't active,
+   *  or is already turned in. Logs a warning if quest isn't complete. */
+  turnIn: (questId: string) => void;
   /** Drop everything — used on character teardown / return-to-menu. */
   reset: () => void;
 }
@@ -62,6 +66,22 @@ export const useQuestStore = create<QuestStoreState>((set, get) => ({
     set({
       active: { ...get().active, [questId]: updated },
     });
+  },
+
+  turnIn: (questId) => {
+    const state = get().active[questId];
+    if (!state) return;
+    if (!state.isComplete) {
+      console.warn(`questStore.turnIn: "${questId}" is not yet complete`);
+      return;
+    }
+    if (state.turnedIn) return;
+    try {
+      const updated = turnInQuest(state);
+      set({ active: { ...get().active, [questId]: updated } });
+    } catch (e) {
+      console.warn(`questStore.turnIn: ${(e as Error).message}`);
+    }
   },
 
   reset: () => set({ active: {} }),

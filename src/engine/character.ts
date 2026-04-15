@@ -53,6 +53,8 @@ export interface CharacterInit {
   level?: number;
   /** Optional: start with specific XP (for tests / debug). Defaults 0. */
   xp?: number;
+  /** Optional: starting gold purse. Defaults 0. */
+  gold?: number;
 }
 
 /**
@@ -103,6 +105,7 @@ export class Character {
   xp: number;
   hp: number;
   mp: number;
+  gold: number;
 
   constructor(init: CharacterInit) {
     const v = validateName(init.name);
@@ -124,6 +127,8 @@ export class Character {
       throw new Error(`Character level out of range: ${this.level}`);
     }
     this.xp = init.xp ?? xpForLevel(this.level);
+    this.gold = init.gold ?? 0;
+    if (this.gold < 0) throw new Error('Character gold cannot be negative');
 
     this.weapon = pickStartingWeapon(
       this.stats,
@@ -165,6 +170,22 @@ export class Character {
   takeDamage(amount: number): void {
     if (amount < 0) throw new Error('Damage must be non-negative');
     this.hp = Math.max(0, this.hp - amount);
+  }
+
+  /** Credit gold to the purse. Throws on negative; rewards flow through
+   *  here so audit trails stay consistent with the direction of money. */
+  addGold(amount: number): void {
+    if (amount < 0) throw new Error('Gold gain must be non-negative');
+    this.gold += amount;
+  }
+
+  /** Debit gold. Returns the amount actually spent (clamped at current
+   *  purse). Callers should check the return if a partial spend matters. */
+  loseGold(amount: number): number {
+    if (amount < 0) throw new Error('Gold loss must be non-negative');
+    const lost = Math.min(amount, this.gold);
+    this.gold -= lost;
+    return lost;
   }
 
   heal(amount: number): void {

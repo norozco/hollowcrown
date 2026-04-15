@@ -37,6 +37,10 @@ export interface QuestState {
   completedObjectiveIds: readonly string[];
   /** True iff every objective has been completed. */
   isComplete: boolean;
+  /** True iff the player has reported completion to the relevant NPC
+   *  (dialogue effect `turn-in-quest`). Distinct from isComplete so
+   *  reward effects can gate on "complete but not yet turned in". */
+  turnedIn: boolean;
   /** Wall-clock ms when accepted; useful for ordering the tracker. */
   acceptedAt: number;
 }
@@ -50,8 +54,20 @@ export function startQuest(quest: Quest, now = Date.now()): QuestState {
     questId: quest.id,
     completedObjectiveIds: [],
     isComplete: false,
+    turnedIn: false,
     acceptedAt: now,
   };
+}
+
+/** Mark a quest as turned-in (reward collected). Idempotent. Throws only
+ *  if the quest isn't complete yet — turning in an incomplete quest is
+ *  a state-machine error, not a UX no-op. */
+export function turnInQuest(state: QuestState): QuestState {
+  if (!state.isComplete) {
+    throw new Error(`Cannot turn in "${state.questId}" — objectives incomplete`);
+  }
+  if (state.turnedIn) return state;
+  return { ...state, turnedIn: true };
 }
 
 /**

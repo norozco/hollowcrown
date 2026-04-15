@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useDialogueStore } from '../../state/dialogueStore';
 import { usePlayerStore } from '../../state/playerStore';
-import { currentNode } from '../../engine/dialogue';
+import { useQuestStore } from '../../state/questStore';
+import { currentNode, meetsAllRequirements } from '../../engine/dialogue';
 import { getNPC } from '../../engine/npcs';
 import { SpeakerPortrait } from './SpeakerPortrait';
 import './DialogueScene.css';
@@ -22,6 +23,7 @@ export function DialogueScene() {
   const choose = useDialogueStore((s) => s.choose);
   const end = useDialogueStore((s) => s.end);
   const character = usePlayerStore((s) => s.character);
+  const quests = useQuestStore((s) => s.active);
 
   /**
    * When the player picks a choice we don't immediately navigate to the
@@ -32,6 +34,19 @@ export function DialogueScene() {
   const [pendingChoice, setPendingChoice] = useState<number | null>(null);
 
   const node = dialogue && state ? currentNode(dialogue, state) : null;
+
+  /**
+   * Visible choices = original choices filtered by their `requires` against
+   * the current quest state. We keep the ORIGINAL index on each so that
+   * `store.choose(idx)` still points at the right node in the authored
+   * dialogue graph after filtering collapses the visible list.
+   */
+  const visibleChoices = useMemo(() => {
+    if (!node?.choices) return [];
+    return node.choices
+      .map((choice, idx) => ({ choice, idx }))
+      .filter(({ choice }) => meetsAllRequirements(choice.requires, quests));
+  }, [node, quests]);
 
   // Clear the pending player line whenever the dialogue changes or ends.
   useEffect(() => {
@@ -62,12 +77,13 @@ export function DialogueScene() {
         return;
       }
 
-      if (node.choices && node.choices.length > 0) {
-        // 1..9 selects a choice — but stage it as the player's line first.
+      if (visibleChoices.length > 0) {
+        // 1..9 selects by VISIBLE position — translate to the original
+        // choice index so we navigate to the right node.
         const n = parseInt(e.key, 10);
-        if (!Number.isNaN(n) && n >= 1 && n <= node.choices.length) {
+        if (!Number.isNaN(n) && n >= 1 && n <= visibleChoices.length) {
           e.preventDefault();
-          setPendingChoice(n - 1);
+          setPendingChoice(visibleChoices[n - 1].idx);
         }
         return;
       }
@@ -79,7 +95,7 @@ export function DialogueScene() {
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [node, advance, choose, end, pendingChoice]);
+  }, [node, advance, choose, end, pendingChoice, visibleChoices]);
 
   if (!node || !dialogue || !state) return null;
 
@@ -98,7 +114,7 @@ export function DialogueScene() {
   const portraitFg = isPlayer ? '#d4a968' : (npc?.accentColor ?? '#d4a968');
 
   // Are we currently showing the player's staged response line?
-  const showingPlayerLine = pendingChoice !== null && node.choices;
+  const showingPlayerLine = pendingChoice !== null && !!node.choices?.[pendingChoice];
   const stagedChoice = showingPlayerLine ? node.choices![pendingChoice!] : null;
 
   const onClickTextBox = () => {
@@ -107,7 +123,9 @@ export function DialogueScene() {
       setPendingChoice(null);
       return;
     }
-    if (node.choices && node.choices.length > 0) return;
+    // Only block textbox-click-advance if there's at least one visible
+    // choice; if all choices are gated away, fall through to advance.
+    if (visibleChoices.length > 0) return;
     advance();
   };
 
@@ -200,20 +218,20 @@ export function DialogueScene() {
             )}
             <p className="dlg__text">{node.text}</p>
 
-            {node.choices && node.choices.length > 0 ? (
+            {visibleChoices.length > 0 ? (
               <ul className="dlg__choices" aria-label="Response options">
-                {node.choices.map((c, i) => (
-                  <li key={i}>
+                {visibleChoices.map(({ choice, idx }, pos) => (
+                  <li key={idx}>
                     <button
                       type="button"
                       className="dlg__choice"
                       onClick={(e) => {
                         e.stopPropagation();
-                        setPendingChoice(i);
+                        setPendingChoice(idx);
                       }}
                     >
-                      <span className="dlg__choice-num">{i + 1}</span>
-                      <span className="dlg__choice-text">{c.text}</span>
+                      <span className="dlg__choice-num">{pos + 1}</span>
+                      <span className="dlg__choice-text">{choice.text}</span>
                     </button>
                   </li>
                 ))}

@@ -21,11 +21,65 @@
       "expression": "neutral",
       "text": "You came all the way to Ashenvale. That tells me something. What it tells me depends on what you say next.",
       "choices": [
+        {
+          "text": "I've been to the cairn. I found Veyrin's book.",
+          "next": "return-shock",
+          "requires": [
+            { "type": "quest-complete", "questId": "iron-token" },
+            { "type": "quest-not-turned-in", "questId": "iron-token" }
+          ]
+        },
         { "text": "I heard there was work here.", "next": "path-work" },
         { "text": "I followed a rumor.", "next": "path-rumor" },
         { "text": "I had nowhere else to go.", "next": "path-nowhere" },
         { "text": "[Watch her in silence.]", "next": "path-silent" }
       ]
+    },
+    "return-shock": {
+      "id": "return-shock",
+      "speaker": "brenna",
+      "expression": "shocked",
+      "text": "You have it. Let me — no, do not hand it to me. Open it to the last entry. Point with your finger, not mine.",
+      "next": "return-read"
+    },
+    "return-read": {
+      "id": "return-read",
+      "speaker": "narrator",
+      "text": "Brenna leans over the counter. She reads the entry, then reads it again. Her jaw tightens at a sigil drawn in the margin you had not noticed. When she straightens, her face is in control of itself — but you saw.",
+      "next": "return-speak"
+    },
+    "return-speak": {
+      "id": "return-speak",
+      "speaker": "brenna",
+      "expression": "sad",
+      "text": "Veyrin did not write the last line. The hand is different. I know that hand. I thought I would never see it again.",
+      "next": "return-offer"
+    },
+    "return-offer": {
+      "id": "return-offer",
+      "speaker": "brenna",
+      "expression": "neutral",
+      "text": "You did the work. Eventually you'll go back to the cairn — not today, not tomorrow, but it will be you. Until then: rest. Spend. Come back better-armed than you left.",
+      "next": "return-reward",
+      "effects": [
+        { "type": "give-gold", "amount": 100 },
+        { "type": "give-xp", "amount": 250 },
+        { "type": "turn-in-quest", "questId": "iron-token" }
+      ]
+    },
+    "return-reward": {
+      "id": "return-reward",
+      "speaker": "brenna",
+      "expression": "neutral",
+      "text": "One hundred gold from the guild purse — a rank above what the job paid. Two-fifty of experience, for what you earned and what you suffered. I'll enter you on the E-rank board when you next come in.",
+      "next": "return-close"
+    },
+    "return-close": {
+      "id": "return-close",
+      "speaker": "brenna",
+      "expression": "thoughtful",
+      "text": "One last thing. Keep the token on you. It has not finished with you, and you have not finished with it. The sky is grey; so are you. Go.",
+      "next": null
     },
     "path-work": {
       "id": "path-work",
