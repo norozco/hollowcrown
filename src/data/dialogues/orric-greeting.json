@@ -1,0 +1,65 @@
+{
+  "id": "orric-greeting",
+  "start": "enter",
+  "nodes": {
+    "enter": {
+      "id": "enter",
+      "speaker": "narrator",
+      "text": "The cabin is small and well-kept. Cords of wood stacked neat along the north wall. The old man on the porch does not stand as you approach. His axe is across his knees, oiled, resting.",
+      "next": "orric-look"
+    },
+    "orric-look": {
+      "id": "orric-look",
+      "speaker": "orric",
+      "expression": "thoughtful",
+      "text": "Stop where you are, a moment. Let me look at you. ...Aye. You've come from the guild. Brenna sent you, or the wall of names did. It amounts to the same.",
+      "next": "orric-offer"
+    },
+    "orric-offer": {
+      "id": "orric-offer",
+      "speaker": "orric",
+      "expression": "neutral",
+      "text": "I'm Orric. These are my woods, for what that's worth — I've lived in them longer than the guild has had a door. Ask what you came to ask.",
+      "choices": [
+        { "text": "Have you seen an Elven scholar named Veyrin?", "next": "veyrin-seen" },
+        { "text": "What is wrong with the woods?", "next": "woods" },
+        { "text": "I'm just passing through.", "next": "passing" }
+      ]
+    },
+    "veyrin-seen": {
+      "id": "veyrin-seen",
+      "speaker": "orric",
+      "expression": "sad",
+      "text": "Aye. I saw him. Paler than most elves, and he carried a book he'd tucked against his ribs like it might run. He sat where you're standing and asked me about the old cairn east of here — the one under the ivy, past the hollow oak.",
+      "next": "veyrin-warning"
+    },
+    "veyrin-warning": {
+      "id": "veyrin-warning",
+      "speaker": "orric",
+      "expression": "thoughtful",
+      "text": "I told him to let it alone. Some things are sealed for reasons older than the people who sealed them. He smiled the polite elven smile and went east anyway. That was eleven days ago. He has not come back. The crows have been quieter since.",
+      "next": "veyrin-next"
+    },
+    "veyrin-next": {
+      "id": "veyrin-next",
+      "speaker": "orric",
+      "expression": "neutral",
+      "text": "If you mean to go after him, the path east of my cabin is the one he took. Step carefully. The woods know when a stranger is looking for something, and they do not always point the right way.",
+      "next": "orric-offer"
+    },
+    "woods": {
+      "id": "woods",
+      "speaker": "orric",
+      "expression": "sad",
+      "text": "Quieter than they should be. Fewer birds. The deer have moved off west. When the woods go quiet in a place, it is not because nothing is there. It is because something is listening.",
+      "next": "orric-offer"
+    },
+    "passing": {
+      "id": "passing",
+      "speaker": "orric",
+      "expression": "neutral",
+      "text": "No one passes through Greenhollow just passing through. You'll either find what you came for or what was waiting. Walk softly either way. I'll be on this porch if you come back.",
+      "next": null
+    }
+  }
+}

@@ -2,6 +2,7 @@ import * as Phaser from 'phaser';
 import { BootScene } from '../scenes/BootScene';
 import { PlaceholderScene } from '../scenes/PlaceholderScene';
 import { TownScene } from '../scenes/TownScene';
+import { GreenhollowScene } from '../scenes/GreenhollowScene';
 
 /**
  * Authoritative Phaser game config. Kept separate from the React mount
@@ -28,5 +29,5 @@ export const gameConfig: Phaser.Types.Core.GameConfig = {
       debug: false,
     },
   },
-  scene: [BootScene, PlaceholderScene, TownScene],
+  scene: [BootScene, PlaceholderScene, TownScene, GreenhollowScene],
 };

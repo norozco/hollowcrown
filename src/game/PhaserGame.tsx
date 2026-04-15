@@ -44,12 +44,18 @@ export function PhaserGame() {
     const mgr = game.scene;
 
     const shouldShowTown = character !== null && screen === 'game';
+    const worldScenes = ['TownScene', 'GreenhollowScene'];
 
     if (shouldShowTown) {
       if (mgr.isActive('PlaceholderScene')) mgr.stop('PlaceholderScene');
-      if (!mgr.isActive('TownScene')) mgr.start('TownScene');
+      // Only start TownScene fresh if no world scene is already running
+      // (an internal zone transition may have us in Greenhollow already).
+      const anyWorldActive = worldScenes.some((k) => mgr.isActive(k));
+      if (!anyWorldActive) mgr.start('TownScene');
     } else {
-      if (mgr.isActive('TownScene')) mgr.stop('TownScene');
+      for (const k of worldScenes) {
+        if (mgr.isActive(k)) mgr.stop(k);
+      }
       if (!mgr.isActive('PlaceholderScene')) mgr.start('PlaceholderScene');
     }
   }, [character, screen]);

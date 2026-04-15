@@ -22,5 +22,13 @@
     "portraitColor": "#4a2030",
     "accentColor": "#c46888",
     "description": "Prices fair, weights honest, smile unreadable."
+  },
+  "orric": {
+    "key": "orric",
+    "name": "Orric",
+    "title": "Forester of Greenhollow",
+    "portraitColor": "#2a3820",
+    "accentColor": "#a8c468",
+    "description": "Older than the guild that sends people past his door. Keeps an axe across his knees and a silence in his answers."
   }
 }
