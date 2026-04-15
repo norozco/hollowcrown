@@ -136,6 +136,127 @@ export abstract class BaseWorldScene extends Phaser.Scene {
     return rect;
   }
 
+  /** Invisible thin wall segment — used to build hollow rooms. */
+  protected addWallSegment(x: number, y: number, w: number, h: number): void {
+    const wall = this.add.rectangle(x + w / 2, y + h / 2, w, h, 0x000000, 0);
+    this.physics.add.existing(wall, true);
+    this.walls.add(wall);
+  }
+
+  /**
+   * Add a building as a *hollow room*: a visual colored body, plus four
+   * explicit wall segments. Optionally leaves a gap for a door on one
+   * side. Returns the door's outside-facing coordinate so callers can
+   * place NPCs next to it.
+   *
+   * The small-segment approach is intentional — Phaser's arcade
+   * collision is more reliable with multiple thin static bodies than
+   * one large one, especially when the player brushes past NPCs.
+   */
+  protected addBuilding(cfg: {
+    /** Top-left corner in tile coords. */
+    xTile: number;
+    yTile: number;
+    wTile: number;
+    hTile: number;
+    color: number;
+    label: string;
+    /** Side the door is on; defaults to 'bottom'. */
+    doorSide?: 'bottom' | 'top' | 'left' | 'right';
+    /** Door position along the side in tiles from the building's top-left
+     *  corner along that axis. Defaults to centered. */
+    doorOffsetTile?: number;
+    /** Door gap width in tiles; default 1. */
+    doorWidthTile?: number;
+  }): { doorOutside: { x: number; y: number } } {
+    const px = cfg.xTile * TILE;
+    const py = cfg.yTile * TILE;
+    const pw = cfg.wTile * TILE;
+    const ph = cfg.hTile * TILE;
+    const wt = 6; // wall thickness in px
+    const doorW = (cfg.doorWidthTile ?? 1) * TILE;
+    const side = cfg.doorSide ?? 'bottom';
+
+    // Visual body (no physics — walls provide collision).
+    this.add
+      .rectangle(px + pw / 2, py + ph / 2, pw, ph, cfg.color)
+      .setStrokeStyle(2, 0x2a1810);
+
+    // Label above the building.
+    this.add
+      .text(px + pw / 2, py - 10, cfg.label, {
+        fontFamily: 'Courier New',
+        fontSize: '13px',
+        color: '#8a7a48',
+      })
+      .setOrigin(0.5, 1);
+
+    // Helpers for placing wall segments with a door gap.
+    const axisCenter = (len: number, doorOff: number | undefined) =>
+      doorOff !== undefined ? doorOff * TILE : (len - doorW) / 2;
+
+    let doorOutsideX = px + pw / 2;
+    let doorOutsideY = py + ph;
+
+    if (side === 'bottom') {
+      const offset = axisCenter(pw, cfg.doorOffsetTile);
+      const doorLeft = px + offset;
+      const doorRight = doorLeft + doorW;
+      // top / left / right (full length)
+      this.addWallSegment(px, py, pw, wt);
+      this.addWallSegment(px, py, wt, ph);
+      this.addWallSegment(px + pw - wt, py, wt, ph);
+      // bottom split around the door
+      if (doorLeft > px) this.addWallSegment(px, py + ph - wt, doorLeft - px, wt);
+      if (doorRight < px + pw) {
+        this.addWallSegment(doorRight, py + ph - wt, px + pw - doorRight, wt);
+      }
+      // door threshold — dark sliver where the wall breaks
+      this.add.rectangle(doorLeft + doorW / 2, py + ph - wt / 2, doorW, wt, 0x1a0e08);
+      doorOutsideX = doorLeft + doorW / 2;
+      doorOutsideY = py + ph + TILE; // one tile below the wall
+    } else if (side === 'top') {
+      const offset = axisCenter(pw, cfg.doorOffsetTile);
+      const doorLeft = px + offset;
+      const doorRight = doorLeft + doorW;
+      this.addWallSegment(px, py + ph - wt, pw, wt); // bottom
+      this.addWallSegment(px, py, wt, ph); // left
+      this.addWallSegment(px + pw - wt, py, wt, ph); // right
+      if (doorLeft > px) this.addWallSegment(px, py, doorLeft - px, wt);
+      if (doorRight < px + pw) this.addWallSegment(doorRight, py, px + pw - doorRight, wt);
+      this.add.rectangle(doorLeft + doorW / 2, py + wt / 2, doorW, wt, 0x1a0e08);
+      doorOutsideX = doorLeft + doorW / 2;
+      doorOutsideY = py - TILE;
+    } else if (side === 'left') {
+      const offset = axisCenter(ph, cfg.doorOffsetTile);
+      const doorTop = py + offset;
+      const doorBottom = doorTop + doorW;
+      this.addWallSegment(px, py, pw, wt); // top
+      this.addWallSegment(px, py + ph - wt, pw, wt); // bottom
+      this.addWallSegment(px + pw - wt, py, wt, ph); // right
+      if (doorTop > py) this.addWallSegment(px, py, wt, doorTop - py);
+      if (doorBottom < py + ph) this.addWallSegment(px, doorBottom, wt, py + ph - doorBottom);
+      this.add.rectangle(px + wt / 2, doorTop + doorW / 2, wt, doorW, 0x1a0e08);
+      doorOutsideX = px - TILE;
+      doorOutsideY = doorTop + doorW / 2;
+    } else if (side === 'right') {
+      const offset = axisCenter(ph, cfg.doorOffsetTile);
+      const doorTop = py + offset;
+      const doorBottom = doorTop + doorW;
+      this.addWallSegment(px, py, pw, wt);
+      this.addWallSegment(px, py + ph - wt, pw, wt);
+      this.addWallSegment(px, py, wt, ph);
+      if (doorTop > py) this.addWallSegment(px + pw - wt, py, wt, doorTop - py);
+      if (doorBottom < py + ph)
+        this.addWallSegment(px + pw - wt, doorBottom, wt, py + ph - doorBottom);
+      this.add.rectangle(px + pw - wt / 2, doorTop + doorW / 2, wt, doorW, 0x1a0e08);
+      doorOutsideX = px + pw + TILE;
+      doorOutsideY = doorTop + doorW / 2;
+    }
+
+    return { doorOutside: { x: doorOutsideX, y: doorOutsideY } };
+  }
+
   /** Spawn an NPC circle at tile coords, with name floating above. */
   protected spawnNpc(cfg: { key: string; dialogueId: string; x: number; y: number }): void {
     const data = getNPC(cfg.key);

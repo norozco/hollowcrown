@@ -17,37 +17,36 @@ export class TownScene extends BaseWorldScene {
       .rectangle(WORLD_W / 2, WORLD_H / 2, WORLD_W, TILE * 3, 0x3a2f1e)
       .setAlpha(0.5);
 
-    // Buildings (x, y in tiles from top-left).
-    const buildings: {
-      x: number;
-      y: number;
-      w: number;
-      h: number;
-      color: number;
-      label: string;
-    }[] = [
-      { x: 7, y: 5, w: 6, h: 4, color: 0x4a2e1a, label: "Adventurers' Guild" },
-      { x: 17, y: 5, w: 6, h: 4, color: 0x3a2a30, label: 'Whispering Hollow Inn' },
-      { x: 28, y: 5, w: 5, h: 3, color: 0x3a3420, label: 'General Store' },
-    ];
-    for (const b of buildings) {
-      const px = b.x * TILE;
-      const py = b.y * TILE;
-      const pw = b.w * TILE;
-      const ph = b.h * TILE;
-      this.addWall(px, py, pw, ph, b.color);
-      this.add
-        .text(px + pw / 2, py - 10, b.label, {
-          fontFamily: 'Courier New',
-          fontSize: '13px',
-          color: '#8a7a48',
-        })
-        .setOrigin(0.5, 1);
-      // Darker slot at the doorway.
-      this.add
-        .rectangle(px + pw / 2, py + ph - 4, TILE, 8, 0x1a0e08)
-        .setOrigin(0.5, 0.5);
-    }
+    // Buildings — hollow rooms with a south-facing door. addBuilding
+    // returns the coords just outside the door so NPCs can be placed
+    // near (not blocking) it.
+    const guildDoor = this.addBuilding({
+      xTile: 7,
+      yTile: 5,
+      wTile: 6,
+      hTile: 4,
+      color: 0x4a2e1a,
+      label: "Adventurers' Guild",
+      doorSide: 'bottom',
+    }).doorOutside;
+    const innDoor = this.addBuilding({
+      xTile: 17,
+      yTile: 5,
+      wTile: 6,
+      hTile: 4,
+      color: 0x3a2a30,
+      label: 'Whispering Hollow Inn',
+      doorSide: 'bottom',
+    }).doorOutside;
+    const shopDoor = this.addBuilding({
+      xTile: 28,
+      yTile: 5,
+      wTile: 5,
+      hTile: 3,
+      color: 0x3a3420,
+      label: 'General Store',
+      doorSide: 'bottom',
+    }).doorOutside;
 
     // Empty plot (spec §6.1).
     const plot = { x: 10 * TILE, y: 13 * TILE, w: 5 * TILE, h: 3 * TILE };
@@ -62,10 +61,26 @@ export class TownScene extends BaseWorldScene {
       })
       .setOrigin(0.5);
 
-    // NPCs
-    this.spawnNpc({ key: 'brenna', dialogueId: 'guild-greeting', x: 10 * TILE, y: 10 * TILE });
-    this.spawnNpc({ key: 'tomas', dialogueId: 'tomas-greeting', x: 20 * TILE, y: 10 * TILE });
-    this.spawnNpc({ key: 'vira', dialogueId: 'vira-greeting', x: 30 * TILE, y: 9 * TILE });
+    // NPCs — stand BESIDE their doors (offset one tile to the right)
+    // so the doorway itself stays clear.
+    this.spawnNpc({
+      key: 'brenna',
+      dialogueId: 'guild-greeting',
+      x: guildDoor.x + TILE,
+      y: guildDoor.y,
+    });
+    this.spawnNpc({
+      key: 'tomas',
+      dialogueId: 'tomas-greeting',
+      x: innDoor.x + TILE,
+      y: innDoor.y,
+    });
+    this.spawnNpc({
+      key: 'vira',
+      dialogueId: 'vira-greeting',
+      x: shopDoor.x + TILE,
+      y: shopDoor.y,
+    });
 
     // South-edge exit to Greenhollow Woods.
     this.addExit({

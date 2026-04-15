@@ -36,28 +36,22 @@ export class GreenhollowScene extends BaseWorldScene {
     this.scatterTrees();
 
     // Orric's cabin — smaller than town buildings, tucked in the upper right.
-    const cabinX = 30 * TILE;
-    const cabinY = 3 * TILE;
-    const cabinW = 5 * TILE;
-    const cabinH = 3 * TILE;
-    this.addWall(cabinX, cabinY, cabinW, cabinH, 0x4a3220);
-    this.add
-      .text(cabinX + cabinW / 2, cabinY - 10, "Orric's Cabin", {
-        fontFamily: 'Courier New',
-        fontSize: '13px',
-        color: '#8a7a48',
-      })
-      .setOrigin(0.5, 1);
-    this.add
-      .rectangle(cabinX + cabinW / 2, cabinY + cabinH - 4, TILE, 8, 0x1a0e08)
-      .setOrigin(0.5, 0.5);
+    const cabinDoor = this.addBuilding({
+      xTile: 30,
+      yTile: 3,
+      wTile: 5,
+      hTile: 3,
+      color: 0x4a3220,
+      label: "Orric's Cabin",
+      doorSide: 'bottom',
+    }).doorOutside;
 
-    // Orric at the cabin door.
+    // Orric at the cabin — beside the door, not blocking it.
     this.spawnNpc({
       key: 'orric',
       dialogueId: 'orric-greeting',
-      x: 32 * TILE + 16,
-      y: 7 * TILE,
+      x: cabinDoor.x + TILE,
+      y: cabinDoor.y,
     });
 
     // Zone marker — a text sign near the entrance from Ashenvale.
