@@ -1,0 +1,119 @@
+[
+  {
+    "key": "greatsword",
+    "name": "Greatsword",
+    "handedness": "2h",
+    "attackStat": "str",
+    "damageKind": "slashing",
+    "range": "melee",
+    "description": "A heavy blade, the reach of razor iron. Cleaves, does not prick."
+  },
+  {
+    "key": "longsword",
+    "name": "Longsword",
+    "handedness": "1h",
+    "attackStat": "str",
+    "damageKind": "slashing",
+    "range": "melee",
+    "description": "A soldier's blade. Balanced, proven, nothing more."
+  },
+  {
+    "key": "battleaxe",
+    "name": "Battleaxe",
+    "handedness": "1h",
+    "attackStat": "str",
+    "damageKind": "slashing",
+    "range": "melee",
+    "description": "Cuts wood or bone the same way."
+  },
+  {
+    "key": "greataxe",
+    "name": "Greataxe",
+    "handedness": "2h",
+    "attackStat": "str",
+    "damageKind": "slashing",
+    "range": "melee",
+    "description": "Built for the felling of things larger than men."
+  },
+  {
+    "key": "warhammer",
+    "name": "Warhammer",
+    "handedness": "2h",
+    "attackStat": "str",
+    "damageKind": "bludgeoning",
+    "range": "melee",
+    "description": "Cracks plate. Breaks bone. A slow, certain weapon."
+  },
+  {
+    "key": "mace",
+    "name": "Mace",
+    "handedness": "1h",
+    "attackStat": "str",
+    "damageKind": "bludgeoning",
+    "range": "melee",
+    "description": "Iron-headed and blessed. For those who must break what should not be broken."
+  },
+  {
+    "key": "rapier",
+    "name": "Rapier",
+    "handedness": "1h",
+    "attackStat": "dex",
+    "damageKind": "piercing",
+    "range": "melee",
+    "description": "A duelist's blade. Thrust once, and the fight is over."
+  },
+  {
+    "key": "shortsword",
+    "name": "Shortsword",
+    "handedness": "1h",
+    "attackStat": "dex",
+    "damageKind": "piercing",
+    "range": "melee",
+    "description": "Close, quick, discreet. The weapon of narrow places."
+  },
+  {
+    "key": "dagger",
+    "name": "Dagger",
+    "handedness": "1h",
+    "attackStat": "dex",
+    "damageKind": "piercing",
+    "range": "melee",
+    "description": "Slender. Easily hidden. Often forgotten until it is too late."
+  },
+  {
+    "key": "quarterstaff",
+    "name": "Quarterstaff",
+    "handedness": "2h",
+    "attackStat": "int",
+    "damageKind": "bludgeoning",
+    "range": "melee",
+    "description": "Iron-shod wood, carved with a thousand small sigils. A scholar's weapon, when words fail."
+  },
+  {
+    "key": "longbow",
+    "name": "Longbow",
+    "handedness": "2h",
+    "attackStat": "dex",
+    "damageKind": "piercing",
+    "range": "ranged",
+    "description": "Yew and sinew, drawn to the ear. Distance is a mercy both ways."
+  },
+  {
+    "key": "shortbow",
+    "name": "Shortbow",
+    "handedness": "2h",
+    "attackStat": "dex",
+    "damageKind": "piercing",
+    "range": "ranged",
+    "description": "Faster to draw than the longbow, and just as honest."
+  },
+  {
+    "key": "claws",
+    "name": "Natural Claws",
+    "handedness": "hands",
+    "attackStat": "dex",
+    "damageKind": "slashing",
+    "range": "melee",
+    "description": "What you were born with. Sharper than it should be."
+  }
+]

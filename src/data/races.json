@@ -1,0 +1,163 @@
+[
+  {
+    "key": "human",
+    "name": "Human",
+    "bonuses": { "str": 1, "dex": 1, "con": 1, "int": 1, "wis": 1, "cha": 1 },
+    "passive": {
+      "name": "Versatility",
+      "description": "+1 skill point per level."
+    },
+    "active": {
+      "name": "Second Wind",
+      "description": "Once per short rest, restore HP based on your level."
+    },
+    "world": "Trusted by other humans; better prices at human-run shops.",
+    "flavor": "More versatile than they are remembered for."
+  },
+  {
+    "key": "elf",
+    "name": "Elf",
+    "bonuses": { "str": 0, "dex": 2, "con": 0, "int": 1, "wis": 1, "cha": 0 },
+    "passive": {
+      "name": "Keen Senses",
+      "description": "Cannot be surprised. Sense hidden doors and seams that others miss."
+    },
+    "active": {
+      "name": "Moonbeam",
+      "description": "Ranged magic attack that deals radiant damage."
+    },
+    "world": "Can read ancient Elvish inscriptions, unlocking lore quests.",
+    "flavor": "Graceful, long-lived, detached."
+  },
+  {
+    "key": "dwarf",
+    "name": "Dwarf",
+    "bonuses": { "str": 2, "dex": 0, "con": 2, "int": 0, "wis": 0, "cha": 0 },
+    "passive": {
+      "name": "Stonecunning",
+      "description": "Advantage on checks in caves/dungeons; poison resistance 50%."
+    },
+    "active": {
+      "name": "Dwarven Fortitude",
+      "description": "Reduce incoming damage by 5 for one turn."
+    },
+    "world": "Dwarven merchants offer fair prices; can name the worth of any stone on sight.",
+    "flavor": "Carved out of mountains they refuse to leave."
+  },
+  {
+    "key": "halfling",
+    "name": "Halfling",
+    "bonuses": { "str": 0, "dex": 2, "con": 1, "int": 0, "wis": 0, "cha": 1 },
+    "passive": {
+      "name": "Lucky",
+      "description": "Once per combat, retry a failed action."
+    },
+    "active": {
+      "name": "Dash",
+      "description": "Move 2x this turn; cannot be opportunity-attacked."
+    },
+    "world": "Small enough to slip through gaps that close behind others.",
+    "flavor": "Small. Easily underestimated. Rarely killed twice."
+  },
+  {
+    "key": "orc",
+    "name": "Orc",
+    "bonuses": { "str": 3, "dex": 0, "con": 2, "int": -1, "wis": 0, "cha": 0 },
+    "passive": {
+      "name": "Savage Attacks",
+      "description": "Increased critical hit chance on attacks."
+    },
+    "active": {
+      "name": "Relentless Endurance",
+      "description": "When reduced to 0 HP, drop to 1 HP instead. Once per long rest."
+    },
+    "world": "Your presence cows the cautious; some doors close before you reach them.",
+    "flavor": "Feared on sight, even where they have done no wrong."
+  },
+  {
+    "key": "tiefling",
+    "name": "Tiefling",
+    "bonuses": { "str": 0, "dex": 1, "con": 0, "int": 1, "wis": 0, "cha": 2 },
+    "passive": {
+      "name": "Infernal Legacy",
+      "description": "Fire resistance 50%; darkvision."
+    },
+    "active": {
+      "name": "Hellish Rebuke",
+      "description": "When struck in melee, reflect fire damage back at the attacker."
+    },
+    "world": "The honest distrust you. The other sort take you in.",
+    "flavor": "Born of pacts not their own. The world knows what they are."
+  },
+  {
+    "key": "dragonborn",
+    "name": "Dragonborn",
+    "bonuses": { "str": 2, "dex": 0, "con": 1, "int": 0, "wis": 0, "cha": 1 },
+    "passive": {
+      "name": "Draconic Ancestry",
+      "description": "Pick an element at creation; resist that element 50%."
+    },
+    "active": {
+      "name": "Breath Weapon",
+      "description": "Cone attack that deals elemental damage. Cooldown after each use."
+    },
+    "world": "The dragon-blooded honor you. The slayers of dragons remember you, too.",
+    "flavor": "They carry the blood of dragons. The world has not forgotten what that means.",
+    "playerChoiceOption": {
+      "field": "draconicElement",
+      "options": ["fire", "cold", "lightning", "acid", "poison"],
+      "description": "Pick draconic ancestry element"
+    }
+  },
+  {
+    "key": "gnome",
+    "name": "Gnome",
+    "bonuses": { "str": 0, "dex": 1, "con": 1, "int": 2, "wis": 0, "cha": 0 },
+    "passive": {
+      "name": "Gnome Cunning",
+      "description": "Advantage on saves vs magic effects."
+    },
+    "active": {
+      "name": "Minor Illusion",
+      "description": "Create a decoy that distracts enemies for 2 turns."
+    },
+    "world": "Old mechanisms answer your hands — traps and clockwork that defeat others.",
+    "flavor": "Tinkers and theorists. Their inventions outlive them."
+  },
+  {
+    "key": "half-elf",
+    "name": "Half-Elf",
+    "bonuses": { "str": 0, "dex": 0, "con": 0, "int": 0, "wis": 0, "cha": 2 },
+    "passive": {
+      "name": "Skill Versatility",
+      "description": "Gain proficiency in any two skills."
+    },
+    "active": {
+      "name": "Fey Charm",
+      "description": "Attempt to charm a humanoid for 1 minute (Wisdom save to resist)."
+    },
+    "world": "Welcomed in elf-halls and human towns alike. Belonging follows you nowhere.",
+    "flavor": "Walks between worlds. At home in none.",
+    "playerChoiceBonuses": {
+      "amount": 1,
+      "count": 2,
+      "excludeStats": ["cha"],
+      "description": "Choose 2 different stats other than CHA to gain +1 each"
+    }
+  },
+  {
+    "key": "tabaxi",
+    "name": "Tabaxi",
+    "bonuses": { "str": 0, "dex": 2, "con": 0, "int": 0, "wis": 1, "cha": 1 },
+    "passive": {
+      "name": "Feline Agility",
+      "description": "Double movement on the first turn of combat."
+    },
+    "active": {
+      "name": "Claws",
+      "description": "Natural weapon that deals slashing damage scaling with DEX. Always available."
+    },
+    "world": "Walls hold no secrets from your claws. Beasts speak more freely to you.",
+    "flavor": "Wanderers from beyond the maps. They came once, and stayed."
+  }
+]

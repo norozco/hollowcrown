@@ -1,0 +1,80 @@
+.main-menu {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3rem;
+  background: radial-gradient(
+    ellipse at center,
+    rgba(26, 14, 14, 0.85) 0%,
+    rgba(10, 6, 6, 0.97) 100%
+  );
+}
+
+.main-menu__title {
+  text-align: center;
+}
+
+.main-menu__title h1 {
+  font-size: clamp(3rem, 7vw, 6rem);
+  letter-spacing: 0.5rem;
+  color: #d4a968;
+  text-shadow:
+    0 0 24px rgba(212, 169, 104, 0.35),
+    0 4px 8px rgba(0, 0, 0, 0.9);
+  font-family: 'Courier New', monospace;
+  margin: 0;
+}
+
+.main-menu__subtitle {
+  margin-top: 0.6rem;
+  color: #7a6848;
+  font-style: italic;
+  letter-spacing: 0.25rem;
+  font-size: 0.95rem;
+}
+
+.main-menu__buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.main-menu__buttons button {
+  background: transparent;
+  color: #d4a968;
+  border: 2px solid #5a3a1a;
+  padding: 0.75rem 3rem;
+  font-family: 'Courier New', monospace;
+  font-size: 1.1rem;
+  letter-spacing: 0.1rem;
+  cursor: pointer;
+  transition: transform 120ms, background-color 120ms, border-color 120ms;
+  min-width: 260px;
+}
+
+.main-menu__buttons button:hover {
+  background: rgba(90, 58, 26, 0.3);
+  border-color: #d4a968;
+  transform: translateY(-1px);
+}
+
+.main-menu__buttons button:active {
+  transform: translateY(0);
+}
+
+.main-menu__buttons button:focus-visible {
+  outline: 2px solid #d4a968;
+  outline-offset: 3px;
+}
+
+.main-menu__version {
+  position: absolute;
+  bottom: 1.4rem;
+  right: 2rem;
+  color: #4a3828;
+  font-size: 0.78rem;
+  letter-spacing: 0.1rem;
+}

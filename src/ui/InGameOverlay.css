@@ -1,0 +1,137 @@
+.ig {
+  position: absolute;
+  inset: 0;
+  /* No background — let the Phaser town scene show through. Only the
+     HUD strip at the top darkens. */
+  color: #e4d4a0;
+  font-family: 'Courier New', 'Lucida Console', monospace;
+  pointer-events: none;
+}
+
+/* The HUD and corner menu DO need pointer events. */
+.ig__hud,
+.ig__menu,
+.ig__menu-btn,
+.ig__center {
+  pointer-events: auto;
+}
+
+/* Top HUD strip */
+.ig__hud {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.55rem 1.5rem;
+  background: rgba(10, 6, 6, 0.85);
+  border-bottom: 1px solid #5a3a1a;
+  gap: 1rem;
+}
+
+.ig__hud-block {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  font-size: 0.9rem;
+}
+
+.ig__bars {
+  flex-direction: row;
+  gap: 1.2rem;
+  font-size: 0.95rem;
+  color: #d4a968;
+  align-items: center;
+}
+
+.ig__name {
+  color: #f4d488;
+  font-weight: bold;
+  letter-spacing: 0.1rem;
+  font-size: 1.05rem;
+}
+
+.ig__sub {
+  color: #8a7a48;
+  font-size: 0.85rem;
+}
+
+.ig__hc {
+  color: #d47070;
+  font-weight: bold;
+}
+
+.ig__weapon {
+  color: #e4d4a0;
+  cursor: help;
+}
+
+.ig__menu-btn {
+  background: transparent;
+  border: 1px solid #5a3a1a;
+  color: #d4a968;
+  width: 2rem;
+  height: 2rem;
+  font-size: 1.1rem;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background-color 120ms, border-color 120ms;
+}
+
+.ig__menu-btn:hover {
+  background: rgba(90, 58, 26, 0.3);
+  border-color: #d4a968;
+}
+
+/* Center screen for the "no character" fallback */
+.ig__center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 1rem;
+  padding: 2rem;
+  height: 100%;
+}
+
+.ig__center h2 {
+  color: #d4a968;
+  letter-spacing: 0.2rem;
+  margin: 0;
+}
+
+/* Corner pause / menu popover */
+.ig__menu {
+  position: absolute;
+  top: 4rem;
+  right: 1.5rem;
+  background: rgba(10, 6, 6, 0.98);
+  border: 2px solid #5a3a1a;
+  padding: 1rem;
+  min-width: 240px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  z-index: 15;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.6);
+}
+
+.ig__menu h3 {
+  color: #d4a968;
+  letter-spacing: 0.2rem;
+  margin: 0 0 0.3rem 0;
+  text-align: center;
+  border-bottom: 1px solid #3a2818;
+  padding-bottom: 0.4rem;
+}
+
+.ig__controls-hint {
+  position: absolute;
+  left: 1rem;
+  bottom: 0.8rem;
+  margin: 0;
+  color: #8a7a48;
+  font-size: 0.78rem;
+  letter-spacing: 0.05rem;
+  font-style: italic;
+  pointer-events: none;
+}

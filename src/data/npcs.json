@@ -1,0 +1,26 @@
+{
+  "brenna": {
+    "key": "brenna",
+    "name": "Brenna",
+    "title": "Guildmaster",
+    "portraitColor": "#5a3a1a",
+    "accentColor": "#d4a968",
+    "description": "Hard-eyed and careful. Has sent more adventurers to their deaths than she will ever admit."
+  },
+  "tomas": {
+    "key": "tomas",
+    "name": "Tomas",
+    "title": "Innkeeper of the Whispering Hollow",
+    "portraitColor": "#3a4820",
+    "accentColor": "#a8c468",
+    "description": "Polite to a fault. Remembers every guest who never came down for breakfast."
+  },
+  "vira": {
+    "key": "vira",
+    "name": "Vira",
+    "title": "Merchant",
+    "portraitColor": "#4a2030",
+    "accentColor": "#c46888",
+    "description": "Prices fair, weights honest, smile unreadable."
+  }
+}

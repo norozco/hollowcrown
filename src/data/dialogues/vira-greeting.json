@@ -1,0 +1,59 @@
+{
+  "id": "vira-greeting",
+  "start": "enter",
+  "nodes": {
+    "enter": {
+      "id": "enter",
+      "speaker": "narrator",
+      "text": "The shop smells of dried herbs, salt, and lamp-oil. Shelves stand behind a woman who does not waste motion. She watches you as you cross the threshold, and by the time you reach the counter she has decided how much of her attention you are worth.",
+      "next": "hello"
+    },
+    "hello": {
+      "id": "hello",
+      "speaker": "vira",
+      "expression": "thoughtful",
+      "text": "First time in Ashenvale. Good — the regulars are mostly gone, so I won't mistake you for one. What do you need?",
+      "choices": [
+        { "text": "What are you selling?", "next": "wares" },
+        { "text": "What happened to your regulars?", "next": "missing" },
+        { "text": "Heard any rumors worth coin?", "next": "rumors" },
+        { "text": "[Just browse and go.]", "next": "leave" }
+      ]
+    },
+    "wares": {
+      "id": "wares",
+      "speaker": "vira",
+      "expression": "neutral",
+      "text": "The usual. Rope, oil, flint, hard tack. A few healing salves — not as good as a cleric's work, but cheaper. Arrows by the dozen. Ask again when I've finished the inventory and I'll have prices.",
+      "next": "hello"
+    },
+    "missing": {
+      "id": "missing",
+      "speaker": "vira",
+      "expression": "sad",
+      "text": "The trade roads dried up. The Greenhollow route stopped carrying anything worth carrying. Some of the merchants walked back. Some did not. I do not ask after the ones who did not. I ration what I have, and I am careful about who I extend credit to.",
+      "next": "hello"
+    },
+    "rumors": {
+      "id": "rumors",
+      "speaker": "vira",
+      "expression": "thoughtful",
+      "text": "I hear what the guild hears, a little earlier. An adventurer came through three weeks ago with a piece of old iron he could not explain. He sold it to a woman I did not recognize, for more than it was worth. He tried to buy it back the next morning, sweating, and left without it. I have not seen him since.",
+      "next": "rumors-hint"
+    },
+    "rumors-hint": {
+      "id": "rumors-hint",
+      "speaker": "vira",
+      "expression": "neutral",
+      "text": "I don't sell old iron. I sell oil, and salt, and rope. Would you like oil, salt, or rope?",
+      "next": "hello"
+    },
+    "leave": {
+      "id": "leave",
+      "speaker": "vira",
+      "expression": "neutral",
+      "text": "Come back when you know what you need. I will be here.",
+      "next": null
+    }
+  }
+}

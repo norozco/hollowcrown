@@ -1,0 +1,59 @@
+{
+  "id": "tomas-greeting",
+  "start": "enter",
+  "nodes": {
+    "enter": {
+      "id": "enter",
+      "speaker": "narrator",
+      "text": "The inn is warm. Wood-smoke, day-old bread, a fire the color of regret. A slim man at the counter sets his ledger down as you approach, and his smile is polite enough to be nothing at all.",
+      "next": "hello"
+    },
+    "hello": {
+      "id": "hello",
+      "speaker": "tomas",
+      "expression": "neutral",
+      "text": "Welcome to the Whispering Hollow. The name is older than the inn, in case anyone has told you otherwise. What will it be — a bed, a meal, or just the fire?",
+      "choices": [
+        { "text": "How much for a bed?", "next": "bed" },
+        { "text": "Who usually stays here?", "next": "regulars" },
+        { "text": "I'm looking for a scholar. An Elven man, Veyrin.", "next": "veyrin" },
+        { "text": "[Leave quietly.]", "next": "leave" }
+      ]
+    },
+    "bed": {
+      "id": "bed",
+      "speaker": "tomas",
+      "expression": "neutral",
+      "text": "Ten gold for a night. Twelve if you want the east room — it has the window that does not stick. A hot meal is included either way.",
+      "next": "hello"
+    },
+    "regulars": {
+      "id": "regulars",
+      "speaker": "tomas",
+      "expression": "sad",
+      "text": "Fewer, these past months. Mostly adventurers now. The merchants stopped coming when the Greenhollow road went quiet. Some of the rooms are still held for those who paid ahead and have not come back to sleep in them.",
+      "next": "hello"
+    },
+    "veyrin": {
+      "id": "veyrin",
+      "speaker": "tomas",
+      "expression": "thoughtful",
+      "text": "Veyrin. Quiet man. Paid in moonlight silver, once, which I took because he asked kindly. Walked out one morning toward the woods and said he would be back by supper. His bed is still made. I keep his room for him. Call it a habit.",
+      "next": "veyrin-offer"
+    },
+    "veyrin-offer": {
+      "id": "veyrin-offer",
+      "speaker": "tomas",
+      "expression": "neutral",
+      "text": "If you find him — or find what is left of him — I would like to know. I keep the room either way. I would just like to stop setting out the tea.",
+      "next": "hello"
+    },
+    "leave": {
+      "id": "leave",
+      "speaker": "tomas",
+      "expression": "neutral",
+      "text": "As you like. The fire will be here. So will I.",
+      "next": null
+    }
+  }
+}

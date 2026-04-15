@@ -1,0 +1,96 @@
+[
+  {
+    "key": "fighter",
+    "name": "Fighter",
+    "primaryStats": ["str", "con"],
+    "hpPerLevel": 10,
+    "mpStat": null,
+    "role": "Tank / melee DPS",
+    "signatureAbility": {
+      "name": "Action Surge",
+      "description": "Take an extra attack once per combat."
+    },
+    "startingWeapons": [
+      { "key": "greatsword", "preferStat": "str" },
+      { "key": "rapier", "preferStat": "dex" }
+    ]
+  },
+  {
+    "key": "rogue",
+    "name": "Rogue",
+    "primaryStats": ["dex", "int"],
+    "hpPerLevel": 6,
+    "mpStat": null,
+    "role": "Stealth / crit damage",
+    "signatureAbility": {
+      "name": "Sneak Attack",
+      "description": "Bonus damage when flanking, scaling with your level."
+    },
+    "startingWeapons": [
+      { "key": "dagger", "preferStat": "dex" }
+    ]
+  },
+  {
+    "key": "wizard",
+    "name": "Wizard",
+    "primaryStats": ["int", "wis"],
+    "hpPerLevel": 4,
+    "mpStat": "int",
+    "role": "AOE caster",
+    "signatureAbility": {
+      "name": "Fireball",
+      "description": "Unlocked at lvl 3; spellbook grows with levels. Learns Teleport at lvl 9 (fast travel)."
+    },
+    "startingWeapons": [
+      { "key": "quarterstaff", "preferStat": "int" },
+      { "key": "dagger", "preferStat": "dex" }
+    ]
+  },
+  {
+    "key": "cleric",
+    "name": "Cleric",
+    "primaryStats": ["wis", "cha"],
+    "hpPerLevel": 8,
+    "mpStat": "wis",
+    "role": "Healer / support",
+    "signatureAbility": {
+      "name": "Cure Wounds",
+      "description": "Heal an ally; can also turn undead."
+    },
+    "startingWeapons": [
+      { "key": "mace", "preferStat": "str" }
+    ]
+  },
+  {
+    "key": "ranger",
+    "name": "Ranger",
+    "primaryStats": ["dex", "wis"],
+    "hpPerLevel": 8,
+    "mpStat": "wis",
+    "role": "Ranged DPS / tracker",
+    "signatureAbility": {
+      "name": "Hunter's Mark",
+      "description": "Mark an enemy for bonus damage; gain animal companion at lvl 3."
+    },
+    "startingWeapons": [
+      { "key": "longbow", "preferStat": "dex" },
+      { "key": "shortbow", "preferStat": "dex" }
+    ]
+  },
+  {
+    "key": "bard",
+    "name": "Bard",
+    "primaryStats": ["cha", "dex"],
+    "hpPerLevel": 6,
+    "mpStat": "cha",
+    "role": "Support / crowd control",
+    "signatureAbility": {
+      "name": "Vicious Mockery",
+      "description": "Insult an enemy for psychic damage; party buff auras."
+    },
+    "startingWeapons": [
+      { "key": "rapier", "preferStat": "dex" },
+      { "key": "shortsword", "preferStat": "dex" }
+    ]
+  }
+]

@@ -1,0 +1,124 @@
+{
+  "id": "guild-greeting",
+  "start": "intro",
+  "nodes": {
+    "intro": {
+      "id": "intro",
+      "speaker": "narrator",
+      "text": "The guild hall is smaller than the stories said. Candle-smoke and old ledgers. A fire down to its last embers. A woman at the counter does not look up as you cross the threshold.",
+      "next": "brenna-notices"
+    },
+    "brenna-notices": {
+      "id": "brenna-notices",
+      "speaker": "brenna",
+      "expression": "thoughtful",
+      "text": "...Another one. I'd hoped we were done for the season.",
+      "next": "brenna-greet"
+    },
+    "brenna-greet": {
+      "id": "brenna-greet",
+      "speaker": "brenna",
+      "expression": "neutral",
+      "text": "You came all the way to Ashenvale. That tells me something. What it tells me depends on what you say next.",
+      "choices": [
+        { "text": "I heard there was work here.", "next": "path-work" },
+        { "text": "I followed a rumor.", "next": "path-rumor" },
+        { "text": "I had nowhere else to go.", "next": "path-nowhere" },
+        { "text": "[Watch her in silence.]", "next": "path-silent" }
+      ]
+    },
+    "path-work": {
+      "id": "path-work",
+      "speaker": "brenna",
+      "expression": "neutral",
+      "text": "Work, yes. We had four adventurers take a cave job three weeks ago. None of them came back. The job is still on the board. So — we have work. Not all of it is the kind you'll thank me for.",
+      "next": "converge"
+    },
+    "path-rumor": {
+      "id": "path-rumor",
+      "speaker": "brenna",
+      "expression": "thoughtful",
+      "text": "Which one? The tower that rings at moonrise. The thing under the Mossbarrow ruins. Or the crack in the sky some nights — if you stand on the east hill after the bells, and you still have the wits to look up.",
+      "next": "converge"
+    },
+    "path-nowhere": {
+      "id": "path-nowhere",
+      "speaker": "brenna",
+      "expression": "sad",
+      "text": "Then you are among family. Half the people under this roof ran out of roads. Some of us sleep anyway. It passes.",
+      "next": "converge"
+    },
+    "path-silent": {
+      "id": "path-silent",
+      "speaker": "brenna",
+      "expression": "thoughtful",
+      "text": "Good. You will last longer than most. They walk through that door and start explaining themselves to me before I've finished reading my ledger. As if a name can make them real.",
+      "next": "converge"
+    },
+    "converge": {
+      "id": "converge",
+      "speaker": "brenna",
+      "expression": "neutral",
+      "text": "Whatever brought you, the board still has work, and the wall still has room for names. But before you sign — look at this.",
+      "next": "token-reveal"
+    },
+    "token-reveal": {
+      "id": "token-reveal",
+      "speaker": "narrator",
+      "text": "She sets a small iron token on the counter between you. A line, a curl, a dot — a simple mark scored into the metal. When you look directly at it, it is still. When you look away, you are almost certain the mark has moved.",
+      "next": "token-brenna"
+    },
+    "token-brenna": {
+      "id": "token-brenna",
+      "speaker": "brenna",
+      "expression": "thoughtful",
+      "text": "Three mornings ago, someone left it in the ink-pot. No one remembers putting it there. It is not ours. And it will not leave — I have tried.",
+      "choices": [
+        { "text": "What does the symbol mean?", "next": "path-meaning" },
+        { "text": "Why are you telling me this?", "next": "path-why" },
+        { "text": "I want nothing to do with that.", "next": "path-refuse" }
+      ]
+    },
+    "path-meaning": {
+      "id": "path-meaning",
+      "speaker": "brenna",
+      "expression": "neutral",
+      "text": "No one still in Ashenvale can read it. There was a scholar — an Elven man called Veyrin — who could. He went into the Greenhollow woods a fortnight ago on a smaller job. He has not come back. I am told the walk is short.",
+      "next": "offer"
+    },
+    "path-why": {
+      "id": "path-why",
+      "speaker": "brenna",
+      "expression": "neutral",
+      "text": "Because you walked in today, which is more than any of my current adventurers have done. Because you have the look of someone still capable of being curious. Do not take it as a compliment. Curious people also die.",
+      "next": "offer"
+    },
+    "path-refuse": {
+      "id": "path-refuse",
+      "speaker": "brenna",
+      "expression": "neutral",
+      "text": "Good answer. The sensible ones live longest. The F-rank board is by the fire — wolves to cull, a dog to find, a merchant needing escort. Honest work. Welcome to the guild.",
+      "next": null
+    },
+    "offer": {
+      "id": "offer",
+      "speaker": "brenna",
+      "expression": "neutral",
+      "text": "Go to Greenhollow. There is a forester — an old man named Orric — who keeps a cabin near the tree-line. Ask him about a scholar. If Veyrin is alive, bring him back. If he is not, bring what he was carrying. And do not tell the others what I showed you today.",
+      "next": "final"
+    },
+    "final": {
+      "id": "final",
+      "speaker": "brenna",
+      "expression": "neutral",
+      "text": "The F-rank board is by the fire. A wolf cull. An escort. A missing dog. Honest work, if you want it. But whatever you take — keep the token on you. I think it wants to be carried.",
+      "next": "close"
+    },
+    "close": {
+      "id": "close",
+      "speaker": "narrator",
+      "text": "She returns to her ledger. The token is warm in your hand, though the counter was cold.",
+      "next": null
+    }
+  }
+}

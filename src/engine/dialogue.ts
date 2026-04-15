@@ -1,0 +1,148 @@
+/**
+ * Dialogue system — deterministic state machine on top of JSON-defined
+ * dialogue trees. Nodes are authored content; the runtime walks them.
+ *
+ * A Dialogue is a graph of DialogueNodes keyed by id. Each node has a
+ * speaker, a line of text, and either:
+ *   - `choices`: the player picks one; the chosen option names the next
+ *     node (or null to end the conversation).
+ *   - `next`:    auto-advance to a named next node on Space/click.
+ *   - neither:   the dialogue ends when the player advances this node.
+ */
+
+/** Special speaker tokens. "narrator" = no portrait; "player" = the PC. */
+export type SpeakerKey = 'narrator' | 'player' | string;
+
+export type Expression =
+  | 'neutral'
+  | 'happy'
+  | 'sad'
+  | 'angry'
+  | 'shocked'
+  | 'thoughtful';
+
+export interface DialogueChoice {
+  text: string;
+  /** The id of the next node, or null to end the dialogue on this choice. */
+  next: string | null;
+}
+
+export interface DialogueNode {
+  id: string;
+  speaker: SpeakerKey;
+  /** Optional emotion/expression hint; defaults to neutral. */
+  expression?: Expression;
+  text: string;
+  /** Player choices. Mutually exclusive with `next`. */
+  choices?: DialogueChoice[];
+  /** Auto-advance target. Mutually exclusive with `choices`. */
+  next?: string;
+}
+
+export interface Dialogue {
+  id: string;
+  /** Node id to start at. */
+  start: string;
+  nodes: Record<string, DialogueNode>;
+}
+
+/** Runtime state of an in-progress dialogue. */
+export interface DialogueState {
+  dialogueId: string;
+  currentNodeId: string;
+  /** Stack of node ids visited, newest last. Useful for debug/history. */
+  history: readonly string[];
+}
+
+/** Create a fresh DialogueState positioned at a Dialogue's start node. */
+export function startDialogue(dialogue: Dialogue): DialogueState {
+  if (!dialogue.nodes[dialogue.start]) {
+    throw new Error(
+      `Dialogue "${dialogue.id}" has no start node "${dialogue.start}"`,
+    );
+  }
+  return {
+    dialogueId: dialogue.id,
+    currentNodeId: dialogue.start,
+    history: [dialogue.start],
+  };
+}
+
+/** Look up the current node given the state and the Dialogue source. */
+export function currentNode(dialogue: Dialogue, state: DialogueState): DialogueNode {
+  const node = dialogue.nodes[state.currentNodeId];
+  if (!node) {
+    throw new Error(
+      `Dialogue "${dialogue.id}" has no node "${state.currentNodeId}"`,
+    );
+  }
+  return node;
+}
+
+/**
+ * Advance past a node that has a `next` pointer. Throws if the current
+ * node expects a choice. Returns null if there's no next (end of line).
+ */
+export function advance(
+  dialogue: Dialogue,
+  state: DialogueState,
+): DialogueState | null {
+  const node = currentNode(dialogue, state);
+  if (node.choices && node.choices.length > 0) {
+    throw new Error(
+      `Cannot auto-advance node "${node.id}" — it requires a choice`,
+    );
+  }
+  if (!node.next) return null;
+  return {
+    ...state,
+    currentNodeId: node.next,
+    history: [...state.history, node.next],
+  };
+}
+
+/**
+ * Apply the player's choice at a branching node. Returns null if the
+ * choice ends the dialogue; throws if the node has no choices or the
+ * index is out of range.
+ */
+export function choose(
+  dialogue: Dialogue,
+  state: DialogueState,
+  choiceIndex: number,
+): DialogueState | null {
+  const node = currentNode(dialogue, state);
+  if (!node.choices || node.choices.length === 0) {
+    throw new Error(`Node "${node.id}" has no choices`);
+  }
+  const choice = node.choices[choiceIndex];
+  if (!choice) {
+    throw new Error(
+      `Node "${node.id}" has no choice at index ${choiceIndex}`,
+    );
+  }
+  if (choice.next === null) return null;
+  return {
+    ...state,
+    currentNodeId: choice.next,
+    history: [...state.history, choice.next],
+  };
+}
+
+/** Does the current node require the player to pick a choice? */
+export function awaitsChoice(
+  dialogue: Dialogue,
+  state: DialogueState,
+): boolean {
+  const node = currentNode(dialogue, state);
+  return !!(node.choices && node.choices.length > 0);
+}
+
+/** Is the current node a terminal (no next, no choices)? */
+export function isTerminal(
+  dialogue: Dialogue,
+  state: DialogueState,
+): boolean {
+  const node = currentNode(dialogue, state);
+  return !node.next && (!node.choices || node.choices.length === 0);
+}
