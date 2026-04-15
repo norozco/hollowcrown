@@ -1,0 +1,45 @@
+{
+  "id": "mossbarrow-cairn",
+  "start": "arrive",
+  "nodes": {
+    "arrive": {
+      "id": "arrive",
+      "speaker": "narrator",
+      "text": "The stones are older than any language you were ever taught. They have been here long enough that the moss on them has its own history. Up close, the center stone is warmer than the air around it. Something has been here recently.",
+      "next": "find-book"
+    },
+    "find-book": {
+      "id": "find-book",
+      "speaker": "narrator",
+      "text": "A small leather-bound book lies half-buried in the moss at the base of the stone. The cover is damp and the stitching has begun to loosen, but when you lift it you can feel the weight of a life inside it. The hand is precise. Elven, precise, and afraid.",
+      "next": "read-entry"
+    },
+    "read-entry": {
+      "id": "read-entry",
+      "speaker": "narrator",
+      "text": "The last entry, written three days ago: \"Found the sealing-mark. It is NOT a warding — it is an anchor. Whatever is held in place here, the holding costs. It takes. I must tell Brenna. But the token grows warm when I speak her name. I will not speak it again until I am home.\"",
+      "next": "pages-torn"
+    },
+    "pages-torn": {
+      "id": "pages-torn",
+      "speaker": "narrator",
+      "text": "The two pages after that entry have been torn out. Not neatly. You turn the book in your hands and the torn edges come away with a thin line of dried blood along one.",
+      "next": "token-pulse"
+    },
+    "token-pulse": {
+      "id": "token-pulse",
+      "speaker": "narrator",
+      "text": "In your pocket, the iron token Brenna gave you pulses once — faint, warm, almost a heartbeat — and is still. Whatever brought Veyrin to this place, it knows that you are here now too.",
+      "next": "close",
+      "effects": [
+        { "type": "complete-objective", "questId": "iron-token", "objectiveId": "find-cairn" }
+      ]
+    },
+    "close": {
+      "id": "close",
+      "speaker": "narrator",
+      "text": "You tuck the book into your pack. The woods behind you, suddenly, are silent.",
+      "next": null
+    }
+  }
+}

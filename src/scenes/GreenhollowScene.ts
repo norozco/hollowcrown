@@ -75,16 +75,29 @@ export class GreenhollowScene extends BaseWorldScene {
       targetSpawn: 'fromGreenhollow',
       label: '↑ Ashenvale',
     });
+
+    // East edge exit to Mossbarrow Cairn — Orric's "east of my cabin".
+    this.addExit({
+      x: WORLD_W - TILE,
+      y: 0,
+      w: TILE,
+      h: WORLD_H,
+      targetScene: 'MossbarrowScene',
+      targetSpawn: 'fromGreenhollow',
+      label: '→ Mossbarrow',
+    });
   }
 
   protected spawnAt(name: string): { x: number; y: number } {
     switch (name) {
       case 'fromAshenvale':
-        // Entered from north edge of Ashenvale (= top in world coords... wait:
-        // Ashenvale's SOUTH edge connects to Greenhollow's SOUTH edge, so the
-        // player arrives at the south of the woods and walks north toward
-        // Orric's cabin). Spawn near the southern entrance.
+        // Ashenvale's south edge connects to Greenhollow's south edge,
+        // so the player arrives at the south of the woods and walks
+        // north toward Orric's cabin.
         return { x: WORLD_W / 2, y: WORLD_H - TILE * 3 };
+      case 'fromMossbarrow':
+        // Returning from the east — spawn near the east edge.
+        return { x: WORLD_W - TILE * 3, y: WORLD_H / 2 };
       case 'default':
       default:
         return { x: WORLD_W / 2, y: WORLD_H - TILE * 3 };

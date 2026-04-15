@@ -27,6 +27,18 @@ interface NpcSprite {
   nameLabel: Phaser.GameObjects.Text;
 }
 
+interface Interactable {
+  sprite: Phaser.GameObjects.GameObject & { x: number; y: number };
+  label: string;
+  action: () => void;
+  radius: number;
+}
+
+/** What the player is standing near and could press E on. */
+type NearbyTarget =
+  | { kind: 'npc'; ref: NpcSprite; label: string; x: number; y: number; radius: number }
+  | { kind: 'interactable'; ref: Interactable; label: string; x: number; y: number; radius: number };
+
 interface Exit {
   /** Trigger rectangle (physical bounds for overlap check). */
   x: number;
@@ -61,9 +73,10 @@ export abstract class BaseWorldScene extends Phaser.Scene {
 
   protected walls!: Phaser.Physics.Arcade.StaticGroup;
   protected npcs: NpcSprite[] = [];
+  protected interactables: Interactable[] = [];
   protected exits: Exit[] = [];
   protected prompt!: Phaser.GameObjects.Text;
-  protected nearbyNpc: NpcSprite | null = null;
+  protected nearbyTarget: NearbyTarget | null = null;
 
   /** Guards against re-entering checkExits during a transition. */
   private transitionLock = false;
@@ -84,8 +97,9 @@ export abstract class BaseWorldScene extends Phaser.Scene {
 
   create(data?: WorldSceneInit): void {
     this.npcs = [];
+    this.interactables = [];
     this.exits = [];
-    this.nearbyNpc = null;
+    this.nearbyTarget = null;
     this.transitionLock = false;
 
     this.walls = this.physics.add.staticGroup();
@@ -113,6 +127,7 @@ export abstract class BaseWorldScene extends Phaser.Scene {
     if (useDialogueStore.getState().dialogue) {
       (this.player.body as Phaser.Physics.Arcade.Body).setVelocity(0, 0);
       this.prompt.setVisible(false);
+      this.nearbyTarget = null;
       return;
     }
 
@@ -255,6 +270,25 @@ export abstract class BaseWorldScene extends Phaser.Scene {
     }
 
     return { doorOutside: { x: doorOutsideX, y: doorOutsideY } };
+  }
+
+  /**
+   * Spawn a non-NPC interactable the player can `E`-press. Used for
+   * environment objects — cairns, chests, signs, levers. The sprite
+   * is passed in so callers control its look.
+   */
+  protected spawnInteractable(cfg: {
+    sprite: Phaser.GameObjects.GameObject & { x: number; y: number };
+    label: string;
+    radius?: number;
+    action: () => void;
+  }): void {
+    this.interactables.push({
+      sprite: cfg.sprite,
+      label: cfg.label,
+      radius: cfg.radius ?? 24,
+      action: cfg.action,
+    });
   }
 
   /** Spawn an NPC circle at tile coords, with name floating above. */
@@ -411,8 +445,9 @@ export abstract class BaseWorldScene extends Phaser.Scene {
   }
 
   private updateProximityPrompt(): void {
-    let closest: NpcSprite | null = null;
-    let closestDist = INTERACT_RADIUS;
+    let best: NearbyTarget | null = null;
+    let bestDist = Number.POSITIVE_INFINITY;
+
     for (const npc of this.npcs) {
       const d = Phaser.Math.Distance.Between(
         this.player.x,
@@ -420,16 +455,44 @@ export abstract class BaseWorldScene extends Phaser.Scene {
         npc.sprite.x,
         npc.sprite.y,
       );
-      if (d < closestDist) {
-        closest = npc;
-        closestDist = d;
+      if (d < INTERACT_RADIUS && d < bestDist) {
+        best = {
+          kind: 'npc',
+          ref: npc,
+          label: `[E] Speak with ${npc.name}`,
+          x: npc.sprite.x,
+          y: npc.sprite.y,
+          radius: NPC_RADIUS,
+        };
+        bestDist = d;
       }
     }
-    this.nearbyNpc = closest;
-    if (closest) {
+
+    for (const ix of this.interactables) {
+      const d = Phaser.Math.Distance.Between(
+        this.player.x,
+        this.player.y,
+        ix.sprite.x,
+        ix.sprite.y,
+      );
+      if (d < INTERACT_RADIUS + ix.radius && d < bestDist) {
+        best = {
+          kind: 'interactable',
+          ref: ix,
+          label: `[E] ${ix.label}`,
+          x: ix.sprite.x,
+          y: ix.sprite.y,
+          radius: ix.radius,
+        };
+        bestDist = d;
+      }
+    }
+
+    this.nearbyTarget = best;
+    if (best) {
       this.prompt
-        .setText(`[E] Speak with ${closest.name}`)
-        .setPosition(closest.sprite.x, closest.sprite.y - NPC_RADIUS - 24)
+        .setText(best.label)
+        .setPosition(best.x, best.y - best.radius - 24)
         .setVisible(true);
     } else {
       this.prompt.setVisible(false);
@@ -437,11 +500,21 @@ export abstract class BaseWorldScene extends Phaser.Scene {
   }
 
   private handleInteraction(): void {
-    if (this.nearbyNpc && Phaser.Input.Keyboard.JustDown(this.keyE)) {
+    if (!this.nearbyTarget) return;
+    if (!Phaser.Input.Keyboard.JustDown(this.keyE)) return;
+    if (this.nearbyTarget.kind === 'npc') {
       try {
-        useDialogueStore.getState().start(getDialogue(this.nearbyNpc.dialogueId));
+        useDialogueStore
+          .getState()
+          .start(getDialogue(this.nearbyTarget.ref.dialogueId));
       } catch (err) {
         console.warn('Failed to start dialogue:', err);
+      }
+    } else {
+      try {
+        this.nearbyTarget.ref.action();
+      } catch (err) {
+        console.warn('Interactable action failed:', err);
       }
     }
   }
