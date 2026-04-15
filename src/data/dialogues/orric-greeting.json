@@ -31,7 +31,10 @@
       "speaker": "orric",
       "expression": "sad",
       "text": "Aye. I saw him. Paler than most elves, and he carried a book he'd tucked against his ribs like it might run. He sat where you're standing and asked me about the old cairn east of here — the one under the ivy, past the hollow oak.",
-      "next": "veyrin-warning"
+      "next": "veyrin-warning",
+      "effects": [
+        { "type": "complete-objective", "questId": "iron-token", "objectiveId": "talk-orric" }
+      ]
     },
     "veyrin-warning": {
       "id": "veyrin-warning",

@@ -2,7 +2,9 @@ import { useEffect, useState } from 'react';
 import { usePlayerStore } from '../state/playerStore';
 import { useUIStore } from '../state/uiStore';
 import { useDialogueStore } from '../state/dialogueStore';
+import { useQuestStore } from '../state/questStore';
 import { DialogueScene } from './Dialogue/DialogueScene';
+import { QuestTracker } from './QuestTracker/QuestTracker';
 import './InGameOverlay.css';
 
 /**
@@ -17,6 +19,7 @@ export function InGameOverlay() {
   const setScreen = useUIStore((s) => s.setScreen);
   const clearPlayer = usePlayerStore((s) => s.clear);
   const dialogueActive = useDialogueStore((s) => s.dialogue !== null);
+  const resetQuests = useQuestStore((s) => s.reset);
 
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -55,6 +58,7 @@ export function InGameOverlay() {
 
   const returnToMenu = () => {
     clearPlayer();
+    resetQuests();
     setMenuOpen(false);
     setScreen('menu');
   };
@@ -106,6 +110,8 @@ export function InGameOverlay() {
           </button>
         </div>
       )}
+
+      <QuestTracker />
 
       <p className="ig__controls-hint">WASD / Arrows to move · E to interact · Esc for menu</p>
 

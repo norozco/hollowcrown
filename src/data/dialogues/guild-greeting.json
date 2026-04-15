@@ -105,7 +105,10 @@
       "speaker": "brenna",
       "expression": "neutral",
       "text": "Go to Greenhollow. There is a forester — an old man named Orric — who keeps a cabin near the tree-line. Ask him about a scholar. If Veyrin is alive, bring him back. If he is not, bring what he was carrying. And do not tell the others what I showed you today.",
-      "next": "final"
+      "next": "final",
+      "effects": [
+        { "type": "accept-quest", "questId": "iron-token" }
+      ]
     },
     "final": {
       "id": "final",

@@ -27,6 +27,16 @@ export interface DialogueChoice {
   next: string | null;
 }
 
+/**
+ * Side-effects fired by the dialogue runtime when a node is entered.
+ * Effects are idempotent — re-entering the same node fires them again,
+ * but receivers (e.g. questStore) treat repeated calls as no-ops, so
+ * the player can revisit dialogue without breaking progress.
+ */
+export type DialogueEffect =
+  | { type: 'accept-quest'; questId: string }
+  | { type: 'complete-objective'; questId: string; objectiveId: string };
+
 export interface DialogueNode {
   id: string;
   speaker: SpeakerKey;
@@ -37,6 +47,8 @@ export interface DialogueNode {
   choices?: DialogueChoice[];
   /** Auto-advance target. Mutually exclusive with `choices`. */
   next?: string;
+  /** Side effects that fire when the dialogue runtime ENTERS this node. */
+  effects?: DialogueEffect[];
 }
 
 export interface Dialogue {

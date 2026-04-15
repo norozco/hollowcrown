@@ -1,0 +1,118 @@
+.qt {
+  position: absolute;
+  right: 1rem;
+  bottom: 2.6rem;
+  max-width: 320px;
+  min-width: 240px;
+  background: rgba(10, 6, 6, 0.88);
+  border: 1px solid #5a3a1a;
+  padding: 0.6rem 0.8rem 0.7rem 0.8rem;
+  pointer-events: auto;
+  font-family: 'Courier New', 'Lucida Console', monospace;
+  color: #e4d4a0;
+  z-index: 12;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.55);
+}
+
+.qt__heading {
+  margin: 0 0 0.45rem 0;
+  font-size: 0.78rem;
+  letter-spacing: 0.2rem;
+  color: #8a7a48;
+  text-transform: uppercase;
+  border-bottom: 1px solid #3a2818;
+  padding-bottom: 0.3rem;
+}
+
+.qt__list,
+.qt__objectives {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.qt__quest {
+  padding: 0.4rem 0;
+  border-top: 1px dashed #2a1810;
+  transition: background-color 250ms;
+}
+
+.qt__quest:first-child {
+  border-top: none;
+  padding-top: 0;
+}
+
+.qt__title {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.5rem;
+  color: #d4a968;
+  font-size: 0.95rem;
+  letter-spacing: 0.05rem;
+  margin-bottom: 0.3rem;
+}
+
+.qt__badge {
+  color: #8aaf5a;
+  font-size: 0.7rem;
+  letter-spacing: 0.05rem;
+}
+
+.qt__objectives {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  margin-left: 0.2rem;
+}
+
+.qt__obj {
+  display: flex;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  color: #8a7a48;
+  line-height: 1.35;
+}
+
+.qt__obj-mark {
+  width: 1rem;
+  text-align: center;
+  flex-shrink: 0;
+  color: #6a5838;
+}
+
+.qt__obj.is-current {
+  color: #e4d4a0;
+}
+
+.qt__obj.is-current .qt__obj-mark {
+  color: #d4a968;
+}
+
+.qt__obj.is-done {
+  text-decoration: line-through;
+  color: #5a4828;
+}
+
+.qt__obj.is-done .qt__obj-mark {
+  color: #8aaf5a;
+  text-decoration: none;
+}
+
+.qt__quest.is-complete .qt__title {
+  color: #8aaf5a;
+}
+
+/* Flash highlight when a quest is accepted or an objective completes. */
+@keyframes qt-flash {
+  0% {
+    background: rgba(212, 169, 104, 0.32);
+  }
+  100% {
+    background: rgba(10, 6, 6, 0);
+  }
+}
+
+.qt__quest.is-flashing {
+  animation: qt-flash 1400ms ease-out;
+}

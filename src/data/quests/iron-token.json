@@ -1,0 +1,19 @@
+{
+  "id": "iron-token",
+  "title": "The Iron Token",
+  "summary": "A scrap of old iron has surfaced in Ashenvale. The only one who could read its mark — an Elven scholar named Veyrin — walked into Greenhollow Woods and did not return.",
+  "objectives": [
+    {
+      "id": "talk-orric",
+      "description": "Speak with Orric the forester about Veyrin."
+    },
+    {
+      "id": "find-cairn",
+      "description": "Find the old cairn east of Orric's cabin."
+    }
+  ],
+  "reward": {
+    "gold": 100,
+    "xp": 250
+  }
+}
