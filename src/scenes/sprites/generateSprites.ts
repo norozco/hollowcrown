@@ -49,7 +49,7 @@ const RB:Record<string,RaceBody>={
   halfling:  {headW:12,headH:11,headY:11,bodyW:11,bodyH:10,bodyY:24,legH:6,armW:2,barefoot:true},
   orc:       {headW:15,headH:13,headY:4,bodyW:20,bodyH:12,bodyY:20,legH:8,armW:5,tusks:true},
   tiefling:  {headW:12,headH:12,headY:6,bodyW:14,bodyH:12,bodyY:20,legH:8,armW:3,horns:true,hornCol:'#483030'},
-  dragonborn:{headW:15,headH:14,headY:3,bodyW:18,bodyH:13,bodyY:20,legH:8,armW:4,snout:true},
+  dragonborn:{headW:15,headH:14,headY:3,bodyW:18,bodyH:13,bodyY:20,legH:8,armW:4,snout:true,tail:true},
   gnome:     {headW:15,headH:13,headY:9,bodyW:11,bodyH:10,bodyY:24,legH:6,armW:2,bigEyes:true},
   'half-elf':{headW:11,headH:13,headY:4,bodyW:13,bodyH:13,bodyY:19,legH:10,armW:3,pointedEars:true,longHair:true},
   tabaxi:    {headW:12,headH:12,headY:5,bodyW:14,bodyH:12,bodyY:19,legH:9,armW:3,catEars:true,tail:true,furStripes:true},
@@ -355,15 +355,86 @@ function draw(c:C,f:number,col:CharacterColors,rb:RaceBody,ce:ClassEquip,dir:num
     px(c,f,hx,rb.headY-6,lt(hc,20));px(c,f,hx+rb.headW-2,rb.headY-6,lt(hc,20));
   }
   if(rb.snout&&isFr){
-    bk(c,f,cx-3,rb.headY+rb.headH-4,6,4,col.skinShadow);
-    px(c,f,cx-1,rb.headY+rb.headH-4,col.skin);px(c,f,cx+1,rb.headY+rb.headH-4,col.skin);
+    // Wide snout with nostrils and jawline
+    bk(c,f,cx-4,rb.headY+rb.headH-5,8,5,col.skinShadow);
+    bk(c,f,cx-3,rb.headY+rb.headH-4,6,3,col.skin);
+    // Nostrils
+    px(c,f,cx-2,rb.headY+rb.headH-4,dk(col.skin,30));
+    px(c,f,cx+2,rb.headY+rb.headH-4,dk(col.skin,30));
+    // Jawline (wider than human)
+    bk(c,f,hx-1,rb.headY+rb.headH-2,rb.headW+2,2,col.skinShadow);
+  }
+  if(rb.snout&&isSd){
+    // Side snout protrusion
+    bk(c,f,hx-2,rb.headY+rb.headH-4,3,3,col.skin);
+    px(c,f,hx-3,rb.headY+rb.headH-3,col.skinShadow); // nostril
   }
   if(rb.catEars){
     px(c,f,hx+1,rb.headY-3,col.hair);px(c,f,hx+2,rb.headY-4,col.hair);px(c,f,hx+3,rb.headY-5,col.hair);
     px(c,f,hx+rb.headW-2,rb.headY-3,col.hair);px(c,f,hx+rb.headW-3,rb.headY-4,col.hair);px(c,f,hx+rb.headW-4,rb.headY-5,col.hair);
     px(c,f,hx+2,rb.headY-3,'#e0a090');px(c,f,hx+rb.headW-3,rb.headY-3,'#e0a090');
   }
-  if(rb.tail&&!isFr)for(let t=0;t<6;t++){px(c,f,bx+rb.bodyW+t,lY+t,col.hair);px(c,f,bx+rb.bodyW+t,lY+t+1,dk(col.hair,20));}
+  if(rb.tail&&!isFr){
+    if(race==='dragonborn'){
+      // Dragonborn: THICK dragon tail (3px wide, 8px long, with ridges)
+      for(let t=0;t<8;t++){
+        const tw=3-Math.floor(t/3); // tapers from 3 to 1
+        bk(c,f,bx+rb.bodyW+t-1,lY+t,tw,2,col.skin);
+        if(t%2===0)px(c,f,bx+rb.bodyW+t,lY+t,col.skinShadow); // ridge
+      }
+      px(c,f,bx+rb.bodyW+7,lY+8,col.skinShadow); // tail tip
+    }else{
+      // Tabaxi: thin cat tail
+      for(let t=0;t<6;t++){px(c,f,bx+rb.bodyW+t,lY+t,col.hair);px(c,f,bx+rb.bodyW+t,lY+t+1,dk(col.hair,20));}
+    }
+  }
+
+  // ── DRAGONBORN EXTRAS (scales, spines, claws, element glow) ──
+  if(race==='dragonborn'){
+    // Body scales (diamond pattern on torso — visible from front)
+    if(isFr){
+      for(let sy=rb.bodyY+2;sy<rb.bodyY+rb.bodyH-3;sy+=3)
+        for(let sx=bx+2;sx<bx+rb.bodyW-2;sx+=4){
+          px(c,f,sx,sy,col.skinShadow);
+          px(c,f,sx+1,sy+1,col.skinShadow);
+          px(c,f,sx+2,sy,col.skinShadow);
+        }
+    }
+    // Back spines (visible from behind — 4 ridges along the spine)
+    if(isBk){
+      for(let sp=0;sp<4;sp++){
+        const spY=rb.bodyY+2+sp*3;
+        px(c,f,cx,spY-1,lt(col.skin,30));
+        px(c,f,cx-1,spY,col.skin);px(c,f,cx+1,spY,col.skin);
+        px(c,f,cx,spY,lt(col.skin,15));
+      }
+    }
+    // Clawed hands (darker, pointed — instead of skin-colored)
+    if(!isSd){
+      bk(c,f,bx-rb.armW,rb.bodyY+rb.bodyH-2,rb.armW,2,col.skinShadow);
+      bk(c,f,bx+rb.bodyW,rb.bodyY+rb.bodyH-2,rb.armW,2,col.skinShadow);
+      // Claw tips
+      px(c,f,bx-rb.armW,rb.bodyY+rb.bodyH,dk(col.skin,30));
+      px(c,f,bx+rb.bodyW+rb.armW-1,rb.bodyY+rb.bodyH,dk(col.skin,30));
+    }
+    // Thicker neck
+    bk(c,f,cx-4,rb.headY+rb.headH-2,8,4,col.skin);
+    // Heavier brow ridge (front only)
+    if(isFr) bk(c,f,hx+1,rb.headY+3,rb.headW-2,2,col.skinShadow);
+
+    // Element glow effects
+    const elemGlow = col.skin; // element color IS the skin color for dragonborn
+    const glowBright = lt(elemGlow, 50);
+    if(isFr){
+      // Glow at fists
+      px(c,f,bx-rb.armW-1,rb.bodyY+rb.bodyH-1,glowBright);
+      px(c,f,bx+rb.bodyW+rb.armW,rb.bodyY+rb.bodyH-1,glowBright);
+      // Chest glow center (breath energy)
+      px(c,f,cx,rb.bodyY+4,glowBright);
+      px(c,f,cx-1,rb.bodyY+5,lt(elemGlow,30));
+      px(c,f,cx+1,rb.bodyY+5,lt(elemGlow,30));
+    }
+  }
 
   // ── HEADGEAR ──
   if(ce.head==='helmet'){
