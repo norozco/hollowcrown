@@ -5,8 +5,8 @@ import { getDialogue } from '../engine/dialogues';
 import { getNPC } from '../engine/npcs';
 import {
   generateCharacterSprite,
-  paletteFromColor,
-  DEFAULT_COLORS,
+  getNpcPalette,
+  playerPalette,
   SPRITE_W,
   SPRITE_H,
 } from './sprites/generateSprites';
@@ -315,9 +315,9 @@ export abstract class BaseWorldScene extends Phaser.Scene {
       return;
     }
 
-    // Generate a unique sprite for this NPC based on their portrait color.
+    // Generate a unique sprite with this NPC's named palette.
     const spriteKey = `npc-${cfg.key}`;
-    generateCharacterSprite(this, spriteKey, paletteFromColor(data.portraitColor));
+    generateCharacterSprite(this, spriteKey, getNpcPalette(cfg.key, data.portraitColor));
 
     const sprite = this.add.sprite(cfg.x, cfg.y, spriteKey, 0); // face down
     sprite.setDepth(10);
@@ -406,8 +406,11 @@ export abstract class BaseWorldScene extends Phaser.Scene {
   private createPlayer(spawnX: number, spawnY: number): void {
     const character = usePlayerStore.getState().character;
 
-    // Generate a unique spritesheet for the player.
-    generateCharacterSprite(this, 'player-sprite', DEFAULT_COLORS);
+    // Generate a player sprite colored by their race + class.
+    const colors = character
+      ? playerPalette(character.race.key, character.characterClass.key)
+      : playerPalette('human', 'fighter');
+    generateCharacterSprite(this, 'player-sprite', colors);
 
     this.player = this.add.sprite(spawnX, spawnY, 'player-sprite', 0);
     this.player.setDepth(10);

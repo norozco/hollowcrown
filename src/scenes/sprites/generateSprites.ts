@@ -43,25 +43,93 @@ export const DEFAULT_COLORS: CharacterColors = {
   eyes: '#202020',
 };
 
-/** Generate a palette from a single base color (for NPCs). */
-export function paletteFromColor(base: string): CharacterColors {
-  // Parse hex
-  const r = parseInt(base.slice(1, 3), 16);
-  const g = parseInt(base.slice(3, 5), 16);
-  const b = parseInt(base.slice(5, 7), 16);
-  const dark = `#${clamp(r-40)}${clamp(g-40)}${clamp(b-40)}`;
-  const light = `#${clamp(r+30)}${clamp(g+30)}${clamp(b+30)}`;
+function clamp(v: number): string {
+  return Math.max(0, Math.min(255, v)).toString(16).padStart(2, '0');
+}
+
+function darker(hex: string, amt = 40): string {
+  const r = parseInt(hex.slice(1,3),16), g = parseInt(hex.slice(3,5),16), b = parseInt(hex.slice(5,7),16);
+  return `#${clamp(r-amt)}${clamp(g-amt)}${clamp(b-amt)}`;
+}
+function lighter(hex: string, amt = 30): string {
+  const r = parseInt(hex.slice(1,3),16), g = parseInt(hex.slice(3,5),16), b = parseInt(hex.slice(5,7),16);
+  return `#${clamp(r+amt)}${clamp(g+amt)}${clamp(b+amt)}`;
+}
+
+// ─── Named NPC palettes (each visually distinct) ──────────────
+
+export const NPC_PALETTES: Record<string, CharacterColors> = {
+  brenna: {
+    skin: '#d8b888', skinShadow: '#b89868',
+    hair: '#808080', hairHighlight: '#a0a0a0', // iron-grey, pulled back
+    tunic: '#6a4828', tunicDark: '#4a3018', tunicLight: '#8a6838', // dark leather jerkin
+    boots: '#3a2010', belt: '#504028', eyes: '#304050',
+  },
+  tomas: {
+    skin: '#e8c8a0', skinShadow: '#c8a880',
+    hair: '#302018', hairHighlight: '#504030', // dark, short
+    tunic: '#c0b8a0', tunicDark: '#a09880', tunicLight: '#d8d0b8', // white apron/shirt
+    boots: '#504030', belt: '#705838', eyes: '#203020',
+  },
+  vira: {
+    skin: '#e0b890', skinShadow: '#c09870',
+    hair: '#181018', hairHighlight: '#302830', // near-black, long
+    tunic: '#782040', tunicDark: '#581030', tunicLight: '#983050', // deep burgundy
+    boots: '#302020', belt: '#a08030', eyes: '#282028', // gold belt accent (brooch)
+  },
+  orric: {
+    skin: '#c8a078', skinShadow: '#a88058',
+    hair: '#909090', hairHighlight: '#b0b0b0', // grey, with beard
+    tunic: '#4a6038', tunicDark: '#3a4828', tunicLight: '#5a7048', // forester green-brown
+    boots: '#3a2818', belt: '#584028', eyes: '#506060',
+  },
+};
+
+/** Get NPC palette by key, fallback to color-derived. */
+export function getNpcPalette(key: string, fallbackColor: string): CharacterColors {
+  if (NPC_PALETTES[key]) return NPC_PALETTES[key];
   return {
     ...DEFAULT_COLORS,
-    tunic: base,
-    tunicDark: dark,
-    tunicLight: light,
-    belt: dark,
+    tunic: fallbackColor,
+    tunicDark: darker(fallbackColor),
+    tunicLight: lighter(fallbackColor),
+    belt: darker(fallbackColor),
   };
 }
 
-function clamp(v: number): string {
-  return Math.max(0, Math.min(255, v)).toString(16).padStart(2, '0');
+// ─── Player palette from race + class ─────────────────────────
+
+const RACE_LOOKS: Record<string, { skin: string; skinShadow: string; hair: string; hairHighlight: string }> = {
+  human:     { skin: '#e8c090', skinShadow: '#c8a070', hair: '#705030', hairHighlight: '#907050' },
+  elf:       { skin: '#f0d8b8', skinShadow: '#d0b898', hair: '#c0a060', hairHighlight: '#d8b878' },
+  dwarf:     { skin: '#d0a070', skinShadow: '#b08050', hair: '#a05020', hairHighlight: '#c07030' },
+  halfling:  { skin: '#e8c8a0', skinShadow: '#c8a880', hair: '#908050', hairHighlight: '#a89860' },
+  orc:       { skin: '#709060', skinShadow: '#507040', hair: '#303030', hairHighlight: '#484848' },
+  tiefling:  { skin: '#c07060', skinShadow: '#a05040', hair: '#201020', hairHighlight: '#382838' },
+  dragonborn:{ skin: '#708870', skinShadow: '#506850', hair: '#506850', hairHighlight: '#608060' },
+  gnome:     { skin: '#e8d0a0', skinShadow: '#c8b080', hair: '#d06020', hairHighlight: '#e07830' },
+  'half-elf':{ skin: '#e8d0a8', skinShadow: '#c8b088', hair: '#a08050', hairHighlight: '#b89060' },
+  tabaxi:    { skin: '#c0a070', skinShadow: '#a08050', hair: '#604020', hairHighlight: '#805030' },
+};
+
+const CLASS_OUTFIT: Record<string, { tunic: string; tunicDark: string; tunicLight: string; belt: string }> = {
+  fighter: { tunic: '#707888', tunicDark: '#505868', tunicLight: '#909898', belt: '#606068' },
+  rogue:   { tunic: '#383840', tunicDark: '#202028', tunicLight: '#505058', belt: '#282830' },
+  wizard:  { tunic: '#5040a0', tunicDark: '#302880', tunicLight: '#7060b8', belt: '#a08030' },
+  cleric:  { tunic: '#d8d0b8', tunicDark: '#b8b098', tunicLight: '#f0e8d0', belt: '#c0a040' },
+  ranger:  { tunic: '#408048', tunicDark: '#306038', tunicLight: '#50a058', belt: '#604828' },
+  bard:    { tunic: '#a04050', tunicDark: '#802838', tunicLight: '#c05868', belt: '#c09030' },
+};
+
+export function playerPalette(raceKey: string, classKey: string): CharacterColors {
+  const race = RACE_LOOKS[raceKey] ?? RACE_LOOKS.human;
+  const cls = CLASS_OUTFIT[classKey] ?? CLASS_OUTFIT.fighter;
+  return {
+    ...race,
+    ...cls,
+    boots: '#503820',
+    eyes: '#181818',
+  };
 }
 
 /**
