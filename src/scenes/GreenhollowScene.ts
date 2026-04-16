@@ -95,14 +95,16 @@ export class GreenhollowScene extends BaseWorldScene {
   protected spawnAt(name: string): { x: number; y: number } {
     switch (name) {
       case 'fromAshenvale':
-        return { x: WORLD_W / 2, y: WORLD_H - TILE * 3 };
+        // Came from the north (Ashenvale is north of Greenhollow).
+        // Spawn near the north edge, close to the return exit.
+        return { x: WORLD_W / 2, y: TILE * 3 };
       case 'fromMossbarrow':
         return { x: WORLD_W - TILE * 3, y: WORLD_H / 2 };
       case 'fromOrricInterior':
         return { x: 33 * TILE, y: 8 * TILE };
       case 'default':
       default:
-        return { x: WORLD_W / 2, y: WORLD_H - TILE * 3 };
+        return { x: WORLD_W / 2, y: TILE * 3 };
     }
   }
 }
