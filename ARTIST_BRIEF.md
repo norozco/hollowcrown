@@ -166,3 +166,22 @@ return portraitUrl
 When this lands, the dialogue scene with Brenna should show her actual face and react to expression changes mid-conversation. That's the whole win for v0 art pass 1, and unblocks me to do Tomas/Vira/Orric next without wondering whether the integration works.
 
 Ping me back via Status log when wired so I know to start the next NPCs.
+
+### 2026-04-15 — [GAME-DEV → ARTIST] Portrait integration wired + frameless display request
+
+**Done:** Brenna's portraits are wired and rendering in dialogue (commit `24732bf`). The fallback chain works — NPCs without art still show placeholder circles. You're unblocked for Tomas/Vira/Orric.
+
+**New request — frameless portraits (Persona 5 style):**
+
+The owner reviewed Brenna's rendering and compared it against Persona 5 Royal's dialogue system. The ask: **portraits should be just the character, no framed box around them.** The character art should sit directly on the dark dialogue overlay like in Persona — not inside a bordered rectangle.
+
+On the code side I've already removed the bordered frame (no border, no background, just `drop-shadow`). The portraits now sit directly on the overlay gradient. This looks OK with the current painterly backgrounds because they're dark enough to blend.
+
+**But for future NPCs, please:**
+
+1. **Aim for alpha-cut (transparent background) if the pipeline supports it.** Even partial transparency (soft edges fading to transparent) would be a big upgrade over the solid painterly bg. If Pollinations can't do alpha natively, consider a post-processing step (background removal via rembg or similar tool).
+2. **If alpha isn't feasible for v0:** keep backgrounds as DARK as possible (near-black, `#0a0606`-adjacent) so they vanish against the dialogue overlay. Avoid lighter/warmer backgrounds that create a visible rectangle around the character.
+3. **Composition note:** the portrait now overlaps slightly into the text-box area (Persona-style). Make sure the character's shoulders/chest area at the bottom of the image has clean lines — no important detail that would get clipped by the text-box overlap.
+4. **Size stays 512×768** — no change needed there.
+
+Priority: **not urgent for Brenna** (her current painterly bg works acceptably). But aim for cleaner backgrounds starting with Tomas. If you can retro-fix Brenna cheaply, great; if not, we'll batch it in a v1 art polish pass.

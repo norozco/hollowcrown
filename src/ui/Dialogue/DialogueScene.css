@@ -103,37 +103,53 @@
   border-color: rgba(212, 169, 104, 0.7);
 }
 
-/* --- Real anime portraits (image mode) --- */
+/* --- Real anime portraits (image mode — frameless, Persona-style) --- */
 
 .dlg-portrait__frame {
   position: relative;
-  overflow: hidden;
-  border: 3px solid rgba(212, 169, 104, 0.55);
-  border-radius: 4px;
-  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.55);
-  background: #0a0606;
+  overflow: visible;
+  /* No border, no background — the character sits directly on the
+     dialogue overlay like in Persona 5. The AI-generated painterly
+     background blends with the dark overlay gradient; future
+     alpha-cut portraits will sit even cleaner. */
+  border: none;
+  background: transparent;
+  filter: drop-shadow(0 6px 20px rgba(0, 0, 0, 0.7));
 }
 
 .dlg-portrait--large .dlg-portrait__frame {
-  width: 13rem;
-  height: 17rem;
+  width: 14rem;
+  height: 18rem;
+  /* Let the portrait overlap into the text-box area slightly for
+     a more grounded, Persona-like composition. */
+  margin-bottom: -2rem;
 }
 
 .dlg-portrait--small .dlg-portrait__frame {
-  width: 6.5rem;
-  height: 8.5rem;
+  width: 7rem;
+  height: 9rem;
 }
 
 .dlg-portrait__img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  object-position: top center;
   display: block;
+  border-radius: 2px;
 }
 
 .dlg-portrait.is-dim .dlg-portrait__frame {
-  opacity: 0.5;
-  transform: scale(0.92);
+  opacity: 0.45;
+  transform: scale(0.88);
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.6)) brightness(0.7);
+}
+
+/* The speaking glow for art mode uses drop-shadow instead of box-shadow
+   since there's no border to glow against. */
+.dlg-portrait--art.is-speaking .dlg-portrait__frame {
+  filter: drop-shadow(0 0 28px rgba(212, 169, 104, 0.45))
+    drop-shadow(0 8px 24px rgba(0, 0, 0, 0.6));
 }
 
 .dlg-portrait--large .dlg-portrait__circle {
