@@ -376,16 +376,32 @@ function draw(c:C,f:number,col:CharacterColors,rb:RaceBody,ce:ClassEquip,dir:num
   }
   if(rb.tail&&!isFr){
     if(race==='dragonborn'){
-      // Dragonborn: THICK dragon tail (3px wide, 8px long, with ridges)
-      for(let t=0;t<8;t++){
-        const tw=3-Math.floor(t/3); // tapers from 3 to 1
-        bk(c,f,bx+rb.bodyW+t-1,lY+t,tw,2,col.skin);
-        if(t%2===0)px(c,f,bx+rb.bodyW+t,lY+t,col.skinShadow); // ridge
+      if(isBk){
+        // Back view: tail from center-base of spine, curves down+right
+        const tailBase=lY+rb.legH-4;
+        for(let t=0;t<8;t++){
+          const tw=3-Math.floor(t/3);
+          const tx=cx+1+Math.floor(t/2); // slight rightward curve
+          bk(c,f,tx-1,tailBase+t,tw,2,col.skin);
+          if(t%2===0)px(c,f,tx,tailBase+t,col.skinShadow);
+        }
+        px(c,f,cx+5,tailBase+8,col.skinShadow);
+      }else{
+        // Side view: tail extends backward from the body
+        const tailBase=lY+rb.legH/2;
+        for(let t=0;t<8;t++){
+          const tw=3-Math.floor(t/3);
+          bk(c,f,bx+rb.bodyW+t,tailBase+t,tw,2,col.skin);
+          if(t%2===0)px(c,f,bx+rb.bodyW+t+1,tailBase+t,col.skinShadow);
+        }
       }
-      px(c,f,bx+rb.bodyW+7,lY+8,col.skinShadow); // tail tip
     }else{
       // Tabaxi: thin cat tail
-      for(let t=0;t<6;t++){px(c,f,bx+rb.bodyW+t,lY+t,col.hair);px(c,f,bx+rb.bodyW+t,lY+t+1,dk(col.hair,20));}
+      if(isBk){
+        for(let t=0;t<6;t++){px(c,f,cx+2+t,lY+rb.legH-3+t,col.hair);px(c,f,cx+2+t,lY+rb.legH-2+t,dk(col.hair,20));}
+      }else{
+        for(let t=0;t<6;t++){px(c,f,bx+rb.bodyW+t,lY+t,col.hair);px(c,f,bx+rb.bodyW+t,lY+t+1,dk(col.hair,20));}
+      }
     }
   }
 
