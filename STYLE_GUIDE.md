@@ -221,7 +221,55 @@ Brenna, Guildmaster of Ashenvale: human woman in her mid-forties (undeniably mid
 | `sad` | `expression: eyes downcast and visibly glassy with held-back tears, eyelids slightly heavy, mouth softened with corners pulled gently downward, brow lifted in the middle in a small grief furrow, posture a fraction bowed, the look of receiving bad news` |
 | `angry` | `expression: brow tightly furrowed inward and downward, eyes hard and narrowed beneath the brow, nostrils slightly flared, jaw clenched with visible muscle, mouth a flat tight line, direct unflinching gaze, the cold fury of a leader who has had enough, no teeth bared` |
 
-### 7.7 Consistency rules (binding)
+### 7.7 Tomas — locked prompts
+
+**CHARACTER_SPEC:**
+```
+Tomas, Innkeeper of the Whispering Hollow: human man in his late thirties, slim and lean build, handsome in a tired way with fine bone structure, warm brown eyes with shadows beneath them, dark hair kept neat and combed back, clean-shaven with a faint five o'clock shadow along the jaw, plain off-white shirt with sleeves rolled to the elbow under a simple apron, a clean cloth draped over one shoulder, the kind of polite composed face that smiles without the eyes joining in, warm lamplight from below casting soft upward shadows
+```
+
+**EXPRESSION_SPEC by key:**
+
+| Expression | Spec |
+|---|---|
+| `neutral` | `expression: polite composed half-smile, eyes steady and attentive, the professional mask of a man who listens for a living` |
+| `thoughtful` | `expression: gaze drifting to one side as if remembering a face, mouth closed, brow slightly drawn, the look of a man counting empty rooms` |
+| `sad` | `expression: eyes lowered and softened, mouth loosened from its polite set, the professional mask slipping to show genuine grief underneath, shoulders slightly rounded` |
+| `happy` | `expression: a real smile reaching the eyes for once, warmth breaking through the professional composure, subtle crinkle at the corners of the eyes, the look reserved for a returning regular` |
+
+### 7.8 Vira — locked prompts
+
+**CHARACTER_SPEC:**
+```
+Vira, Merchant of Ashenvale: human woman in her early forties, striking and watchful with sharp dark eyes and a defined brow line, dark hair worn loose past the shoulders with a slight wave, a small beauty mark near the left corner of the mouth, unhurried and composed, practical dark clothing — a fitted dark wool vest over a deep burgundy blouse, one bright accent (a small silver brooch at the collar), hands always suggesting proximity to the counter, warm side-light from a shuttered window catching on the brooch and hair, the beauty of someone who notices you noticing it and prices it accordingly
+```
+
+**EXPRESSION_SPEC by key:**
+
+| Expression | Spec |
+|---|---|
+| `neutral` | `expression: steady measuring gaze, mouth set in a small closed-lip almost-smile, composed, the look of someone who has already decided what you can afford` |
+| `thoughtful` | `expression: eyes narrowed slightly in evaluation, head tilted a fraction, lips pressed together as if weighing a price, the default mode of a woman who trades in detail` |
+| `sad` | `expression: gaze lowered and to the side, the sharp evaluating look gone soft, mouth loosened, a rare unguarded moment showing the weight of merchants who did not walk back` |
+| `angry` | `expression: eyes hard and direct, jaw tightened, one brow raised in cold displeasure, the look of a woman whose time you have just wasted, restrained but unmistakable` |
+
+### 7.9 Orric — locked prompts
+
+**CHARACTER_SPEC:**
+```
+Orric, Forester of Greenhollow: human man in his late sixties, weathered-handsome elder with strong features that age has sharpened rather than diminished, clear pale blue eyes that still see further than most, short neat grey beard with streaks of white, deep lines around the eyes from decades of watching the tree-line, broad shoulders that have not softened, simple oiled leather vest over a heavy linen shirt, a woolen half-cloak draped over one shoulder, an axe handle just visible resting against him, diffused green-grey forest light filtering through canopy, the imposing quiet dignity of a man who has outlived the woods he tends
+```
+
+**EXPRESSION_SPEC by key:**
+
+| Expression | Spec |
+|---|---|
+| `neutral` | `expression: steady calm gaze, mouth set beneath the beard, patient, the look of a man who has been sitting on this porch longer than you have been alive` |
+| `thoughtful` | `expression: eyes cast slightly upward and to the distance as if listening to the woods, brow drawn gently, mouth hidden in the beard, remembering something the trees told him` |
+| `sad` | `expression: eyes lowered, the deep lines around them deepening further, mouth soft beneath the beard, shoulders heavy, the look of a man mourning something that used to sing and has gone quiet` |
+| `angry` | `expression: eyes hard and narrowed beneath heavy brows, jaw set beneath the beard, direct unflinching gaze, the cold quiet warning of a man who has seen what happens to people who do not listen, no raised voice just weight` |
+
+### 7.10 Consistency rules (binding)
 
 - Keep `STYLE_PREFIX` and `CHARACTER_SPEC` **byte-identical** across expressions for the same NPC. Only `EXPRESSION_SPEC` changes.
 - Keep the seed locked per NPC. If an expression comes out with a visibly different face (different hair color, missing scar, changed build), **regenerate** — do not ship.
@@ -229,7 +277,7 @@ Brenna, Guildmaster of Ashenvale: human woman in her mid-forties (undeniably mid
 - Avoid shoulder cutoffs at the exact same pixel — slight natural variation is fine, dramatic variation is not.
 - Backgrounds stay muted and non-specific — no gameplay scene details in portraits.
 
-### 7.8 Post-processing
+### 7.11 Post-processing
 
 Pollinations returns JPEG with a baked background. For v0:
 
@@ -238,7 +286,7 @@ Pollinations returns JPEG with a baked background. For v0:
 - Crop only if the subject is off-center. Pollinations generally frames well at 512×768; cropping is rare.
 - Remove only obvious generation artifacts (visible watermark, text garbage, floating limbs) — if these appear often at a given seed, change the seed entirely.
 
-### 7.9 Credits
+### 7.12 Credits
 
 External art or generated art must be documented in `src/assets/CREDITS.md`. Create the file if missing. Entry format:
 
