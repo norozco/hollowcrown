@@ -27,7 +27,7 @@ export class MossbarrowScene extends BaseWorldScene {
     const tileset = map.addTilesetImage('tileset')!;
     map.createLayer(0, tileset)!;
 
-    // Cairn stone collision bodies (matching WALL_STONE tiles in the map).
+    // Cairn stone collision bodies — invisible since the tilemap draws them.
     const stoneTiles = getCairnPositions();
     for (const [tx, ty] of stoneTiles) {
       const cx = tx * TILE + TILE / 2;
@@ -37,7 +37,7 @@ export class MossbarrowScene extends BaseWorldScene {
       this.walls.add(stone);
     }
 
-    // Hollow oak collision.
+    // Hollow oak — collision body (tilemap handles the visual).
     const oakRect = this.add.rectangle(10 * TILE + 16, 8 * TILE + 24, 48, 64, 0x000000, 0);
     this.physics.add.existing(oakRect, true);
     this.walls.add(oakRect);
@@ -65,10 +65,15 @@ export class MossbarrowScene extends BaseWorldScene {
       label: '← Greenhollow',
     });
 
-    // Center stone interactable.
+    // Center stone — visible altar/pedestal with glow-ish highlight.
     const cairnCx = 22 * TILE;
     const cairnCy = 11 * TILE;
-    const centerStone = this.add.rectangle(cairnCx, cairnCy, 40, 40, 0x000000, 0);
+    const centerStone = this.add.rectangle(cairnCx, cairnCy, 40, 40, 0x8a8a80);
+    centerStone.setStrokeStyle(2, 0x585850);
+    centerStone.setDepth(5);
+    // Inner glow (smaller lighter rect)
+    const glow = this.add.rectangle(cairnCx, cairnCy, 28, 28, 0xa0a098);
+    glow.setDepth(5);
     this.physics.add.existing(centerStone, true);
     this.walls.add(centerStone);
 

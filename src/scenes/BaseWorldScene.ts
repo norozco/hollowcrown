@@ -309,6 +309,7 @@ export abstract class BaseWorldScene extends Phaser.Scene {
     const color = parseInt(data.portraitColor.replace('#', ''), 16);
     const sprite = this.add.circle(cfg.x, cfg.y, NPC_RADIUS, color);
     sprite.setStrokeStyle(2, 0x1a0e08);
+    sprite.setDepth(10);
     this.physics.add.existing(sprite, true);
     this.walls.add(sprite);
 
@@ -320,7 +321,8 @@ export abstract class BaseWorldScene extends Phaser.Scene {
         backgroundColor: 'rgba(10,6,6,0.65)',
         padding: { x: 4, y: 1 },
       })
-      .setOrigin(0.5, 1);
+      .setOrigin(0.5, 1)
+      .setDepth(11);
 
     this.npcs.push({
       key: cfg.key,
@@ -391,6 +393,7 @@ export abstract class BaseWorldScene extends Phaser.Scene {
     const character = usePlayerStore.getState().character;
     this.player = this.add.circle(spawnX, spawnY, PLAYER_RADIUS, 0xd4a968);
     this.player.setStrokeStyle(2, 0x1a0e08);
+    this.player.setDepth(10);
     this.physics.add.existing(this.player);
     const body = this.player.body as Phaser.Physics.Arcade.Body;
     body.setCircle(PLAYER_RADIUS);
@@ -405,7 +408,8 @@ export abstract class BaseWorldScene extends Phaser.Scene {
         backgroundColor: 'rgba(10,6,6,0.65)',
         padding: { x: 4, y: 1 },
       })
-      .setOrigin(0.5, 1);
+      .setOrigin(0.5, 1)
+      .setDepth(11);
   }
 
   private setupInput(): void {
