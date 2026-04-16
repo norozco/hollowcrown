@@ -6,6 +6,8 @@ import { getNPC } from '../engine/npcs';
 import {
   generateCharacterSprite,
   getNpcPalette,
+  getNpcEquip,
+  getNpcRace,
   playerPalette,
   SPRITE_W,
   SPRITE_H,
@@ -315,9 +317,11 @@ export abstract class BaseWorldScene extends Phaser.Scene {
       return;
     }
 
-    // Generate a unique sprite with this NPC's named palette.
+    // Generate a unique sprite with this NPC's palette + their own equipment.
     const spriteKey = `npc-${cfg.key}`;
-    generateCharacterSprite(this, spriteKey, getNpcPalette(cfg.key, data.portraitColor));
+    const npcRace = getNpcRace(cfg.key);
+    const npcEquip = getNpcEquip(cfg.key);
+    generateCharacterSprite(this, spriteKey, getNpcPalette(cfg.key, data.portraitColor), npcRace, 'fighter', npcEquip);
 
     const sprite = this.add.sprite(cfg.x, cfg.y, spriteKey, 0); // face down
     sprite.setDepth(10);

@@ -61,7 +61,7 @@ const RB:Record<string,RaceBody>={
 interface ClassEquip {
   head:'none'|'helmet'|'hood'|'wizhat'|'crown'|'feather'|'cowl';
   armor:'heavy'|'medium'|'light'|'robes';
-  weapon:'sword'|'dagger'|'staff'|'mace'|'bow'|'lute';
+  weapon:'sword'|'dagger'|'staff'|'mace'|'bow'|'lute'|'axe'|'none';
   cape?:boolean;shield?:boolean;quiver?:boolean;
   chestDetail?:'plate_bands'|'leather_straps'|'star_rune'|'holy_symbol'|'leaf_brooch'|'stripes';
 }
@@ -84,6 +84,37 @@ export const NPC_PALETTES:Record<string,CharacterColors>={
   orric: {skin:'#c8a078',skinShadow:'#a88058',hair:'#909090',hairHighlight:'#b0b0b0',tunic:'#4a6038',tunicDark:'#3a4828',tunicLight:'#5a7048',boots:'#3a2818',belt:'#584028',eyes:'#506060'},
 };
 export function getNpcPalette(k:string,fc:string):CharacterColors{return NPC_PALETTES[k]??{...DEFAULT_COLORS,tunic:fc,tunicDark:dk(fc),tunicLight:lt(fc),belt:dk(fc)};}
+
+/** NPC-specific equipment — each NPC has a unique silhouette, not generic fighter gear. */
+const NPC_EQUIP:Record<string,ClassEquip>={
+  brenna:{
+    // Guildmaster: no helmet (show her grey hair), leather jerkin, sword at hip (veteran), no shield
+    head:'none',armor:'medium',weapon:'sword',chestDetail:'plate_bands',
+  },
+  tomas:{
+    // Innkeeper: civilian — no armor, no weapon, just clothes with apron.
+    head:'none',armor:'light',weapon:'none',
+    chestDetail:'stripes', // apron stripes
+  },
+  vira:{
+    // Merchant: civilian — fitted dark clothing, small concealed dagger (she's practical).
+    head:'none',armor:'light',weapon:'dagger',
+    chestDetail:'leather_straps', // fitted vest detail
+  },
+  orric:{
+    // Forester: cowl/cloak, leather armor, his AXE, outdoorsman
+    head:'cowl',armor:'medium',weapon:'axe',
+    cape:true,chestDetail:'leaf_brooch',
+  },
+};
+
+/** NPC-specific race features (most NPCs are human but with unique builds). */
+const NPC_RACE:Record<string,string>={
+  brenna:'human',tomas:'human',vira:'human',orric:'human',
+};
+
+export function getNpcEquip(k:string):ClassEquip{return NPC_EQUIP[k]??CE.fighter;}
+export function getNpcRace(k:string):string{return NPC_RACE[k]??'human';}
 
 const RL:Record<string,{skin:string;skinShadow:string;hair:string;hairHighlight:string}>={
   human:     {skin:'#e8c090',skinShadow:'#c8a070',hair:'#705030',hairHighlight:'#907050'},
@@ -124,11 +155,11 @@ export function playerPalette(race:string,cls:string,choice?:string):CharacterCo
 
 // ─── Main ─────────────────────────────────────────────────────
 
-export function generateCharacterSprite(scene:Phaser.Scene,key:string,col:CharacterColors=DEFAULT_COLORS,race='human',cls='fighter'):void{
+export function generateCharacterSprite(scene:Phaser.Scene,key:string,col:CharacterColors=DEFAULT_COLORS,race='human',cls='fighter',equipOverride?:ClassEquip):void{
   if(scene.textures.exists(key))return;
   const cv=document.createElement('canvas');cv.width=FRAMES*SPRITE_W;cv.height=SPRITE_H;
   const ctx=cv.getContext('2d')!;
-  const rb=RB[race]??RB.human;const ce=CE[cls]??CE.fighter;
+  const rb=RB[race]??RB.human;const ce=equipOverride??(CE[cls]??CE.fighter);
   for(let f=0;f<8;f++)draw(ctx,f,col,rb,ce,f%4,f>=4,race);
   const tx=scene.textures.addCanvas(key,cv);
   if(tx){for(let i=0;i<FRAMES;i++)tx.add(i,0,i*SPRITE_W,0,SPRITE_W,SPRITE_H);}
@@ -537,12 +568,64 @@ function draw(c:C,f:number,col:CharacterColors,rb:RaceBody,ce:ClassEquip,dir:num
   }else if(ce.weapon==='mace'&&(isFr||isSd)){
     const wx=isSd?bx-2:bx+rb.bodyW+rb.armW;
     bk(c,f,wx,rb.bodyY,2,12,'#705030');bk(c,f,wx-1,rb.bodyY-3,4,4,'#808888');px(c,f,wx,rb.bodyY-3,'#a0a8a8');
+  }else if(ce.weapon==='axe'&&(isFr||isSd)){
+    // Forester's axe — wooden handle + metal head
+    const wx=isSd?bx-3:bx+rb.bodyW+rb.armW;
+    bk(c,f,wx,rb.bodyY-2,2,14,'#705030'); // handle
+    bk(c,f,wx,rb.bodyY-2,2,1,'#907040'); // handle top highlight
+    // Axe head (wider at top)
+    bk(c,f,wx-2,rb.bodyY-4,6,4,'#808888'); // blade
+    bk(c,f,wx-2,rb.bodyY-4,6,1,'#a0a8a8'); // blade edge shine
+    bk(c,f,wx-1,rb.bodyY-3,1,2,'#606868'); // blade shadow
+    px(c,f,wx+3,rb.bodyY-3,'#b0b8b8'); // cutting edge highlight
   }else if(ce.weapon==='lute'&&(isSd||isBk)){
     const lx=isSd?bx-4:bx+rb.bodyW;
     // Lute body
     bk(c,f,lx,rb.bodyY+4,4,6,'#b08040');bk(c,f,lx+1,rb.bodyY+5,2,4,'#c09050');
     bk(c,f,lx+1,rb.bodyY,1,4,'#705030'); // neck
     px(c,f,lx+1,rb.bodyY-1,'#a08030'); // tuning peg
+  }
+  // weapon === 'none' — draw nothing (civilians like Tomas)
+
+  // ── NPC-SPECIFIC DETAILS (scar, apron, brooch, etc.) ──
+  // These fire based on the palette key embedded in the colors — check
+  // unique NPC color combos as identifiers.
+  if(col===NPC_PALETTES.brenna&&isFr){
+    // Brenna's brow scar (lighter pixel through left eyebrow)
+    px(c,f,hx+2,rb.headY+4,lt(col.skin,30));
+    px(c,f,hx+3,rb.headY+3,lt(col.skin,20));
+  }
+  if(col===NPC_PALETTES.tomas&&isFr){
+    // Tomas's apron (white rectangle over the lower tunic)
+    bk(c,f,cx-4,rb.bodyY+rb.bodyH-5,8,8,'#d8d0c0');
+    bk(c,f,cx-4,rb.bodyY+rb.bodyH-5,8,1,'#e8e0d0'); // apron top edge
+    bk(c,f,cx-3,rb.bodyY+rb.bodyH-4,6,6,'#e0d8c8');
+    // Apron string (tied at back visible as dots at sides)
+    px(c,f,cx-5,rb.bodyY+rb.bodyH-4,'#c0b8a8');
+    px(c,f,cx+5,rb.bodyY+rb.bodyH-4,'#c0b8a8');
+    // Cloth over shoulder
+    bk(c,f,bx+rb.bodyW-1,rb.bodyY+2,2,4,'#d0c8b8');
+  }
+  if(col===NPC_PALETTES.vira&&isFr){
+    // Vira's silver brooch at collar
+    px(c,f,cx,rb.headY+rb.headH+1,'#c0c0c8');
+    px(c,f,cx-1,rb.headY+rb.headH+2,'#a0a0a8');
+    px(c,f,cx+1,rb.headY+rb.headH+2,'#a0a0a8');
+    // Gold earring
+    px(c,f,hx+rb.headW+1,rb.headY+6,'#e0c040');
+  }
+  if(col===NPC_PALETTES.orric){
+    // Orric's weathered face lines (darker pixels on cheeks/forehead)
+    if(isFr){
+      px(c,f,hx+1,rb.headY+6,col.skinShadow);
+      px(c,f,hx+rb.headW-2,rb.headY+6,col.skinShadow);
+      px(c,f,hx+3,rb.headY+3,col.skinShadow); // forehead line
+    }
+    // Grey stubble/short beard (not dwarf-level, just weathered)
+    if(isFr){
+      bk(c,f,cx-3,rb.headY+rb.headH-3,6,3,'#808080');
+      bk(c,f,cx-2,rb.headY+rb.headH-1,4,2,'#909090');
+    }
   }
 
   // ── OUTLINE ──
