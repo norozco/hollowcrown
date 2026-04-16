@@ -94,14 +94,14 @@
   }
 }
 
-.dlg-portrait.is-speaking .dlg-portrait__circle,
-.dlg-portrait.is-speaking .dlg-portrait__frame {
+.dlg-portrait.is-speaking .dlg-portrait__circle {
+  border-color: rgba(212, 169, 104, 0.7);
   animation: dlg-portrait-pulse 1800ms ease-in-out infinite;
 }
 
-.dlg-portrait.is-speaking .dlg-portrait__circle {
-  border-color: rgba(212, 169, 104, 0.7);
-}
+/* Art-mode portraits do NOT get the box-shadow pulse (it creates a
+   visible rectangle). They get filter-based glow instead — see the
+   .dlg-portrait--art.is-speaking rule below. */
 
 /* --- Real anime portraits (image mode — frameless, Persona-style) --- */
 
@@ -136,7 +136,20 @@
   object-fit: cover;
   object-position: top center;
   display: block;
-  border-radius: 2px;
+  border-radius: 0;
+  /* Soft radial mask fades the image edges into the overlay gradient
+     so the portrait doesn't end at a hard rectangle — matches the
+     Persona 5 "character just exists in the space" look. */
+  -webkit-mask-image: radial-gradient(
+    ellipse 85% 90% at 50% 40%,
+    black 50%,
+    transparent 100%
+  );
+  mask-image: radial-gradient(
+    ellipse 85% 90% at 50% 40%,
+    black 50%,
+    transparent 100%
+  );
 }
 
 .dlg-portrait.is-dim .dlg-portrait__frame {
