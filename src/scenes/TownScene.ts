@@ -13,9 +13,6 @@ import { generateTileset, TILE as T, TILE_SIZE } from './tiles/generateTiles';
 const MAP_W = 40;
 const MAP_H = 22;
 
-// prettier-ignore
-const MAP_DATA: number[][] = buildMapData();
-
 export class TownScene extends BaseWorldScene {
   constructor() {
     super({ key: 'TownScene' });
@@ -27,7 +24,7 @@ export class TownScene extends BaseWorldScene {
 
     // Build and render the tilemap.
     const map = this.make.tilemap({
-      data: MAP_DATA,
+      data: buildMapData(),
       tileWidth: TILE_SIZE,
       tileHeight: TILE_SIZE,
     });
