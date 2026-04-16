@@ -406,11 +406,11 @@ export abstract class BaseWorldScene extends Phaser.Scene {
   private createPlayer(spawnX: number, spawnY: number): void {
     const character = usePlayerStore.getState().character;
 
-    // Generate a player sprite colored by their race + class.
-    const colors = character
-      ? playerPalette(character.race.key, character.characterClass.key)
-      : playerPalette('human', 'fighter');
-    generateCharacterSprite(this, 'player-sprite', colors);
+    // Generate player sprite with race-specific proportions + class equipment.
+    const raceKey = character?.race.key ?? 'human';
+    const classKey = character?.characterClass.key ?? 'fighter';
+    const colors = playerPalette(raceKey, classKey);
+    generateCharacterSprite(this, 'player-sprite', colors, raceKey, classKey);
 
     this.player = this.add.sprite(spawnX, spawnY, 'player-sprite', 0);
     this.player.setDepth(10);
