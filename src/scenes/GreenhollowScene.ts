@@ -57,6 +57,11 @@ export class GreenhollowScene extends BaseWorldScene {
       targetSpawn: 'orric',
     });
 
+    // Enemies — wolves roaming the forest paths.
+    this.spawnEnemy({ monsterKey: 'wolf', x: 22 * TILE, y: 10 * TILE, color: 0x707070 });
+    this.spawnEnemy({ monsterKey: 'wolf', x: 16 * TILE, y: 8 * TILE, color: 0x686868 });
+    this.spawnEnemy({ monsterKey: 'wolf', x: 26 * TILE, y: 14 * TILE, color: 0x787878 });
+
     // Zone marker.
     this.add
       .text(WORLD_W / 2, WORLD_H - TILE * 4, 'GREENHOLLOW WOODS', {

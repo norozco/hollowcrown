@@ -3,8 +3,10 @@ import { usePlayerStore } from '../state/playerStore';
 import { useUIStore } from '../state/uiStore';
 import { useDialogueStore } from '../state/dialogueStore';
 import { useQuestStore } from '../state/questStore';
+import { useCombatStore } from '../state/combatStore';
 import { DialogueScene } from './Dialogue/DialogueScene';
 import { QuestTracker } from './QuestTracker/QuestTracker';
+import { CombatOverlay } from './Combat/CombatOverlay';
 import './InGameOverlay.css';
 
 /**
@@ -22,6 +24,7 @@ export function InGameOverlay() {
   const setScreen = useUIStore((s) => s.setScreen);
   const clearPlayer = usePlayerStore((s) => s.clear);
   const dialogueActive = useDialogueStore((s) => s.dialogue !== null);
+  const combatActive = useCombatStore((s) => s.state !== null);
   const resetQuests = useQuestStore((s) => s.reset);
 
   const [menuOpen, setMenuOpen] = useState(false);
@@ -120,6 +123,7 @@ export function InGameOverlay() {
       <p className="ig__controls-hint">WASD / Arrows to move · E to interact · Esc for menu</p>
 
       {dialogueActive && <DialogueScene />}
+      {combatActive && <CombatOverlay />}
     </div>
   );
 }

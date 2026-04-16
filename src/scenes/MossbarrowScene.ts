@@ -42,6 +42,10 @@ export class MossbarrowScene extends BaseWorldScene {
     this.physics.add.existing(oakRect, true);
     this.walls.add(oakRect);
 
+    // Enemies — risen bones guarding the cairn.
+    this.spawnEnemy({ monsterKey: 'skeleton', x: 16 * TILE, y: 10 * TILE, color: 0xd0d0c0 });
+    this.spawnEnemy({ monsterKey: 'skeleton', x: 28 * TILE, y: 12 * TILE, color: 0xc8c8b8 });
+
     // Zone marker.
     this.add
       .text(2 * TILE, WORLD_H / 2, 'MOSSBARROW CAIRN', {

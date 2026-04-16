@@ -1,6 +1,7 @@
 import * as Phaser from 'phaser';
 import { usePlayerStore } from '../state/playerStore';
 import { useDialogueStore } from '../state/dialogueStore';
+import { useCombatStore } from '../state/combatStore';
 import { getDialogue } from '../engine/dialogues';
 import { getNPC } from '../engine/npcs';
 import {
@@ -84,6 +85,7 @@ export abstract class BaseWorldScene extends Phaser.Scene {
   protected walls!: Phaser.Physics.Arcade.StaticGroup;
   protected npcs: NpcSprite[] = [];
   protected interactables: Interactable[] = [];
+  protected enemies: Array<{ sprite: Phaser.GameObjects.Arc; monsterKey: string }> = [];
   protected exits: Exit[] = [];
   protected prompt!: Phaser.GameObjects.Text;
   protected nearbyTarget: NearbyTarget | null = null;
@@ -108,6 +110,7 @@ export abstract class BaseWorldScene extends Phaser.Scene {
   create(data?: WorldSceneInit): void {
     this.npcs = [];
     this.interactables = [];
+    this.enemies = [];
     this.exits = [];
     this.nearbyTarget = null;
     this.transitionLock = false;
@@ -134,7 +137,7 @@ export abstract class BaseWorldScene extends Phaser.Scene {
       body?.setVelocity(0, 0);
       return;
     }
-    if (useDialogueStore.getState().dialogue) {
+    if (useDialogueStore.getState().dialogue || useCombatStore.getState().state) {
       (this.player.body as Phaser.Physics.Arcade.Body).setVelocity(0, 0);
       this.prompt.setVisible(false);
       this.nearbyTarget = null;
@@ -145,6 +148,7 @@ export abstract class BaseWorldScene extends Phaser.Scene {
     this.updatePlayerLabel();
     this.updateProximityPrompt();
     this.handleInteraction();
+    this.checkEnemyContact();
     this.checkExits();
   }
 
@@ -309,7 +313,17 @@ export abstract class BaseWorldScene extends Phaser.Scene {
     });
   }
 
-  /** Spawn an NPC circle at tile coords, with name floating above. */
+  /** Spawn an enemy that triggers combat on contact. */
+  protected spawnEnemy(cfg: { monsterKey: string; x: number; y: number; color?: number }): void {
+    const color = cfg.color ?? 0xa04040;
+    const enemy = this.add.circle(cfg.x, cfg.y, 12, color);
+    enemy.setStrokeStyle(2, 0x300808);
+    enemy.setDepth(10);
+    this.physics.add.existing(enemy, true);
+    this.enemies.push({ sprite: enemy, monsterKey: cfg.monsterKey });
+  }
+
+  /** Spawn an NPC sprite at tile coords, with name floating above. */
   protected spawnNpc(cfg: { key: string; dialogueId: string; x: number; y: number }): void {
     const data = getNPC(cfg.key);
     if (!data) {
@@ -565,6 +579,23 @@ export abstract class BaseWorldScene extends Phaser.Scene {
         this.nearbyTarget.ref.action();
       } catch (err) {
         console.warn('Interactable action failed:', err);
+      }
+    }
+  }
+
+  private checkEnemyContact(): void {
+    for (let i = this.enemies.length - 1; i >= 0; i--) {
+      const enemy = this.enemies[i];
+      const dist = Phaser.Math.Distance.Between(
+        this.player.x, this.player.y,
+        enemy.sprite.x, enemy.sprite.y,
+      );
+      if (dist < 28) {
+        // Remove enemy from the world and start combat.
+        enemy.sprite.destroy();
+        this.enemies.splice(i, 1);
+        useCombatStore.getState().start(enemy.monsterKey);
+        return;
       }
     }
   }
