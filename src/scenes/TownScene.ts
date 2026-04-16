@@ -161,6 +161,9 @@ const SH = T.SHADOW;
 const BU = T.BUSH;
 const FN = T.FENCE;
 const WL = T.WELL;
+const TO = T.TORCH;
+const PL = T.PLANT;
+const BN = T.CHAIR; // bench = chair tile used outdoors
 
 /** Building definition. */
 interface Building {
@@ -246,13 +249,35 @@ function tileAt(x: number, y: number): number {
   // ── Town well (decorative landmark in the center) ──
   if (x === 13 && y === 9) return WL;
 
-  // ── Scattered bushes for flavor ──
-  if ((x === 2 && y === 5) || (x === 37 && y === 6) ||
-      (x === 3 && y === 13) || (x === 36 && y === 14) ||
-      (x === 1 && y === 19) || (x === 38 && y === 18) ||
-      (x === 24 && y === 13) || (x === 34 && y === 9)) return BU;
+  // ── Torch/lamp posts along the main path ──
+  if (y === 8 && (x === 3 || x === 12 || x === 24 || x === 36)) return TO;
+  if (y === 10 && (x === 3 || x === 12 || x === 24 || x === 36)) return TO;
 
-  // ── Default grass — occasional light variant for texture ──
+  // ── Benches near the path for resting ──
+  if (y === 12 && (x === 5 || x === 6)) return BN;
+  if (y === 12 && (x === 33 || x === 34)) return BN;
+
+  // ── Plants/flower beds near building entrances ──
+  if (y === 7 && (x === 6 || x === 9)) return PL;  // guild entrance flowers
+  if (y === 7 && (x === 16 || x === 19)) return PL; // inn entrance flowers
+  if (y === 7 && (x === 28 || x === 31)) return PL; // shop entrance flowers
+
+  // ── Bushes in natural clusters ──
+  if ((x === 2 && y === 5) || (x === 3 && y === 5)) return BU;
+  if ((x === 37 && y === 5) || (x === 38 && y === 6)) return BU;
+  if ((x === 2 && y === 13) || (x === 3 && y === 13)) return BU;
+  if ((x === 36 && y === 13) || (x === 37 && y === 14)) return BU;
+  if ((x === 1 && y === 18) || (x === 2 && y === 19)) return BU;
+  if ((x === 37 && y === 18) || (x === 38 && y === 19)) return BU;
+  if ((x === 24 && y === 13) || (x === 25 && y === 13)) return BU;
+  if (x === 13 && y === 13) return BU;
+  if (x === 35 && y === 9) return BU;
+
+  // ── Crate near the shop side (outdoor storage) ──
+  if (x === 33 && y === 5) return T.CRATE;
+  if (x === 33 && y === 6) return T.BARREL;
+
+  // ── Default grass — flowers and variation ──
   return (x + y) % 7 === 0 || (x * 3 + y * 5) % 11 === 0 ? g : G;
 }
 
