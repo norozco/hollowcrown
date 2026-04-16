@@ -33,7 +33,13 @@
     "title": "Merchant",
     "portraitColor": "#4a2030",
     "accentColor": "#c46888",
-    "description": "Prices fair, weights honest, smile unreadable."
+    "description": "Prices fair, weights honest, smile unreadable.",
+    "portraits": {
+      "neutral": "portraits/vira/neutral.png",
+      "thoughtful": "portraits/vira/thoughtful.png",
+      "sad": "portraits/vira/sad.png",
+      "angry": "portraits/vira/angry.png"
+    }
   },
   "orric": {
     "key": "orric",
