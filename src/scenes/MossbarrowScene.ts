@@ -1,54 +1,48 @@
-import * as Phaser from 'phaser';
 import { useDialogueStore } from '../state/dialogueStore';
 import { getDialogue } from '../engine/dialogues';
-import { BaseWorldScene, TILE, WORLD_W, WORLD_H } from './BaseWorldScene';
+import { BaseWorldScene, TILE, WORLD_H } from './BaseWorldScene';
+import { generateTileset, TILE as T, TILE_SIZE } from './tiles/generateTiles';
 
 /**
- * Mossbarrow Cairn — the second objective destination for the Iron Token
- * quest. Orric warned the player about it; the old cairn under ivy,
- * past the hollow oak, is where Veyrin went and did not come back.
- *
- * No combat yet. The player finds Veyrin's notebook at the center of
- * the cairn; reading it completes the quest's second objective (and
- * thus the whole quest).
- *
- * Exits:
- *   - West edge → back to Greenhollow
+ * Mossbarrow Cairn — tilemap version. Dark stone clearing with a ring
+ * of cairn stones, a hollow oak, and the center stone interactable.
  */
+
+const MAP_W = 40;
+const MAP_H = 22;
+
 export class MossbarrowScene extends BaseWorldScene {
   constructor() {
     super({ key: 'MossbarrowScene' });
   }
 
   protected layout(): void {
-    // Dark stone floor, almost greyscale — colder than Greenhollow.
-    this.add.rectangle(WORLD_W / 2, WORLD_H / 2, WORLD_W, WORLD_H, 0x161414);
+    generateTileset(this);
 
-    // Cold moss patches sprinkled to break up the grey.
-    const mossSpots: [number, number][] = [
-      [4, 3], [8, 6], [12, 2], [15, 9], [20, 4], [25, 11], [30, 5], [35, 3],
-      [6, 14], [14, 16], [22, 18], [28, 15], [34, 17], [18, 12], [24, 7],
-    ];
-    for (const [tx, ty] of mossSpots) {
-      this.add
-        .rectangle(tx * TILE, ty * TILE, TILE, TILE, 0x1a2418)
-        .setAlpha(0.45);
+    const map = this.make.tilemap({
+      data: buildMapData(),
+      tileWidth: TILE_SIZE,
+      tileHeight: TILE_SIZE,
+    });
+    const tileset = map.addTilesetImage('tileset')!;
+    map.createLayer(0, tileset)!;
+
+    // Cairn stone collision bodies (matching WALL_STONE tiles in the map).
+    const stoneTiles = getCairnPositions();
+    for (const [tx, ty] of stoneTiles) {
+      const cx = tx * TILE + TILE / 2;
+      const cy = ty * TILE + TILE / 2;
+      const stone = this.add.rectangle(cx, cy, 28, 28, 0x000000, 0);
+      this.physics.add.existing(stone, true);
+      this.walls.add(stone);
     }
 
-    // The hollow oak — a tall dead tree west of the cairn, per Orric's line.
-    this.drawHollowOak(10 * TILE, 8 * TILE);
+    // Hollow oak collision.
+    const oakRect = this.add.rectangle(10 * TILE + 16, 8 * TILE + 24, 48, 64, 0x000000, 0);
+    this.physics.add.existing(oakRect, true);
+    this.walls.add(oakRect);
 
-    // The cairn itself — a rough circle of grey stones in the center.
-    const cairnCx = 22 * TILE;
-    const cairnCy = 11 * TILE;
-    this.drawCairnRing(cairnCx, cairnCy, 4 * TILE);
-
-    // Ivy stones scattered around the cairn outer edge.
-    this.drawIvyStones([
-      [18, 7], [26, 7], [18, 15], [26, 15], [14, 11], [30, 11],
-    ]);
-
-    // Zone marker near the west entrance.
+    // Zone marker.
     this.add
       .text(2 * TILE, WORLD_H / 2, 'MOSSBARROW CAIRN', {
         fontFamily: 'Courier New',
@@ -57,9 +51,10 @@ export class MossbarrowScene extends BaseWorldScene {
         backgroundColor: 'rgba(10,6,6,0.55)',
         padding: { x: 8, y: 3 },
       })
-      .setOrigin(0, 0.5);
+      .setOrigin(0, 0.5)
+      .setDepth(10);
 
-    // West-edge exit back to Greenhollow.
+    // West edge → Greenhollow.
     this.addExit({
       x: 0,
       y: 0,
@@ -70,9 +65,10 @@ export class MossbarrowScene extends BaseWorldScene {
       label: '← Greenhollow',
     });
 
-    // Interactable center stone — the quest payoff.
-    const centerStone = this.add.rectangle(cairnCx, cairnCy, 40, 40, 0x2a2824);
-    centerStone.setStrokeStyle(2, 0x0a0a08);
+    // Center stone interactable.
+    const cairnCx = 22 * TILE;
+    const cairnCy = 11 * TILE;
+    const centerStone = this.add.rectangle(cairnCx, cairnCy, 40, 40, 0x000000, 0);
     this.physics.add.existing(centerStone, true);
     this.walls.add(centerStone);
 
@@ -81,9 +77,7 @@ export class MossbarrowScene extends BaseWorldScene {
       label: 'Examine the center stone',
       radius: 28,
       action: () => {
-        useDialogueStore
-          .getState()
-          .start(getDialogue('mossbarrow-cairn'));
+        useDialogueStore.getState().start(getDialogue('mossbarrow-cairn'));
       },
     });
   }
@@ -91,59 +85,88 @@ export class MossbarrowScene extends BaseWorldScene {
   protected spawnAt(name: string): { x: number; y: number } {
     switch (name) {
       case 'fromGreenhollow':
-        // Entered from west → spawn just inside the west edge.
         return { x: 2 * TILE + 16, y: WORLD_H / 2 };
       case 'default':
       default:
         return { x: 2 * TILE + 16, y: WORLD_H / 2 };
     }
   }
+}
 
-  // ──────────────────────────────────────────────────────────────
-  // Scenery helpers
-  // ──────────────────────────────────────────────────────────────
+// ─── Map data ──────────────────────────────────────────────────
 
-  private drawHollowOak(cx: number, cy: number): void {
-    // Trunk
-    const trunk = this.add.rectangle(cx, cy, 48, 80, 0x2a1e14);
-    trunk.setStrokeStyle(2, 0x0a0a08);
-    this.physics.add.existing(trunk, true);
-    this.walls.add(trunk);
-    // Hollow
-    this.add.rectangle(cx, cy + 10, 20, 30, 0x080604);
-    // Dead branches — two diagonal strips on top
-    this.add.line(cx, cy - 48, 0, 0, -28, -16, 0x2a1e14).setLineWidth(3);
-    this.add.line(cx, cy - 48, 0, 0, 30, -14, 0x2a1e14).setLineWidth(3);
-  }
+const FS = T.FLOOR_STONE;
+const S  = T.WALL_STONE;
+const _G = T.GRASS_DARK; void _G;
+const P  = T.PATH;
+const PE = T.PATH_EDGE;
+const BU = T.BUSH;
+const WA = T.WATER;
 
-  private drawCairnRing(cx: number, cy: number, radius: number): void {
-    // 6 tall stones arranged in a rough circle.
-    const count = 6;
-    for (let i = 0; i < count; i++) {
-      const angle = (i / count) * Math.PI * 2 - Math.PI / 2;
-      const sx = cx + Math.cos(angle) * radius;
-      const sy = cy + Math.sin(angle) * radius;
-      const stone = this.add.rectangle(sx, sy, 32, 56, 0x3a3834);
-      stone.setStrokeStyle(2, 0x141210);
-      this.physics.add.existing(stone, true);
-      this.walls.add(stone);
-      // A small dark marking etched on each stone
-      this.add.rectangle(sx, sy - 4, 6, 14, 0x141210);
+/** Cairn stone positions (WALL_STONE tiles that need physics bodies). */
+function getCairnPositions(): [number, number][] {
+  const positions: [number, number][] = [];
+  for (let y = 0; y < MAP_H; y++) {
+    for (let x = 0; x < MAP_W; x++) {
+      if (tileAt(x, y) === S) positions.push([x, y]);
     }
   }
+  return positions;
+}
 
-  private drawIvyStones(positions: [number, number][]): void {
-    for (const [tx, ty] of positions) {
-      const cx = tx * TILE;
-      const cy = ty * TILE;
-      const stone = this.add.rectangle(cx, cy, 28, 28, 0x2a2824);
-      stone.setStrokeStyle(1, 0x0a0a08);
-      this.physics.add.existing(stone, true);
-      (stone.body as Phaser.Physics.Arcade.StaticBody).setSize(28, 28);
-      this.walls.add(stone);
-      // Ivy overlay — small green blobs
-      this.add.circle(cx - 6, cy - 2, 4, 0x1a3018);
-      this.add.circle(cx + 5, cy + 6, 3, 0x1a3018);
+function buildMapData(): number[][] {
+  const rows: number[][] = [];
+  for (let y = 0; y < MAP_H; y++) {
+    const row: number[] = [];
+    for (let x = 0; x < MAP_W; x++) {
+      row.push(tileAt(x, y));
     }
+    rows.push(row);
   }
+  return rows;
+}
+
+function tileAt(x: number, y: number): number {
+  // ── Cairn ring — 6 stones in a rough circle around (22, 11) ──
+  const cairnStones: [number, number][] = [
+    [19, 8], [25, 8], [18, 11], [26, 11], [19, 14], [25, 14],
+  ];
+  for (const [sx, sy] of cairnStones) {
+    if (x === sx && y === sy) return S;
+  }
+
+  // ── Center stone area — stone floor ──
+  if (inRect(x, y, 20, 9, 5, 5)) return FS;
+
+  // ── Hollow oak at (9-11, 6-10) ──
+  if (inRect(x, y, 9, 6, 3, 5)) return T.WALL_WOOD; // dark trunk
+
+  // ── Ivy stones scattered around edges ──
+  const ivyStones: [number, number][] = [
+    [14, 5], [28, 5], [14, 17], [28, 17], [8, 12], [34, 12],
+    [6, 4], [36, 8], [12, 18], [30, 18],
+  ];
+  for (const [ix, iy] of ivyStones) {
+    if (x === ix && y === iy) return BU;
+  }
+
+  // ── Path from west entrance to cairn center ──
+  if (y >= 10 && y <= 12 && x >= 1 && x <= 19) return P;
+  if (y === 9 && x >= 1 && x <= 19) return PE;
+  if (y === 13 && x >= 1 && x <= 19) return PE;
+
+  // ── Small pools of stagnant water ──
+  if (inRect(x, y, 4, 3, 2, 2)) return WA;
+  if (inRect(x, y, 33, 16, 3, 2)) return WA;
+
+  // ── Moss patches (light grass on stone) ──
+  const hash = ((x * 11 + y * 7) % 13);
+  if (hash < 2) return T.GRASS_LIGHT; // mossy stone floor
+
+  // ── Default: dark stone ground ──
+  return FS;
+}
+
+function inRect(x: number, y: number, rx: number, ry: number, rw: number, rh: number): boolean {
+  return x >= rx && x < rx + rw && y >= ry && y < ry + rh;
 }

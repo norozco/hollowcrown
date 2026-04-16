@@ -1,52 +1,53 @@
 import { BaseWorldScene, TILE, WORLD_W, WORLD_H } from './BaseWorldScene';
+import { generateTileset, TILE as T, TILE_SIZE } from './tiles/generateTiles';
 
 /**
- * Greenhollow Woods — the first zone outside Ashenvale. Forest floor,
- * scattered trees, a dirt path winding up from the southern road, and
- * Orric the forester's cabin to the north. Orric is an NPC who knows
- * something about Veyrin, threading the hook Brenna planted.
- *
- * Exits:
- *   - North edge (top) returns to Ashenvale
+ * Greenhollow Woods — forest zone east of Ashenvale. Tilemap-rendered
+ * with dense tree cover, winding paths, and Orric's cabin.
  */
+
+const MAP_W = 40;
+const MAP_H = 22;
+
 export class GreenhollowScene extends BaseWorldScene {
   constructor() {
     super({ key: 'GreenhollowScene' });
   }
 
   protected layout(): void {
-    // Dark forest floor.
-    this.add.rectangle(WORLD_W / 2, WORLD_H / 2, WORLD_W, WORLD_H, 0x0e1a10);
+    generateTileset(this);
 
-    // Winding dirt path — a few overlapping strips suggest a meandering trail.
-    const pathColor = 0x3a2f1e;
-    const pathAlpha = 0.55;
-    this.add.rectangle(WORLD_W / 2, WORLD_H - 80, WORLD_W, 64, pathColor).setAlpha(pathAlpha);
-    this.add
-      .rectangle(WORLD_W / 2 - 120, WORLD_H / 2 + 40, 8 * TILE, 3 * TILE, pathColor)
-      .setAlpha(pathAlpha);
-    this.add
-      .rectangle(WORLD_W / 2 + 100, WORLD_H / 2 - 40, 9 * TILE, 3 * TILE, pathColor)
-      .setAlpha(pathAlpha);
-    this.add
-      .rectangle(WORLD_W / 2 + 240, 5 * TILE + 8, 6 * TILE, 3 * TILE, pathColor)
-      .setAlpha(pathAlpha);
+    const map = this.make.tilemap({
+      data: buildMapData(),
+      tileWidth: TILE_SIZE,
+      tileHeight: TILE_SIZE,
+    });
+    const tileset = map.addTilesetImage('tileset')!;
+    map.createLayer(0, tileset)!;
 
-    // Scatter a cluster of tree circles — dark green with a darker core.
-    this.scatterTrees();
-
-    // Orric's cabin — smaller than town buildings, tucked in the upper right.
+    // Orric's cabin — collision only; tilemap draws the visuals.
     const cabinDoor = this.addBuilding({
       xTile: 30,
       yTile: 3,
       wTile: 5,
-      hTile: 3,
+      hTile: 4,
       color: 0x4a3220,
       label: "Orric's Cabin",
       doorSide: 'bottom',
+      visual: false,
     }).doorOutside;
 
-    // Orric at the cabin — beside the door, not blocking it.
+    // Tree collision bodies — matching the bush tiles in the map.
+    const treeTiles = getTreePositions();
+    for (const [tx, ty] of treeTiles) {
+      const cx = tx * TILE + TILE / 2;
+      const cy = ty * TILE + TILE / 2;
+      const tree = this.add.circle(cx, cy, 14, 0x000000, 0); // invisible
+      this.physics.add.existing(tree, true);
+      this.walls.add(tree);
+    }
+
+    // Orric beside the cabin door.
     this.spawnNpc({
       key: 'orric',
       dialogueId: 'orric-greeting',
@@ -54,7 +55,7 @@ export class GreenhollowScene extends BaseWorldScene {
       y: cabinDoor.y,
     });
 
-    // Zone marker — a text sign near the entrance from Ashenvale.
+    // Zone marker.
     this.add
       .text(WORLD_W / 2, WORLD_H - TILE * 4, 'GREENHOLLOW WOODS', {
         fontFamily: 'Courier New',
@@ -63,9 +64,10 @@ export class GreenhollowScene extends BaseWorldScene {
         backgroundColor: 'rgba(10,6,6,0.4)',
         padding: { x: 8, y: 3 },
       })
-      .setOrigin(0.5);
+      .setOrigin(0.5)
+      .setDepth(10);
 
-    // North edge exit back to Ashenvale.
+    // North edge → Ashenvale.
     this.addExit({
       x: 0,
       y: 0,
@@ -76,7 +78,7 @@ export class GreenhollowScene extends BaseWorldScene {
       label: '↑ Ashenvale',
     });
 
-    // East edge exit to Mossbarrow Cairn — Orric's "east of my cabin".
+    // East edge → Mossbarrow.
     this.addExit({
       x: WORLD_W - TILE,
       y: 0,
@@ -91,43 +93,123 @@ export class GreenhollowScene extends BaseWorldScene {
   protected spawnAt(name: string): { x: number; y: number } {
     switch (name) {
       case 'fromAshenvale':
-        // Ashenvale's south edge connects to Greenhollow's south edge,
-        // so the player arrives at the south of the woods and walks
-        // north toward Orric's cabin.
         return { x: WORLD_W / 2, y: WORLD_H - TILE * 3 };
       case 'fromMossbarrow':
-        // Returning from the east — spawn near the east edge.
         return { x: WORLD_W - TILE * 3, y: WORLD_H / 2 };
       case 'default':
       default:
         return { x: WORLD_W / 2, y: WORLD_H - TILE * 3 };
     }
   }
+}
 
-  /** Sprinkle tree circles across the map, avoiding the path area. */
-  private scatterTrees(): void {
-    // Deterministic positions so the forest looks hand-placed rather than
-    // random-noisy. Each entry is [tileX, tileY].
-    const trees: [number, number][] = [
-      [2, 2], [4, 3], [6, 2], [9, 1], [12, 3], [14, 2], [16, 4], [22, 2],
-      [25, 4], [27, 2], [36, 4], [38, 2], [1, 7], [3, 9], [5, 11], [7, 13],
-      [4, 15], [2, 17], [6, 18], [10, 19], [15, 18], [19, 19], [24, 18],
-      [28, 19], [33, 17], [37, 18], [39, 16], [37, 13], [38, 11], [39, 9],
-      [2, 12], [7, 17], [11, 16], [14, 14], [18, 11], [21, 13], [26, 14],
-      [4, 4], [11, 7], [15, 9], [20, 5], [24, 8], [29, 9], [35, 10], [38, 7],
-    ];
-    for (const [tx, ty] of trees) {
-      const cx = tx * TILE;
-      const cy = ty * TILE;
-      // Outer foliage
-      const outer = this.add.circle(cx, cy, 18, 0x1a3018);
-      outer.setStrokeStyle(1, 0x0a1a08);
-      // Darker core
-      this.add.circle(cx, cy, 10, 0x0e2010);
-      // Small physics body so player bumps off them.
-      this.physics.add.existing(outer, true);
-      (outer.body as Phaser.Physics.Arcade.StaticBody).setCircle(14);
-      this.walls.add(outer);
+// ─── Map + tree layout ─────────────────────────────────────────
+
+const G  = T.GRASS_DARK;
+const g  = T.GRASS_LIGHT;
+const P  = T.PATH;
+const PE = T.PATH_EDGE;
+const _S = T.WALL_STONE; void _S; // reserved for future cabin variants
+const W  = T.WALL_WOOD;
+const D  = T.DOOR;
+const FW = T.FLOOR_WOOD;
+const R  = T.ROOF;
+const RE = T.ROOF_EDGE;
+const SH = T.SHADOW;
+const BU = T.BUSH;
+
+/** Deterministic tree positions — dense forest with clearings for paths. */
+function getTreePositions(): [number, number][] {
+  const trees: [number, number][] = [];
+  for (let y = 0; y < MAP_H; y++) {
+    for (let x = 0; x < MAP_W; x++) {
+      if (tileAt(x, y) === BU) trees.push([x, y]);
     }
   }
+  return trees;
+}
+
+function buildMapData(): number[][] {
+  const rows: number[][] = [];
+  for (let y = 0; y < MAP_H; y++) {
+    const row: number[] = [];
+    for (let x = 0; x < MAP_W; x++) {
+      row.push(tileAt(x, y));
+    }
+    rows.push(row);
+  }
+  return rows;
+}
+
+function tileAt(x: number, y: number): number {
+  // ── Cabin: tiles (30,3) to (34,6) ──
+  if (y === 2 && x >= 30 && x < 35) return R;  // roof
+  if (y === 3 && x >= 30 && x < 35) return RE; // roof edge
+  if (inRect(x, y, 30, 4, 5, 3)) {
+    if (x === 30 || x === 34) return W;
+    if (y === 6) {
+      if (x === 32 || x === 33) return D;
+      return W;
+    }
+    return FW;
+  }
+  // Cabin shadow + door path
+  if (y === 7 && x >= 30 && x < 35) {
+    if (x === 32 || x === 33) return P;
+    return SH;
+  }
+  // Bushes flanking cabin
+  if ((x === 29 || x === 35) && y >= 3 && y <= 6) return BU;
+
+  // ── Main winding path from south entrance to cabin ──
+  // South entrance (center-bottom)
+  if (x >= 19 && x <= 20 && y >= 18 && y <= 21) return P;
+  if ((x === 18 || x === 21) && y >= 18 && y <= 21) return PE;
+  // Path curves northeast toward cabin
+  if (x >= 19 && x <= 20 && y >= 14 && y < 18) return P;
+  if (x >= 20 && x <= 24 && y >= 12 && y <= 14) return P;
+  if (x >= 24 && x <= 28 && y >= 10 && y <= 12) return P;
+  if (x >= 28 && x <= 32 && y >= 7 && y <= 10) return P;
+  // Path edges along the route
+  if ((x === 18 || x === 21) && y >= 14 && y < 18) return PE;
+  if (y === 11 && x >= 20 && x <= 24) return PE;
+  if (y === 15 && x >= 20 && x <= 24) return PE;
+  if (y === 9 && x >= 24 && x <= 28) return PE;
+  if (y === 13 && x >= 24 && x <= 28) return PE;
+
+  // ── Dense tree cover (bushes with physics bodies) ──
+  // Scatter trees everywhere EXCEPT on paths, buildings, exits
+  const isPath = false; // already handled above (would've returned)
+  const isExit = y === 0 || x >= MAP_W - 1;
+  const nearCabin = x >= 28 && x <= 36 && y >= 1 && y <= 9;
+  const nearPath = isNearPath(x, y);
+
+  if (!isPath && !isExit && !nearCabin && !nearPath) {
+    // Pseudo-random tree placement — ~35% coverage
+    const hash = ((x * 7 + y * 13 + x * y * 3) % 17);
+    if (hash < 6) return BU;
+  }
+
+  // ── Light grass near paths, dark elsewhere ──
+  if (nearPath) return g;
+
+  return (x + y) % 5 === 0 ? g : G;
+}
+
+function isNearPath(x: number, y: number): boolean {
+  // Check if within 2 tiles of any path segment
+  const pathZones = [
+    { x1: 17, y1: 14, x2: 22, y2: 21 }, // south corridor
+    { x1: 19, y1: 12, x2: 25, y2: 15 }, // mid curve
+    { x1: 23, y1: 10, x2: 29, y2: 13 }, // northeast curve
+    { x1: 27, y1: 7, x2: 33, y2: 11 },  // cabin approach
+  ];
+  for (const z of pathZones) {
+    if (x >= z.x1 && x <= z.x2 && y >= z.y1 && y <= z.y2) return true;
+  }
+  return false;
+}
+
+function inRect(x: number, y: number, rx: number, ry: number, rw: number, rh: number): boolean {
+  return x >= rx && x < rx + rw && y >= ry && y < ry + rh;
 }
