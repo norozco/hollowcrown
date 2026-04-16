@@ -3,6 +3,13 @@ import { usePlayerStore } from '../state/playerStore';
 import { useDialogueStore } from '../state/dialogueStore';
 import { getDialogue } from '../engine/dialogues';
 import { getNPC } from '../engine/npcs';
+import {
+  generateCharacterSprite,
+  paletteFromColor,
+  DEFAULT_COLORS,
+  SPRITE_W,
+  SPRITE_H,
+} from './sprites/generateSprites';
 
 /**
  * Shared world-scene infrastructure. Handles player creation & movement,
@@ -23,7 +30,7 @@ interface NpcSprite {
   key: string;
   name: string;
   dialogueId: string;
-  sprite: Phaser.GameObjects.Arc;
+  sprite: Phaser.GameObjects.Arc | Phaser.GameObjects.Sprite;
   nameLabel: Phaser.GameObjects.Text;
 }
 
@@ -55,15 +62,16 @@ export const TILE = 32;
 export const WORLD_W = 1280;
 export const WORLD_H = 720;
 
-const PLAYER_RADIUS = 14;
-const NPC_RADIUS = 14;
+const _PLAYER_RADIUS = 14; void _PLAYER_RADIUS; // kept for reference
+const NPC_RADIUS = 14; void NPC_RADIUS;
 const PLAYER_SPEED = 190;
 const INTERACT_RADIUS = 56;
 const FADE_MS = 250;
 
 export abstract class BaseWorldScene extends Phaser.Scene {
-  protected player!: Phaser.GameObjects.Arc;
+  protected player!: Phaser.GameObjects.Sprite;
   protected playerNameLabel!: Phaser.GameObjects.Text;
+  private playerFacing = 0; // 0=down, 1=up, 2=left, 3=right
   protected cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
   protected keyW!: Phaser.Input.Keyboard.Key;
   protected keyA!: Phaser.Input.Keyboard.Key;
@@ -306,15 +314,22 @@ export abstract class BaseWorldScene extends Phaser.Scene {
       console.warn(`scene: unknown NPC "${cfg.key}", skipping`);
       return;
     }
-    const color = parseInt(data.portraitColor.replace('#', ''), 16);
-    const sprite = this.add.circle(cfg.x, cfg.y, NPC_RADIUS, color);
-    sprite.setStrokeStyle(2, 0x1a0e08);
+
+    // Generate a unique sprite for this NPC based on their portrait color.
+    const spriteKey = `npc-${cfg.key}`;
+    generateCharacterSprite(this, spriteKey, paletteFromColor(data.portraitColor));
+
+    const sprite = this.add.sprite(cfg.x, cfg.y, spriteKey, 0); // face down
     sprite.setDepth(10);
     this.physics.add.existing(sprite, true);
+    // Collision body centered on feet
+    const body = sprite.body as Phaser.Physics.Arcade.StaticBody;
+    body.setSize(16, 16);
+    body.setOffset((SPRITE_W - 16) / 2, SPRITE_H - 20);
     this.walls.add(sprite);
 
     const nameLabel = this.add
-      .text(cfg.x, cfg.y - NPC_RADIUS - 10, data.name, {
+      .text(cfg.x, cfg.y - SPRITE_H / 2 - 4, data.name, {
         fontFamily: 'Courier New',
         fontSize: '12px',
         color: '#d4a968',
@@ -390,17 +405,22 @@ export abstract class BaseWorldScene extends Phaser.Scene {
 
   private createPlayer(spawnX: number, spawnY: number): void {
     const character = usePlayerStore.getState().character;
-    this.player = this.add.circle(spawnX, spawnY, PLAYER_RADIUS, 0xd4a968);
-    this.player.setStrokeStyle(2, 0x1a0e08);
+
+    // Generate a unique spritesheet for the player.
+    generateCharacterSprite(this, 'player-sprite', DEFAULT_COLORS);
+
+    this.player = this.add.sprite(spawnX, spawnY, 'player-sprite', 0);
     this.player.setDepth(10);
     this.physics.add.existing(this.player);
     const body = this.player.body as Phaser.Physics.Arcade.Body;
-    body.setCircle(PLAYER_RADIUS);
+    // Collision box smaller than sprite (just the feet area).
+    body.setSize(16, 16);
+    body.setOffset((SPRITE_W - 16) / 2, SPRITE_H - 20);
     body.setCollideWorldBounds(true);
     this.physics.add.collider(this.player, this.walls);
 
     this.playerNameLabel = this.add
-      .text(spawnX, spawnY - PLAYER_RADIUS - 10, character?.name ?? '???', {
+      .text(spawnX, spawnY - SPRITE_H / 2 - 4, character?.name ?? '???', {
         fontFamily: 'Courier New',
         fontSize: '12px',
         color: '#f4d488',
@@ -449,10 +469,21 @@ export abstract class BaseWorldScene extends Phaser.Scene {
       vy *= d;
     }
     body.setVelocity(vx * PLAYER_SPEED, vy * PLAYER_SPEED);
+
+    // Update facing direction + sprite frame.
+    const moving = vx !== 0 || vy !== 0;
+    if (vy > 0) this.playerFacing = 0;      // down
+    else if (vy < 0) this.playerFacing = 1;  // up
+    else if (vx < 0) this.playerFacing = 2;  // left
+    else if (vx > 0) this.playerFacing = 3;  // right
+
+    // Walk frame = facing + 4; idle = facing.
+    const frame = moving ? this.playerFacing + 4 : this.playerFacing;
+    this.player.setFrame(frame);
   }
 
   private updatePlayerLabel(): void {
-    this.playerNameLabel.setPosition(this.player.x, this.player.y - PLAYER_RADIUS - 10);
+    this.playerNameLabel.setPosition(this.player.x, this.player.y - SPRITE_H / 2 - 4);
   }
 
   private updateProximityPrompt(): void {
