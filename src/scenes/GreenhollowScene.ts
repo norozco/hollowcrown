@@ -61,13 +61,12 @@ export class GreenhollowScene extends BaseWorldScene {
     this.add
       .text(WORLD_W / 2, WORLD_H - TILE * 4, 'GREENHOLLOW WOODS', {
         fontFamily: 'Courier New',
-        fontSize: '14px',
+        fontSize: '12px',
         color: '#6a5838',
-        backgroundColor: 'rgba(10,6,6,0.4)',
-        padding: { x: 8, y: 3 },
       })
       .setOrigin(0.5)
-      .setDepth(10);
+      .setAlpha(0.5)
+      .setDepth(15);
 
     // North edge → Ashenvale.
     this.addExit({

@@ -352,13 +352,12 @@ export abstract class BaseWorldScene extends Phaser.Scene {
       marker = this.add
         .text(opts.x + opts.w / 2, opts.y + opts.h / 2, opts.label, {
           fontFamily: 'Courier New',
-          fontSize: '14px',
+          fontSize: '12px',
           color: '#d4a968',
-          backgroundColor: 'rgba(10,6,6,0.6)',
-          padding: { x: 6, y: 3 },
         })
         .setOrigin(0.5)
-        .setAlpha(0.85);
+        .setAlpha(0.6)
+        .setDepth(15);
     }
     this.exits.push({
       x: opts.x,
