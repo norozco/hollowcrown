@@ -101,10 +101,49 @@ function drawDoor(c: Ctx, i: number) {
   blk(c,i,4,S-3,S-8,3,'#a09880');blk(c,i,4,S-3,S-8,1,'#b8b0a0');
 }
 function drawFloorWood(c: Ctx, i: number) {
-  fill(c,i,'#987048');for(let r=0;r<4;r++){const py=r*8;blk(c,i,0,py,S,7,r%2===0?'#987048':'#a07850');blk(c,i,0,py,S,1,'#a88858');blk(c,i,0,py+7,S,1,'#705028');px(c,i,5+r*3,py+3,'#685020');}
+  // ALTTP-style warm brick floor — 8 rows of offset bricks.
+  // Each brick: ~8px wide × 4px tall, warm brown with mortar lines.
+  fill(c, i, '#a08058');
+  for (let row = 0; row < 8; row++) {
+    const by = row * 4;
+    const off = row % 2 === 0 ? 0 : 4; // offset every other row
+    // Mortar line (bottom of each brick row)
+    blk(c,i,0,by+3,S,1,'#706040');
+    for (let col = -1; col < 5; col++) {
+      const bx = off + col * 8;
+      if (bx >= S) break;
+      const cx = Math.max(0, bx);
+      const cw = Math.min(8, S - cx);
+      if (cw <= 0) continue;
+      // Brick with slight color variation per brick
+      const shade = ['#a88860','#a08058','#988050','#a89060'][(row+col)&3];
+      blk(c,i,cx,by,cw,3,shade);
+      // Top edge highlight (each brick catches light)
+      blk(c,i,cx,by,cw,1, row%2===0?'#b89868':'#b09060');
+      // Vertical mortar between bricks
+      if (bx > 0 && bx < S) blk(c,i,bx,by,1,3,'#706040');
+    }
+  }
 }
 function drawFloorStone(c: Ctx, i: number) {
-  fill(c,i,'#787870');for(let r=0;r<2;r++)for(let cl=0;cl<2;cl++){const sx=cl*16+(r%2===0?0:8),sy=r*16;const sh=(r+cl)%2===0?'#808078':'#707068';blk(c,i,sx,sy,15,15,sh);blk(c,i,sx,sy,15,1,'#909088');blk(c,i,sx,sy,1,15,'#888880');blk(c,i,sx+14,sy,1,15,'#606058');blk(c,i,sx,sy+14,15,1,'#585850');}
+  // ALTTP-style stone floor — similar brick pattern but cooler/greyer.
+  fill(c, i, '#888880');
+  for (let row = 0; row < 8; row++) {
+    const by = row * 4;
+    const off = row % 2 === 0 ? 0 : 5;
+    blk(c,i,0,by+3,S,1,'#585850'); // mortar
+    for (let col = -1; col < 5; col++) {
+      const bx = off + col * 10;
+      if (bx >= S) break;
+      const cx = Math.max(0, bx);
+      const cw = Math.min(10, S - cx);
+      if (cw <= 0) continue;
+      const shade = ['#909088','#888880','#808078','#989890'][(row+col)&3];
+      blk(c,i,cx,by,cw,3,shade);
+      blk(c,i,cx,by,cw,1,'#a0a098');
+      if (bx > 0 && bx < S) blk(c,i,bx,by,1,3,'#585850');
+    }
+  }
 }
 function drawRoof(c: Ctx, i: number) {
   fill(c,i,'#a04830');for(let r=0;r<4;r++){const ry=r*8;const off=r%2===0?0:8;for(let cl=-1;cl<3;cl++){const tx=off+cl*16;for(let dy=0;dy<8;dy++){const color=dy<2?'#c06848':dy<4?'#b05838':dy<6?'#a04830':'#883828';const tx0=Math.max(0,tx);const tw=Math.min(16,S-tx0);if(tw>0)blk(c,i,tx0,ry+dy,tw,1,color);}}}
@@ -235,23 +274,30 @@ function drawBedFoot(c: Ctx, i: number) {
 }
 
 function drawTable(c: Ctx, i: number) {
-  // Top-down table with visible wood grain and items
-  fill(c, i, '#987048');
-  // Table top (lighter wood)
-  blk(c,i,2,4,S-4,S-8,'#c0a060');
-  blk(c,i,3,5,S-6,S-10,'#b89858');
-  // Top highlight
-  blk(c,i,2,4,S-4,1,'#d0b070');
-  // Wood grain lines
-  for (let y = 8; y < S-6; y += 4) blk(c,i,4,y,S-8,1,'#a88848');
-  // Shadow
-  blk(c,i,2,S-5,S-4,1,'#907840');
-  // Legs (corner shadows)
-  blk(c,i,3,5,2,2,'#806830'); blk(c,i,S-5,5,2,2,'#806830');
-  blk(c,i,3,S-7,2,2,'#806830'); blk(c,i,S-5,S-7,2,2,'#806830');
-  // Items on table: candle + plate
-  blk(c,i,8,8,3,3,'#e0c020'); px(c,i,9,7,'#f0d830'); // candle
-  blk(c,i,18,10,6,5,'#d8d0c0'); blk(c,i,19,9,4,1,'#e8e0d0'); // plate
+  // Top-down table — perspective: you see the top surface + front edge.
+  // Cast shadow on floor to suggest height.
+  fill(c, i, '#987048'); // floor
+
+  // Cast shadow (table hovers above floor)
+  blk(c,i,4,S-3,S-6,3,'#705028');
+  blk(c,i,5,S-2,S-8,2,'#604018');
+
+  // Table legs (dark rectangles at corners, seen from above)
+  blk(c,i,3,4,3,3,'#604020'); blk(c,i,S-6,4,3,3,'#604020');
+  blk(c,i,3,S-7,3,3,'#604020'); blk(c,i,S-6,S-7,3,3,'#604020');
+
+  // Table top surface (bright, elevated feel)
+  blk(c,i,2,3,S-4,S-6,'#c0a060');
+  blk(c,i,3,4,S-6,S-8,'#b89858');
+  blk(c,i,2,3,S-4,2,'#d8c078'); // top highlight (light catching the edge)
+  blk(c,i,2,S-5,S-4,2,'#a08040'); // front edge shadow
+
+  // Wood grain lines on surface
+  for (let y = 7; y < S-7; y += 4) blk(c,i,5,y,S-10,1,'#a88848');
+
+  // Items: candle flame + plate
+  blk(c,i,8,7,3,4,'#e0c020'); px(c,i,9,6,'#f8e040'); px(c,i,9,5,'#ffe860'); // candle
+  blk(c,i,18,9,6,5,'#d8d0c0'); blk(c,i,19,8,4,1,'#e8e0d0'); // plate
 }
 
 function drawChair(c: Ctx, i: number) {
@@ -395,22 +441,35 @@ function drawWeaponRack(c: Ctx, i: number) {
 }
 
 function drawWindow(c: Ctx, i: number) {
-  // Window in wall — shows light coming through
-  fill(c, i, '#906830'); // wood wall bg
-  // Window frame
-  blk(c,i,4,2,S-8,S-4,'#604020');
-  // Glass panes (light blue with light)
-  blk(c,i,6,4,S-12,S-8,'#90c0e0');
-  // Bright center (light streaming in)
-  blk(c,i,10,8,12,12,'#b0d8f0');
-  blk(c,i,12,10,8,8,'#d0e8f8');
-  // Cross frame dividers
-  blk(c,i,15,4,2,S-8,'#604020');
+  // Wall section WITH a window — top-down view of an interior wall.
+  // Top and bottom are solid wall (matching WALL_WOOD), middle shows
+  // a recessed window with light streaming through. This way the tile
+  // blends naturally into the wall row.
+
+  // Wall portion — full wood-wall fill first
+  fill(c, i, '#906830');
+  // Match WALL_WOOD plank style for wall portions
+  for (let n = 0; n < 5; n++) {
+    const p0 = n * 7; const pw = n < 4 ? 6 : S - p0;
+    blk(c,i,p0,0,pw,10,n%2===0?'#987038':'#886028');
+    blk(c,i,p0,22,pw,10,n%2===0?'#987038':'#886028');
+  }
+  blk(c,i,0,0,S,1,'#a88848'); // top highlight
+  blk(c,i,0,S-1,S,1,'#604020'); // bottom shadow
+
+  // Window opening in the center (rows 10-22)
+  blk(c,i,6,10,S-12,12,'#604020'); // dark recess frame
+  blk(c,i,8,11,S-16,10,'#80b8d8'); // glass - sky blue
+  blk(c,i,10,12,S-20,8,'#a0d0e8'); // lighter center
+  blk(c,i,12,13,S-24,6,'#c0e0f0'); // bright inner glow
+
+  // Cross frame (wooden mullion)
+  blk(c,i,15,10,2,12,'#604020');
   blk(c,i,6,15,S-12,2,'#604020');
-  // Frame highlight
-  blk(c,i,4,2,S-8,1,'#806038');
-  // Sill
-  blk(c,i,3,S-3,S-6,3,'#705030');blk(c,i,3,S-3,S-6,1,'#907040');
+
+  // Window sill (bottom ledge with highlight)
+  blk(c,i,5,21,S-10,2,'#806038');
+  blk(c,i,5,21,S-10,1,'#a08048');
 }
 
 function drawTorch(c: Ctx, i: number) {
@@ -436,21 +495,30 @@ function drawTorch(c: Ctx, i: number) {
 }
 
 function drawDisplay(c: Ctx, i: number) {
-  // Glass display case with items visible inside
-  fill(c, i, '#987048');
-  // Case frame (light wood)
-  blk(c,i,2,2,S-4,S-4,'#a88850');
-  blk(c,i,2,2,S-4,1,'#c0a060');blk(c,i,2,S-3,S-4,1,'#806830');
-  // Glass top (translucent light)
-  blk(c,i,4,4,S-8,S-8,'#c0d8e8');
-  blk(c,i,4,4,S-8,2,'#d8e8f0');
-  // Items inside (visible through glass)
-  // Potion bottle
-  blk(c,i,8,10,4,8,'#d04040');blk(c,i,9,8,2,3,'#c0c0b8');
-  // Ring
-  for (let a = 0; a < 8; a++) { const ax = 20+Math.round(Math.cos(a*0.8)*3); const ay = 14+Math.round(Math.sin(a*0.8)*3); px(c,i,ax,ay,'#e0c040'); }
-  // Scroll
-  blk(c,i,16,20,8,4,'#e0d8c0');blk(c,i,16,20,1,4,'#c8c0a8');blk(c,i,23,20,1,4,'#c8c0a8');
-  // Glass reflection
-  blk(c,i,6,6,4,1,'#f0f0ff');blk(c,i,20,5,3,1,'#e8e8f8');
+  // Glass display case — drawn with perspective so it looks TALL.
+  // Cast shadow at base, bright top surface, darker front face.
+  fill(c, i, '#987048'); // floor shows at edges
+
+  // Cast shadow on floor (case is elevated)
+  blk(c,i,4,S-4,S-6,4,'#705028');
+
+  // Case front face (darker — you're looking at the side)
+  blk(c,i,2,8,S-4,S-12,'#705838');
+  blk(c,i,3,9,S-6,S-14,'#806840');
+
+  // Glass panel in front face (see items through it)
+  blk(c,i,5,10,S-10,S-16,'#90b8d0');
+  // Items visible through glass
+  blk(c,i,8,12,4,8,'#d04040'); blk(c,i,9,10,2,3,'#c0c0b8'); // potion
+  blk(c,i,18,14,4,4,'#e0c040'); // gold item
+  blk(c,i,16,20,6,3,'#e0d8c0'); // scroll
+
+  // Top surface (bright — light catches it)
+  blk(c,i,2,2,S-4,7,'#c0a868');
+  blk(c,i,3,3,S-6,5,'#d0b878');
+  blk(c,i,2,2,S-4,1,'#e0c888'); // top highlight edge
+
+  // Glass reflection on front
+  blk(c,i,6,11,3,1,'#d0e8f8');
+  blk(c,i,20,12,2,1,'#c0d8e8');
 }

@@ -23,13 +23,30 @@ export class TownScene extends BaseWorldScene {
     generateTileset(this);
 
     // Build and render the tilemap.
+    const mapData = buildMapData();
     const map = this.make.tilemap({
-      data: buildMapData(),
+      data: mapData,
       tileWidth: TILE_SIZE,
       tileHeight: TILE_SIZE,
     });
     const tileset = map.addTilesetImage('tileset')!;
     map.createLayer(0, tileset)!;
+
+    // Outdoor collision — scan tilemap for solid objects (bushes, plants,
+    // torches, benches, barrels, crates) and add physics bodies.
+    const outdoorSolid = new Set<number>([
+      T.BUSH, T.PLANT, T.TORCH, T.CHAIR, T.CRATE, T.BARREL, T.WELL, T.FENCE,
+    ]);
+    for (let ty = 0; ty < MAP_H; ty++) {
+      for (let tx = 0; tx < MAP_W; tx++) {
+        if (outdoorSolid.has(mapData[ty][tx])) {
+          const w = this.add.rectangle(
+            tx * TILE + TILE / 2, ty * TILE + TILE / 2, TILE, TILE, 0x000000, 0);
+          this.physics.add.existing(w, true);
+          this.walls.add(w);
+        }
+      }
+    }
 
     // Buildings — invisible collision only; tilemap handles visuals.
     this.addBuilding({
