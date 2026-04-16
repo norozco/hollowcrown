@@ -20,10 +20,12 @@ export const TILE = {
   TABLE: 20, CHAIR: 21, BARREL: 22, CRATE: 23,
   FIREPLACE: 24, PLANT: 25, RUG_CENTER: 26, RUG_EDGE: 27,
   WEAPON_RACK: 28, WINDOW: 29, TORCH: 30, DISPLAY: 31,
+  // Interior architecture (ALTTP-style thick borders)
+  WALL_INNER: 32, WALL_CORNER: 33, WALL_SHELF: 34, BASEBOARD: 35,
 } as const;
 
 export const TILE_SIZE = 32;
-const TILE_COUNT = 32;
+const TILE_COUNT = 36;
 const S = TILE_SIZE;
 
 export function generateTileset(scene: Phaser.Scene): void {
@@ -47,6 +49,10 @@ export function generateTileset(scene: Phaser.Scene): void {
   drawPlant(ctx, 25); drawRugCenter(ctx, 26); drawRugEdge(ctx, 27);
   drawWeaponRack(ctx, 28); drawWindow(ctx, 29); drawTorch(ctx, 30);
   drawDisplay(ctx, 31);
+
+  // Interior architecture tiles
+  drawWallInner(ctx, 32); drawWallCorner(ctx, 33);
+  drawWallShelf(ctx, 34); drawBaseboard(ctx, 35);
 
   const tex = scene.textures.addCanvas('tileset', canvas);
   if (tex) { for (let i = 0; i < TILE_COUNT; i++) tex.add(i, 0, i * S, 0, S, S); }
@@ -521,4 +527,117 @@ function drawDisplay(c: Ctx, i: number) {
   // Glass reflection on front
   blk(c,i,6,11,3,1,'#d0e8f8');
   blk(c,i,20,12,2,1,'#c0d8e8');
+}
+
+// ═══════════════════════════════════════════════════════════════
+// INTERIOR ARCHITECTURE (32-35) — ALTTP-style thick wall borders
+// ═══════════════════════════════════════════════════════════════
+
+function drawWallInner(c: Ctx, i: number) {
+  // Inner wall face — tan/beige dressed stone with texture.
+  // This is what you see on the SIDE walls of a room (left/right).
+  // ALTTP rooms have a thick ~3-tile border of this on each side.
+  fill(c, i, '#c0a880');
+
+  // Stone block texture (larger blocks than exterior walls)
+  for (let row = 0; row < 4; row++) {
+    const by = row * 8;
+    blk(c,i,0,by+7,S,1,'#9a8060'); // mortar
+    for (let col = 0; col < 3; col++) {
+      const bx = col * 11 + (row%2===0?0:5);
+      const cw = Math.min(10, S - Math.max(0,bx));
+      if (cw <= 0) continue;
+      const cx = Math.max(0, bx);
+      const shade = ['#c8b088','#c0a880','#b8a078','#c8b090'][(row+col)&3];
+      blk(c,i,cx,by,cw,7,shade);
+      blk(c,i,cx,by,cw,1,'#d0b890'); // highlight
+      blk(c,i,cx,by+6,cw,1,'#a89068'); // shadow
+    }
+  }
+  // Vertical edge detail (defines the wall boundary)
+  blk(c,i,0,0,2,S,'#a89068'); // darker left edge
+  blk(c,i,S-2,0,2,S,'#d0b890'); // lighter right edge
+}
+
+function drawWallCorner(c: Ctx, i: number) {
+  // Decorative corner medallion — ALTTP has ornate circular patterns
+  // in the room corners. Dark background with bronze/gold circle.
+  fill(c, i, '#685848');
+
+  // Circular medallion
+  const cx = 16, cy = 16;
+  for (let y = 0; y < S; y++) for (let x = 0; x < S; x++) {
+    const dx = (x-cx)/11, dy = (y-cy)/11;
+    const d2 = dx*dx + dy*dy;
+    if (d2 <= 1) {
+      if (d2 < 0.3) px(c,i,x,y,'#c09838');       // gold center
+      else if (d2 < 0.5) px(c,i,x,y,'#a08030');   // mid gold
+      else if (d2 < 0.7) px(c,i,x,y,'#886828');   // bronze
+      else if (d2 < 0.85) px(c,i,x,y,'#705820');  // dark bronze
+      else px(c,i,x,y,'#584818');                   // ring edge
+    }
+  }
+  // Medallion highlight
+  blk(c,i,12,8,8,2,'#d0a848');
+  // Inner cross pattern
+  blk(c,i,15,10,2,12,'#886828');
+  blk(c,i,10,15,12,2,'#886828');
+  // Outer frame
+  blk(c,i,0,0,S,2,'#584838'); blk(c,i,0,S-2,S,2,'#584838');
+  blk(c,i,0,0,2,S,'#584838'); blk(c,i,S-2,0,2,S,'#584838');
+}
+
+function drawWallShelf(c: Ctx, i: number) {
+  // Back wall with shelf/mantle — this is the TOP WALL of the room.
+  // You see it from below: a stone face with a protruding shelf, and
+  // small objects sitting on it (vases, bottles).
+  fill(c, i, '#a09070');
+
+  // Wall face (upper 60%)
+  blk(c,i,0,0,S,20,'#a89878');
+  // Decorative horizontal band
+  blk(c,i,0,4,S,2,'#908060');
+  blk(c,i,0,4,S,1,'#b0a080');
+
+  // Shelf surface (protruding ledge)
+  blk(c,i,0,18,S,4,'#907858');
+  blk(c,i,0,18,S,1,'#b09868'); // shelf top highlight
+  blk(c,i,0,21,S,1,'#705838'); // shelf bottom shadow
+
+  // Objects on the shelf
+  // Small vase (left)
+  blk(c,i,6,12,4,6,'#c06848'); blk(c,i,7,10,2,2,'#c87858'); // neck
+  blk(c,i,6,12,4,1,'#d87858'); // rim highlight
+  // Bottle (center)
+  blk(c,i,14,14,3,4,'#408060'); blk(c,i,15,11,1,3,'#50906a');
+  // Cup (right)
+  blk(c,i,22,14,4,4,'#c0b8a0'); blk(c,i,22,14,4,1,'#d0c8b0');
+
+  // Below shelf (shadow / baseboard area)
+  blk(c,i,0,22,S,10,'#685048');
+  blk(c,i,0,22,S,2,'#584038'); // deep shadow under shelf
+}
+
+function drawBaseboard(c: Ctx, i: number) {
+  // Dark molding strip between wall and floor — reddish-brown.
+  // In ALTTP this is a clearly visible darker band.
+  fill(c, i, '#684838');
+
+  // Molding profile (3D — darker at top, highlight in middle)
+  blk(c,i,0,0,S,6,'#584030');   // dark top edge (shadow from wall)
+  blk(c,i,0,6,S,8,'#785848');   // main molding body
+  blk(c,i,0,10,S,2,'#886858');  // center highlight
+  blk(c,i,0,14,S,4,'#685040');  // lower molding
+  blk(c,i,0,18,S,2,'#584030');  // bottom lip shadow
+
+  // Floor begins below (warm brown)
+  blk(c,i,0,20,S,12,'#a08058');
+  // First row of floor bricks
+  for (let col = 0; col < 4; col++) {
+    const bx = col * 8;
+    blk(c,i,bx,22,7,3,'#a88860');
+    blk(c,i,bx,22,7,1,'#b89868');
+    blk(c,i,bx+7,22,1,3,'#706040');
+  }
+  blk(c,i,0,25,S,1,'#706040');
 }

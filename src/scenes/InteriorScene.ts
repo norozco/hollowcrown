@@ -94,7 +94,7 @@ export class InteriorScene extends BaseWorldScene {
 
 // ─── Tile aliases ──────────────────────────────────────────────
 
-const FS = T.FLOOR_STONE; const FW = T.FLOOR_WOOD;
+const _FS = T.FLOOR_STONE; void _FS; const FW = T.FLOOR_WOOD;
 const WS = T.WALL_STONE;  const WW = T.WALL_WOOD;  const D  = T.DOOR;
 const BK = T.BOOKSHELF;   const CT = T.COUNTER;
 const BH = T.BED_HEAD;    const BF = T.BED_FOOT;
@@ -104,11 +104,14 @@ const FP = T.FIREPLACE;    const PL = T.PLANT;
 const RC = T.RUG_CENTER;   const RE = T.RUG_EDGE;
 const WR = T.WEAPON_RACK;  const WN = T.WINDOW;
 const TO = T.TORCH;        const DI = T.DISPLAY;
+// Interior architecture
+const WI = T.WALL_INNER;   const WC = T.WALL_CORNER;
+const WH = T.WALL_SHELF;   const BB = T.BASEBOARD;
 
-/** ALL tiles that block the player — includes wall-mounted items. */
-const SOLID = new Set([
+/** ALL tiles that block the player. */
+const SOLID: Set<number> = new Set([
   WS, WW, BK, CT, BH, BF, TB, BA, CR, FP, PL, WR, DI,
-  CH, TO, WN, // chairs block, torches/windows are wall-mounted (solid)
+  CH, TO, WN, WI, WC, WH, BB,
 ]);
 
 function getLayout(id: string): InteriorLayout {
@@ -131,28 +134,34 @@ function getLayout(id: string): InteriorLayout {
 // NO bookshelves — adventurers fight, they don't read.
 
 function guildLayout(): InteriorLayout {
-  const _ = FS; const f = FW;
+  const _ = FW; // warm brick floor
+  // 20×16 with 2-tile thick ALTTP borders
   const tiles: number[][] = [
-    [WS,WS,WS,WS,WS,WS,WS,WS,WS,WS,WS,WS,WS,WS,WS,WS,WS,WS],
-    [WS,TO,WR,WR,WR,TO,_,f,_,f,_,TO,WR,WR,DI,DI,TO,WS],  // weapons + trophy display
-    [WS,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,WS],
-    [WS,_,CT,CT,CT,CT,CT,CT,CT,CT,CT,CT,CT,CT,_,_,_,WS],  // long counter
-    [WS,f,_,f,_,f,_,f,_,f,_,f,_,f,_,f,_,WS],
-    [WS,_,f,_,f,_,f,_,f,_,f,_,f,_,f,_,f,WS],
-    [WS,BA,_,TB,TB,TB,_,f,_,f,_,TB,TB,TB,_,CR,_,WS],  // dining tables + supplies
-    [WS,BA,_,CH,_,CH,_,_,f,_,f,CH,_,CH,_,CR,f,WS],
-    [WS,f,_,f,_,f,_,f,_,f,_,f,_,f,_,f,_,WS],
-    [WS,WN,f,_,f,RC,RC,RC,RC,RC,RC,RC,f,_,f,WN,f,WS],  // windows ON walls
-    [WS,_,_,f,_,RC,RC,RC,RC,RC,RC,RC,_,f,_,_,_,WS],
-    [WS,WN,f,_,f,RE,RE,RE,RE,RE,RE,RE,f,_,f,WN,f,WS],  // windows ON walls
-    [WS,PL,_,f,_,f,_,f,_,f,_,f,_,f,_,f,PL,WS],
-    [WS,WS,WS,WS,WS,WS,WS,WS,D,D,WS,WS,WS,WS,WS,WS,WS,WS],
+    // Row 0-1: outer wall + back wall shelf
+    [WC,WS,WS,WS,WS,WS,WS,WS,WS,WS,WS,WS,WS,WS,WS,WS,WS,WS,WS,WC],
+    [WI,WH,WH,WH,WR,WR,WH,WH,WH,WH,WH,WH,WR,WR,DI,WH,WH,WH,WH,WI],
+    // Row 2: baseboard
+    [WI,BB,BB,BB,BB,BB,BB,BB,BB,BB,BB,BB,BB,BB,BB,BB,BB,BB,BB,WI],
+    // Row 3+: floor with furniture
+    [WI,_,_,CT,CT,CT,CT,CT,CT,CT,CT,CT,CT,CT,CT,CT,_,_,_,WI],
+    [WI,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,WI],
+    [WI,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,WI],
+    [WN,_,BA,_,TB,TB,TB,_,_,_,_,_,TB,TB,TB,_,CR,_,_,WN],
+    [WI,_,BA,_,CH,_,CH,_,_,_,_,_,CH,_,CH,_,CR,_,_,WI],
+    [WI,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,WI],
+    [WN,_,_,_,_,RC,RC,RC,RC,RC,RC,RC,RC,RC,_,_,_,_,_,WN],
+    [WI,_,_,_,_,RC,RC,RC,RC,RC,RC,RC,RC,RC,_,_,_,_,_,WI],
+    [WI,_,_,_,_,RE,RE,RE,RE,RE,RE,RE,RE,RE,_,_,_,_,_,WI],
+    [WI,_,PL,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,PL,WI],
+    [WI,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,WI],
+    [WC,WS,WS,WS,WS,WS,WS,WS,WS,D,D,WS,WS,WS,WS,WS,WS,WS,WS,WC],
+    [WC,WC,WC,WC,WC,WC,WC,WC,WC,WC,WC,WC,WC,WC,WC,WC,WC,WC,WC,WC],
   ];
 
   return {
-    name: "Adventurers' Guild", roomW: 18, roomH: 14, tiles,
+    name: "Adventurers' Guild", roomW: 20, roomH: 16, tiles,
     solidTiles: SOLID,
-    npcs: [{ key: 'brenna', dialogueId: 'guild-greeting', tileX: 9, tileY: 2 }],
+    npcs: [{ key: 'brenna', dialogueId: 'guild-greeting', tileX: 10, tileY: 3 }],
     interactables: [{ tileX: 14, tileY: 1, label: 'Examine the trophy case', dialogueId: 'guild-greeting' }],
     exitScene: 'TownScene', exitSpawn: 'fromGuildInterior',
   };
@@ -164,25 +173,28 @@ function guildLayout(): InteriorLayout {
 
 function innLayout(): InteriorLayout {
   const _ = FW;
+  // 18×14 with thick borders
   const tiles: number[][] = [
-    [WW,WW,WW,WW,WW,WW,WW,WW,WW,WW,WW,WW,WW,WW,WW,WW],
-    [WW,TO,_,_,_,_,_,FP,FP,_,_,_,_,_,TO,WW],  // fireplace center
-    [WW,_,_,_,_,_,_,_,_,_,_,_,_,_,_,WW],
-    [WW,WN,CT,CT,CT,_,_,_,_,_,_,BH,BH,_,WN,WW],  // counter left, beds right, windows ON walls
-    [WW,_,_,_,_,_,_,RC,RC,_,_,BF,BF,_,_,WW],
-    [WW,_,_,_,_,_,_,RC,RC,_,_,_,_,_,_,WW],
-    [WW,WN,TB,TB,_,_,_,RE,RE,_,_,BH,BH,_,WN,WW],  // dining table, more beds, windows
-    [WW,_,CH,CH,_,_,_,_,_,_,_,BF,BF,_,_,WW],
-    [WW,_,_,_,_,_,_,_,_,_,_,_,_,_,_,WW],
-    [WW,BA,BA,_,_,_,_,_,_,_,_,_,_,PL,BA,WW],  // ale barrels
-    [WW,CR,_,_,_,_,_,_,_,_,_,_,_,_,CR,WW],
-    [WW,WW,WW,WW,WW,WW,WW,D,D,WW,WW,WW,WW,WW,WW,WW],
+    [WC,WW,WW,WW,WW,WW,WW,WW,WW,WW,WW,WW,WW,WW,WW,WW,WW,WC],
+    [WI,WH,WH,WH,WH,WH,FP,FP,FP,WH,WH,WH,WH,WH,WH,WH,WH,WI],
+    [WI,BB,BB,BB,BB,BB,BB,BB,BB,BB,BB,BB,BB,BB,BB,BB,BB,WI],
+    [WI,_,CT,CT,CT,CT,_,_,_,_,_,_,BH,BH,_,_,_,WI],
+    [WN,_,_,_,_,_,_,RC,RC,_,_,_,BF,BF,_,_,_,WN],
+    [WI,_,_,_,_,_,_,RC,RC,_,_,_,_,_,_,_,_,WI],
+    [WN,_,TB,TB,_,_,_,RE,RE,_,_,_,BH,BH,_,_,_,WN],
+    [WI,_,CH,CH,_,_,_,_,_,_,_,_,BF,BF,_,_,_,WI],
+    [WI,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,WI],
+    [WN,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,WN],
+    [WI,BA,BA,_,_,_,_,_,_,_,_,_,_,_,PL,BA,BA,WI],
+    [WI,CR,_,_,_,_,_,_,_,_,_,_,_,_,_,_,CR,WI],
+    [WC,WW,WW,WW,WW,WW,WW,WW,D,D,WW,WW,WW,WW,WW,WW,WW,WC],
+    [WC,WC,WC,WC,WC,WC,WC,WC,WC,WC,WC,WC,WC,WC,WC,WC,WC,WC],
   ];
 
   return {
-    name: 'Whispering Hollow Inn', roomW: 16, roomH: 12, tiles,
+    name: 'Whispering Hollow Inn', roomW: 18, roomH: 14, tiles,
     solidTiles: SOLID,
-    npcs: [{ key: 'tomas', dialogueId: 'tomas-greeting', tileX: 5, tileY: 2 }],
+    npcs: [{ key: 'tomas', dialogueId: 'tomas-greeting', tileX: 6, tileY: 3 }],
     interactables: [],
     exitScene: 'TownScene', exitSpawn: 'fromInnInterior',
   };
@@ -194,25 +206,28 @@ function innLayout(): InteriorLayout {
 
 function shopLayout(): InteriorLayout {
   const _ = FW;
+  // 16×14 with thick borders
   const tiles: number[][] = [
-    [WW,WW,WW,WW,WW,WW,WW,WW,WW,WW,WW,WW,WW,WW],
-    [WW,TO,DI,DI,DI,DI,TO,TO,DI,DI,DI,DI,TO,WW],  // display shelves (merchandise, NOT books)
-    [WW,_,_,_,_,_,_,_,_,_,_,_,_,WW],
-    [WW,_,_,CT,CT,CT,CT,CT,CT,CT,CT,_,_,WW],  // counter with scale
-    [WW,WN,_,_,_,_,_,_,_,_,_,_,WN,WW],  // windows ON walls
-    [WW,CR,_,_,_,_,_,_,_,_,_,_,CR,WW],  // crates of goods along walls
-    [WW,CR,_,_,TB,_,_,_,_,TB,_,_,CR,WW],  // small tables for examining goods
-    [WW,WN,_,_,_,_,_,_,_,_,_,_,WN,WW],  // windows
-    [WW,BA,_,_,_,_,_,_,_,_,_,_,BA,WW],  // barrels of supplies
-    [WW,BA,CR,_,_,_,_,_,_,_,_,CR,BA,WW],
-    [WW,PL,_,_,_,_,_,_,_,_,_,_,PL,WW],
-    [WW,WW,WW,WW,WW,WW,D,D,WW,WW,WW,WW,WW,WW],
+    [WC,WW,WW,WW,WW,WW,WW,WW,WW,WW,WW,WW,WW,WW,WW,WC],
+    [WI,WH,DI,DI,DI,DI,WH,WH,DI,DI,DI,DI,WH,WH,WH,WI],
+    [WI,BB,BB,BB,BB,BB,BB,BB,BB,BB,BB,BB,BB,BB,BB,WI],
+    [WI,_,_,CT,CT,CT,CT,CT,CT,CT,CT,CT,_,_,_,WI],
+    [WN,_,_,_,_,_,_,_,_,_,_,_,_,_,_,WN],
+    [WI,CR,_,_,_,_,_,_,_,_,_,_,_,CR,_,WI],
+    [WN,CR,_,_,TB,_,_,_,_,_,TB,_,_,CR,_,WN],
+    [WI,_,_,_,_,_,_,_,_,_,_,_,_,_,_,WI],
+    [WN,BA,_,_,_,_,_,_,_,_,_,_,_,BA,_,WN],
+    [WI,BA,_,_,_,_,_,_,_,_,_,_,_,BA,_,WI],
+    [WI,PL,_,_,_,_,_,_,_,_,_,_,_,_,PL,WI],
+    [WI,_,_,_,_,_,_,_,_,_,_,_,_,_,_,WI],
+    [WC,WW,WW,WW,WW,WW,WW,D,D,WW,WW,WW,WW,WW,WW,WC],
+    [WC,WC,WC,WC,WC,WC,WC,WC,WC,WC,WC,WC,WC,WC,WC,WC],
   ];
 
   return {
-    name: 'General Store', roomW: 14, roomH: 12, tiles,
+    name: 'General Store', roomW: 16, roomH: 14, tiles,
     solidTiles: SOLID,
-    npcs: [{ key: 'vira', dialogueId: 'vira-greeting', tileX: 7, tileY: 2 }],
+    npcs: [{ key: 'vira', dialogueId: 'vira-greeting', tileX: 8, tileY: 3 }],
     interactables: [],
     exitScene: 'TownScene', exitSpawn: 'fromShopInterior',
   };
@@ -224,23 +239,26 @@ function shopLayout(): InteriorLayout {
 
 function orricLayout(): InteriorLayout {
   const _ = FW;
+  // 14×12 with thick borders
   const tiles: number[][] = [
-    [WW,WW,WW,WW,WW,WW,WW,WW,WW,WW,WW,WW],
-    [WW,FP,FP,_,TO,_,_,TO,_,BH,BH,WW],   // fireplace + bed
-    [WW,_,_,_,_,_,_,_,_,BF,BF,WW],
-    [WW,WR,_,_,TB,TB,_,_,_,_,WN,WW],      // axe rack + table + window ON wall
-    [WW,_,_,CH,_,_,CH,_,_,_,_,WW],
-    [WW,WN,_,_,_,_,_,RC,RC,_,_,WW],        // window ON wall + rug
-    [WW,_,_,_,_,_,_,RC,RC,_,_,WW],
-    [WW,PL,_,_,_,_,_,RE,RE,_,BA,WW],
-    [WW,CR,_,_,_,_,_,_,_,_,CR,WW],
-    [WW,WW,WW,WW,WW,D,D,WW,WW,WW,WW,WW],
+    [WC,WW,WW,WW,WW,WW,WW,WW,WW,WW,WW,WW,WW,WC],
+    [WI,WH,FP,FP,FP,WH,WH,WH,WH,WH,BH,BH,WH,WI],
+    [WI,BB,BB,BB,BB,BB,BB,BB,BB,BB,BB,BB,BB,WI],
+    [WI,WR,_,_,_,_,_,_,_,_,BF,BF,_,WI],
+    [WN,_,_,_,TB,TB,_,_,_,_,_,_,_,WN],
+    [WI,_,_,CH,_,_,CH,_,_,_,_,_,_,WI],
+    [WN,_,_,_,_,_,_,RC,RC,_,_,_,_,WN],
+    [WI,_,_,_,_,_,_,RC,RC,_,_,_,_,WI],
+    [WI,PL,_,_,_,_,_,RE,RE,_,_,BA,CR,WI],
+    [WI,CR,_,_,_,_,_,_,_,_,_,_,_,WI],
+    [WC,WW,WW,WW,WW,WW,D,D,WW,WW,WW,WW,WW,WC],
+    [WC,WC,WC,WC,WC,WC,WC,WC,WC,WC,WC,WC,WC,WC],
   ];
 
   return {
-    name: "Orric's Cabin", roomW: 12, roomH: 10, tiles,
+    name: "Orric's Cabin", roomW: 14, roomH: 12, tiles,
     solidTiles: SOLID,
-    npcs: [{ key: 'orric', dialogueId: 'orric-greeting', tileX: 5, tileY: 3 }],
+    npcs: [{ key: 'orric', dialogueId: 'orric-greeting', tileX: 5, tileY: 4 }],
     interactables: [],
     exitScene: 'GreenhollowScene', exitSpawn: 'fromOrricInterior',
   };
