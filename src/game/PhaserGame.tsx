@@ -44,7 +44,7 @@ export function PhaserGame() {
     const mgr = game.scene;
 
     const shouldShowTown = character !== null && screen === 'game';
-    const worldScenes = ['TownScene', 'GreenhollowScene', 'MossbarrowScene'];
+    const worldScenes = ['TownScene', 'GreenhollowScene', 'MossbarrowScene', 'InteriorScene'];
 
     if (shouldShowTown) {
       if (mgr.isActive('PlaceholderScene')) mgr.stop('PlaceholderScene');

@@ -32,7 +32,7 @@ export class TownScene extends BaseWorldScene {
     map.createLayer(0, tileset)!;
 
     // Buildings — invisible collision only; tilemap handles visuals.
-    const guildDoor = this.addBuilding({
+    this.addBuilding({
       xTile: 5,
       yTile: 3,
       wTile: 6,
@@ -41,9 +41,9 @@ export class TownScene extends BaseWorldScene {
       label: "Adventurers' Guild",
       doorSide: 'bottom',
       visual: false,
-    }).doorOutside;
+    });
 
-    const innDoor = this.addBuilding({
+    this.addBuilding({
       xTile: 15,
       yTile: 3,
       wTile: 6,
@@ -52,9 +52,9 @@ export class TownScene extends BaseWorldScene {
       label: 'Whispering Hollow Inn',
       doorSide: 'bottom',
       visual: false,
-    }).doorOutside;
+    });
 
-    const shopDoor = this.addBuilding({
+    this.addBuilding({
       xTile: 27,
       yTile: 3,
       wTile: 5,
@@ -63,7 +63,7 @@ export class TownScene extends BaseWorldScene {
       label: 'General Store',
       doorSide: 'bottom',
       visual: false,
-    }).doorOutside;
+    });
 
     // Empty plot — collision box, label only.
     const plot = { x: 10 * TILE, y: 14 * TILE, w: 5 * TILE, h: 3 * TILE };
@@ -76,24 +76,30 @@ export class TownScene extends BaseWorldScene {
       .setOrigin(0.5)
       .setDepth(10);
 
-    // NPCs — beside their doors.
-    this.spawnNpc({
-      key: 'brenna',
-      dialogueId: 'guild-greeting',
-      x: guildDoor.x + TILE,
-      y: guildDoor.y,
+    // Door exits → building interiors (NPCs are INSIDE now).
+    this.addExit({
+      x: GUILD.doorX1 * TILE,
+      y: GUILD.y * TILE + (GUILD.h - 1) * TILE,
+      w: 2 * TILE,
+      h: TILE,
+      targetScene: 'InteriorScene',
+      targetSpawn: 'guild',
     });
-    this.spawnNpc({
-      key: 'tomas',
-      dialogueId: 'tomas-greeting',
-      x: innDoor.x + TILE,
-      y: innDoor.y,
+    this.addExit({
+      x: INN.doorX1 * TILE,
+      y: INN.y * TILE + (INN.h - 1) * TILE,
+      w: 2 * TILE,
+      h: TILE,
+      targetScene: 'InteriorScene',
+      targetSpawn: 'inn',
     });
-    this.spawnNpc({
-      key: 'vira',
-      dialogueId: 'vira-greeting',
-      x: shopDoor.x + TILE,
-      y: shopDoor.y,
+    this.addExit({
+      x: SHOP.doorX1 * TILE,
+      y: SHOP.y * TILE + (SHOP.h - 1) * TILE,
+      w: 2 * TILE,
+      h: TILE,
+      targetScene: 'InteriorScene',
+      targetSpawn: 'shop',
     });
 
     // South-edge exit to Greenhollow Woods.
@@ -112,6 +118,12 @@ export class TownScene extends BaseWorldScene {
     switch (name) {
       case 'fromGreenhollow':
         return { x: WORLD_W / 2, y: WORLD_H - TILE * 3 };
+      case 'fromGuildInterior':
+        return { x: (GUILD.doorX1 + 1) * TILE, y: (GUILD.y + GUILD.h + 1) * TILE };
+      case 'fromInnInterior':
+        return { x: (INN.doorX1 + 1) * TILE, y: (INN.y + INN.h + 1) * TILE };
+      case 'fromShopInterior':
+        return { x: (SHOP.doorX1 + 1) * TILE, y: (SHOP.y + SHOP.h + 1) * TILE };
       case 'default':
       default:
         return { x: WORLD_W / 2, y: 16 * TILE };
