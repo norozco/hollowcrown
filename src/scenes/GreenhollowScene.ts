@@ -26,7 +26,7 @@ export class GreenhollowScene extends BaseWorldScene {
     map.createLayer(0, tileset)!;
 
     // Orric's cabin — collision only; tilemap draws the visuals.
-    const cabinDoor = this.addBuilding({
+    this.addBuilding({
       xTile: 30,
       yTile: 3,
       wTile: 5,
@@ -35,7 +35,7 @@ export class GreenhollowScene extends BaseWorldScene {
       label: "Orric's Cabin",
       doorSide: 'bottom',
       visual: false,
-    }).doorOutside;
+    });
 
     // Tree collision bodies — matching the bush tiles in the map.
     const treeTiles = getTreePositions();
@@ -47,12 +47,14 @@ export class GreenhollowScene extends BaseWorldScene {
       this.walls.add(tree);
     }
 
-    // Orric beside the cabin door.
-    this.spawnNpc({
-      key: 'orric',
-      dialogueId: 'orric-greeting',
-      x: cabinDoor.x + TILE,
-      y: cabinDoor.y,
+    // Orric is INSIDE his cabin now — add a door exit.
+    this.addExit({
+      x: 32 * TILE,
+      y: 6 * TILE,
+      w: 2 * TILE,
+      h: TILE,
+      targetScene: 'InteriorScene',
+      targetSpawn: 'orric',
     });
 
     // Zone marker.
@@ -96,6 +98,8 @@ export class GreenhollowScene extends BaseWorldScene {
         return { x: WORLD_W / 2, y: WORLD_H - TILE * 3 };
       case 'fromMossbarrow':
         return { x: WORLD_W - TILE * 3, y: WORLD_H / 2 };
+      case 'fromOrricInterior':
+        return { x: 33 * TILE, y: 8 * TILE };
       case 'default':
       default:
         return { x: WORLD_W / 2, y: WORLD_H - TILE * 3 };
