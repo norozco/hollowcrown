@@ -409,7 +409,7 @@ export abstract class BaseWorldScene extends Phaser.Scene {
     // Generate player sprite with race-specific proportions + class equipment.
     const raceKey = character?.race.key ?? 'human';
     const classKey = character?.characterClass.key ?? 'fighter';
-    const colors = playerPalette(raceKey, classKey);
+    const colors = playerPalette(raceKey, classKey, character?.playerChoice ?? undefined);
     generateCharacterSprite(this, 'player-sprite', colors, raceKey, classKey);
 
     this.player = this.add.sprite(spawnX, spawnY, 'player-sprite', 0);
@@ -474,13 +474,14 @@ export abstract class BaseWorldScene extends Phaser.Scene {
     body.setVelocity(vx * PLAYER_SPEED, vy * PLAYER_SPEED);
 
     // Update facing direction + sprite frame.
+    // Side sprites use flipX instead of separate left/right frames —
+    // avoids mirroring issues in the procedural drawing.
     const moving = vx !== 0 || vy !== 0;
-    if (vy > 0) this.playerFacing = 0;      // down
-    else if (vy < 0) this.playerFacing = 1;  // up
-    else if (vx < 0) this.playerFacing = 2;  // left
-    else if (vx > 0) this.playerFacing = 3;  // right
+    if (vy > 0)      { this.playerFacing = 0; this.player.setFlipX(false); }
+    else if (vy < 0) { this.playerFacing = 1; this.player.setFlipX(false); }
+    else if (vx < 0) { this.playerFacing = 2; this.player.setFlipX(false); }
+    else if (vx > 0) { this.playerFacing = 2; this.player.setFlipX(true); } // mirror left→right
 
-    // Walk frame = facing + 4; idle = facing.
     const frame = moving ? this.playerFacing + 4 : this.playerFacing;
     this.player.setFrame(frame);
   }

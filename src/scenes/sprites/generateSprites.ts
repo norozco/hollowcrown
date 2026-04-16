@@ -117,8 +117,20 @@ const CLASS_OUTFIT: Record<string,{tunic:string;tunicDark:string;tunicLight:stri
   bard:   {tunic:'#a04050',tunicDark:'#802838',tunicLight:'#c05868',belt:'#c09030'},
 };
 
-export function playerPalette(raceKey: string, classKey: string): CharacterColors {
-  const r = RACE_LOOKS[raceKey] ?? RACE_LOOKS.human;
+const DRAGONBORN_ELEMENTS: Record<string, { skin: string; skinShadow: string; hair: string; hairHighlight: string }> = {
+  fire:      { skin: '#c06030', skinShadow: '#a04820', hair: '#a04020', hairHighlight: '#c06030' },
+  cold:      { skin: '#6090b0', skinShadow: '#407090', hair: '#4070a0', hairHighlight: '#6090c0' },
+  lightning: { skin: '#b0a050', skinShadow: '#908030', hair: '#908030', hairHighlight: '#c0b060' },
+  acid:      { skin: '#60a040', skinShadow: '#408028', hair: '#408028', hairHighlight: '#60b040' },
+  poison:    { skin: '#806080', skinShadow: '#604060', hair: '#604060', hairHighlight: '#907090' },
+};
+
+export function playerPalette(raceKey: string, classKey: string, playerChoice?: string): CharacterColors {
+  let r = { ...(RACE_LOOKS[raceKey] ?? RACE_LOOKS.human) };
+  // Dragonborn element overrides their scale/skin color.
+  if (raceKey === 'dragonborn' && playerChoice && DRAGONBORN_ELEMENTS[playerChoice]) {
+    r = { ...r, ...DRAGONBORN_ELEMENTS[playerChoice] };
+  }
   const c = CLASS_OUTFIT[classKey] ?? CLASS_OUTFIT.fighter;
   return { ...r, ...c, boots: '#503820', eyes: '#181818' };
 }
@@ -166,15 +178,27 @@ function drawCharacter(c: Ctx, f: number, col: CharacterColors, rb: RaceBody, ce
   // Shadow
   blk(c, f, cx - 6, 44, 12, 3, 'rgba(0,0,0,0.2)');
 
-  // ─── BOOTS ──────────────────────────────────────────────
+  // ─── BOOTS (with toe highlight + sole) ──────────────────
   const bootY = rb.bodyY + rb.bodyH + rb.legH - 6;
   const bootColor = ce.armor === 'heavy' ? '#505860' : col.boots;
+  const bootHi = lighter(bootColor, 25);
+  const bootSole = darker(bootColor, 30);
   if (!isSide) {
     blk(c, f, cx-5, bootY+legOff, 4, 6-legOff, bootColor);
     blk(c, f, cx+1, bootY-legOff, 4, 6+legOff, bootColor);
+    // Toe highlights
+    blk(c, f, cx-5, bootY+legOff, 4, 1, bootHi);
+    blk(c, f, cx+1, bootY-legOff, 4, 1, bootHi);
+    // Soles
+    px(c, f, cx-4, bootY+legOff+5-legOff, bootSole);
+    px(c, f, cx+2, bootY-legOff+5+legOff, bootSole);
+    // Boot buckle
+    px(c, f, cx-4, bootY+legOff+2, '#a0a098');
+    px(c, f, cx+2, bootY-legOff+2, '#a0a098');
   } else {
     blk(c, f, isRight?cx-3:cx-2, bootY-legOff, 5, 6+legOff, bootColor);
     blk(c, f, isRight?cx+1:cx-1, bootY+legOff, 4, 6-legOff, bootColor);
+    blk(c, f, isRight?cx-3:cx-2, bootY-legOff, 5, 1, bootHi);
   }
 
   // ─── LEGS ───────────────────────────────────────────────
@@ -240,10 +264,23 @@ function drawCharacter(c: Ctx, f: number, col: CharacterColors, rb: RaceBody, ce
     blk(c, f, ax, rb.bodyY+rb.bodyH-2, rb.armW, 2, col.skin);
   }
 
-  // ─── CAPE / CLOAK ──────────────────────────────────────
-  if (ce.hasCape && isBack) {
-    blk(c, f, bx-1, rb.bodyY+2, rb.bodyW+2, rb.bodyH+rb.legH-2, col.tunicDark);
-    blk(c, f, bx, rb.bodyY+3, rb.bodyW, rb.bodyH+rb.legH-4, col.tunic);
+  // ─── CAPE / CLOAK (with flow lines + hem) ──────────────
+  if (ce.hasCape) {
+    if (isBack) {
+      blk(c, f, bx-1, rb.bodyY+2, rb.bodyW+2, rb.bodyH+rb.legH-2, col.tunicDark);
+      blk(c, f, bx, rb.bodyY+3, rb.bodyW, rb.bodyH+rb.legH-4, col.tunic);
+      // Flow lines (vertical folds in the cape)
+      for (let fx = bx+3; fx < bx+rb.bodyW-2; fx += 4) {
+        blk(c, f, fx, rb.bodyY+5, 1, rb.bodyH+rb.legH-8, col.tunicDark);
+      }
+      // Hem highlight
+      blk(c, f, bx-1, rb.bodyY+rb.bodyH+rb.legH-2, rb.bodyW+2, 1, col.tunicLight);
+    } else if (isSide) {
+      // Side cape drape
+      const capeX = isRight ? bx-2 : bx+rb.bodyW;
+      blk(c, f, capeX, rb.bodyY+4, 3, rb.bodyH+rb.legH-6, col.tunicDark);
+      blk(c, f, capeX+1, rb.bodyY+5, 1, rb.bodyH+rb.legH-8, col.tunic);
+    }
   }
 
   // ─── QUIVER (ranger) ───────────────────────────────────
