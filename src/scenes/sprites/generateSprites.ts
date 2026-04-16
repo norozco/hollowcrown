@@ -39,12 +39,13 @@ interface RaceBody {
   bigEyes?:boolean; // gnome
   barefoot?:boolean; // halfling
   longHair?:boolean; // half-elf
+  longEars?:boolean; // elf (taller pointed ears vs half-elf subtle ears)
   furStripes?:boolean; // tabaxi
 }
 
 const RB:Record<string,RaceBody>={
   human:     {headW:12,headH:12,headY:6,bodyW:14,bodyH:12,bodyY:20,legH:8,armW:3},
-  elf:       {headW:10,headH:13,headY:3,bodyW:12,bodyH:14,bodyY:18,legH:10,armW:2,pointedEars:true},
+  elf:       {headW:10,headH:13,headY:3,bodyW:12,bodyH:14,bodyY:18,legH:10,armW:2,pointedEars:true,longEars:true},
   dwarf:     {headW:14,headH:10,headY:12,bodyW:18,bodyH:10,bodyY:24,legH:6,armW:4,beard:true},
   halfling:  {headW:12,headH:11,headY:11,bodyW:11,bodyH:10,bodyY:24,legH:6,armW:2,barefoot:true},
   orc:       {headW:15,headH:13,headY:4,bodyW:20,bodyH:12,bodyY:20,legH:8,armW:5,tusks:true},
@@ -86,14 +87,14 @@ export function getNpcPalette(k:string,fc:string):CharacterColors{return NPC_PAL
 
 const RL:Record<string,{skin:string;skinShadow:string;hair:string;hairHighlight:string}>={
   human:     {skin:'#e8c090',skinShadow:'#c8a070',hair:'#705030',hairHighlight:'#907050'},
-  elf:       {skin:'#f0d8b8',skinShadow:'#d0b898',hair:'#c0a060',hairHighlight:'#d8b878'},
+  elf:       {skin:'#f0e0d0',skinShadow:'#d0c0b0',hair:'#b8a848',hairHighlight:'#d0c060'}, // paler/more silvery skin, brighter gold hair vs half-elf
   dwarf:     {skin:'#d0a070',skinShadow:'#b08050',hair:'#a05020',hairHighlight:'#c07030'},
-  halfling:  {skin:'#e8c8a0',skinShadow:'#c8a880',hair:'#706028',hairHighlight:'#908040'},
-  orc:       {skin:'#709060',skinShadow:'#507040',hair:'#303030',hairHighlight:'#484848'},
-  tiefling:  {skin:'#c07060',skinShadow:'#a05040',hair:'#201020',hairHighlight:'#382838'},
+  halfling:  {skin:'#e0b888',skinShadow:'#c09868',hair:'#706028',hairHighlight:'#908040'}, // warmer/darker skin vs gnome
+  orc:       {skin:'#589050',skinShadow:'#407030',hair:'#303030',hairHighlight:'#484848'}, // more saturated green vs dragonborn grey
+  tiefling:  {skin:'#c06058',skinShadow:'#a04038',hair:'#201020',hairHighlight:'#382838'}, // more saturated red vs human
   dragonborn:{skin:'#708870',skinShadow:'#506850',hair:'#506850',hairHighlight:'#608060'},
-  gnome:     {skin:'#e8d0a0',skinShadow:'#c8b080',hair:'#d06020',hairHighlight:'#e07830'},
-  'half-elf':{skin:'#e8d0a8',skinShadow:'#c8b088',hair:'#906838',hairHighlight:'#a87848'},
+  gnome:     {skin:'#f0e0b0',skinShadow:'#d0c090',hair:'#d06020',hairHighlight:'#e07830'}, // lighter/more yellow skin vs halfling
+  'half-elf':{skin:'#d8c8a0',skinShadow:'#b8a880',hair:'#785830',hairHighlight:'#907040'}, // more olive/muted skin + darker hair vs human
   tabaxi:    {skin:'#c0a070',skinShadow:'#a08050',hair:'#604020',hairHighlight:'#805030'},
 };
 
@@ -294,7 +295,10 @@ function draw(c:C,f:number,col:CharacterColors,rb:RaceBody,ce:ClassEquip,dir:num
     bk(c,f,hx,rb.headY,rb.headW,rb.headH,col.hair);
     bk(c,f,hx+2,rb.headY,rb.headW-4,2,col.hairHighlight);
     if(rb.longHair)bk(c,f,cx-3,rb.headY+rb.headH,6,6,col.hair); // half-elf long hair
-    if(rb.pointedEars){px(c,f,hx-1,rb.headY+4,col.skin);px(c,f,hx+rb.headW,rb.headY+4,col.skin);}
+    if(rb.pointedEars){
+      px(c,f,hx-1,rb.headY+4,col.skin);px(c,f,hx+rb.headW,rb.headY+4,col.skin);
+      if(rb.longEars){px(c,f,hx-2,rb.headY+3,col.skin);px(c,f,hx+rb.headW+1,rb.headY+3,col.skin);} // elf: taller ear tips
+    }
   }else if(isSd){
     bk(c,f,hx,rb.headY,rb.headW,rb.headH,col.skin);
     bk(c,f,hx,rb.headY,rb.headW,5,col.hair);
@@ -303,7 +307,7 @@ function draw(c:C,f:number,col:CharacterColors,rb:RaceBody,ce:ClassEquip,dir:num
     const ex=hx+3;
     if(rb.bigEyes){bk(c,f,ex,rb.headY+4,3,3,col.eyes);px(c,f,ex,rb.headY+4,'#ffffff');px(c,f,ex+1,rb.headY+4,'#ffffff');}
     else{bk(c,f,ex,rb.headY+5,2,2,col.eyes);px(c,f,ex,rb.headY+5,'#ffffff');}
-    if(rb.pointedEars)px(c,f,hx-2,rb.headY+4,col.skin);
+    if(rb.pointedEars){px(c,f,hx-2,rb.headY+4,col.skin);if(rb.longEars)px(c,f,hx-3,rb.headY+3,col.skin);}
     if(rb.longHair)bk(c,f,hx+rb.headW-2,rb.headY+rb.headH-2,3,5,col.hair);
     if(rb.furStripes){px(c,f,hx+2,rb.headY+3,col.hairHighlight);px(c,f,hx+5,rb.headY+6,col.hairHighlight);}
   }else{
@@ -316,6 +320,8 @@ function draw(c:C,f:number,col:CharacterColors,rb:RaceBody,ce:ClassEquip,dir:num
       bk(c,f,hx,rb.headY+2,3,3,col.hair);bk(c,f,hx+rb.headW-3,rb.headY+2,3,3,col.hair);
       bk(c,f,hx+2,rb.headY-2,rb.headW-4,2,col.hairHighlight);
       if(rb.longHair){bk(c,f,hx-1,rb.headY+rb.headH-2,2,4,col.hair);bk(c,f,hx+rb.headW-1,rb.headY+rb.headH-2,2,4,col.hair);}
+      // Gnome: curly hair poof on top (distinguishes from halfling)
+      if(rb.bigEyes){bk(c,f,hx+2,rb.headY-4,rb.headW-4,3,col.hair);px(c,f,hx+3,rb.headY-5,col.hairHighlight);px(c,f,hx+rb.headW-4,rb.headY-5,col.hairHighlight);}
     }else{
       // Dragonborn: scale ridges instead of hair
       bk(c,f,hx,rb.headY-2,rb.headW,3,col.skin);
@@ -333,7 +339,10 @@ function draw(c:C,f:number,col:CharacterColors,rb:RaceBody,ce:ClassEquip,dir:num
     }
     // Mouth
     px(c,f,cx-1,rb.headY+rb.headH-3,col.skinShadow);px(c,f,cx,rb.headY+rb.headH-3,col.skinShadow);
-    if(rb.pointedEars){px(c,f,hx-2,rb.headY+4,col.skin);px(c,f,hx+rb.headW+1,rb.headY+4,col.skin);}
+    if(rb.pointedEars){
+      px(c,f,hx-2,rb.headY+4,col.skin);px(c,f,hx+rb.headW+1,rb.headY+4,col.skin);
+      if(rb.longEars){px(c,f,hx-3,rb.headY+3,col.skin);px(c,f,hx+rb.headW+2,rb.headY+3,col.skin);} // elf: taller ears
+    }
     if(rb.furStripes){
       px(c,f,hx+1,rb.headY+3,col.hairHighlight);px(c,f,hx+rb.headW-2,rb.headY+3,col.hairHighlight);
       px(c,f,hx+3,rb.headY+rb.headH-4,col.hairHighlight);
@@ -492,6 +501,21 @@ function draw(c:C,f:number,col:CharacterColors,rb:RaceBody,ce:ClassEquip,dir:num
   }else if(ce.head==='cowl'){
     bk(c,f,hx-1,rb.headY-2,rb.headW+2,5,col.tunicDark);
     bk(c,f,hx,rb.headY-1,rb.headW,3,col.tunic);
+    // Ranger cowl has visible lacing/ties to distinguish from rogue hood
+    if(isFr){px(c,f,cx,rb.headY-1,'#a08040');px(c,f,cx,rb.headY,'#a08040');}
+  }
+
+  // ── TIEFLING HORNS THROUGH HEADGEAR ──
+  // Horns are tall enough to show above any hat/hood/helmet
+  if(rb.horns&&ce.head!=='none'){
+    const hc=rb.hornCol??'#483030';
+    px(c,f,hx+1,rb.headY-6,hc);px(c,f,hx+rb.headW-2,rb.headY-6,hc);
+    px(c,f,hx,rb.headY-7,lt(hc,20));px(c,f,hx+rb.headW-1,rb.headY-7,lt(hc,20));
+  }
+
+  // ── HALF-ELF NECK CLASP ── (distinguishes from both human and elf)
+  if(rb.longHair&&isFr){
+    px(c,f,cx,rb.headY+rb.headH+1,'#90a0b0'); // silver clasp at throat
   }
 
   // ── WEAPON ──
