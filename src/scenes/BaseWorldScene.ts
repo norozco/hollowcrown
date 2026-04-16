@@ -176,6 +176,9 @@ export abstract class BaseWorldScene extends Phaser.Scene {
     hTile: number;
     color: number;
     label: string;
+    /** When false, skip visual rectangles — useful when a tilemap
+     *  provides the visuals and only collision segments are needed. */
+    visual?: boolean;
     /** Side the door is on; defaults to 'bottom'. */
     doorSide?: 'bottom' | 'top' | 'left' | 'right';
     /** Door position along the side in tiles from the building's top-left
@@ -191,13 +194,16 @@ export abstract class BaseWorldScene extends Phaser.Scene {
     const wt = 6; // wall thickness in px
     const doorW = (cfg.doorWidthTile ?? 1) * TILE;
     const side = cfg.doorSide ?? 'bottom';
+    const drawVisual = cfg.visual !== false;
 
-    // Visual body (no physics — walls provide collision).
-    this.add
-      .rectangle(px + pw / 2, py + ph / 2, pw, ph, cfg.color)
-      .setStrokeStyle(2, 0x2a1810);
+    if (drawVisual) {
+      // Visual body (no physics — walls provide collision).
+      this.add
+        .rectangle(px + pw / 2, py + ph / 2, pw, ph, cfg.color)
+        .setStrokeStyle(2, 0x2a1810);
+    }
 
-    // Label above the building.
+    // Label above the building (always drawn — even with tilemap visuals).
     this.add
       .text(px + pw / 2, py - 10, cfg.label, {
         fontFamily: 'Courier New',
@@ -226,8 +232,10 @@ export abstract class BaseWorldScene extends Phaser.Scene {
       if (doorRight < px + pw) {
         this.addWallSegment(doorRight, py + ph - wt, px + pw - doorRight, wt);
       }
-      // door threshold — dark sliver where the wall breaks
-      this.add.rectangle(doorLeft + doorW / 2, py + ph - wt / 2, doorW, wt, 0x1a0e08);
+      if (drawVisual) {
+        // door threshold — dark sliver where the wall breaks
+        this.add.rectangle(doorLeft + doorW / 2, py + ph - wt / 2, doorW, wt, 0x1a0e08);
+      }
       doorOutsideX = doorLeft + doorW / 2;
       doorOutsideY = py + ph + TILE; // one tile below the wall
     } else if (side === 'top') {
