@@ -125,101 +125,128 @@ export class TownScene extends BaseWorldScene {
 // ─── Map data builder ──────────────────────────────────────────
 
 function buildMapData(): number[][] {
-  const G = T.GRASS_DARK;
-  const g = T.GRASS_LIGHT;
-  const P = T.PATH;
-  const S = T.WALL_STONE;
-  const W = T.WALL_WOOD;
-  const D = T.DOOR;
-  const F = T.FLOOR_WOOD;
-  const f = T.FLOOR_STONE;
-
   const rows: number[][] = [];
   for (let y = 0; y < MAP_H; y++) {
     const row: number[] = [];
     for (let x = 0; x < MAP_W; x++) {
-      row.push(tileAt(x, y, G, g, P, S, W, D, F, f));
+      row.push(tileAt(x, y));
     }
     rows.push(row);
   }
   return rows;
 }
 
-function tileAt(
-  x: number,
-  y: number,
-  G: number,
-  g: number,
-  P: number,
-  S: number,
-  W: number,
-  D: number,
-  F: number,
-  f: number,
-): number {
-  // ── Guild: tiles (5,3) to (10,6), door at (7-8, 7) ──
-  if (inRect(x, y, 5, 3, 6, 4)) {
-    if (y === 3 || y === 6) return S;          // top/bottom wall
-    if (x === 5 || x === 10) return S;         // side walls
-    if (y === 6 && (x === 7 || x === 8)) return D; // door
-    return f;                                   // interior
-  }
-  // Door opening below guild
-  if (y === 7 && (x === 7 || x === 8)) return P;
+/** Tile aliases for readability. */
+const G  = T.GRASS_DARK;
+const g  = T.GRASS_LIGHT;
+const P  = T.PATH;
+const PE = T.PATH_EDGE;
+const S  = T.WALL_STONE;
+const W  = T.WALL_WOOD;
+const D  = T.DOOR;
+const FW = T.FLOOR_WOOD;
+const FS = T.FLOOR_STONE;
+const R  = T.ROOF;
+const RE = T.ROOF_EDGE;
+const SH = T.SHADOW;
+const BU = T.BUSH;
+const FN = T.FENCE;
+const WL = T.WELL;
 
-  // ── Inn: tiles (15,3) to (20,6) ──
-  if (inRect(x, y, 15, 3, 6, 4)) {
-    if (y === 3 || y === 6) return W;
-    if (x === 15 || x === 20) return W;
-    if (y === 6 && (x === 17 || x === 18)) return D;
-    return F;
-  }
-  if (y === 7 && (x === 17 || x === 18)) return P;
+/** Building definition. */
+interface Building {
+  x: number; y: number; w: number; h: number;
+  wallTile: number;
+  floorTile: number;
+  doorX1: number;
+  doorX2: number;
+}
 
-  // ── General Store: tiles (27,3) to (31,6) ──
-  if (inRect(x, y, 27, 3, 5, 4)) {
-    if (y === 3 || y === 6) return W;
-    if (x === 27 || x === 31) return W;
-    if (y === 6 && (x === 29 || x === 30)) return D;
-    return F;
-  }
-  if (y === 7 && (x === 29 || x === 30)) return P;
+const GUILD: Building   = { x: 5,  y: 3, w: 6, h: 4, wallTile: S, floorTile: FS, doorX1: 7, doorX2: 8 };
+const INN: Building     = { x: 15, y: 3, w: 6, h: 4, wallTile: W, floorTile: FW, doorX1: 17, doorX2: 18 };
+const SHOP: Building    = { x: 27, y: 3, w: 5, h: 4, wallTile: W, floorTile: FW, doorX1: 29, doorX2: 30 };
+const BUILDINGS = [GUILD, INN, SHOP];
 
-  // ── Empty plot outline (grass-light border) ──
+function tileAt(x: number, y: number): number {
+  // ── Roof rows (row 2 — one tile above building tops) ──
+  for (const b of BUILDINGS) {
+    if (y === b.y - 1 && x >= b.x && x < b.x + b.w) return R;
+  }
+
+  // ── Roof edge / overhang (top row of building = where roof meets wall) ──
+  for (const b of BUILDINGS) {
+    if (y === b.y && x >= b.x && x < b.x + b.w) return RE;
+  }
+
+  // ── Building interiors + walls ──
+  for (const b of BUILDINGS) {
+    if (inRect(x, y, b.x, b.y + 1, b.w, b.h - 1)) {
+      const bottomRow = b.y + b.h - 1;
+      // Side walls
+      if (x === b.x || x === b.x + b.w - 1) return b.wallTile;
+      // Bottom wall with door gap
+      if (y === bottomRow) {
+        if (x === b.doorX1 || x === b.doorX2) return D;
+        return b.wallTile;
+      }
+      // Interior
+      return b.floorTile;
+    }
+  }
+
+  // ── Shadow strip below buildings ──
+  for (const b of BUILDINGS) {
+    const bottomRow = b.y + b.h;
+    if (y === bottomRow && x >= b.x && x < b.x + b.w) {
+      // Door opening — path, not shadow
+      if (x === b.doorX1 || x === b.doorX2) return P;
+      return SH;
+    }
+  }
+
+  // ── Bushes flanking building sides ──
+  for (const b of BUILDINGS) {
+    if (y >= b.y && y <= b.y + b.h) {
+      if (x === b.x - 1 || x === b.x + b.w) return BU;
+    }
+  }
+
+  // ── Main east-west path (rows 8-10) ──
+  if (y >= 8 && y <= 10) return P;
+
+  // ── Path edges (row 7 and row 11 — grass/path blend) ──
+  if (y === 7 || y === 11) return PE;
+
+  // ── North-south connector paths to doors ──
+  for (const b of BUILDINGS) {
+    if ((x === b.doorX1 || x === b.doorX2) && y >= b.y + b.h && y <= 10) return P;
+  }
+
+  // ── Southern path to exit (center of map going south) ──
+  if (x >= 19 && x <= 20 && y >= 10 && y <= 21) return P;
+  // Path edges beside the southern path
+  if ((x === 18 || x === 21) && y >= 11 && y <= 21) return PE;
+
+  // ── Empty plot (fenced off area) ──
   if (inRect(x, y, 10, 14, 5, 3)) {
-    if (y === 14 || y === 16 || x === 10 || x === 14) return g;
+    // Fence border
+    if (y === 14 || y === 16 || x === 10 || x === 14) return FN;
     return g;
   }
 
-  // ── Main east-west path through town ──
-  if (y >= 8 && y <= 10) return P;
+  // ── Town well (decorative landmark in the center) ──
+  if (x === 13 && y === 9) return WL;
 
-  // ── North-south connector paths to doors ──
-  if (x >= 7 && x <= 8 && y >= 7 && y <= 10) return P;
-  if (x >= 17 && x <= 18 && y >= 7 && y <= 10) return P;
-  if (x >= 29 && x <= 30 && y >= 7 && y <= 10) return P;
+  // ── Scattered bushes for flavor ──
+  if ((x === 2 && y === 5) || (x === 37 && y === 6) ||
+      (x === 3 && y === 13) || (x === 36 && y === 14) ||
+      (x === 1 && y === 19) || (x === 38 && y === 18) ||
+      (x === 24 && y === 13) || (x === 34 && y === 9)) return BU;
 
-  // ── Southern path to exit ──
-  if (x >= 19 && x <= 20 && y >= 10 && y <= 21) return P;
-
-  // ── Path-edge grass light ──
-  if (y === 7 || y === 11) return g;
-  if ((x === 6 || x === 9) && y >= 7 && y <= 10) return g;
-  if ((x === 16 || x === 19) && y >= 7 && y <= 10) return g;
-  if ((x === 28 || x === 31) && y >= 7 && y <= 10) return g;
-  if ((x === 18 || x === 21) && y >= 10 && y <= 21) return g;
-
-  // ── Default: alternating grass ──
-  return (x + y) % 7 === 0 ? g : G;
+  // ── Default grass — occasional light variant for texture ──
+  return (x + y) % 7 === 0 || (x * 3 + y * 5) % 11 === 0 ? g : G;
 }
 
-function inRect(
-  x: number,
-  y: number,
-  rx: number,
-  ry: number,
-  rw: number,
-  rh: number,
-): boolean {
+function inRect(x: number, y: number, rx: number, ry: number, rw: number, rh: number): boolean {
   return x >= rx && x < rx + rw && y >= ry && y < ry + rh;
 }
