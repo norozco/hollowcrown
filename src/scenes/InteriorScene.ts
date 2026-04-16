@@ -72,8 +72,11 @@ export class InteriorScene extends BaseWorldScene {
         action: () => { useDialogueStore.getState().start(getDialogue(dlgId)); } });
     }
 
+    // Door tiles are at row (roomH - 2) because the last row is
+    // decorative corners. Exit zone sits ON the door tile row.
+    const doorRow = layout.roomH - 2;
     const dL = oX + Math.floor((roomPxW - 2 * TILE) / 2);
-    this.addExit({ x: dL, y: oY + roomPxH - TILE, w: 2 * TILE, h: TILE + 16,
+    this.addExit({ x: dL, y: oY + doorRow * TILE, w: 2 * TILE, h: TILE,
       targetScene: layout.exitScene, targetSpawn: layout.exitSpawn });
   }
 
@@ -81,7 +84,8 @@ export class InteriorScene extends BaseWorldScene {
     const data = this.scene.settings.data as { spawnPoint?: string } | undefined;
     const layout = getLayout(data?.spawnPoint ?? 'guild');
     const oY = Math.floor((WORLD_H - layout.roomH * TILE) / 2);
-    return { x: WORLD_W / 2, y: oY + layout.roomH * TILE - TILE * 2 };
+    // Spawn just above the door row.
+    return { x: WORLD_W / 2, y: oY + (layout.roomH - 3) * TILE };
   }
 
   private ws(x: number, y: number, w: number, h: number): void {
