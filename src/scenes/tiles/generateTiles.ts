@@ -84,8 +84,9 @@ function drawGrassLight(c: Ctx, i: number) {
   for (const [fx,fy] of fl) { px(c,i,fx,fy,'#f0f0e0'); }
 }
 function drawPath(c: Ctx, i: number) {
+  // Uniform warm surface — NO darker edges (they create visible seams
+  // between adjacent path tiles).
   fill(c, i, '#c8a058');
-  blk(c,i,0,0,S,3,'#b09048'); blk(c,i,0,S-3,S,3,'#b09048');
   const st: [number,number,number,number][] = [[3,4,5,4],[12,2,6,4],[22,5,5,3],[5,12,6,5],[16,10,5,4],[26,13,4,3],[8,20,5,4],[18,22,6,3],[28,20,4,4],[14,26,5,3],[3,28,4,3],[24,27,5,4]];
   for (const [sx,sy,sw,sh] of st) { blk(c,i,sx,sy,sw,sh,'#b89850'); blk(c,i,sx,sy,sw,1,'#d8b868'); blk(c,i,sx,sy+sh-1,sw,1,'#987838'); }
 }

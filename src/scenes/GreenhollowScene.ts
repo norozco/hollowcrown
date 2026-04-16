@@ -172,11 +172,6 @@ function tileAt(x: number, y: number): number {
   if (x >= 19 && x <= 20 && y >= 1 && y <= 14) return P;
   if ((x === 18 || x === 21) && y >= 1 && y <= 14) return PE;
 
-  // ── Stone bridge/crossing at y=6 (over a small stream) ──
-  if (y === 5 && x >= 17 && x <= 22) return T.WATER;
-  if (y === 6 && x >= 17 && x <= 22) return (x >= 19 && x <= 20) ? P : T.WATER;
-  if (y === 7 && x >= 17 && x <= 22 && !(x >= 19 && x <= 20)) return T.WATER;
-
   // ── Path curves east toward cabin from midpoint ──
   if (x >= 20 && x <= 24 && y >= 12 && y <= 14) return P;
   if (x >= 24 && x <= 28 && y >= 10 && y <= 12) return P;
@@ -218,7 +213,7 @@ function isNearPath(x: number, y: number): boolean {
     { x1: 19, y1: 12, x2: 25, y2: 15 }, // mid curve
     { x1: 23, y1: 10, x2: 29, y2: 13 }, // northeast curve
     { x1: 27, y1: 7, x2: 33, y2: 11 },  // cabin approach
-    { x1: 15, y1: 4, x2: 24, y2: 8 },   // bridge area (stream crossing)
+    // bridge removed — was confusing
   ];
   for (const z of pathZones) {
     if (x >= z.x1 && x <= z.x2 && y >= z.y1 && y <= z.y2) return true;
