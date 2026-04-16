@@ -5,6 +5,7 @@ import { useQuestStore } from '../../state/questStore';
 import { currentNode, meetsAllRequirements } from '../../engine/dialogue';
 import { getNPC } from '../../engine/npcs';
 import { SpeakerPortrait } from './SpeakerPortrait';
+import { pickPortraitUrl } from './portraitAssets';
 import './DialogueScene.css';
 
 /**
@@ -112,6 +113,9 @@ export function DialogueScene() {
   const speakerTitle = isNarrator ? '' : isPlayer ? '' : (npc?.title ?? '');
   const portraitBg = isPlayer ? '#2a2030' : (npc?.portraitColor ?? '#3a2818');
   const portraitFg = isPlayer ? '#d4a968' : (npc?.accentColor ?? '#d4a968');
+  // Real portrait URL — null if this NPC has no art yet (falls back to
+  // placeholder circle) or if we're rendering the narrator / player.
+  const npcPortraitUrl = npc ? pickPortraitUrl(npc.portraits, node.expression) : null;
 
   // Are we currently showing the player's staged response line?
   const showingPlayerLine = pendingChoice !== null && !!node.choices?.[pendingChoice];
@@ -158,6 +162,7 @@ export function DialogueScene() {
                 fgColor={portraitFg}
                 size="small"
                 active={false}
+                portraitUrl={npcPortraitUrl}
               />
             )}
           </>
@@ -172,6 +177,7 @@ export function DialogueScene() {
                 size="large"
                 active={true}
                 speaking={true}
+                portraitUrl={npcPortraitUrl}
               />
             )}
             {!isPlayer && character && (

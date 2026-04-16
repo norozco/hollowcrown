@@ -9,6 +9,16 @@ export interface NPC {
   /** Foreground/accent color for the portrait initial and name label. */
   accentColor: string;
   description: string;
+  /**
+   * Optional map from expression key (neutral / happy / sad / angry /
+   * shocked / thoughtful) to an asset path RELATIVE to `src/assets/`
+   * (e.g. `"portraits/brenna/neutral.png"`). When present, the dialogue
+   * UI renders the real portrait; when absent, it falls back to the
+   * placeholder colored circle. Partial maps are fine — missing
+   * expressions fall back to `neutral`, and a missing `neutral`
+   * falls back to the placeholder.
+   */
+  portraits?: Record<string, string>;
 }
 
 const NPCS = npcsData as unknown as Record<string, NPC>;

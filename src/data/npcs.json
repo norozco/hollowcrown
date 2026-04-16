@@ -5,7 +5,13 @@
     "title": "Guildmaster",
     "portraitColor": "#5a3a1a",
     "accentColor": "#d4a968",
-    "description": "Hard-eyed and careful. Has sent more adventurers to their deaths than she will ever admit."
+    "description": "Hard-eyed and careful. Has sent more adventurers to their deaths than she will ever admit.",
+    "portraits": {
+      "neutral": "portraits/brenna/neutral.png",
+      "thoughtful": "portraits/brenna/thoughtful.png",
+      "sad": "portraits/brenna/sad.png",
+      "angry": "portraits/brenna/angry.png"
+    }
   },
   "tomas": {
     "key": "tomas",

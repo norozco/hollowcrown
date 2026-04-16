@@ -22,12 +22,14 @@ Souls-inspired. Every visual decision leans toward:
 - **Melancholic** — the world has lost something; it shows in posture, lighting, composition.
 - **Dignified** — poverty and age, never slapstick or cartoon. Nothing googly-eyed.
 - **Ambiguous** — favor reading "knowing something we don't" over "cheerfully posed."
+- **Attractive** — humans (and humanoids) read as attractive: striking, magnetic, compositionally appealing. This coexists with weathered/reserved — think Witcher 3 Yennefer, Bloodborne's Lady Maria, Disco Elysium's Joyce, Geralt at 60. *Beautiful and worn*, not one or the other. **Monsters and non-humanoids** get a different brief: visually arresting, often unsettling, sometimes intentionally erotic-grotesque (Bloodborne, Berserk, Souls bestiary) — never cute, never neutered.
 
 **Explicit no's:**
-- No anime-moe stylization (sparkle-eyes, blush overload, tiny noses), no cutesy-chibi
+- No anime-moe stylization (sparkle-eyes, blush overload, tiny noses), no cutesy-chibi — attractiveness here is the grounded, lived-in kind, not the doe-eyed kind
 - No modern-casual outfits (hoodies, sneakers)
 - No bright primary colors outside deliberate accents
 - No exposed game mechanics in any visual label or sign (no floating numbers, no "HP: 20" tags — these belong to the HUD layer)
+- No "ugly NPC" shorthand for moral characterization — a character's worth is in their writing, not their looks. Even villains can be beautiful; even saints can be plain.
 
 ## 3. Palette
 
@@ -110,64 +112,142 @@ Match these keys exactly — they correspond to the `expression` field in the di
 ## 6. Character-specific art direction
 
 ### Brenna (Guildmaster)
-- Human, hard-featured, mid-40s to late-50s
-- Practical clothing: leather jerkin over linen shirt, metal-bead necklace, no flourishes
-- Greying hair pulled tight; scars acceptable
-- Expressions: neutral, thoughtful (her default), angry (when pushed), sad (when speaking about the missing)
-- Vibe: a person who has filled out more death certificates than she planned to
+- Human, **mid-40s** (locked — older drafts read 50s)
+- **Striking and attractive in a hard-honed way** — high cheekbones, sharp clear eyes, full mouth, athletic build from years of swordwork; first streaks of grey through dark brown hair, not yet iron
+- Practical clothing: fitted leather jerkin over linen shirt opened at the collar, small iron bead necklace, no flourishes
+- Hair pulled back tight, loose strands at the temple; thin pale scar through the left brow that adds to her presence rather than detracting
+- Expressions: neutral, thoughtful (her default), angry (when pushed — cold fury, never shouting), sad (when speaking about the missing)
+- Vibe: a person who has filled out more death certificates than she planned to — and who you'd still follow into a cave
 
 ### Tomas (Innkeeper)
-- Human, slim, late 30s
-- Apron over a plain shirt, clean cloth on one shoulder
-- Polite face — a professional's mask that doesn't quite reach the eyes
+- Human, slim and **handsome in a tired way**, late 30s
+- Fine bone structure, dark hair, the kind of face that smiles politely without the eyes joining in; clean-shaven or close to it
+- Apron over a plain shirt, clean cloth on one shoulder, sleeves rolled to the elbow
+- Polite face — a professional's mask
 - Expressions: neutral, sad (the dominant mood when speaking of guests who didn't return), thoughtful, happy (warm but subdued — the kind you'd show a returning regular)
 
 ### Vira (Merchant)
-- Human, early 40s
+- Human, early 40s, **striking and watchful** — the kind of beauty that notices you noticing it and prices it accordingly
+- Dark hair, sharp eyes, one strong feature (a defined brow line, a small mole near the lip — pick once and lock); unhurried movements
 - Practical dark clothing with one bright accent (a ribbon, a brooch) — she notices detail on others because she trades in it
-- Watchful eyes; hands always near the counter
+- Hands always near the counter
 - Expressions: neutral, thoughtful (default — always evaluating), sad (when speaking of the merchants who didn't walk back), angry (rare — when someone wastes her time)
 
 ### Orric (Forester of Greenhollow)
-- Human, late 60s
-- Weathered skin, grey beard, axe never far from him
-- Simple forester's clothing — oiled leather, a woolen cloak in cold weather
-- Expressions: neutral, sad (when speaking of the woods going quiet), thoughtful (his default), warning (between neutral and angry — when cautioning a stranger)
+- Human, late 60s, **weathered-handsome elder** — Sean Connery / late-period Geralt — strong features that age has sharpened rather than diminished, clear eyes that still see further than most
+- Grey beard kept short and neat, lines around the eyes from decades of looking at distance, broad shoulders that haven't softened
+- Simple forester's clothing — oiled leather, a woolen cloak in cold weather, axe never far from him
+- Expressions: neutral, sad (when speaking of the woods going quiet), thoughtful (his default), `angry` (used as the "warning" cue — the look he gives a stranger about to do something stupid; cold and quiet, not loud)
 
-## 7. AI-generation pipeline (current approach)
+## 7. AI-generation pipeline (locked for v0)
 
-v0 portraits are AI-generated; cleanups and final art land later when budget allows a human artist.
+v0 portraits are AI-generated. Cleanups and final canon portraits land later when budget allows a human artist or a gated-model run.
 
-### Tooling
-- Use whatever model produces consistent results for your pipeline (Flux, SDXL, Midjourney — document what you picked in the Status log)
-- **Seed per character** — lock a random seed so all of a character's expression images share underlying facial structure
-- **Same style prompt prefix** for every portrait in the game, adjusted only for character-specific details
+### 7.1 Why Pollinations, not Hugging Face
 
-### Prompt template (draft — refine and document what actually works)
+Evaluated 2026-04-15. Hugging Face's free Inference API (`hf-inference` provider) returns CUDA OOM on Flux models due to shared-GPU saturation; SDXL base is deprecated; Animagine-XL is unsupported. Routed providers (fal-ai, Replicate, Together) require prepaid credits — free-tier users have no routable image endpoint. Pollinations.ai wraps a Flux backend, requires no auth, serves 512×768 directly, and honors seed parameters. Until the free HF situation changes or we buy credits, **Pollinations is the pipeline.**
+
+### 7.2 Tooling (locked)
+
+- **Service**: `image.pollinations.ai` (free, unauthenticated, Flux backend)
+- **Endpoint**: `GET https://image.pollinations.ai/prompt/<url-encoded-prompt>`
+- **Required params**: `model=flux`, `width=512`, `height=768`, `seed=<per-character>`, `nologo=true`, `private=true`, `enhance=false`
+- **Output**: JPEG, 512×768, baked-in background (no alpha). We accept the painterly background for v0 (matches §3 portrait palette guidance — backgrounds should echo character personality anyway). Alpha-cut revisit deferred to v1.
+- **Rate limits**: effectively none for our volume (<100 portraits). Calls complete in ~2–5s on a warm cache.
+
+### 7.3 Curl recipe
+
+```bash
+# Template — substitute $PROMPT, $SEED, $OUTFILE.
+# $PROMPT must be URL-encoded (use jq -sRr @uri or printf '%s' "$p" | jq -sRr @uri).
+curl -s -o "$OUTFILE" \
+  "https://image.pollinations.ai/prompt/${PROMPT_ENCODED}?model=flux&width=512&height=768&seed=${SEED}&nologo=true&private=true&enhance=false"
+```
+
+### 7.4 Prompt structure (locked)
+
+Every portrait prompt is assembled as three concatenated blocks, comma-separated, in this order:
 
 ```
-<style prefix>: detailed anime illustration, muted painterly backdrop,
-soft directional light from upper left, portrait composition, head and
-upper torso, Souls-inspired dark fantasy, weathered textures, restrained
-expression, no game UI, no text, 512x768
-
-<character spec>: <name> — <race>, <age>, <build>, <hair>, <clothing>,
-<defining feature>
-
-<expression spec>: <expression word>, <specific facial cue>
+<STYLE_PREFIX>, <CHARACTER_SPEC>, <EXPRESSION_SPEC>
 ```
 
-### Consistency rules
+#### STYLE_PREFIX (identical for every NPC portrait)
 
-- Keep the background painterly and non-specific so the same character's portraits work in any scene
-- Eye color, hair color, jawline, scars must be identical across expression variants — if not, regenerate
-- Avoid overlapping shoulders cut off at the exact same pixel — slight variation is natural, dramatic variation is not
+```
+detailed anime illustration meets painterly dark fantasy, muted earth-tone backdrop, soft directional light from upper left, portrait composition showing head and upper torso, subject eyes roughly one third from top of frame, Souls-inspired weathered textures, restrained expression, worn natural-fiber clothing, no text, no UI, no watermark, no borders, no logo
+```
 
-### Post-processing
+Do **not** modify this string once locked. If you think it needs to change, write a new STYLE_PREFIX_V2 and document the switch in the Status log — don't edit in place.
 
-- Remove stray artifacts / text
-- Center-align on the canvas; keep subject eye-line at ~1/3 from top
-- Preserve transparency — if the model gives a solid background, isolate the subject
+#### CHARACTER_SPEC (one locked paragraph per NPC)
+
+The character spec is written once per NPC and reused across every expression. Any drift in this string means facial features, hair, or clothing will drift between expressions — regenerate if it happens. Character specs live in §6 of this file alongside the art-direction notes for that character. The specs in §6 are the authoritative source; this section just names the structure:
+
+```
+<Name>, <Title>: <race>, <age descriptor>, <build>, <face shape / defining feature>, <hair color and style>, <scar or mark if any>, <clothing layer 1>, <clothing layer 2>, <accessory>, <lighting motif>
+```
+
+#### EXPRESSION_SPEC (per-expression, short)
+
+One prose sentence describing the face cue — no emoji words, no exclamation, no "very" or "extremely" modifiers. See §7.6 for Brenna's locked four.
+
+### 7.5 Seed discipline
+
+One seed per NPC. All four expressions for that NPC use the same seed so underlying facial structure, hair parting, shoulder line stay constant. Seeds are documented here to prevent accidental reuse across characters (which would give two NPCs the same face):
+
+| NPC | Seed | Model | Notes |
+|---|---|---|---|
+| Brenna | `7194` | flux | Locked 2026-04-15. Old seed `4473` retired (face read 50s/gaunt; replaced after attractiveness directive added in §2). |
+| Tomas | `8211` | flux | |
+| Vira | `1629` | flux | |
+| Orric | `5902` | flux | |
+
+When adding a new NPC, pick any unused four-digit seed and add a row. Retired seeds stay listed in the Notes column so we don't accidentally reuse them.
+
+### 7.6 Brenna — locked prompts (reference implementation)
+
+**CHARACTER_SPEC:**
+```
+Brenna, Guildmaster of Ashenvale: human woman in her mid-forties (undeniably mid-forties not younger), athletic and toned build from years of swordwork, striking and compelling features with high cheekbones, full mouth, clear pale grey-green eyes, subtle crow's feet at the outer corners of the eyes, soft laugh lines bracketing the mouth, a thin vertical pale scar clearly bisecting the left eyebrow, dark brown hair with several visible silver strands woven through near the temples pulled back tight with loose strands escaping, fitted dark leather jerkin laced over a linen shirt unbuttoned at the collar, small iron bead necklace resting at the hollow of the throat, clean unblemished warm skin except for the brow scar, amber firelight catching on scratched leather and brass buckles, the lived-in dignity of a woman who has led and survived
+```
+
+**EXPRESSION_SPEC by key:**
+
+| Expression | Spec |
+|---|---|
+| `neutral` | `expression: steady direct gaze, mouth set neither open nor smiling, composed, listening` |
+| `thoughtful` | `expression: slight head tilt, eyes cast down and to the left as if reading a ledger, mouth closed, guarded` |
+| `sad` | `expression: eyes downcast and visibly glassy with held-back tears, eyelids slightly heavy, mouth softened with corners pulled gently downward, brow lifted in the middle in a small grief furrow, posture a fraction bowed, the look of receiving bad news` |
+| `angry` | `expression: brow tightly furrowed inward and downward, eyes hard and narrowed beneath the brow, nostrils slightly flared, jaw clenched with visible muscle, mouth a flat tight line, direct unflinching gaze, the cold fury of a leader who has had enough, no teeth bared` |
+
+### 7.7 Consistency rules (binding)
+
+- Keep `STYLE_PREFIX` and `CHARACTER_SPEC` **byte-identical** across expressions for the same NPC. Only `EXPRESSION_SPEC` changes.
+- Keep the seed locked per NPC. If an expression comes out with a visibly different face (different hair color, missing scar, changed build), **regenerate** — do not ship.
+- Eye color, hair color, jawline, scars, clothing items must be identical across the four expression variants. If the model drifts, adjust `CHARACTER_SPEC` to be more specific rather than fighting the seed.
+- Avoid shoulder cutoffs at the exact same pixel — slight natural variation is fine, dramatic variation is not.
+- Backgrounds stay muted and non-specific — no gameplay scene details in portraits.
+
+### 7.8 Post-processing
+
+Pollinations returns JPEG with a baked background. For v0:
+
+- Save directly as `<expression>.png` in `src/assets/portraits/<npc-key>/` (we re-encode to PNG to match the file extension contract the game expects, even though the source was JPEG)
+- No alpha cut for v0 — accept the painterly background as part of the portrait frame. This is a deliberate deviation from §4 "Transparency: PNG with alpha"; tracked for v1 cleanup.
+- Crop only if the subject is off-center. Pollinations generally frames well at 512×768; cropping is rare.
+- Remove only obvious generation artifacts (visible watermark, text garbage, floating limbs) — if these appear often at a given seed, change the seed entirely.
+
+### 7.9 Credits
+
+External art or generated art must be documented in `src/assets/CREDITS.md`. Create the file if missing. Entry format:
+
+```
+### Portraits (AI-generated via Pollinations.ai, Flux backend)
+- Brenna — `portraits/brenna/*.png` — seed 4473, prompts locked in STYLE_GUIDE §7.6
+```
+
+No Pollinations watermark is embedded when `nologo=true` is set, but attribution stays in CREDITS.md as a courtesy and so future us remembers the provenance.
 
 ## 8. Placeholder → real art migration plan
 

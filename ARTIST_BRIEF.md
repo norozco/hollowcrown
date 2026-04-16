@@ -121,10 +121,48 @@ Work these in order. Each row is a shippable chunk — commit + push between row
 
 > Append-only. Newest at the top. Keep entries short; link to commits.
 
-*(Nothing yet.)*
+### 2026-04-15 — Brenna portraits shipped (v0 placeholder, iter3)
+- **STYLE_GUIDE §7 rewritten** — pipeline locked to Pollinations.ai (Flux backend, free, no-auth). Reasoning in §7.1: HF free Inference API is effectively broken for image gen in 2026 (CUDA OOM on Flux, SDXL deprecated, routed providers require paid credits). Pollinations works, returns 512×768 directly, honors seeds.
+- **STYLE_GUIDE §2 amended** — added "Attractive" tone directive (humans read as attractive-and-weathered; monsters get a different brief). Tightened the no-moe rule so attractiveness doesn't drift into anime-cute.
+- **STYLE_GUIDE §6 updated** — all four NPCs (Brenna, Tomas, Vira, Orric) got attractiveness cues calibrated to their age/role. Orric reads as "weathered-handsome elder" (Sean Connery / late-period Geralt) rather than leading-man — flag if you want him pushed further.
+- **STYLE_GUIDE §7.5 / §7.6** — Brenna seed locked at `7194` (old seed `4473` retired, listed in Notes). Locked CHARACTER_SPEC and four EXPRESSION_SPECs.
+- **Brenna's 4 portraits dropped** at `src/assets/portraits/brenna/{neutral,thoughtful,sad,angry}.png` (512×768 JPEG saved as .png, painterly background baked in — no alpha for v0).
+- **`portraits` field added to Brenna in `src/data/npcs.json`** — only that field touched.
+- **`src/assets/CREDITS.md` created** with Pollinations attribution + known limitations.
+- **Decision: Orric's `warning` expression folded into `angry`** (no schema drift). Documented in STYLE_GUIDE §6 Orric section.
+
+**Known caveats (deliberate v0 acceptances):**
+- Brenna reads ~late-30s, spec said mid-40s — Flux-at-fixed-seed dial-limit, accepted
+- Brow scar doesn't render cleanly at 512×768 — accepted
+- No alpha cutout — painterly bg matches §3 portrait palette intent anyway
 
 ## Requests to game-dev
 
 > Use this section to ask the game-dev agent for engine/UI changes or to flag blockers. I'll read it at the start of my sessions.
 
-*(Nothing yet.)*
+### 2026-04-15 — Wire `SpeakerPortrait.tsx` to render PNGs when present
+
+Brenna now has real portrait art at `src/assets/portraits/brenna/{neutral,thoughtful,sad,angry}.png` and a `portraits` field in `src/data/npcs.json`. Please:
+
+1. **Read the `portraits` field** off the NPC record in `SpeakerPortrait.tsx` (or wherever the dialogue UI resolves the speaker).
+2. **Resolve the path** — values are stored relative to `src/assets/`, e.g. `"portraits/brenna/neutral.png"`. With Vite, the cleanest path is `import.meta.glob('/src/assets/portraits/**/*.png', { eager: true, query: '?url', import: 'default' })` and key by the relative path. Open to whatever you prefer.
+3. **Pick the file by `expression`** — match the dialogue node's `expression` field against the keys in `portraits`. If the expression key is missing (e.g. node says `happy` but only `neutral/thoughtful/sad/angry` exist for Brenna), fall back to `neutral`.
+4. **Fall back to placeholder circle** if the NPC has no `portraits` field at all (Tomas / Vira / Orric currently). This must keep working — only Brenna has real art so far. The circle code stays.
+5. **Render the PNG at the existing portrait slot** — sized to fit the speaker frame, no special positioning needed. The image is 512×768 with painterly bg baked in, so no alpha to worry about. Object-fit cover is fine.
+
+**Rough JSX sketch (suggestive only — wire it however fits the codebase):**
+```tsx
+const portraitUrl = npc.portraits?.[node.expression ?? 'neutral']
+  ?? npc.portraits?.neutral
+  ?? null;
+
+return portraitUrl
+  ? <img src={resolveAssetUrl(portraitUrl)} alt={npc.name} className="speaker-portrait" />
+  : <PlaceholderCircle initial={npc.name[0]} bg={npc.portraitColor} fg={npc.accentColor} label={node.expression} />;
+```
+
+**No engine/data-schema changes needed** — `npcs.json` schema gained an optional `portraits` map keyed by expression, that's it. NPC type can grow `portraits?: Record<string, string>`.
+
+When this lands, the dialogue scene with Brenna should show her actual face and react to expression changes mid-conversation. That's the whole win for v0 art pass 1, and unblocks me to do Tomas/Vira/Orric next without wondering whether the integration works.
+
+Ping me back via Status log when wired so I know to start the next NPCs.
