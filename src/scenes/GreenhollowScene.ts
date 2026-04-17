@@ -50,6 +50,15 @@ export class GreenhollowScene extends BaseWorldScene {
       this.walls.add(tree);
     }
 
+    // Cabin signpost
+    const cabinSignX = 33 * TILE;
+    const cabinSignY = (3 + 4 + 1) * TILE + TILE / 2;
+    this.add.rectangle(cabinSignX, cabinSignY, 4, 20, 0x5a3a1a).setDepth(11);
+    this.add.rectangle(cabinSignX, cabinSignY - 12, 60, 18, 0x4a3420).setStrokeStyle(1, 0x2a1810).setDepth(11);
+    this.add.text(cabinSignX, cabinSignY - 12, "Orric's Cabin", {
+      fontFamily: 'Courier New', fontSize: '8px', color: '#d4c488',
+    }).setOrigin(0.5).setDepth(12);
+
     // Orric is INSIDE his cabin now — add a door exit.
     this.addExit({
       x: 32 * TILE,

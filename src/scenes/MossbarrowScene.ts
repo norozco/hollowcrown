@@ -40,8 +40,30 @@ export class MossbarrowScene extends BaseWorldScene {
       this.walls.add(stone);
     }
 
-    // Hollow oak — collision body (tilemap handles the visual).
-    const oakRect = this.add.rectangle(10 * TILE + 16, 8 * TILE + 24, 48, 64, 0x000000, 0);
+    // Hollow oak — visual tree with trunk + canopy (bush tiles handle the green).
+    const oakCx = 10 * TILE + 16;
+    const oakCy = 8 * TILE + 16;
+    // Dark trunk (brown, gnarled)
+    this.add.rectangle(oakCx, oakCy + 16, 24, 48, 0x4a3018).setDepth(4);
+    this.add.rectangle(oakCx, oakCy + 16, 18, 48, 0x5a3820).setDepth(4);
+    // Trunk texture lines
+    this.add.rectangle(oakCx - 4, oakCy + 8, 2, 32, 0x3a2010).setDepth(5);
+    this.add.rectangle(oakCx + 5, oakCy + 14, 2, 24, 0x3a2010).setDepth(5);
+    // Hollow hole in the trunk (dark opening)
+    this.add.ellipse(oakCx, oakCy + 20, 12, 16, 0x0a0808).setDepth(5);
+    // Roots spreading at base
+    this.add.rectangle(oakCx - 14, oakCy + 38, 12, 6, 0x3a2010).setDepth(4);
+    this.add.rectangle(oakCx + 14, oakCy + 36, 10, 6, 0x3a2010).setDepth(4);
+    // Canopy top highlights (lighter green over the bush tiles)
+    this.add.ellipse(oakCx, oakCy - 20, 72, 40, 0x58c838, 0.4).setDepth(6);
+    this.add.ellipse(oakCx - 8, oakCy - 28, 32, 20, 0x68d848, 0.3).setDepth(6);
+    // Label
+    this.add.text(oakCx, oakCy - 48, 'Hollow Oak', {
+      fontFamily: 'Courier New', fontSize: '10px', color: '#6a5838',
+    }).setOrigin(0.5).setAlpha(0.6).setDepth(7);
+
+    // Collision body
+    const oakRect = this.add.rectangle(oakCx, oakCy, 48, 64, 0x000000, 0);
     this.physics.add.existing(oakRect, true);
     this.walls.add(oakRect);
 
@@ -244,8 +266,8 @@ function tileAt(x: number, y: number): number {
   // ── Center stone area — stone floor ──
   if (inRect(x, y, 20, 9, 5, 5)) return FS;
 
-  // ── Hollow oak at (9-11, 6-10) ──
-  if (inRect(x, y, 9, 6, 3, 5)) return T.WALL_WOOD; // dark trunk
+  // ── Hollow oak at (9-11, 6-10) — use dark bush for tree canopy ──
+  if (inRect(x, y, 9, 6, 3, 5)) return BU;
 
   // ── Ivy stones scattered around edges ──
   const ivyStones: [number, number][] = [

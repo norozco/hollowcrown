@@ -88,6 +88,10 @@ export class InteriorScene extends BaseWorldScene {
       } else if (ix.dialogueId === '__questboard__') {
         this.spawnInteractable({ sprite, label: ix.label, radius: 24,
           action: () => { window.dispatchEvent(new Event('openQuestBoard')); } });
+        this.add.text(oX + ix.tileX * TILE + TILE / 2, oY + ix.tileY * TILE - 6, 'Quest Board', {
+          fontFamily: 'Courier New', fontSize: '10px', color: '#d4a968',
+          backgroundColor: 'rgba(10,6,6,0.7)', padding: { x: 4, y: 2 },
+        }).setOrigin(0.5, 1).setDepth(11);
       } else if (ix.dialogueId === '__rest__') {
         this.spawnInteractable({ sprite, label: ix.label, radius: 24,
           action: () => {
@@ -101,6 +105,10 @@ export class InteriorScene extends BaseWorldScene {
             ps.notify();
             window.dispatchEvent(new CustomEvent('gameMessage', { detail: 'You rest at the inn. HP and MP fully restored. (-10g)' }));
           } });
+        this.add.text(oX + ix.tileX * TILE + TILE / 2, oY + ix.tileY * TILE - 6, 'Rest (10g)', {
+          fontFamily: 'Courier New', fontSize: '10px', color: '#80a0c0',
+          backgroundColor: 'rgba(10,6,6,0.7)', padding: { x: 4, y: 2 },
+        }).setOrigin(0.5, 1).setDepth(11);
       } else {
         const dlgId = ix.dialogueId;
         this.spawnInteractable({ sprite, label: ix.label, radius: 24,
