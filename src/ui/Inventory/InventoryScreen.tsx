@@ -1,103 +1,138 @@
+import { useState } from 'react';
 import { useInventoryStore } from '../../state/inventoryStore';
 import { usePlayerStore } from '../../state/playerStore';
-import type { EquipSlot } from '../../engine/items';
+import type { EquipSlot, InventorySlot } from '../../engine/items';
+import { getItemIcon } from './ItemIcons';
 import './InventoryScreen.css';
 
-const EQUIP_SLOTS: { slot: EquipSlot; label: string }[] = [
-  { slot: 'head', label: 'Head' },
-  { slot: 'chest', label: 'Chest' },
-  { slot: 'legs', label: 'Legs' },
-  { slot: 'boots', label: 'Boots' },
-  { slot: 'mainHand', label: 'Weapon' },
-  { slot: 'offHand', label: 'Off-Hand' },
-  { slot: 'ring1', label: 'Ring 1' },
-  { slot: 'ring2', label: 'Ring 2' },
-  { slot: 'amulet', label: 'Amulet' },
+const EQUIP_LAYOUT: { slot: EquipSlot; label: string; gridArea: string }[] = [
+  { slot: 'head',    label: 'Head',    gridArea: 'head' },
+  { slot: 'chest',   label: 'Chest',   gridArea: 'chest' },
+  { slot: 'legs',    label: 'Legs',    gridArea: 'legs' },
+  { slot: 'boots',   label: 'Boots',   gridArea: 'boots' },
+  { slot: 'mainHand',label: 'Weapon',  gridArea: 'weapon' },
+  { slot: 'offHand', label: 'Shield',  gridArea: 'offhand' },
+  { slot: 'ring1',   label: 'Ring',    gridArea: 'ring1' },
+  { slot: 'ring2',   label: 'Ring',    gridArea: 'ring2' },
+  { slot: 'amulet',  label: 'Amulet',  gridArea: 'amulet' },
 ];
 
-const RARITY_COLOR: Record<string, string> = {
-  common: '#c0b8a0', uncommon: '#60c060', rare: '#4090e0',
-  epic: '#a060d0', legendary: '#e0a030',
+const RARITY_BORDER: Record<string, string> = {
+  common: '#706858', uncommon: '#40a040', rare: '#4080e0',
+  epic: '#a050d0', legendary: '#e0a020',
 };
 
 export function InventoryScreen() {
   const { slots, equipment, close, useItem, equip, unequip, sell } = useInventoryStore();
   const character = usePlayerStore((s) => s.character);
   usePlayerStore((s) => s.version);
+  const [tooltip, setTooltip] = useState<InventorySlot | null>(null);
 
   if (!character) return null;
 
   return (
     <div className="inv" role="dialog" aria-label="Inventory">
-      <div className="inv__header">
+      <div className="inv__topbar">
         <h2>Inventory</h2>
-        <span className="inv__gold">◆ {character.gold}g</span>
+        <div className="inv__stats-bar">
+          <span>HP {character.hp}/{character.derived.maxHp}</span>
+          {character.derived.maxMp > 0 && <span>MP {character.mp}/{character.derived.maxMp}</span>}
+          <span>AC {character.derived.ac}</span>
+          <span className="inv__gold">◆ {character.gold}g</span>
+        </div>
         <button type="button" className="inv__close" onClick={close}>✕</button>
       </div>
 
-      <div className="inv__body">
-        {/* Equipment panel */}
-        <div className="inv__equip">
+      <div className="inv__main">
+        {/* Equipment silhouette */}
+        <div className="inv__equip-panel">
           <h3>Equipment</h3>
-          <ul className="inv__equip-list">
-            {EQUIP_SLOTS.map(({ slot, label }) => {
+          <div className="inv__equip-grid">
+            {EQUIP_LAYOUT.map(({ slot, label, gridArea }) => {
               const item = equipment[slot];
               return (
-                <li key={slot} className="inv__equip-slot">
-                  <span className="inv__slot-label">{label}</span>
+                <div
+                  key={slot}
+                  className={`inv__equip-slot${item ? ' is-filled' : ''}`}
+                  style={{
+                    gridArea,
+                    borderColor: item ? RARITY_BORDER[item.rarity] : '#3a2818',
+                  }}
+                  onClick={() => item && unequip(slot)}
+                  title={item ? `${item.name}\n${item.description}\nClick to unequip` : label}
+                >
                   {item ? (
-                    <button
-                      type="button"
-                      className="inv__item-btn"
-                      style={{ color: RARITY_COLOR[item.rarity] }}
-                      onClick={() => unequip(slot)}
-                      title={`${item.description}\nClick to unequip`}
-                    >
-                      {item.name}
-                    </button>
+                    <img src={getItemIcon(item.key)} alt={item.name} className="inv__icon" />
                   ) : (
-                    <span className="inv__empty">— empty —</span>
+                    <span className="inv__slot-label">{label}</span>
                   )}
-                </li>
+                </div>
               );
             })}
-          </ul>
+            {/* Character silhouette in the center */}
+            <div className="inv__silhouette">
+              <div className="inv__sil-head" />
+              <div className="inv__sil-body" />
+              <div className="inv__sil-legs" />
+            </div>
+          </div>
         </div>
 
-        {/* Bag panel */}
-        <div className="inv__bag">
+        {/* Bag grid */}
+        <div className="inv__bag-panel">
           <h3>Bag ({slots.length}/30)</h3>
-          {slots.length === 0 ? (
-            <p className="inv__empty-bag">Your bag is empty.</p>
-          ) : (
-            <ul className="inv__bag-list">
-              {slots.map((s, i) => (
-                <li key={`${s.item.key}-${i}`} className="inv__bag-item">
-                  <span
-                    className="inv__item-name"
-                    style={{ color: RARITY_COLOR[s.item.rarity] }}
-                    title={s.item.description}
-                  >
-                    {s.item.name}
-                    {s.quantity > 1 && <span className="inv__qty"> ×{s.quantity}</span>}
-                  </span>
-                  <span className="inv__item-actions">
-                    {s.item.type === 'consumable' && (
-                      <button type="button" className="inv__act-btn" onClick={() => useItem(s.item.key)}>Use</button>
-                    )}
-                    {s.item.equipSlot && (
-                      <button type="button" className="inv__act-btn" onClick={() => equip(s.item.key)}>Equip</button>
-                    )}
-                    <button type="button" className="inv__act-btn inv__act-sell" onClick={() => sell(s.item.key)}>
-                      Sell {Math.floor(s.item.buyPrice * 0.5)}g
-                    </button>
-                  </span>
-                </li>
-              ))}
-            </ul>
-          )}
+          <div className="inv__bag-grid">
+            {slots.map((s, i) => (
+              <div
+                key={`${s.item.key}-${i}`}
+                className="inv__bag-cell"
+                style={{ borderColor: RARITY_BORDER[s.item.rarity] }}
+                onMouseEnter={() => setTooltip(s)}
+                onMouseLeave={() => setTooltip(null)}
+              >
+                <img src={getItemIcon(s.item.key)} alt={s.item.name} className="inv__icon" />
+                {s.quantity > 1 && <span className="inv__qty">{s.quantity}</span>}
+                <div className="inv__cell-actions">
+                  {s.item.type === 'consumable' && (
+                    <button type="button" onClick={() => useItem(s.item.key)}>Use</button>
+                  )}
+                  {s.item.equipSlot && (
+                    <button type="button" onClick={() => equip(s.item.key)}>Equip</button>
+                  )}
+                  <button type="button" className="inv__sell-btn" onClick={() => sell(s.item.key)}>
+                    {Math.floor(s.item.buyPrice * 0.5)}g
+                  </button>
+                </div>
+              </div>
+            ))}
+            {/* Empty slots */}
+            {Array.from({ length: Math.max(0, 30 - slots.length) }).map((_, i) => (
+              <div key={`empty-${i}`} className="inv__bag-cell inv__bag-empty" />
+            ))}
+          </div>
         </div>
       </div>
+
+      {/* Tooltip */}
+      {tooltip && (
+        <div className="inv__tooltip">
+          <h4 style={{ color: RARITY_BORDER[tooltip.item.rarity] }}>{tooltip.item.name}</h4>
+          <p className="inv__tt-type">{tooltip.item.rarity} {tooltip.item.type}</p>
+          <p className="inv__tt-desc">{tooltip.item.description}</p>
+          {tooltip.item.statBonus && (
+            <p className="inv__tt-stats">
+              {tooltip.item.statBonus.ac && `+${tooltip.item.statBonus.ac} AC `}
+              {tooltip.item.statBonus.attack && `+${tooltip.item.statBonus.attack} ATK `}
+              {tooltip.item.statBonus.damage && `+${tooltip.item.statBonus.damage} DMG `}
+              {tooltip.item.statBonus.hp && `+${tooltip.item.statBonus.hp} HP `}
+              {tooltip.item.statBonus.mp && `+${tooltip.item.statBonus.mp} MP `}
+            </p>
+          )}
+          {tooltip.item.effect?.healHp && <p className="inv__tt-effect">Heals {tooltip.item.effect.healHp} HP</p>}
+          {tooltip.item.effect?.healMp && <p className="inv__tt-effect">Restores {tooltip.item.effect.healMp} MP</p>}
+          <p className="inv__tt-price">Sell: {Math.floor(tooltip.item.buyPrice * 0.5)}g</p>
+        </div>
+      )}
     </div>
   );
 }

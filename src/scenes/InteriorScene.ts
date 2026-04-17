@@ -1,6 +1,7 @@
 import { useDialogueStore } from '../state/dialogueStore';
 import { getDialogue } from '../engine/dialogues';
 import { useInventoryStore } from '../state/inventoryStore';
+import { usePlayerStore } from '../state/playerStore';
 import { BaseWorldScene, TILE, WORLD_W, WORLD_H } from './BaseWorldScene';
 import { generateTileset, TILE as T, TILE_SIZE } from './tiles/generateTiles';
 
@@ -74,6 +75,19 @@ export class InteriorScene extends BaseWorldScene {
       } else if (ix.dialogueId === '__questboard__') {
         this.spawnInteractable({ sprite, label: ix.label, radius: 24,
           action: () => { window.dispatchEvent(new Event('openQuestBoard')); } });
+      } else if (ix.dialogueId === '__rest__') {
+        this.spawnInteractable({ sprite, label: ix.label, radius: 24,
+          action: () => {
+            const ps = usePlayerStore.getState();
+            const ch = ps.character;
+            if (!ch) return;
+            if (ch.gold < 10) { window.dispatchEvent(new CustomEvent('gameMessage', { detail: 'Not enough gold. A bed costs 10g.' })); return; }
+            ch.loseGold(10);
+            ch.hp = ch.derived.maxHp;
+            ch.mp = ch.derived.maxMp;
+            ps.notify();
+            window.dispatchEvent(new CustomEvent('gameMessage', { detail: 'You rest at the inn. HP and MP fully restored. (-10g)' }));
+          } });
       } else {
         const dlgId = ix.dialogueId;
         this.spawnInteractable({ sprite, label: ix.label, radius: 24,
@@ -208,7 +222,7 @@ function innLayout(): InteriorLayout {
     name: 'Whispering Hollow Inn', roomW: 18, roomH: 14, tiles,
     solidTiles: SOLID,
     npcs: [{ key: 'tomas', dialogueId: 'tomas-greeting', tileX: 6, tileY: 3 }],
-    interactables: [],
+    interactables: [{ tileX: 13, tileY: 4, label: 'Rest at the inn (10g)', dialogueId: '__rest__' }],
     exitScene: 'TownScene', exitSpawn: 'fromInnInterior',
   };
 }

@@ -124,6 +124,27 @@
   padding-bottom: 0.4rem;
 }
 
+.ig__game-msg {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(10,6,4,0.92);
+  border: 2px solid #d4a968;
+  color: #f4d488;
+  font-family: 'Courier New', monospace;
+  font-size: 1.1rem;
+  padding: 0.8rem 1.5rem;
+  z-index: 18;
+  pointer-events: none;
+  text-align: center;
+  animation: ig-msg-fade 3s ease-out forwards;
+}
+@keyframes ig-msg-fade {
+  0% { opacity: 1; }
+  70% { opacity: 1; }
+  100% { opacity: 0; }
+}
 .ig__controls-hint {
   position: absolute;
   left: 1rem;

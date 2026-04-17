@@ -132,6 +132,27 @@ const ITEMS: Record<string, Item> = {
     buyPrice: 12, description: 'Sharp enough to cut. Old enough to wonder where it came from.',
     stackable: true,
   },
+  // More materials
+  iron_ore: {
+    key: 'iron_ore', name: 'Iron Ore', type: 'material', rarity: 'common',
+    buyPrice: 15, description: 'Heavy, dark metal. The smithy knows what to do with it.',
+    stackable: true,
+  },
+  moonpetal: {
+    key: 'moonpetal', name: 'Moonpetal', type: 'material', rarity: 'uncommon',
+    buyPrice: 25, description: 'A pale flower that only opens at dusk. Alchemists pay well.',
+    stackable: true,
+  },
+  shadow_essence: {
+    key: 'shadow_essence', name: 'Shadow Essence', type: 'material', rarity: 'rare',
+    buyPrice: 60, description: 'Distilled from things that should not have been alive. Cold to hold.',
+    stackable: true,
+  },
+  troll_heart: {
+    key: 'troll_heart', name: 'Troll Heart', type: 'material', rarity: 'uncommon',
+    buyPrice: 35, description: 'Still beating, faintly. Do not eat it.',
+    stackable: true,
+  },
   // Ring
   copper_ring: {
     key: 'copper_ring', name: 'Copper Ring', type: 'armor', rarity: 'common',

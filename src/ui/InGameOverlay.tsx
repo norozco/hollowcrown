@@ -40,12 +40,18 @@ export function InGameOverlay() {
 
   const [menuOpen, setMenuOpen] = useState(false);
   const [questBoardOpen, setQuestBoardOpen] = useState(false);
+  const [gameMsg, setGameMsg] = useState<string | null>(null);
 
-  // Listen for quest board open events from the Phaser interactable.
   useEffect(() => {
     const handler = () => setQuestBoardOpen(true);
     window.addEventListener('openQuestBoard', handler);
-    return () => window.removeEventListener('openQuestBoard', handler);
+    const msgHandler = (e: Event) => {
+      const msg = (e as CustomEvent).detail as string;
+      setGameMsg(msg);
+      setTimeout(() => setGameMsg(null), 3000);
+    };
+    window.addEventListener('gameMessage', msgHandler);
+    return () => { window.removeEventListener('openQuestBoard', handler); window.removeEventListener('gameMessage', msgHandler); };
   }, []);
 
   // Esc opens/closes the corner menu (but not during dialogue — dialogue
@@ -152,6 +158,7 @@ export function InGameOverlay() {
 
       <QuestTracker />
 
+      {gameMsg && <div className="ig__game-msg">{gameMsg}</div>}
       <p className="ig__controls-hint">WASD to move · E interact · I inventory · Esc menu</p>
 
       {inventoryOpen && <InventoryScreen />}
