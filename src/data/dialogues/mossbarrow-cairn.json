@@ -30,10 +30,16 @@
       "id": "token-pulse",
       "speaker": "narrator",
       "text": "In your pocket, the iron token Brenna gave you pulses once — faint, warm, almost a heartbeat — and is still. Whatever brought Veyrin to this place, it knows that you are here now too.",
-      "next": "close",
+      "next": "deeper-hint",
       "effects": [
         { "type": "complete-objective", "questId": "iron-token", "objectiveId": "find-cairn" }
       ]
+    },
+    "deeper-hint": {
+      "id": "deeper-hint",
+      "speaker": "narrator",
+      "text": "Beneath the stone, far beneath, you feel a faint tremor — not in the earth, but in the air itself. The cairn is not the bottom. It is a lid. And something below it is patient, and old, and aware that the lid has been touched.",
+      "next": "close"
     },
     "close": {
       "id": "close",

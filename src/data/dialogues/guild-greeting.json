@@ -186,7 +186,7 @@
       "id": "hollow-king-offer-2",
       "speaker": "brenna",
       "expression": "thoughtful",
-      "text": "I will not pretend this is a standard contract. If you kill it, the corruption may lift. If you fail, I will add your name to the wall. Either way, the guild remembers.",
+      "text": "It is not the source. It is the gatekeeper. Whatever empowered it lies further down — but clearing the way starts here. If you kill it, we learn what it was guarding. If you fail, I will add your name to the wall. Either way, the guild remembers.",
       "next": "hollow-king-accept",
       "effects": [
         { "type": "accept-quest", "questId": "hollow-king-slayer" }
@@ -336,14 +336,14 @@
       "id": "hollow-king-turnin-5",
       "speaker": "brenna",
       "expression": "neutral",
-      "text": "The depths will still be dangerous. The corruption does not vanish overnight. But the source is gone. Because of you. That is enough. That is more than enough.",
+      "text": "The depths are quieter, but not silent. Something deeper stirs. This was the first gate. There will be others. But you proved it can be done. That is enough. That is more than enough.",
       "next": "hollow-king-close"
     },
     "hollow-king-close": {
       "id": "hollow-king-close",
       "speaker": "brenna",
       "expression": "neutral",
-      "text": "Go rest. You have earned it. And if you ever need work again — the board is always here. So am I.",
+      "text": "Go rest. You have earned it. But when you are ready — there is something beneath where the throne stood. A passage. Sealed, for now. We will need to open it eventually. And it will be you.",
       "next": null
     },
 

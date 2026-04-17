@@ -167,7 +167,7 @@ const MONSTERS: Record<string, Monster> = {
     speed: 1,
     xpReward: 500,
     goldReward: 200,
-    description: 'A crown of tarnished iron. No throne — only what remains when a kingdom forgets its name.',
+    description: 'A crown of tarnished iron. It kneels to something deeper — something that has not yet stirred.',
     color: '#282040',
     loot: [
       { itemKey: 'shadow_essence', chance: 1.0 },

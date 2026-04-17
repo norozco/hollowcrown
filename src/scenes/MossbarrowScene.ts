@@ -121,33 +121,51 @@ export class MossbarrowScene extends BaseWorldScene {
       },
     });
 
-    // Stairway entrance — south of the center stone, leads to Mossbarrow Depths.
+    // ── Stairway entrance — dramatic pit with stone steps ──
     const stairCx = cairnCx;
     const stairCy = cairnCy + 3 * TILE;
-    // Outer stone border
-    this.add.rectangle(stairCx, stairCy, 136, 72, 0x585850).setStrokeStyle(2, 0x3a3a35).setDepth(3);
-    // Inner pit (dark center suggests depth)
-    this.add.rectangle(stairCx, stairCy, 112, 52, 0x0a0a10).setDepth(3);
-    // Step lines (suggest stairs descending)
-    for (let s = 0; s < 3; s++) {
-      this.add.rectangle(stairCx, stairCy - 16 + s * 12, 96 - s * 16, 2, 0x404048).setDepth(4);
+
+    // Dark pit background (very dark, high depth so it shows)
+    this.add.rectangle(stairCx, stairCy, 144, 80, 0x000000).setDepth(6);
+
+    // Stone border (raised edge around the pit)
+    this.add.rectangle(stairCx, stairCy - 40, 144, 8, 0x808078).setDepth(7); // top edge (light)
+    this.add.rectangle(stairCx, stairCy + 40, 144, 8, 0x404038).setDepth(7); // bottom edge (dark)
+    this.add.rectangle(stairCx - 72, stairCy, 8, 80, 0x606058).setDepth(7); // left edge
+    this.add.rectangle(stairCx + 72, stairCy, 8, 80, 0x505048).setDepth(7); // right edge
+
+    // Corner stones
+    this.add.rectangle(stairCx - 68, stairCy - 36, 12, 12, 0x707068).setDepth(7);
+    this.add.rectangle(stairCx + 68, stairCy - 36, 12, 12, 0x707068).setDepth(7);
+    this.add.rectangle(stairCx - 68, stairCy + 36, 12, 12, 0x505048).setDepth(7);
+    this.add.rectangle(stairCx + 68, stairCy + 36, 12, 12, 0x505048).setDepth(7);
+
+    // Stair steps descending (gradient from light to dark, each narrower)
+    for (let s = 0; s < 5; s++) {
+      const stepY = stairCy - 24 + s * 12;
+      const stepW = 120 - s * 16;
+      const brightness = Math.max(0x10, 0x50 - s * 0x10);
+      const stepColor = (brightness << 16) | (brightness << 8) | brightness;
+      this.add.rectangle(stairCx, stepY, stepW, 8, stepColor).setDepth(7);
+      // Step edge highlight
+      this.add.rectangle(stairCx, stepY - 3, stepW, 2, stepColor + 0x202020).setDepth(7);
     }
-    this.add
-      .text(stairCx, stairCy - 28, '▼ Stairs Down', {
-        fontFamily: 'Courier New',
-        fontSize: '12px',
-        color: '#6060a0',
-      })
-      .setOrigin(0.5, 0.5)
-      .setDepth(5);
-    this.add
-      .text(stairCx, stairCy + 32, 'Mossbarrow Depths', {
-        fontFamily: 'Courier New',
-        fontSize: '10px',
-        color: '#4040a8',
-      })
-      .setOrigin(0.5, 0.5)
-      .setDepth(5);
+
+    // Arrow indicator
+    this.add.text(stairCx, stairCy + 24, '▼▼▼', {
+      fontFamily: 'Courier New', fontSize: '14px', color: '#6060a0',
+    }).setOrigin(0.5).setDepth(8);
+
+    // Labels
+    this.add.text(stairCx, stairCy - 48, '▼ Stairs Down', {
+      fontFamily: 'Courier New', fontSize: '13px', color: '#8888cc',
+      stroke: '#000000', strokeThickness: 3,
+    }).setOrigin(0.5).setDepth(8);
+
+    this.add.text(stairCx, stairCy + 48, 'Mossbarrow Depths', {
+      fontFamily: 'Courier New', fontSize: '11px', color: '#6060a8',
+      stroke: '#000000', strokeThickness: 2,
+    }).setOrigin(0.5).setDepth(8);
 
     // Exit trigger — generous size so the player walks right in
     this.addExit({

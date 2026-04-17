@@ -7,6 +7,19 @@ import { getCurrentRank, RANKS } from '../../engine/ranks';
 import { getItem } from '../../engine/items';
 import './CraftingScreen.css';
 
+/** Maps result item keys to the class keys they are recommended for. */
+const WEAPON_CLASS_MAP: Record<string, string[]> = {
+  hunting_bow: ['ranger'],
+  shadow_dagger: ['rogue'],
+  iron_mace: ['cleric'],
+  runed_staff: ['wizard'],
+  silver_rapier: ['bard'],
+  iron_sword: ['fighter'],
+  steel_sword: ['fighter'],
+  leather_armor: ['fighter', 'rogue', 'wizard', 'cleric', 'ranger', 'bard'],
+  chainmail: ['fighter', 'rogue', 'wizard', 'cleric', 'ranger', 'bard'],
+};
+
 interface Props { onClose: () => void; }
 
 export function CraftingScreen({ onClose }: Props) {
@@ -76,10 +89,25 @@ export function CraftingScreen({ onClose }: Props) {
           const craftable = canCraft(recipe);
           const resultItem = getItem(recipe.resultItemKey);
 
+          const statLabels: Array<{ key: string; label: string }> = [
+            { key: 'attack', label: 'ATK' },
+            { key: 'damage', label: 'DMG' },
+            { key: 'ac', label: 'AC' },
+            { key: 'hp', label: 'HP' },
+            { key: 'mp', label: 'MP' },
+          ];
+          const bonuses = resultItem.statBonus ?? {};
+          const recommended = WEAPON_CLASS_MAP[recipe.resultItemKey]?.includes(character.characterClass.key);
+
           return (
             <li key={recipe.key} className={`craft__recipe${!rankOk ? ' is-locked' : ''}`}>
               <div className="craft__recipe-header">
-                <h3>{recipe.name}</h3>
+                <h3>
+                  {recipe.name}
+                  {recommended && (
+                    <span style={{ color: '#d4a968', fontSize: '0.8em', marginLeft: '8px' }}>&#9733; Recommended</span>
+                  )}
+                </h3>
                 {recipe.requiredRank && !rankOk && (
                   <span className="craft__rank-req">Requires Rank {recipe.requiredRank}</span>
                 )}
@@ -103,7 +131,18 @@ export function CraftingScreen({ onClose }: Props) {
               <div className="craft__footer">
                 <span className="craft__result">
                   Result: {resultItem.name}{recipe.resultQuantity > 1 ? ` x${recipe.resultQuantity}` : ''}
+                  {statLabels.map(({ key, label }) => {
+                    const val = (bonuses as Record<string, number | undefined>)[key];
+                    return val ? (
+                      <span key={key} style={{ color: '#60c060', marginLeft: '6px' }}>+{val} {label}</span>
+                    ) : null;
+                  })}
                 </span>
+                {resultItem.description && (
+                  <span className="craft__result-desc" style={{ display: 'block', fontStyle: 'italic', color: '#a0a0a0', fontSize: '0.85em', marginTop: '2px' }}>
+                    {resultItem.description}
+                  </span>
+                )}
                 <span className={`craft__cost${!affordable ? ' not-enough' : ''}`} style={{ color: affordable ? '#f4d488' : '#c04040' }}>
                   Cost: {recipe.goldCost}g
                 </span>
