@@ -7,7 +7,7 @@ import { usePlayerStore } from '../state/playerStore';
 import { useQuestStore } from '../state/questStore';
 import { useInventoryStore } from '../state/inventoryStore';
 import { useCombatStore } from '../state/combatStore';
-import type { CharacterInit } from './character';
+import type { CharacterInit, Gender } from './character';
 import type { QuestState } from './quest';
 // Item types used in SaveData shape (inlined below).
 
@@ -15,7 +15,7 @@ import type { QuestState } from './quest';
 interface SaveData {
   version: 1;
   timestamp: number;
-  characterInit: CharacterInit & { level: number; xp: number; gold: number; hp: number; mp: number };
+  characterInit: CharacterInit & { level: number; xp: number; gold: number; hp: number; mp: number; gender: Gender };
   quests: Record<string, QuestState>;
   inventory: { slots: Array<{ itemKey: string; qty: number }>; equipment: Record<string, string | null> };
   killedEnemies: string[];
@@ -37,6 +37,7 @@ export function saveGame(slot: string, currentScene = 'TownScene'): boolean {
       classKey: char.characterClass.key as CharacterInit['classKey'],
       rolledStats: char.rolledStats,
       difficulty: char.difficulty,
+      gender: char.gender,
       extraBonuses: undefined,
       playerChoice: char.playerChoice,
       level: char.level,
@@ -79,6 +80,7 @@ export function loadGame(slot: string): boolean {
       classKey: init.classKey,
       rolledStats: init.rolledStats,
       difficulty: init.difficulty,
+      gender: init.gender ?? 'male',
       playerChoice: init.playerChoice,
       level: init.level,
       xp: init.xp,

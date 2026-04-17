@@ -19,6 +19,7 @@ const baseInit: CharacterInit = {
   classKey: 'wizard',
   rolledStats: baseStats,
   difficulty: 'normal',
+  gender: 'female',
 };
 
 describe('validateName()', () => {
