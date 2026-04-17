@@ -1,14 +1,19 @@
 import { useEffect, useState } from 'react';
 import { usePlayerStore } from '../../state/playerStore';
+import type { Perk } from '../../engine/perks';
 import './LevelUpPopup.css';
 
 /**
- * Level-up celebration popup. Watches for level changes and shows
- * a fanfare overlay with the new level + stat gains.
+ * Level-up celebration popup with perk selection. When the player
+ * levels up, three random perks are offered — small permanent
+ * blessings that accumulate over the course of a playthrough.
+ * The popup stays open until the player makes a choice.
  */
 export function LevelUpPopup() {
   const character = usePlayerStore((s) => s.character);
   const version = usePlayerStore((s) => s.version);
+  const pendingPerks = usePlayerStore((s) => s.pendingPerkChoices);
+  const choosePerk = usePlayerStore((s) => s.choosePerk);
   const [showLevel, setShowLevel] = useState<number | null>(null);
   const [lastLevel, setLastLevel] = useState(0);
 
@@ -18,11 +23,16 @@ export function LevelUpPopup() {
     if (character.level > lastLevel) {
       setShowLevel(character.level);
       setLastLevel(character.level);
-      // Auto-dismiss after 3 seconds
-      const t = setTimeout(() => setShowLevel(null), 3000);
-      return () => clearTimeout(t);
     }
   }, [character, version, lastLevel]);
+
+  // When there are no pending perks left (player chose one), auto-dismiss after a beat.
+  useEffect(() => {
+    if (showLevel !== null && !pendingPerks) {
+      const t = setTimeout(() => setShowLevel(null), 600);
+      return () => clearTimeout(t);
+    }
+  }, [showLevel, pendingPerks]);
 
   if (showLevel === null || !character) return null;
 
@@ -49,11 +59,15 @@ export function LevelUpPopup() {
     );
   });
 
+  const handleChoose = (perk: Perk) => {
+    choosePerk(perk.key);
+  };
+
   return (
-    <div className="lvlup" onClick={() => setShowLevel(null)}>
+    <div className="lvlup">
       {particles}
       <div className="lvlup__box levelup">
-        <h2 className="lvlup__title">LEVEL UP!</h2>
+        <h2 className="lvlup__title">LEVEL UP</h2>
         <p className="lvlup__level">Level {showLevel}</p>
         <div className="lvlup__stats">
           <span>Max HP: {d.maxHp}</span>
@@ -61,7 +75,29 @@ export function LevelUpPopup() {
           <span>AC: {d.ac}</span>
         </div>
         <p className="lvlup__hint">HP & MP fully restored</p>
-        <p className="lvlup__dismiss">Click or wait to dismiss</p>
+
+        {pendingPerks && (
+          <>
+            <p className="lvlup__choose-label">Choose a blessing:</p>
+            <div className="lvlup__choices">
+              {pendingPerks.map((perk) => (
+                <button
+                  key={perk.key}
+                  className="lvlup__perk"
+                  onClick={() => handleChoose(perk)}
+                >
+                  <span className="lvlup__perk-icon">{perk.icon}</span>
+                  <span className="lvlup__perk-name">{perk.name}</span>
+                  <span className="lvlup__perk-desc">{perk.description}</span>
+                </button>
+              ))}
+            </div>
+          </>
+        )}
+
+        {!pendingPerks && (
+          <p className="lvlup__dismiss">Blessing received</p>
+        )}
       </div>
     </div>
   );

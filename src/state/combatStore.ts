@@ -12,6 +12,7 @@ import { usePlayerStore } from './playerStore';
 import { useInventoryStore } from './inventoryStore';
 import { useQuestStore } from './questStore';
 import { useAchievementStore } from './achievementStore';
+import { rollPerkChoices, getPerkHpBonus, getPerkMpBonus } from '../engine/perks';
 
 /**
  * Combat store — manages the active battle. Null when not in combat.
@@ -151,7 +152,8 @@ export const useCombatStore = create<CombatStoreState>((set, get) => ({
     };
 
     // Sync playerHp from character after item use (useItem calls char.heal)
-    s.playerHp = Math.min(character.derived.maxHp, character.hp);
+    const perkHp = getPerkHpBonus(usePlayerStore.getState().perks);
+    s.playerHp = Math.min(character.derived.maxHp + perkHp, character.hp);
 
     // Atmospheric log messages per item type
     if (item.effect.healHp && item.effect.healMp) {
@@ -205,8 +207,11 @@ export const useCombatStore = create<CombatStoreState>((set, get) => ({
     if (state && monster && character) {
       if (state.phase === 'victory') {
         character.addGold(monster.goldReward);
-        character.gainXp(monster.xpReward);
+        const levelsGained = character.gainXp(monster.xpReward);
         character.hp = state.playerHp;
+        if (levelsGained > 0) {
+          usePlayerStore.setState({ pendingPerkChoices: rollPerkChoices() });
+        }
         player.notify();
         // Add pre-rolled loot (rolled when victory phase was first set).
         const inv = useInventoryStore.getState();
@@ -265,8 +270,10 @@ export const useCombatStore = create<CombatStoreState>((set, get) => ({
           // Normal: lose 10% gold, respawn at town with FULL HP.
           const lost = Math.floor(character.gold * 0.1);
           character.loseGold(lost);
-          character.hp = character.derived.maxHp;
-          character.mp = character.derived.maxMp;
+          const perkHpR = getPerkHpBonus(usePlayerStore.getState().perks);
+          const perkMpR = getPerkMpBonus(usePlayerStore.getState().perks);
+          character.hp = character.derived.maxHp + perkHpR;
+          character.mp = character.derived.maxMp + perkMpR;
           player.notify();
         }
         // Enemy NOT marked as killed — it survives if player dies.

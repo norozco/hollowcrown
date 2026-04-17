@@ -7,7 +7,6 @@
   background: rgba(10,6,4,0.7);
   z-index: 30;
   pointer-events: auto;
-  cursor: pointer;
   animation: lvlup-fade-in 300ms ease-out;
 }
 @keyframes lvlup-fade-in { from { opacity: 0; } to { opacity: 1; } }
@@ -19,6 +18,7 @@
   text-align: center;
   box-shadow: 0 0 60px rgba(212,169,104,0.3), 0 12px 40px rgba(0,0,0,0.6);
   animation: lvlup-pop 400ms cubic-bezier(0.2,1.1,0.3,1);
+  max-width: 90vw;
 }
 @keyframes lvlup-pop {
   0% { transform: scale(0.5); opacity: 0; }
@@ -88,4 +88,64 @@
   15% { opacity: 1; }
   70% { opacity: 0.8; }
   100% { opacity: 0; transform: translateY(-200px) scale(0.3); }
+}
+
+/* ── Perk selection ── */
+
+.lvlup__choose-label {
+  font-family: 'Courier New', monospace;
+  color: #d4a968;
+  font-size: 1rem;
+  margin: 1.2rem 0 0.8rem 0;
+  letter-spacing: 0.15rem;
+  text-transform: uppercase;
+}
+
+.lvlup__choices {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.lvlup__perk {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 1rem 1.2rem;
+  min-width: 120px;
+  background: rgba(30,20,10,0.9);
+  border: 2px solid #6a5838;
+  cursor: pointer;
+  transition: border-color 200ms, box-shadow 200ms, transform 150ms;
+  font-family: 'Courier New', monospace;
+}
+
+.lvlup__perk:hover {
+  border-color: #f4d488;
+  box-shadow: 0 0 18px rgba(244,212,136,0.4), 0 0 40px rgba(212,169,104,0.15);
+  transform: translateY(-3px);
+}
+
+.lvlup__perk:active {
+  transform: translateY(0);
+  box-shadow: 0 0 8px rgba(244,212,136,0.6);
+}
+
+.lvlup__perk-icon {
+  font-size: 1.8rem;
+  line-height: 1;
+}
+
+.lvlup__perk-name {
+  color: #f4d488;
+  font-size: 0.9rem;
+  font-weight: bold;
+  letter-spacing: 0.08rem;
+}
+
+.lvlup__perk-desc {
+  color: #a0c060;
+  font-size: 0.75rem;
 }

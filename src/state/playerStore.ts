@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { Character, type CharacterInit } from '../engine/character';
+import { type Perk, rollPerkChoices } from '../engine/perks';
 
 /**
  * Holds the active player Character (or null if the player is in the
@@ -18,6 +19,13 @@ interface PlayerState {
 
   /** Currently active companion key, or null if travelling alone. */
   companion: string | null;
+
+  /** Perk keys the player has chosen across all level-ups. */
+  perks: string[];
+  /** Three perk choices waiting for the player to pick one (null = no pending). */
+  pendingPerkChoices: Perk[] | null;
+  /** Apply a chosen perk and clear the pending choices. */
+  choosePerk: (perkKey: string) => void;
 
   /** Build a Character from a CharacterInit and store it. Throws if the
    *  init is invalid (delegates to Character constructor's validation). */
@@ -45,10 +53,26 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   character: null,
   version: 0,
   companion: null,
+  perks: [],
+  pendingPerkChoices: null,
 
-  create: (init) => set({ character: new Character(init), version: 1 }),
+  choosePerk: (perkKey) => {
+    const { pendingPerkChoices, character, perks } = get();
+    if (!pendingPerkChoices || !character) return;
+    const perk = pendingPerkChoices.find((p) => p.key === perkKey);
+    if (!perk) return;
+    // Apply immediate stat mutations (stat-boost perks).
+    perk.apply(character);
+    set({
+      perks: [...perks, perkKey],
+      pendingPerkChoices: null,
+      version: get().version + 1,
+    });
+  },
+
+  create: (init) => set({ character: new Character(init), version: 1, perks: [], pendingPerkChoices: null }),
   notify: () => set((s) => ({ version: s.version + 1 })),
-  clear: () => set({ character: null, version: 0, companion: null }),
+  clear: () => set({ character: null, version: 0, companion: null, perks: [], pendingPerkChoices: null }),
 
   giveGold: (amount) => {
     const c = get().character;
@@ -68,7 +92,11 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
     const c = get().character;
     if (!c) return 0;
     const gained = c.gainXp(amount);
-    set((s) => ({ version: s.version + 1 }));
+    if (gained > 0) {
+      set((s) => ({ version: s.version + 1, pendingPerkChoices: rollPerkChoices() }));
+    } else {
+      set((s) => ({ version: s.version + 1 }));
+    }
     return gained;
   },
 

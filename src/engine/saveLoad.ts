@@ -9,6 +9,7 @@ import { useInventoryStore } from '../state/inventoryStore';
 import { useCombatStore } from '../state/combatStore';
 import type { CharacterInit, Gender } from './character';
 import type { QuestState } from './quest';
+import { ALL_PERKS } from './perks';
 // Item types used in SaveData shape (inlined below).
 
 
@@ -20,6 +21,8 @@ interface SaveData {
   inventory: { slots: Array<{ itemKey: string; qty: number }>; equipment: Record<string, string | null> };
   killedEnemies: string[];
   currentScene: string;
+  /** Perk keys chosen across level-ups (added post-v1, optional for compat). */
+  perks?: string[];
 }
 
 const SAVE_PREFIX = 'hollowcrown_save_';
@@ -55,6 +58,7 @@ export function saveGame(slot: string, currentScene = 'TownScene'): boolean {
     },
     killedEnemies: Array.from(useCombatStore.getState().killedEnemies),
     currentScene,
+    perks: usePlayerStore.getState().perks,
   };
 
   try {
@@ -91,6 +95,16 @@ export function loadGame(slot: string): boolean {
     if (char) {
       char.hp = init.hp;
       char.mp = init.mp;
+      // Restore perks — re-apply stat mutations (stat-boost perks modify
+      // the character's stats directly, so we replay them on load).
+      const savedPerks = data.perks ?? [];
+      if (savedPerks.length > 0) {
+        for (const pk of savedPerks) {
+          const perk = ALL_PERKS.find((p) => p.key === pk);
+          if (perk) perk.apply(char);
+        }
+        usePlayerStore.setState({ perks: savedPerks });
+      }
       usePlayerStore.getState().notify();
     }
 

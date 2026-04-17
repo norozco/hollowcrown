@@ -53,6 +53,7 @@ export function InGameOverlay() {
   const resetInventory = useInventoryStore((s) => s.reset);
 
   const questActive = useQuestStore((s) => s.active);
+  const perks = usePlayerStore((s) => s.perks);
 
   const checkAchievements = useAchievementStore((s) => s.checkAchievements);
   const resetAchievements = useAchievementStore((s) => s.reset);
@@ -153,6 +154,8 @@ export function InGameOverlay() {
   };
 
   const d = character.derived;
+  const effectiveMaxHp = d.maxHp + getPerkHpBonus(perks);
+  const effectiveMaxMp = d.maxMp + getPerkMpBonus(perks);
   const questsCompleted = Object.values(questActive).filter((q) => q.turnedIn).length;
   const rank = getCurrentRank(questsCompleted, character.level);
 
@@ -195,8 +198,8 @@ export function InGameOverlay() {
           </div>
         </div>
         <div className="ig__hud-block ig__bars">
-          <span>HP {character.hp}/{d.maxHp}</span>
-          {d.maxMp > 0 && <span>MP {character.mp}/{d.maxMp}</span>}
+          <span>HP {character.hp}/{effectiveMaxHp}</span>
+          {effectiveMaxMp > 0 && <span>MP {character.mp}/{effectiveMaxMp}</span>}
           {character.level >= MAX_LEVEL ? (
             <span>XP MAX</span>
           ) : (

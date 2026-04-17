@@ -22,7 +22,7 @@ import type { Monster } from './monster';
 import { useInventoryStore } from '../state/inventoryStore';
 import { usePlayerStore } from '../state/playerStore';
 import { COMPANIONS } from './companion';
-import { getPerkCombatBonuses } from './perks';
+import { getPerkCombatBonuses, getPerkHpBonus } from './perks';
 
 /** Compute total stat bonuses from all currently equipped items AND the active companion. */
 function getEquipmentBonuses(): { attack: number; damage: number; ac: number } {
@@ -301,7 +301,8 @@ export function playerAct(
       if (classKey === 'cleric') {
         // Cure Wounds: heal self — no damage element to check
         const healAmt = 8 + modifier(player.stats.wis) * 2;
-        s.playerHp = Math.min(player.derived.maxHp, s.playerHp + healAmt);
+        const maxHpWithPerks = player.derived.maxHp + getPerkHpBonus(usePlayerStore.getState().perks);
+        s.playerHp = Math.min(maxHpWithPerks, s.playerHp + healAmt);
         s.log.push({ text: `Divine light mends your wounds. +${healAmt} HP.`, type: 'player_hit' });
       } else if (classKey === 'wizard') {
         // Fireball: guaranteed fire damage
@@ -388,7 +389,8 @@ export function playerAct(
     const companion = COMPANIONS[companionKey];
     if (companion?.effect.healPerTurn) {
       const heal = companion.effect.healPerTurn;
-      s.playerHp = Math.min(player.derived.maxHp, s.playerHp + heal);
+      const maxHpWithPerks2 = player.derived.maxHp + getPerkHpBonus(usePlayerStore.getState().perks);
+      s.playerHp = Math.min(maxHpWithPerks2, s.playerHp + heal);
       s.log.push({ text: `${companion.name} patches your wounds. +${heal} HP.`, type: 'player_hit' });
     }
   }
