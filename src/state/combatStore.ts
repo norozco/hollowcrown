@@ -19,6 +19,7 @@ import { useQuestStore } from './questStore';
 interface CombatStoreState {
   state: CombatState | null;
   monster: Monster | null;
+  _enemyActing: boolean;
   /** Which Phaser scene to return to after combat. */
   returnScene: string | null;
   /** Player's position before combat — restore after. */
@@ -40,6 +41,7 @@ interface CombatStoreState {
 export const useCombatStore = create<CombatStoreState>((set, get) => ({
   state: null,
   monster: null,
+  _enemyActing: false,
   returnScene: null,
   returnX: 0,
   returnY: 0,
@@ -55,22 +57,25 @@ export const useCombatStore = create<CombatStoreState>((set, get) => ({
 
     // If enemy goes first, auto-act after a brief pause.
     if (state.phase === 'enemy_turn') {
+      set({ _enemyActing: true });
       setTimeout(() => {
         const s = get();
         if (s.state && s.monster && s.state.phase === 'enemy_turn') {
           const character2 = usePlayerStore.getState().character;
           if (character2) {
-            set({ state: enemyAct(s.state, character2, s.monster) });
-          }
-        }
+            set({ state: enemyAct(s.state, character2, s.monster), _enemyActing: false });
+          } else { set({ _enemyActing: false }); }
+        } else { set({ _enemyActing: false }); }
       }, 800);
     }
   },
 
   act: (action) => {
-    const { state, monster } = get();
+    const { state, monster, _enemyActing } = get();
     const character = usePlayerStore.getState().character;
     if (!state || !monster || !character) return;
+    // Only allow actions during player's turn, and not while enemy is processing.
+    if (state.phase !== 'player_turn' || _enemyActing) return;
 
     // Player acts.
     let next = playerAct(state, action, character, monster);
@@ -78,14 +83,15 @@ export const useCombatStore = create<CombatStoreState>((set, get) => ({
 
     // If combat continues and it's the enemy's turn, auto-act after delay.
     if (next.phase === 'enemy_turn') {
+      set({ _enemyActing: true });
       setTimeout(() => {
         const s = get();
         if (s.state && s.monster && s.state.phase === 'enemy_turn') {
           const char = usePlayerStore.getState().character;
           if (char) {
-            set({ state: enemyAct(s.state, char, s.monster) });
-          }
-        }
+            set({ state: enemyAct(s.state, char, s.monster), _enemyActing: false });
+          } else { set({ _enemyActing: false }); }
+        } else { set({ _enemyActing: false }); }
       }, 600);
     }
   },
@@ -143,6 +149,6 @@ export const useCombatStore = create<CombatStoreState>((set, get) => ({
       }
     }
 
-    set((s) => ({ state: null, monster: null, killedEnemies: s.killedEnemies, _pendingEnemyId: '' }));
+    set((s) => ({ state: null, monster: null, _enemyActing: false, killedEnemies: s.killedEnemies, _pendingEnemyId: '' }));
   },
 }));
