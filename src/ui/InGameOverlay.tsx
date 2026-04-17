@@ -50,6 +50,21 @@ export function InGameOverlay() {
   const [optionsOpen, setOptionsOpen] = useState(false);
   const [gameMsg, setGameMsg] = useState<string | null>(null);
 
+  // Apply stored brightness on mount so it persists across reloads.
+  useEffect(() => {
+    const stored = localStorage.getItem('hc_brightness');
+    if (stored) {
+      const val = parseFloat(stored);
+      if (val !== 1.0) {
+        const el = document.getElementById('phaser-container');
+        if (el) el.style.filter = `brightness(${val})`;
+      }
+    }
+    // Restore FPS toggle
+    const fpsStored = localStorage.getItem('hc_showFps');
+    if (fpsStored === 'true') window.__showFps = true;
+  }, []);
+
   useEffect(() => {
     const handler = () => setQuestBoardOpen(true);
     window.addEventListener('openQuestBoard', handler);

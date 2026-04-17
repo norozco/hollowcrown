@@ -263,6 +263,10 @@ function tileAt(x: number, y: number): number {
     if ((x === b.doorX1 || x === b.doorX2) && y >= b.y + b.h && y <= 10) return P;
   }
 
+  // ── Path to smithy (from main road down to smithy door) ──
+  if ((x === SMITHY.doorX1 || x === SMITHY.doorX2) && y >= 10 && y <= SMITHY.y + SMITHY.h) return P;
+  if ((x === SMITHY.doorX1 - 1 || x === SMITHY.doorX2 + 1) && y >= 11 && y <= SMITHY.y + SMITHY.h) return PE;
+
   // ── Southern path to exit (center of map going south) ──
   if (x >= 19 && x <= 20 && y >= 10 && y <= 21) return P;
   // Path edges beside the southern path

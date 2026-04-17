@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import './OptionsMenu.css';
 
 declare global {
@@ -8,7 +8,12 @@ declare global {
 interface Props { onClose: () => void; }
 
 export function OptionsMenu({ onClose }: Props) {
-  const [showFps, setShowFps] = useState(!!window.__showFps);
+  const [showFps, setShowFps] = useState(() => {
+    const stored = localStorage.getItem('hc_showFps');
+    const val = stored === 'true';
+    window.__showFps = val;
+    return val;
+  });
   const [brightness, setBrightness] = useState(() => {
     const stored = localStorage.getItem('hc_brightness');
     return stored ? parseFloat(stored) : 1.0;
@@ -17,17 +22,26 @@ export function OptionsMenu({ onClose }: Props) {
     return localStorage.getItem('hc_textSpeed') ?? 'normal';
   });
 
+  // Apply stored brightness on mount so it takes effect immediately.
+  useEffect(() => {
+    const gameContainer = document.getElementById('phaser-container');
+    if (gameContainer && brightness !== 1.0) {
+      gameContainer.style.filter = `brightness(${brightness})`;
+    }
+  }, []);
+
   const handleFpsToggle = (checked: boolean) => {
     window.__showFps = checked;
     setShowFps(checked);
+    localStorage.setItem('hc_showFps', String(checked));
   };
 
   const handleBrightness = (val: number) => {
     setBrightness(val);
     localStorage.setItem('hc_brightness', String(val));
-    const gameContainer = document.getElementById('phaser-game');
+    const gameContainer = document.getElementById('phaser-container');
     if (gameContainer) {
-      gameContainer.style.filter = `brightness(${val})`;
+      gameContainer.style.filter = val === 1.0 ? '' : `brightness(${val})`;
     }
   };
 
