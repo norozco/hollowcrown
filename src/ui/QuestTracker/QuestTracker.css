@@ -1,43 +1,47 @@
-/* Compact single-line quest tracker — bottom-right corner, minimal. */
+/* Quest tracker — bottom-right corner, shows main + side quests */
 .qt {
   position: absolute;
   right: 0.8rem;
   bottom: 2.4rem;
-  max-width: 260px;
-  background: rgba(10,6,6,0.75);
+  max-width: 280px;
+  max-height: 40vh;
+  overflow-y: auto;
+  background: rgba(10,6,6,0.8);
   border: 1px solid #3a2818;
-  padding: 0.3rem 0.6rem;
+  padding: 0.4rem 0.6rem;
   pointer-events: auto;
   font-family: 'Courier New', monospace;
   color: #e4d4a0;
   z-index: 12;
   font-size: 0.78rem;
-  cursor: pointer;
-  transition: background 200ms;
 }
-.qt:hover { background: rgba(10,6,6,0.9); }
 .qt__heading {
-  display: none; /* hidden in compact mode */
+  margin: 0.2rem 0 0.1rem 0;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  border-bottom: 1px solid #3a2818;
+  padding-bottom: 0.15rem;
 }
-.qt__list { list-style: none; margin: 0; padding: 0; }
-.qt__quest { padding: 0; }
-.qt__quest:first-child { border-top: none; }
+.qt__heading--main { color: #d4a968; }
+.qt__heading--side { color: #8a7a48; }
+.qt__list { list-style: none; margin: 0 0 0.3rem 0; padding: 0; }
+.qt__quest { padding: 0.15rem 0; }
+.qt__quest.is-complete:not(.is-flashing) { opacity: 0.5; }
 .qt__title {
   display: flex; justify-content: space-between; gap: 0.3rem;
   color: #d4a968; font-size: 0.75rem; margin-bottom: 0.1rem;
 }
 .qt__badge { color: #8aaf5a; font-size: 0.65rem; }
+.qt__badge--done { color: #4a6a2a; }
 .qt__objectives { list-style: none; padding: 0; margin: 0; }
 .qt__obj { display: flex; gap: 0.3rem; font-size: 0.73rem; color: #8a7a48; }
 .qt__obj.is-current { color: #c0b080; }
 .qt__obj.is-current .qt__obj-mark { color: #d4a968; }
-.qt__obj.is-done { text-decoration: line-through; color: #4a3828; }
-.qt__obj.is-done .qt__obj-mark { color: #6a8a4a; text-decoration: none; }
+.qt__obj.is-done { color: #6a8a4a; }
+.qt__obj.is-done .qt__obj-mark { color: #6a8a4a; }
+.qt__obj.is-done .qt__obj-text { text-decoration: line-through; }
 .qt__obj-mark { width: 0.8rem; flex-shrink: 0; text-align: center; }
-
-/* Only show the first incomplete quest — others hidden */
-.qt__quest + .qt__quest { display: none; }
-.qt__quest.is-complete { display: none; }
 
 @keyframes qt-flash {
   0% { background: rgba(212,169,104,0.25); }

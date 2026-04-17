@@ -107,6 +107,8 @@ export abstract class BaseWorldScene extends Phaser.Scene {
   private transitionLock = false;
   /** Brief immunity after returning from combat — prevents instant re-engage on flee. */
   private combatImmunity = 0;
+  /** Exit zone the player spawned inside — suppressed until they walk out of it. */
+  private suppressedExit: Exit | null = null;
 
   // ──────────────────────────────────────────────────────────────
   // Subclass hooks
@@ -133,6 +135,7 @@ export abstract class BaseWorldScene extends Phaser.Scene {
     this.nearbyTarget = null;
     this.transitionLock = false;
     this.combatImmunity = 0;
+    this.suppressedExit = null;
 
     this.walls = this.physics.add.staticGroup();
     this.createWorldBounds();
@@ -149,6 +152,17 @@ export abstract class BaseWorldScene extends Phaser.Scene {
       spawn = this.spawnAt(data?.spawnPoint ?? 'default');
     }
     this.createPlayer(spawn.x, spawn.y);
+
+    // Suppress the exit zone the player spawned inside (prevents instant
+    // re-triggering when arriving from stairs — e.g. going DOWN on Floor 1
+    // spawns you at the top of Floor 2, right inside the stairs-UP zone).
+    for (const exit of this.exits) {
+      if (spawn.x >= exit.x && spawn.x <= exit.x + exit.w &&
+          spawn.y >= exit.y && spawn.y <= exit.y + exit.h) {
+        this.suppressedExit = exit;
+        break;
+      }
+    }
 
     this.setupInput();
     this.createPrompt();
@@ -663,6 +677,8 @@ export abstract class BaseWorldScene extends Phaser.Scene {
     }
 
     for (const ix of this.interactables) {
+      // Skip destroyed sprites (e.g. picked-up loot bags / material nodes).
+      if ((ix.sprite as any).active === false) continue;
       const d = Phaser.Math.Distance.Between(
         this.player.x,
         this.player.y,
@@ -695,6 +711,13 @@ export abstract class BaseWorldScene extends Phaser.Scene {
 
   private handleInteraction(): void {
     if (!this.nearbyTarget) return;
+    // Skip destroyed interactables.
+    if (this.nearbyTarget.kind === 'interactable' &&
+        (this.nearbyTarget.ref.sprite as any).active === false) {
+      this.nearbyTarget = null;
+      this.prompt.setVisible(false);
+      return;
+    }
     if (!Phaser.Input.Keyboard.JustDown(this.keyE)) return;
     if (this.nearbyTarget.kind === 'npc') {
       try {
@@ -769,13 +792,20 @@ export abstract class BaseWorldScene extends Phaser.Scene {
 
   private checkExits(): void {
     for (const exit of this.exits) {
-      // Simple bounding-box check — player center inside exit rect.
-      if (
+      const inside =
         this.player.x >= exit.x &&
         this.player.x <= exit.x + exit.w &&
         this.player.y >= exit.y &&
-        this.player.y <= exit.y + exit.h
-      ) {
+        this.player.y <= exit.y + exit.h;
+
+      // If this exit was suppressed (player spawned in it), clear
+      // the suppression once they walk OUT of it. Only then can it trigger.
+      if (this.suppressedExit === exit) {
+        if (!inside) this.suppressedExit = null; // player left — unsuppress
+        continue; // don't trigger this exit yet
+      }
+
+      if (inside) {
         this.transitionLock = true;
         // Leaving the zone — clear killed enemies so they respawn when
         // the player returns.

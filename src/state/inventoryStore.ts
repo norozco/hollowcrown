@@ -57,13 +57,21 @@ const COLLECTION_QUESTS: { questId: string; objectiveId: string; itemKey: string
   { questId: 'bone-ritual', objectiveId: 'deliver-bones', itemKey: 'bone_shard', qty: 3 },
 ];
 
-function checkCollectionQuests(get: () => InventoryState): void {
+function checkCollectionQuests(get: () => InventoryState, addedItemKey?: string): void {
   const questStore = useQuestStore.getState();
   for (const cq of COLLECTION_QUESTS) {
     const qs = questStore.active[cq.questId];
     if (!qs || qs.isComplete) continue;
-    if (get().hasItem(cq.itemKey, cq.qty)) {
+    const owned = get().slots.find((s) => s.item.key === cq.itemKey)?.quantity ?? 0;
+    if (owned >= cq.qty) {
       questStore.completeObjective(cq.questId, cq.objectiveId);
+      window.dispatchEvent(new CustomEvent('gameMessage', {
+        detail: `Quest ready to turn in: ${cq.questId.replace(/-/g, ' ')}`,
+      }));
+    } else if (addedItemKey === cq.itemKey && owned > 0) {
+      window.dispatchEvent(new CustomEvent('gameMessage', {
+        detail: `${getItem(cq.itemKey).name}: ${owned}/${cq.qty}`,
+      }));
     }
   }
 }
@@ -92,14 +100,14 @@ export const useInventoryStore = create<InventoryState>((set, get) => ({
       const existing = slots.find((s) => s.item.key === itemKey);
       if (existing) {
         set({ slots: slots.map((s) => s.item.key === itemKey ? { ...s, quantity: s.quantity + qty } : s) });
-        checkCollectionQuests(get);
+        checkCollectionQuests(get, itemKey);
         return true;
       }
     }
 
     if (slots.length >= MAX_SLOTS) return false;
     set({ slots: [...slots, { item, quantity: qty }] });
-    checkCollectionQuests(get);
+    checkCollectionQuests(get, itemKey);
     return true;
   },
 

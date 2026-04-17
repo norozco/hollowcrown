@@ -21,9 +21,13 @@ export interface QuestReward {
   xp?: number;
 }
 
+export type QuestCategory = 'main' | 'side';
+
 export interface Quest {
   id: string;
   title: string;
+  /** 'main' for story quests, 'side' for optional. Defaults to 'side'. */
+  category?: QuestCategory;
   /** One- or two-sentence summary shown when the player first opens the
    *  quest tracker. Should set the stakes / what & why. */
   summary: string;

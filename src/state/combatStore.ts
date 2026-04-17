@@ -187,25 +187,37 @@ export const useCombatStore = create<CombatStoreState>((set, get) => ({
         const enemyId = get()._pendingEnemyId;
         if (enemyId) get().killedEnemies.add(enemyId);
 
-        // Check kill-based quest objectives.
+        // Check kill-based quest objectives with progress messages.
         const killed = get().killedEnemies;
-        const questStore = useQuestStore.getState();
-        // Wolf cull: need 3 wolves killed.
-        const wolfKills = Array.from(killed).filter((id) => id.includes('wolf')).length;
-        if (wolfKills >= 3) questStore.completeObjective('wolf-cull', 'kill-wolves');
-        // Bone collector: need 2 skeletons killed.
-        const skelKills = Array.from(killed).filter((id) => id.includes('skeleton')).length;
-        if (skelKills >= 2) questStore.completeObjective('bone-collector', 'collect-bones');
-        // Spider nest: need 3 spiders killed.
-        const spiderKills = Array.from(killed).filter((id) => id.includes('spider')).length;
-        if (spiderKills >= 3) questStore.completeObjective('spider-nest', 'kill-spiders');
-        // Wraith hunt: need 2 wraiths killed.
-        const wraithKills = Array.from(killed).filter((id) => id.includes('wraith')).length;
-        if (wraithKills >= 2) questStore.completeObjective('wraith-hunt', 'kill-wraiths');
+        const qs = useQuestStore.getState();
+        const msg = (text: string) =>
+          window.dispatchEvent(new CustomEvent('gameMessage', { detail: text }));
+
+        // Helper: track kills and show progress / completion.
+        const checkKillQuest = (
+          monsterMatch: string, questId: string, objectiveId: string,
+          needed: number, questLabel: string,
+        ) => {
+          const q = qs.active[questId];
+          if (!q || q.isComplete) return;
+          const count = Array.from(killed).filter((id) => id.includes(monsterMatch)).length;
+          if (count >= needed) {
+            qs.completeObjective(questId, objectiveId);
+            msg(`${questLabel} — complete.`);
+          } else {
+            msg(`${questLabel}: ${count}/${needed}`);
+          }
+        };
+
+        if (monster.key === 'wolf') checkKillQuest('wolf', 'wolf-cull', 'kill-wolves', 3, 'Wolf Cull');
+        if (monster.key === 'skeleton') checkKillQuest('skeleton', 'bone-collector', 'collect-bones', 2, 'Bone Collector');
+        if (monster.key === 'spider') checkKillQuest('spider', 'spider-nest', 'kill-spiders', 3, 'Spider Nest');
+        if (monster.key === 'wraith') checkKillQuest('wraith', 'wraith-hunt', 'kill-wraiths', 2, 'Wraith Hunt');
+
         // Hollow King slayer: kill the boss.
         if (monster.key === 'hollow_king') {
-          questStore.completeObjective('hollow-king-slayer', 'kill-hollow-king');
-          window.dispatchEvent(new CustomEvent('gameMessage', { detail: 'The Hollow Crown shatters. The curse lifts.' }));
+          qs.completeObjective('hollow-king-slayer', 'kill-hollow-king');
+          msg('The Hollow Crown shatters. The curse lifts.');
         }
       } else if (state.phase === 'defeat') {
         if (character.difficulty === 'hardcore') {
