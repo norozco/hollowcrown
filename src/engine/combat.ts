@@ -22,6 +22,7 @@ import type { Monster } from './monster';
 import { useInventoryStore } from '../state/inventoryStore';
 import { usePlayerStore } from '../state/playerStore';
 import { COMPANIONS } from './companion';
+import { getPerkCombatBonuses } from './perks';
 
 /** Compute total stat bonuses from all currently equipped items AND the active companion. */
 function getEquipmentBonuses(): { attack: number; damage: number; ac: number } {
@@ -43,6 +44,10 @@ function getEquipmentBonuses(): { attack: number; damage: number; ac: number } {
       ac     += companion.effect.bonusAc     ?? 0;
     }
   }
+  // Perk passive bonuses (accumulated across level-ups)
+  const perkBonus = getPerkCombatBonuses(usePlayerStore.getState().perks);
+  attack += perkBonus.attack;
+  damage += perkBonus.damage;
   return { attack, damage, ac };
 }
 
@@ -437,6 +442,25 @@ export function enemyAct(
   const equipBonus = getEquipmentBonuses();
   const playerAc = player.derived.ac + (s.playerDefending ? 2 : 0) + equipBonus.ac;
 
+  // ── Check for special ability ──
+  if (monster.special && Math.random() < monster.special.chance) {
+    const sp = monster.special;
+    const dmg = Math.max(1, Math.round(monster.baseDamage * (sp.damageMult ?? 1)));
+    s.playerHp = Math.max(0, s.playerHp - dmg);
+    const logText = sp.text.replace('{name}', monster.name);
+    s.log.push({ text: `${logText} ${dmg} damage.`, type: 'enemy_hit' });
+
+    if (sp.applyStatus) {
+      s.playerStatus = { ...s.playerStatus, [sp.applyStatus.effect]: sp.applyStatus.value };
+      s.log.push({ text: `${sp.applyStatus.effect.charAt(0).toUpperCase() + sp.applyStatus.effect.slice(1)} applied.`, type: 'system' });
+    }
+    if (sp.selfHeal && sp.selfHeal > 0) {
+      s.monsterHp = Math.min(monster.maxHp, s.monsterHp + sp.selfHeal);
+      s.log.push({ text: `${monster.name} mends itself. +${sp.selfHeal} HP.`, type: 'info' });
+    }
+  } else {
+  // ── Normal attack ──
+
   // Determine number of attacks — Hollow King phase 2 has 50% double attack
   const isKingPhase2 = monster.key === 'hollow_king' && s.bossPhase2;
   const attackCount = isKingPhase2 && dice.d(100) <= 50 ? 2 : 1;
@@ -507,6 +531,8 @@ export function enemyAct(
       }
     }
   }
+
+  } // end normal attack else
 
   // Check defeat
   if (s.playerHp <= 0) {

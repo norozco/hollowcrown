@@ -4,6 +4,8 @@
  * damage, initiative).
  */
 
+import type { StatusEffects } from './combat';
+
 export interface Monster {
   key: string;
   name: string;
@@ -29,6 +31,20 @@ export interface Monster {
   weakness?: string;
   /** Element the monster resists (takes 0.5x damage). */
   resistance?: string;
+  /** Optional special ability. */
+  special?: {
+    name: string;
+    /** Chance to use instead of normal attack (0-1). */
+    chance: number;
+    /** Damage multiplier (1.0 = same as base). */
+    damageMult?: number;
+    /** Status effect applied on hit. */
+    applyStatus?: { effect: keyof StatusEffects; value: number };
+    /** Self-heal amount. */
+    selfHeal?: number;
+    /** Flavor text for the combat log. */
+    text: string;
+  };
 }
 
 const MONSTERS: Record<string, Monster> = {
@@ -51,6 +67,7 @@ const MONSTERS: Record<string, Monster> = {
       { itemKey: 'health_potion', chance: 0.2 },
       { itemKey: 'iron_ore', chance: 0.15 },
     ],
+    special: { name: 'Lunge', chance: 0.25, damageMult: 1.5, text: '{name} lunges with terrible speed.' },
   },
   skeleton: {
     key: 'skeleton',
@@ -73,6 +90,7 @@ const MONSTERS: Record<string, Monster> = {
       { itemKey: 'shadow_essence', chance: 0.1 },
       { itemKey: 'iron_ore', chance: 0.2 },
     ],
+    special: { name: 'Bone Throw', chance: 0.2, damageMult: 0.8, applyStatus: { effect: 'stun', value: 1 }, text: '{name} tears a rib from its own chest and hurls it.' },
   },
   hollow_knight: {
     key: 'hollow_knight',
@@ -96,6 +114,7 @@ const MONSTERS: Record<string, Monster> = {
       { itemKey: 'shadow_essence', chance: 0.3 },
       { itemKey: 'troll_heart', chance: 0.2 },
     ],
+    special: { name: 'Shield Bash', chance: 0.3, damageMult: 1.4, applyStatus: { effect: 'stun', value: 1 }, text: '{name} drives its shield forward. The world rings.' },
   },
   spider: {
     key: 'spider',
@@ -117,6 +136,7 @@ const MONSTERS: Record<string, Monster> = {
       { itemKey: 'spider_silk', chance: 0.5 },
       { itemKey: 'dungeon_key', chance: 0.15 },
     ],
+    special: { name: 'Web Spit', chance: 0.3, damageMult: 0.5, applyStatus: { effect: 'stun', value: 1 }, text: '{name} spits a web. You struggle to move.' },
   },
   wraith: {
     key: 'wraith',
@@ -140,6 +160,7 @@ const MONSTERS: Record<string, Monster> = {
       { itemKey: 'wraith_dust', chance: 0.35 },
       { itemKey: 'boss_key', chance: 0.2 },
     ],
+    special: { name: 'Soul Drain', chance: 0.25, damageMult: 1.2, selfHeal: 5, text: '{name} reaches through you. Something tears.' },
   },
   boar: {
     key: 'boar',
@@ -160,6 +181,7 @@ const MONSTERS: Record<string, Monster> = {
       { itemKey: 'wolf_pelt', chance: 0.3 },
       { itemKey: 'iron_ore', chance: 0.1 },
     ],
+    special: { name: 'Gore', chance: 0.3, damageMult: 1.8, applyStatus: { effect: 'bleed', value: 3 }, text: '{name} charges — tusks aimed low.' },
   },
   bandit: {
     key: 'bandit',
@@ -181,6 +203,7 @@ const MONSTERS: Record<string, Monster> = {
       { itemKey: 'iron_sword', chance: 0.1 },
       { itemKey: 'leather_cap', chance: 0.15 },
     ],
+    special: { name: 'Cheap Shot', chance: 0.2, damageMult: 1.3, applyStatus: { effect: 'poison', value: 2 }, text: '{name} feints, then strikes from below. A coated blade.' },
   },
   hollow_king: {
     key: 'hollow_king',
@@ -204,6 +227,7 @@ const MONSTERS: Record<string, Monster> = {
       { itemKey: 'chainmail', chance: 0.4 },
       { itemKey: 'kings_crown', chance: 0.3 },
     ],
+    special: { name: 'Dark Command', chance: 0.2, damageMult: 2.0, text: '{name} raises one hand. Dark energy obeys.' },
   },
 };
 

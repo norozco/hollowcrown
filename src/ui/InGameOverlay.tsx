@@ -13,6 +13,7 @@ import { InventoryScreen } from './Inventory/InventoryScreen';
 import { ShopScreen } from './Inventory/ShopScreen';
 import { CraftingScreen } from './Crafting/CraftingScreen';
 import { LevelUpPopup } from './LevelUp/LevelUpPopup';
+import { getPerkHpBonus, getPerkMpBonus } from '../engine/perks';
 import { QuestBoard } from './QuestBoard/QuestBoard';
 import { OptionsMenu } from './OptionsMenu/OptionsMenu';
 import { AchievementsScreen } from './Achievements/AchievementsScreen';
@@ -22,6 +23,7 @@ import { xpForLevel, MAX_LEVEL } from '../engine/character';
 import { saveGame } from '../engine/saveLoad';
 import { COMPANIONS, companionBonusLabel } from '../engine/companion';
 import { TouchControls } from './TouchControls/TouchControls';
+import { Minimap } from './Minimap/Minimap';
 import './InGameOverlay.css';
 
 /**
@@ -269,6 +271,7 @@ export function InGameOverlay() {
       {dialogueActive && <DialogueScene />}
       {combatActive && <CombatOverlay />}
       <LevelUpPopup />
+      <Minimap />
       <TouchControls />
       <AchievementToast achievementKey={toastKey} onDone={() => setToastKey(null)} />
     </div>

@@ -184,6 +184,17 @@ export abstract class BaseWorldScene extends Phaser.Scene {
     // Record zone visit for achievements.
     useAchievementStore.getState().recordZoneVisit(this.scene.key);
 
+    // Expose map data for the React minimap overlay.
+    (window as any).__currentMap = {
+      zoneName: this.getZoneName(),
+      playerX: spawn.x,
+      playerY: spawn.y,
+      worldW: WORLD_W,
+      worldH: WORLD_H,
+      exits: this.exits.map((e) => ({ x: e.x + e.w / 2, y: e.y + e.h / 2 })),
+      enemies: this.enemies.map((e) => ({ x: e.sprite.x, y: e.sprite.y })),
+    };
+
     // Zone name reveal (Souls-style)
     const zoneName = this.getZoneName();
     if (zoneName) {
@@ -223,6 +234,12 @@ export abstract class BaseWorldScene extends Phaser.Scene {
     }
 
     this.handleMovement();
+    // Keep minimap player position current.
+    if ((window as any).__currentMap) {
+      (window as any).__currentMap.playerX = this.player.x;
+      (window as any).__currentMap.playerY = this.player.y;
+      (window as any).__currentMap.enemies = this.enemies.map((e) => ({ x: e.sprite.x, y: e.sprite.y }));
+    }
     this.checkTraps();
     this.updatePlayerLabel();
     this.updateProximityPrompt();
