@@ -33,6 +33,7 @@ export class CombatScene extends Phaser.Scene {
   private playerBaseX = 0;
   private enemyBaseX = 0;
   private combatEnded = false;
+  private deathScreenShown = false;
   private savedReturnScene = 'TownScene';
   private savedReturnX = 0;
   private savedReturnY = 0;
@@ -128,6 +129,7 @@ export class CombatScene extends Phaser.Scene {
 
     this.lastLogLength = useCombatStore.getState().state?.log.length ?? 0;
     this.combatEnded = false;
+    this.deathScreenShown = false;
     // Save return info NOW before finish() clears it.
     const combatState = useCombatStore.getState();
     this.savedReturnScene = combatState.returnScene ?? 'TownScene';
@@ -160,6 +162,28 @@ export class CombatScene extends Phaser.Scene {
       return;
     }
     if (!state || !monster || !character) return;
+
+    // "YOU DIED" screen on defeat
+    if (state.phase === 'defeat' && !this.deathScreenShown) {
+      this.deathScreenShown = true;
+      const W = 1280, H = 720;
+      // Red flash
+      this.cameras.main.flash(300, 100, 0, 0);
+      // YOU DIED text with fade-in
+      const diedText = this.add.text(W / 2, H / 2, 'YOU DIED', {
+        fontFamily: 'Courier New',
+        fontSize: '64px',
+        color: '#c03030',
+        stroke: '#000000',
+        strokeThickness: 4,
+      }).setOrigin(0.5).setDepth(100).setAlpha(0);
+      this.tweens.add({
+        targets: diedText,
+        alpha: 1,
+        duration: 800,
+        ease: 'Power2',
+      });
+    }
 
     // Update HP bars
     this.drawHpBar(this.playerHpBar, this.playerBaseX - 40, this.playerSprite.y - SPRITE_H * 1.6, 80,

@@ -28,9 +28,31 @@ export function LevelUpPopup() {
 
   const d = character.derived;
 
+  // Generate gold sparkle particles
+  const particles = Array.from({ length: 18 }, (_, i) => {
+    const left = 10 + Math.random() * 80;
+    const delay = Math.random() * 1.2;
+    const duration = 1.5 + Math.random() * 1.5;
+    const size = 3 + Math.random() * 5;
+    return (
+      <span
+        key={i}
+        className="lvlup__particle"
+        style={{
+          left: `${left}%`,
+          animationDelay: `${delay}s`,
+          animationDuration: `${duration}s`,
+          width: `${size}px`,
+          height: `${size}px`,
+        }}
+      />
+    );
+  });
+
   return (
     <div className="lvlup" onClick={() => setShowLevel(null)}>
-      <div className="lvlup__box">
+      {particles}
+      <div className="lvlup__box levelup">
         <h2 className="lvlup__title">LEVEL UP!</h2>
         <p className="lvlup__level">Level {showLevel}</p>
         <div className="lvlup__stats">

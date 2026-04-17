@@ -19,6 +19,8 @@ export class MossbarrowDepthsScene extends BaseWorldScene {
     super({ key: 'MossbarrowDepthsScene' });
   }
 
+  protected getZoneName(): string | null { return 'Mossbarrow Depths \u2014 Floor 1'; }
+
   protected layout(): void {
     generateTileset(this);
 

@@ -89,6 +89,8 @@ export interface CombatState {
   turn: number;
   /** Combat log messages. */
   log: CombatLogEntry[];
+  /** Whether the Hollow King has entered phase 2 (HP <= 50%). */
+  bossPhase2: boolean;
 }
 
 const dice = new DiceRoller();
@@ -162,6 +164,7 @@ export function initCombat(player: Character, monster: Monster): CombatState {
     playerFirst,
     turn: 1,
     log,
+    bossPhase2: false,
   };
 }
 
@@ -211,19 +214,27 @@ export function playerAct(
       const dmgBase = modifier(player.stats[player.weapon.attackStat]) + 2 + equipBonus.damage; // weapon base + equipment
       const dmg = Math.max(1, roll === 20 ? dmgBase * 2 : dmgBase);
       s.monsterHp = Math.max(0, s.monsterHp - dmg);
-      s.log.push({
-        text: `You attack! (${roll}+${bonus}=${total} vs AC ${targetAc}) — Hit for ${dmg} damage!`,
-        type: 'player_hit',
-      });
+      if (roll === 20) {
+        s.log.push({ text: `A devastating strike. ${dmg} damage.`, type: 'player_hit' });
+      } else {
+        const hitLines = [
+          `Your blade finds its mark. ${dmg} damage.`,
+          `A clean strike. ${dmg} damage.`,
+          `The blow lands true. ${dmg} damage.`,
+        ];
+        s.log.push({ text: hitLines[dice.d(3) - 1], type: 'player_hit' });
+      }
     } else {
-      s.log.push({
-        text: `You attack! (${roll}+${bonus}=${total} vs AC ${targetAc}) — Miss.`,
-        type: 'player_miss',
-      });
+      const missLines = [
+        'Your strike glances off armor.',
+        'The blow goes wide.',
+        'You swing \u2014 nothing.',
+      ];
+      s.log.push({ text: missLines[dice.d(3) - 1], type: 'player_miss' });
     }
   } else if (action === 'defend') {
     s.playerDefending = true;
-    s.log.push({ text: 'You brace yourself. (+2 AC until your next turn)', type: 'info' });
+    s.log.push({ text: 'You brace yourself.', type: 'info' });
   } else if (action === 'skill') {
     const classKey = player.characterClass.key;
     const skill = CLASS_SKILLS[classKey];
@@ -243,12 +254,12 @@ export function playerAct(
         // Cure Wounds: heal self
         const healAmt = 8 + modifier(player.stats.wis) * 2;
         s.playerHp = Math.min(player.derived.maxHp, s.playerHp + healAmt);
-        s.log.push({ text: `${skill.name}! You heal for ${healAmt} HP.`, type: 'player_hit' });
+        s.log.push({ text: `Divine light mends your wounds. +${healAmt} HP.`, type: 'player_hit' });
       } else if (classKey === 'wizard') {
         // Fireball: guaranteed heavy damage
         const dmg = 10 + modifier(player.stats.int) * 2;
         s.monsterHp = Math.max(0, s.monsterHp - dmg);
-        s.log.push({ text: `${skill.name}! ${dmg} fire damage!`, type: 'player_hit' });
+        s.log.push({ text: `Fireball erupts. ${dmg} fire damage.`, type: 'player_hit' });
       } else if (classKey === 'fighter') {
         // Action Surge: two attacks in one turn
         for (let strike = 0; strike < 2; strike++) {
@@ -259,16 +270,16 @@ export function playerAct(
           if (r === 20 || (r !== 1 && t >= ac)) {
             const d2 = Math.max(1, modifier(player.stats.str) + 3);
             s.monsterHp = Math.max(0, s.monsterHp - d2);
-            s.log.push({ text: `${skill.name} strike ${strike+1}! (${r}+${b}=${t}) — ${d2} damage!`, type: 'player_hit' });
+            s.log.push({ text: `Action Surge \u2014 strike connects. ${d2} damage.`, type: 'player_hit' });
           } else {
-            s.log.push({ text: `${skill.name} strike ${strike+1}! (${r}+${b}=${t}) — Miss.`, type: 'player_miss' });
+            s.log.push({ text: `Action Surge \u2014 the blow misses.`, type: 'player_miss' });
           }
         }
       } else if (classKey === 'rogue') {
         // Sneak Attack: guaranteed hit + bonus damage
         const dmg = 6 + modifier(player.stats.dex) * 2;
         s.monsterHp = Math.max(0, s.monsterHp - dmg);
-        s.log.push({ text: `${skill.name}! ${dmg} damage from the shadows!`, type: 'player_hit' });
+        s.log.push({ text: `You strike from the shadows. ${dmg} damage.`, type: 'player_hit' });
       } else if (classKey === 'ranger') {
         // Hunter's Mark: attack with bonus damage + apply marked status
         s.monsterStatus.marked = 3;
@@ -280,9 +291,9 @@ export function playerAct(
         if (r === 20 || (r !== 1 && t >= ac)) {
           const d2 = Math.max(1, modifier(player.stats.dex) + 2 + bonusDmg);
           s.monsterHp = Math.max(0, s.monsterHp - d2);
-          s.log.push({ text: `${skill.name}! Marked shot for ${d2} damage! Target marked for 3 turns.`, type: 'player_hit' });
+          s.log.push({ text: `Marked shot lands. ${d2} damage. Target marked.`, type: 'player_hit' });
         } else {
-          s.log.push({ text: `${skill.name}! (${r}+${b}=${t}) — Missed! But the mark holds for 3 turns.`, type: 'player_miss' });
+          s.log.push({ text: `Marked shot \u2014 missed. The mark holds.`, type: 'player_miss' });
         }
       } else if (classKey === 'bard') {
         // Vicious Mockery: small damage + enemy debuff + 25% stun chance
@@ -292,9 +303,9 @@ export function playerAct(
         const stunRoll = dice.d(20);
         if (stunRoll >= 16) {
           s.monsterStatus.stun = 1;
-          s.log.push({ text: `${skill.name}! "${monster.name} couldn't pour water from a boot with instructions on the heel." ${dmg} psychic damage! ${monster.name} is stunned!`, type: 'player_hit' });
+          s.log.push({ text: `Vicious Mockery! "${monster.name} couldn't pour water from a boot with instructions on the heel." ${dmg} psychic damage. ${monster.name} is stunned!`, type: 'player_hit' });
         } else {
-          s.log.push({ text: `${skill.name}! "${monster.name} couldn't pour water from a boot with instructions on the heel." ${dmg} psychic damage!`, type: 'player_hit' });
+          s.log.push({ text: `Vicious Mockery! "${monster.name} couldn't pour water from a boot with instructions on the heel." ${dmg} psychic damage.`, type: 'player_hit' });
         }
       }
     }
@@ -302,11 +313,11 @@ export function playerAct(
     const roll = dice.d(20);
     const bonus = modifier(player.stats.dex);
     if (roll + bonus >= 10) {
-      s.log.push({ text: `You flee! (${roll}+${bonus}=${roll + bonus} vs DC 10) — Escaped!`, type: 'system' });
+      s.log.push({ text: 'You break away and escape.', type: 'system' });
       s.phase = 'fled';
       return s;
     } else {
-      s.log.push({ text: `You try to flee! (${roll}+${bonus}=${roll + bonus} vs DC 10) — Blocked!`, type: 'player_miss' });
+      s.log.push({ text: 'You try to run \u2014 no opening.', type: 'player_miss' });
     }
   }
 
@@ -355,25 +366,44 @@ export function enemyAct(
     return s;
   }
 
+  // ── Hollow King phase 2 transition ──
+  if (monster.key === 'hollow_king' && !s.bossPhase2 && s.monsterHp <= monster.maxHp / 2) {
+    s.bossPhase2 = true;
+    s.log.push({ text: "The Hollow King's crown flares with dark light. He will not kneel.", type: 'system' });
+    s.monsterHp = Math.min(monster.maxHp, s.monsterHp + 20);
+    s.monsterStatus = { ...EMPTY_STATUS }; // clear debuffs
+  }
+
   const equipBonus = getEquipmentBonuses();
-  const roll = dice.d(20);
-  const total = roll + monster.attackBonus;
   const playerAc = player.derived.ac + (s.playerDefending ? 2 : 0) + equipBonus.ac;
 
+  // Determine number of attacks — Hollow King phase 2 has 50% double attack
+  const isKingPhase2 = monster.key === 'hollow_king' && s.bossPhase2;
+  const attackCount = isKingPhase2 && dice.d(100) <= 50 ? 2 : 1;
+  if (attackCount === 2) {
+    s.log.push({ text: 'The Hollow King strikes twice!', type: 'system' });
+  }
+
   let didHit = false;
-  if (roll === 20 || (roll !== 1 && total >= playerAc)) {
-    didHit = true;
-    const dmg = Math.max(1, roll === 20 ? monster.baseDamage * 2 : monster.baseDamage);
-    s.playerHp = Math.max(0, s.playerHp - dmg);
-    s.log.push({
-      text: `${monster.name} attacks! (${roll}+${monster.attackBonus}=${total} vs AC ${playerAc}) — ${dmg} damage!`,
-      type: 'enemy_hit',
-    });
-  } else {
-    s.log.push({
-      text: `${monster.name} attacks! (${roll}+${monster.attackBonus}=${total} vs AC ${playerAc}) — Miss.`,
-      type: 'enemy_miss',
-    });
+  for (let atk = 0; atk < attackCount; atk++) {
+    const roll = dice.d(20);
+    const total = roll + monster.attackBonus;
+    if (roll === 20 || (roll !== 1 && total >= playerAc)) {
+      didHit = true;
+      const dmg = Math.max(1, roll === 20 ? monster.baseDamage * 2 : monster.baseDamage);
+      s.playerHp = Math.max(0, s.playerHp - dmg);
+      const enemyHitLines = [
+        `${monster.name} strikes \u2014 ${dmg} damage.`,
+        `${monster.name} lands a blow. ${dmg} damage.`,
+      ];
+      s.log.push({ text: enemyHitLines[dice.d(2) - 1], type: 'enemy_hit' });
+    } else {
+      const enemyMissLines = [
+        `${monster.name} lunges \u2014 you dodge.`,
+        `${monster.name}'s attack misses.`,
+      ];
+      s.log.push({ text: enemyMissLines[dice.d(2) - 1], type: 'enemy_miss' });
+    }
   }
 
   // Apply monster-specific status effects on hit
@@ -394,15 +424,24 @@ export function enemyAct(
     } else if (monster.key === 'wraith' && statusRoll <= 35) {
       s.playerStatus.burn = 2;
       s.log.push({ text: 'Spectral fire clings to your skin.', type: 'system' });
+    } else if (monster.key === 'boar' && statusRoll <= 25) {
+      s.playerStatus.stun = 1;
+      s.log.push({ text: "The boar's charge staggers you.", type: 'system' });
+    } else if (monster.key === 'bandit' && statusRoll <= 20) {
+      s.playerStatus.bleed = 2;
+      s.log.push({ text: "The bandit's blade cuts deep.", type: 'system' });
     } else if (monster.key === 'hollow_king') {
-      // Boss has multiple possible effects
-      if (statusRoll <= 15) {
+      // Boss has multiple possible effects — enhanced in phase 2
+      const stunThresh = s.bossPhase2 ? 30 : 15;
+      const burnThresh = s.bossPhase2 ? 55 : 30;
+      const bleedThresh = s.bossPhase2 ? 80 : 45;
+      if (statusRoll <= stunThresh) {
         s.playerStatus.stun = 1;
-        s.log.push({ text: 'The Hollow King strikes with royal fury — you stagger.', type: 'system' });
-      } else if (statusRoll <= 30) {
+        s.log.push({ text: 'The Hollow King strikes with royal fury \u2014 you stagger.', type: 'system' });
+      } else if (statusRoll <= burnThresh) {
         s.playerStatus.burn = 3;
-        s.log.push({ text: 'Dark flames erupt from the crown — you burn.', type: 'system' });
-      } else if (statusRoll <= 45) {
+        s.log.push({ text: 'Dark flames erupt from the crown \u2014 you burn.', type: 'system' });
+      } else if (statusRoll <= bleedThresh) {
         s.playerStatus.bleed = 3;
         s.log.push({ text: "The king's blade leaves a wound that won't close.", type: 'system' });
       }

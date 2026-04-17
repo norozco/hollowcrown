@@ -18,6 +18,8 @@ export class TownScene extends BaseWorldScene {
     super({ key: 'TownScene' });
   }
 
+  protected getZoneName(): string | null { return 'Ashenvale'; }
+
   protected layout(): void {
     // Generate the pixel-art tileset (idempotent).
     generateTileset(this);

@@ -6,6 +6,7 @@ import { useInventoryStore } from '../state/inventoryStore';
 import { getDialogue } from '../engine/dialogues';
 import { getItem } from '../engine/items';
 import { getNPC } from '../engine/npcs';
+import { saveGame } from '../engine/saveLoad';
 import {
   generateCharacterSprite,
   getNpcPalette,
@@ -117,6 +118,9 @@ export abstract class BaseWorldScene extends Phaser.Scene {
   /** Resolve a named spawn point (e.g. "default", "fromGreenhollow"). */
   protected abstract spawnAt(name: string): { x: number; y: number };
 
+  /** Override in subclasses to return the zone's display name. Return null to skip the indicator. */
+  protected getZoneName(): string | null { return null; }
+
   // ──────────────────────────────────────────────────────────────
   // Phaser lifecycle
   // ──────────────────────────────────────────────────────────────
@@ -152,6 +156,24 @@ export abstract class BaseWorldScene extends Phaser.Scene {
     this.cameras.main.setBounds(0, 0, WORLD_W, WORLD_H);
     this.physics.world.setBounds(0, 0, WORLD_W, WORLD_H);
     this.cameras.main.fadeIn(FADE_MS, 0, 0, 0);
+
+    // Zone name reveal (Souls-style)
+    const zoneName = this.getZoneName();
+    if (zoneName) {
+      const zoneText = this.add.text(WORLD_W / 2, WORLD_H / 2 - 40, zoneName, {
+        fontFamily: 'Courier New', fontSize: '28px', color: '#d4a968',
+        stroke: '#000000', strokeThickness: 4,
+      }).setOrigin(0.5).setDepth(200).setAlpha(0);
+
+      this.tweens.add({
+        targets: zoneText,
+        alpha: { from: 0, to: 1 },
+        duration: 800,
+        hold: 2000,
+        yoyo: true,
+        onComplete: () => zoneText.destroy(),
+      });
+    }
   }
 
   update(): void {
@@ -731,6 +753,7 @@ export abstract class BaseWorldScene extends Phaser.Scene {
         this.enemies.splice(i, 1);
         const currentSceneKey = this.scene.key;
 
+        saveGame('autosave', currentSceneKey);
         const store = useCombatStore.getState();
         store._pendingEnemyId = enemy.id;
         store.start(enemy.monsterKey, currentSceneKey, px, py);
@@ -757,6 +780,7 @@ export abstract class BaseWorldScene extends Phaser.Scene {
         // Leaving the zone — clear killed enemies so they respawn when
         // the player returns.
         useCombatStore.getState().killedEnemies.clear();
+        saveGame('autosave', this.scene.key);
         this.cameras.main.fadeOut(FADE_MS, 0, 0, 0);
         this.cameras.main.once('camerafadeoutcomplete', () => {
           this.scene.start(exit.targetScene, { spawnPoint: exit.targetSpawn });

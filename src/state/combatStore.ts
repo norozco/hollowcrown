@@ -7,6 +7,7 @@ import {
   type CombatState,
 } from '../engine/combat';
 import { type Monster, getMonster } from '../engine/monster';
+import { getItem } from '../engine/items';
 import { usePlayerStore } from './playerStore';
 import { useInventoryStore } from './inventoryStore';
 import { useQuestStore } from './questStore';
@@ -34,6 +35,8 @@ interface CombatStoreState {
   start: (monsterKey: string, returnScene?: string, playerX?: number, playerY?: number) => void;
   /** Player takes an action. If it's then the enemy's turn, auto-acts. */
   act: (action: CombatAction) => void;
+  /** Use a consumable item during combat (costs the player's turn). */
+  useItem: (itemKey: string) => void;
   /** End combat — apply rewards or penalties and clean up. */
   finish: () => void;
 }
@@ -103,6 +106,65 @@ export const useCombatStore = create<CombatStoreState>((set, get) => ({
     }
   },
 
+  useItem: (itemKey) => {
+    const { state, monster, _enemyActing } = get();
+    const character = usePlayerStore.getState().character;
+    if (!state || !monster || !character) return;
+    if (state.phase !== 'player_turn' || _enemyActing) return;
+
+    const inv = useInventoryStore.getState();
+    const item = getItem(itemKey);
+    if (item.type !== 'consumable' || !item.effect) return;
+
+    // Try to use the item (removes from inventory + applies to character)
+    if (!inv.useItem(itemKey)) return;
+
+    // Build updated combat state with log entry
+    const s = {
+      ...state,
+      log: [...state.log],
+      playerStatus: { ...state.playerStatus },
+      monsterStatus: { ...state.monsterStatus },
+    };
+
+    // Sync playerHp from character after item use (useItem calls char.heal)
+    s.playerHp = Math.min(character.derived.maxHp, character.hp);
+
+    // Atmospheric log messages per item type
+    if (item.effect.healHp && item.effect.healMp) {
+      s.log.push({ text: `You drink a ${item.name}. +${item.effect.healHp} HP, +${item.effect.healMp} MP.`, type: 'player_hit' });
+    } else if (item.effect.healHp) {
+      s.log.push({ text: `You drink a ${item.name}. +${item.effect.healHp} HP.`, type: 'player_hit' });
+    } else if (item.effect.healMp) {
+      s.log.push({ text: `You drink a ${item.name}. +${item.effect.healMp} MP.`, type: 'player_hit' });
+    } else {
+      s.log.push({ text: `You use ${item.name}.`, type: 'info' });
+    }
+
+    // If antidote, also clear poison status
+    if (itemKey === 'antidote') {
+      s.playerStatus.poison = 0;
+      s.log.push({ text: 'The poison fades.', type: 'system' });
+    }
+
+    // Using an item costs the turn — transition to enemy turn
+    s.phase = 'enemy_turn';
+    s.monsterDefending = false;
+    set({ state: s });
+
+    // Schedule enemy action
+    set({ _enemyActing: true });
+    setTimeout(() => {
+      const cur = get();
+      if (cur._enemyActing && cur.state && cur.monster && cur.state.phase === 'enemy_turn') {
+        const char = usePlayerStore.getState().character;
+        if (char) {
+          set({ state: enemyAct(cur.state, char, cur.monster), _enemyActing: false });
+        } else { set({ _enemyActing: false }); }
+      } else { set({ _enemyActing: false }); }
+    }, 600);
+  },
+
   finish: () => {
     const { state, monster } = get();
     const player = usePlayerStore.getState();
@@ -134,6 +196,17 @@ export const useCombatStore = create<CombatStoreState>((set, get) => ({
         // Bone collector: need 2 skeletons killed.
         const skelKills = Array.from(killed).filter((id) => id.includes('skeleton')).length;
         if (skelKills >= 2) questStore.completeObjective('bone-collector', 'collect-bones');
+        // Spider nest: need 3 spiders killed.
+        const spiderKills = Array.from(killed).filter((id) => id.includes('spider')).length;
+        if (spiderKills >= 3) questStore.completeObjective('spider-nest', 'kill-spiders');
+        // Wraith hunt: need 2 wraiths killed.
+        const wraithKills = Array.from(killed).filter((id) => id.includes('wraith')).length;
+        if (wraithKills >= 2) questStore.completeObjective('wraith-hunt', 'kill-wraiths');
+        // Hollow King slayer: kill the boss.
+        if (monster.key === 'hollow_king') {
+          questStore.completeObjective('hollow-king-slayer', 'kill-hollow-king');
+          window.dispatchEvent(new CustomEvent('gameMessage', { detail: 'The Hollow Crown shatters. The curse lifts.' }));
+        }
       } else if (state.phase === 'defeat') {
         if (character.difficulty === 'hardcore') {
           character.hp = 0;

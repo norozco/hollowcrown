@@ -61,3 +61,31 @@
   font-size: 0.75rem;
   margin: 1rem 0 0 0;
 }
+
+/* Gold glow pulse on the box */
+@keyframes levelUpGlow {
+  0% { box-shadow: 0 0 20px rgba(212, 169, 104, 0), 0 12px 40px rgba(0,0,0,0.6); }
+  50% { box-shadow: 0 0 40px rgba(212, 169, 104, 0.6), 0 0 80px rgba(244, 212, 136, 0.3), 0 12px 40px rgba(0,0,0,0.6); }
+  100% { box-shadow: 0 0 20px rgba(212, 169, 104, 0), 0 12px 40px rgba(0,0,0,0.6); }
+}
+.levelup {
+  animation: levelUpGlow 1.5s ease-in-out, lvlup-pop 400ms cubic-bezier(0.2,1.1,0.3,1);
+}
+
+/* Gold sparkle particles */
+.lvlup__particle {
+  position: absolute;
+  bottom: 30%;
+  border-radius: 50%;
+  background: radial-gradient(circle, #f4d488, #d4a968);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 31;
+  animation: particleFloat linear forwards;
+}
+@keyframes particleFloat {
+  0% { opacity: 0; transform: translateY(0) scale(1); }
+  15% { opacity: 1; }
+  70% { opacity: 0.8; }
+  100% { opacity: 0; transform: translateY(-200px) scale(0.3); }
+}

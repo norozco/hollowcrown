@@ -15,6 +15,8 @@ export class GreenhollowScene extends BaseWorldScene {
     super({ key: 'GreenhollowScene' });
   }
 
+  protected getZoneName(): string | null { return 'Greenhollow Woods'; }
+
   protected layout(): void {
     generateTileset(this);
 
@@ -64,6 +66,14 @@ export class GreenhollowScene extends BaseWorldScene {
     this.spawnEnemy({ monsterKey: 'wolf', x: 26 * TILE, y: 14 * TILE });
     this.spawnEnemy({ monsterKey: 'wolf', x: 12 * TILE, y: 16 * TILE });
     this.spawnEnemy({ monsterKey: 'wolf', x: 30 * TILE, y: 18 * TILE });
+
+    // Boars — southern grassy areas
+    this.spawnEnemy({ monsterKey: 'boar', x: 10 * TILE, y: 18 * TILE });
+    this.spawnEnemy({ monsterKey: 'boar', x: 24 * TILE, y: 20 * TILE });
+
+    // Bandits — along the paths (more dangerous)
+    this.spawnEnemy({ monsterKey: 'bandit', x: 20 * TILE, y: 6 * TILE });
+    this.spawnEnemy({ monsterKey: 'bandit', x: 28 * TILE, y: 12 * TILE });
 
     // Herb interactable (for herb-gathering quest).
     const herbSprite = this.add.circle(14 * TILE, 6 * TILE, 8, 0x40c040);

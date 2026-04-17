@@ -17,6 +17,8 @@ export class MossbarrowScene extends BaseWorldScene {
     super({ key: 'MossbarrowScene' });
   }
 
+  protected getZoneName(): string | null { return 'Mossbarrow Cairn'; }
+
   protected layout(): void {
     generateTileset(this);
 

@@ -28,6 +28,8 @@ export function generateMonsterSprite(scene: Phaser.Scene, key: string, monsterK
     case 'spider': drawSpider(ctx); break;
     case 'wraith': drawWraith(ctx); break;
     case 'hollow_king': drawHollowKing(ctx); break;
+    case 'boar': drawBoar(ctx); break;
+    case 'bandit': drawBandit(ctx); break;
     default: drawWolf(ctx); break;
   }
 
@@ -548,6 +550,177 @@ function drawHollowKing(c: Ctx) {
   // Dark energy on blade
   px(c, 1, 4, glow); px(c, 2, 10, glow); px(c, 1, 18, glow);
   px(c, 3, 8, '#800060'); px(c, 2, 22, '#800060');
+}
+
+// ─── BOAR ───────────────────────────────────────────────────
+
+function drawBoar(c: Ctx) {
+  const body = '#8a6040';
+  const bodyDk = '#6a4828';
+  const bodyLt = '#a07850';
+  const belly = '#b09068';
+  const tusk = '#e0d8c0';
+  const eye = '#c02020';
+  const nose = '#3a2018';
+  const hoof = '#402818';
+
+  // Shadow
+  bk(c, 8, 42, 32, 6, 'rgba(0,0,0,0.2)');
+
+  // Tail (short curly)
+  bk(c, 38, 22, 3, 3, bodyDk);
+  px(c, 40, 21, bodyDk);
+  px(c, 41, 22, body);
+
+  // Hind legs (short, sturdy)
+  bk(c, 30, 36, 5, 8, bodyDk);
+  bk(c, 31, 37, 3, 6, body);
+  bk(c, 36, 36, 5, 8, bodyDk);
+  bk(c, 37, 37, 3, 6, body);
+  // Hooves
+  bk(c, 30, 42, 5, 4, hoof);
+  bk(c, 36, 42, 5, 4, hoof);
+
+  // Body (squat, barrel-shaped)
+  bk(c, 8, 24, 32, 14, body);
+  bk(c, 10, 26, 28, 10, bodyLt);
+  // Back bristles (darker ridge)
+  bk(c, 8, 24, 32, 3, bodyDk);
+  // Belly
+  bk(c, 12, 35, 22, 3, belly);
+
+  // Front legs (sturdy)
+  bk(c, 10, 36, 5, 8, body);
+  bk(c, 11, 37, 3, 6, bodyLt);
+  bk(c, 16, 36, 5, 8, body);
+  bk(c, 17, 37, 3, 6, bodyLt);
+  // Front hooves
+  bk(c, 10, 42, 5, 4, hoof);
+  bk(c, 16, 42, 5, 4, hoof);
+
+  // Neck (thick)
+  bk(c, 4, 22, 10, 12, body);
+  bk(c, 5, 23, 8, 10, bodyLt);
+
+  // Head (wide, low)
+  bk(c, 0, 20, 12, 12, body);
+  bk(c, 1, 21, 10, 10, bodyLt);
+  // Snout (broad, blunt)
+  bk(c, 0, 26, 6, 6, bodyDk);
+  bk(c, 0, 27, 5, 4, body);
+  // Nose
+  bk(c, 0, 27, 3, 3, nose);
+  px(c, 1, 28, '#502818');
+
+  // Tusks (curved white)
+  bk(c, 0, 30, 2, 5, tusk);
+  bk(c, 4, 30, 2, 5, tusk);
+  px(c, 0, 34, tusk); px(c, 4, 34, tusk);
+
+  // Eyes (small, angry red)
+  bk(c, 3, 22, 2, 2, eye);
+  px(c, 3, 22, '#ff3030');
+
+  // Ears (small, pointed)
+  bk(c, 4, 16, 3, 5, bodyDk);
+  bk(c, 5, 15, 2, 3, body);
+  bk(c, 8, 17, 3, 4, bodyDk);
+  bk(c, 9, 16, 2, 3, body);
+
+  // Bristle texture on back
+  for (let fx = 12; fx < 38; fx += 3) {
+    px(c, fx, 25, bodyDk);
+    px(c, fx + 1, 24, bodyDk);
+  }
+}
+
+// ─── BANDIT ─────────────────────────────────────────────────
+
+function drawBandit(c: Ctx) {
+  const hood = '#3a4a30';
+  const hoodDk = '#2a3820';
+  const hoodLt = '#4a5a40';
+  const tunic = '#5a4a3a';
+  const tunicDk = '#403020';
+  const tunicLt = '#6a5a48';
+  const skin = '#c0a080';
+  const skinDk = '#a08060';
+  const pants = '#3a3228';
+  const boot = '#2a2018';
+  const blade = '#a0a8b0';
+  const bladeHi = '#c8d0d8';
+  const mask = '#2a2a20';
+  const eye = '#c0c8a0';
+  const belt = '#806030';
+
+  // Shadow
+  bk(c, 14, 44, 20, 4, 'rgba(0,0,0,0.2)');
+
+  // Boots
+  bk(c, 16, 42, 6, 4, boot);
+  bk(c, 26, 42, 6, 4, boot);
+  bk(c, 17, 42, 4, 1, '#3a2818');
+
+  // Legs (dark pants)
+  bk(c, 17, 34, 5, 8, pants);
+  bk(c, 26, 34, 5, 8, pants);
+  bk(c, 18, 35, 3, 6, '#4a4238');
+
+  // Body (tunic)
+  bk(c, 14, 16, 20, 18, tunic);
+  bk(c, 16, 18, 16, 14, tunicLt);
+  // Tunic fold lines
+  bk(c, 23, 18, 2, 14, tunicDk);
+  bk(c, 18, 20, 1, 10, tunicDk);
+
+  // Belt
+  bk(c, 14, 30, 20, 3, belt);
+  bk(c, 22, 30, 4, 3, '#a07840'); // buckle
+
+  // Arms
+  bk(c, 10, 18, 5, 12, tunic);
+  bk(c, 11, 19, 3, 10, tunicLt);
+  bk(c, 33, 18, 5, 12, tunic);
+  bk(c, 34, 19, 3, 10, tunicLt);
+  // Hands (skin)
+  bk(c, 10, 28, 5, 4, skin);
+  bk(c, 33, 28, 5, 4, skin);
+
+  // Cloak/cape (behind, subtle)
+  bk(c, 16, 14, 18, 28, hoodDk);
+  bk(c, 18, 16, 14, 24, hood);
+  for (let fx = 19; fx < 32; fx += 3) bk(c, fx, 18, 1, 22, hoodDk);
+
+  // Re-draw body over cape
+  bk(c, 14, 16, 20, 18, tunic);
+  bk(c, 16, 18, 16, 14, tunicLt);
+  bk(c, 23, 18, 2, 14, tunicDk);
+  bk(c, 14, 30, 20, 3, belt);
+  bk(c, 22, 30, 4, 3, '#a07840');
+
+  // Hood
+  bk(c, 14, 2, 20, 16, hood);
+  bk(c, 16, 4, 16, 12, hoodLt);
+  bk(c, 14, 2, 20, 2, hoodLt); // top edge
+  // Hood peak
+  bk(c, 20, 0, 8, 4, hood);
+  bk(c, 22, 0, 4, 2, hoodDk);
+
+  // Face (in shadow of hood)
+  bk(c, 18, 6, 12, 10, '#181810');
+  // Mask across lower face
+  bk(c, 18, 10, 12, 5, mask);
+  // Eyes (gleaming in shadow)
+  bk(c, 20, 8, 3, 2, eye);
+  bk(c, 25, 8, 3, 2, eye);
+  px(c, 21, 8, '#e0e8c0'); px(c, 26, 8, '#e0e8c0');
+
+  // DAGGER (left hand, short blade)
+  bk(c, 6, 14, 2, 16, blade);
+  bk(c, 6, 14, 2, 2, bladeHi); // tip
+  px(c, 5, 16, bladeHi); // edge gleam
+  bk(c, 5, 28, 4, 2, '#806030'); // crossguard
+  bk(c, 6, 30, 2, 4, '#604020'); // grip
 }
 
 // ─── OUTLINE ──────────────────────────────────────────────────

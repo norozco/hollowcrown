@@ -1,4 +1,5 @@
 import { useInventoryStore } from '../state/inventoryStore';
+import { useQuestStore } from '../state/questStore';
 import { BaseWorldScene, TILE, WORLD_W, WORLD_H } from './BaseWorldScene';
 import { generateTileset, TILE as T, TILE_SIZE } from './tiles/generateTiles';
 
@@ -18,6 +19,8 @@ export class DepthsFloor3Scene extends BaseWorldScene {
   constructor() {
     super({ key: 'DepthsFloor3Scene' });
   }
+
+  protected getZoneName(): string | null { return 'The Hollow Throne'; }
 
   protected layout(): void {
     generateTileset(this);
@@ -183,6 +186,9 @@ export class DepthsFloor3Scene extends BaseWorldScene {
     this.add.text(15 * TILE, 1.2 * TILE, '▲ Floor 2', {
       fontFamily: 'Courier New', fontSize: '11px', color: '#8888aa',
     }).setOrigin(0.5).setDepth(4);
+
+    // ── Depths-explorer quest: reaching Floor 3 completes the objective ──
+    useQuestStore.getState().completeObjective('depths-explorer', 'reach-floor-3');
 
     // ── Random loot bag (rare, high value — boss floor) ──
     this.spawnLootBag({

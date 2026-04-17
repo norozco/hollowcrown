@@ -1,6 +1,7 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useCombatStore } from '../../state/combatStore';
 import { usePlayerStore } from '../../state/playerStore';
+import { useInventoryStore } from '../../state/inventoryStore';
 import { CLASS_SKILLS, type StatusEffects } from '../../engine/combat';
 import './CombatOverlay.css';
 
@@ -16,13 +17,40 @@ export function CombatOverlay() {
   const monster = useCombatStore((s) => s.monster);
   const act = useCombatStore((s) => s.act);
   const finish = useCombatStore((s) => s.finish);
+  const useItem = useCombatStore((s) => s.useItem);
   const character = usePlayerStore((s) => s.character);
+  const invSlots = useInventoryStore((s) => s.slots);
 
   const logEndRef = useRef<HTMLDivElement>(null);
+  const continueReadyRef = useRef(false);
+  const [continueReady, setContinueReady] = useState(false);
+  const [itemPopupOpen, setItemPopupOpen] = useState(false);
+
+  // Keep ref in sync with state for keydown handler
+  useEffect(() => { continueReadyRef.current = continueReady; }, [continueReady]);
 
   useEffect(() => {
     logEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [state?.log.length]);
+
+  // Delay the Continue button on defeat by 2.5s (to let death screen play)
+  useEffect(() => {
+    if (!state) { setContinueReady(false); return; }
+    if (state.phase === 'defeat') {
+      setContinueReady(false);
+      const t = setTimeout(() => setContinueReady(true), 2500);
+      return () => clearTimeout(t);
+    } else if (state.phase === 'victory' || state.phase === 'fled') {
+      setContinueReady(true);
+    } else {
+      setContinueReady(false);
+    }
+  }, [state?.phase]);
+
+  // Close item popup when leaving player turn
+  useEffect(() => {
+    if (state?.phase !== 'player_turn') setItemPopupOpen(false);
+  }, [state?.phase]);
 
   useEffect(() => {
     if (!state) return;
@@ -36,8 +64,12 @@ export function CombatOverlay() {
         else if (e.key === '2') { e.preventDefault(); act('skill'); }
         else if (e.key === '3') { e.preventDefault(); act('defend'); }
         else if (e.key === '4') { e.preventDefault(); act('flee'); }
-      } else if (current.phase === 'victory' || current.phase === 'defeat' || current.phase === 'fled') {
+        else if (e.key === '5') { e.preventDefault(); setItemPopupOpen((v) => !v); }
+      } else if (current.phase === 'victory' || current.phase === 'fled') {
         if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); finish(); }
+      } else if (current.phase === 'defeat') {
+        // Only allow continue after the delay
+        if ((e.key === 'Enter' || e.key === ' ') && continueReadyRef.current) { e.preventDefault(); finish(); }
       }
     };
     window.addEventListener('keydown', onKey);
@@ -114,6 +146,37 @@ export function CombatOverlay() {
             <button type="button" className="combat__btn combat__btn--flee" onClick={() => act('flee')}>
               <span className="combat__btn-key">4</span> Flee
             </button>
+            <div className="combat__item-wrapper">
+              <button
+                type="button"
+                className="combat__btn combat__btn--item"
+                onClick={() => setItemPopupOpen(!itemPopupOpen)}
+              >
+                <span className="combat__btn-key">5</span> Item
+              </button>
+              {itemPopupOpen && (
+                <div className="combat__item-popup">
+                  {invSlots
+                    .filter((s) => s.item.type === 'consumable')
+                    .map((s) => (
+                      <button
+                        key={s.item.key}
+                        type="button"
+                        className="combat__item-option"
+                        onClick={() => {
+                          useItem(s.item.key);
+                          setItemPopupOpen(false);
+                        }}
+                      >
+                        {s.item.name} x{s.quantity}
+                      </button>
+                    ))}
+                  {invSlots.filter((s) => s.item.type === 'consumable').length === 0 && (
+                    <p className="combat__item-empty">No items.</p>
+                  )}
+                </div>
+              )}
+            </div>
           </>
         )}
         {state.phase === 'enemy_turn' && (
@@ -126,13 +189,15 @@ export function CombatOverlay() {
             )}
             {state.phase === 'defeat' && (
               <p className="combat__defeat">
-                {character.difficulty === 'hardcore' ? 'Death is final.' : 'You fall. Lost 10% gold.'}
+                {character.difficulty === 'hardcore' ? 'Death is final.' : 'Lost 10% gold. You wake in town.'}
               </p>
             )}
             {state.phase === 'fled' && <p className="combat__fled">You escaped.</p>}
-            <button type="button" className="combat__btn combat__btn--end" onClick={finish}>
-              Continue
-            </button>
+            {(state.phase !== 'defeat' || continueReady) && (
+              <button type="button" className="combat__btn combat__btn--end" onClick={finish}>
+                Continue
+              </button>
+            )}
           </div>
         )}
       </div>

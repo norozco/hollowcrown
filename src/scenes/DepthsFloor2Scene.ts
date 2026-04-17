@@ -20,6 +20,8 @@ export class DepthsFloor2Scene extends BaseWorldScene {
     super({ key: 'DepthsFloor2Scene' });
   }
 
+  protected getZoneName(): string | null { return 'The Catacombs'; }
+
   protected layout(): void {
     generateTileset(this);
 
