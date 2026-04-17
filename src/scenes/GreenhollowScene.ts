@@ -75,17 +75,16 @@ export class GreenhollowScene extends BaseWorldScene {
     this.spawnEnemy({ monsterKey: 'bandit', x: 20 * TILE, y: 6 * TILE });
     this.spawnEnemy({ monsterKey: 'bandit', x: 28 * TILE, y: 12 * TILE });
 
-    // Herb interactable (for herb-gathering quest).
-    const herbSprite = this.add.circle(14 * TILE, 6 * TILE, 8, 0x40c040);
-    herbSprite.setStrokeStyle(1, 0x208020);
+    // Moonpetal herb patch (near the north path).
+    const herbSprite = this.add.circle(14 * TILE, 6 * TILE, 7, 0x40a848);
+    herbSprite.setStrokeStyle(2, 0x8040c0);
     herbSprite.setDepth(10);
     this.spawnInteractable({
-      sprite: herbSprite, label: 'Gather whiteleaf herbs', radius: 20,
+      sprite: herbSprite as any, label: 'Gather moonpetal', radius: 20,
       action: () => {
-        const qs = import('../state/questStore').then(m => {
-          m.useQuestStore.getState().completeObjective('herb-gathering', 'find-herbs');
-        });
-        void qs;
+        useInventoryStore.getState().addItem('moonpetal');
+        window.dispatchEvent(new CustomEvent('gameMessage', { detail: 'Found moonpetal!' }));
+        herbSprite.destroy();
       },
     });
 

@@ -14,11 +14,61 @@
       "expression": "thoughtful",
       "text": "First time in Ashenvale. Good — the regulars are mostly gone, so I won't mistake you for one. What do you need?",
       "choices": [
+        {
+          "text": "I have the spider silk.",
+          "next": "silk-turnin",
+          "requires": [
+            { "type": "quest-complete", "questId": "silk-trader" },
+            { "type": "quest-not-turned-in", "questId": "silk-trader" }
+          ]
+        },
+        {
+          "text": "I heard you need spider silk?",
+          "next": "silk-offer",
+          "requires": [{ "type": "quest-not-started", "questId": "silk-trader" }]
+        },
         { "text": "What are you selling?", "next": "wares" },
         { "text": "What happened to your regulars?", "next": "missing" },
         { "text": "Heard any rumors worth coin?", "next": "rumors" },
         { "text": "[Just browse and go.]", "next": "leave" }
       ]
+    },
+    "silk-offer": {
+      "id": "silk-offer",
+      "speaker": "vira",
+      "expression": "neutral",
+      "text": "My rope stock is low and the trade road is closed. Spider silk from the depths can be braided into cord that holds better than hemp. I need two bolts. The spinners in Mossbarrow drop it, if you can kill them without shredding the silk.",
+      "next": "silk-accept",
+      "effects": [
+        { "type": "accept-quest", "questId": "silk-trader" }
+      ]
+    },
+    "silk-accept": {
+      "id": "silk-accept",
+      "speaker": "vira",
+      "expression": "neutral",
+      "text": "Bring it clean and dry. I will make it worth your time.",
+      "next": null
+    },
+    "silk-turnin": {
+      "id": "silk-turnin",
+      "speaker": "vira",
+      "expression": "neutral",
+      "text": "Two bolts, clean weave. Good. This will keep the shelves stocked through the month. You are more useful than most of the adventurers Brenna sends through here.",
+      "effects": [
+        { "type": "remove-items", "itemKey": "spider_silk", "quantity": 2 },
+        { "type": "turn-in-quest", "questId": "silk-trader" },
+        { "type": "give-gold", "amount": 40 },
+        { "type": "give-xp", "amount": 55 }
+      ],
+      "next": "silk-done"
+    },
+    "silk-done": {
+      "id": "silk-done",
+      "speaker": "vira",
+      "expression": "neutral",
+      "text": "Forty gold. Come back if you find more — I can always use it.",
+      "next": null
     },
     "wares": {
       "id": "wares",

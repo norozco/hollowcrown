@@ -10,6 +10,7 @@ import {
 } from '../engine/dialogue';
 import { useQuestStore } from './questStore';
 import { usePlayerStore } from './playerStore';
+import { useInventoryStore } from './inventoryStore';
 
 /**
  * Holds the currently-active dialogue, if any. Null means no dialogue
@@ -34,6 +35,7 @@ function applyEffects(effects: readonly DialogueEffect[] | undefined): void {
   if (!effects || effects.length === 0) return;
   const quests = useQuestStore.getState();
   const player = usePlayerStore.getState();
+  const inventory = useInventoryStore.getState();
   for (const e of effects) {
     switch (e.type) {
       case 'accept-quest':
@@ -50,6 +52,9 @@ function applyEffects(effects: readonly DialogueEffect[] | undefined): void {
         break;
       case 'give-xp':
         player.giveXp(e.amount);
+        break;
+      case 'remove-items':
+        inventory.removeItem(e.itemKey, e.quantity);
         break;
     }
   }

@@ -4,6 +4,7 @@ import {
   EMPTY_EQUIPMENT, getItem,
 } from '../engine/items';
 import { usePlayerStore } from './playerStore';
+import { useQuestStore } from './questStore';
 
 interface InventoryState {
   /** Player's bag — up to 30 slots. */
@@ -47,6 +48,26 @@ interface InventoryState {
 
 const MAX_SLOTS = 30;
 
+/** Collection-based quest objectives: when the player has enough of an item,
+ *  auto-complete the matching objective so the turn-in dialogue gate opens. */
+const COLLECTION_QUESTS: { questId: string; objectiveId: string; itemKey: string; qty: number }[] = [
+  { questId: 'herb-gathering', objectiveId: 'deliver-moonpetals', itemKey: 'moonpetal', qty: 3 },
+  { questId: 'iron-delivery', objectiveId: 'deliver-iron', itemKey: 'iron_ore', qty: 3 },
+  { questId: 'silk-trader', objectiveId: 'deliver-silk', itemKey: 'spider_silk', qty: 2 },
+  { questId: 'bone-ritual', objectiveId: 'deliver-bones', itemKey: 'bone_shard', qty: 3 },
+];
+
+function checkCollectionQuests(get: () => InventoryState): void {
+  const questStore = useQuestStore.getState();
+  for (const cq of COLLECTION_QUESTS) {
+    const qs = questStore.active[cq.questId];
+    if (!qs || qs.isComplete) continue;
+    if (get().hasItem(cq.itemKey, cq.qty)) {
+      questStore.completeObjective(cq.questId, cq.objectiveId);
+    }
+  }
+}
+
 export const useInventoryStore = create<InventoryState>((set, get) => ({
   slots: [],
   equipment: { ...EMPTY_EQUIPMENT },
@@ -71,12 +92,14 @@ export const useInventoryStore = create<InventoryState>((set, get) => ({
       const existing = slots.find((s) => s.item.key === itemKey);
       if (existing) {
         set({ slots: slots.map((s) => s.item.key === itemKey ? { ...s, quantity: s.quantity + qty } : s) });
+        checkCollectionQuests(get);
         return true;
       }
     }
 
     if (slots.length >= MAX_SLOTS) return false;
     set({ slots: [...slots, { item, quantity: qty }] });
+    checkCollectionQuests(get);
     return true;
   },
 

@@ -1,0 +1,9 @@
+{
+  "id": "depths-explorer",
+  "title": "Into the Depths",
+  "summary": "The guild needs someone to map the lower floors of Mossbarrow. Reach the third floor and return alive.",
+  "objectives": [
+    { "id": "reach-floor-3", "description": "Reach Floor 3 of Mossbarrow Depths." }
+  ],
+  "reward": { "gold": 70, "xp": 130 }
+}

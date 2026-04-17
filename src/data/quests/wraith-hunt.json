@@ -1,0 +1,9 @@
+{
+  "id": "wraith-hunt",
+  "title": "Wraith Hunt",
+  "summary": "Wraiths have been seen drifting through the cairn. Two confirmed sightings. Put them down before they drift further.",
+  "objectives": [
+    { "id": "kill-wraiths", "description": "Kill 2 wraiths." }
+  ],
+  "reward": { "gold": 90, "xp": 150 }
+}

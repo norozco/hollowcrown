@@ -1,0 +1,9 @@
+{
+  "id": "hollow-king-slayer",
+  "title": "Slay the Hollow King",
+  "summary": "The thing on the throne at the bottom of Mossbarrow is the source of the corruption. End it.",
+  "objectives": [
+    { "id": "kill-hollow-king", "description": "Defeat the Hollow King." }
+  ],
+  "reward": { "gold": 200, "xp": 500 }
+}

@@ -1,0 +1,9 @@
+{
+  "id": "silk-trader",
+  "title": "Spider Silk Requisition",
+  "summary": "Vira needs spider silk for rope and bandages. Two bolts, from the depths where the spinners nest.",
+  "objectives": [
+    { "id": "deliver-silk", "description": "Deliver 2 spider silk to Vira." }
+  ],
+  "reward": { "gold": 40, "xp": 55 }
+}

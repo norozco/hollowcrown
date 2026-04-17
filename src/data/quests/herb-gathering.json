@@ -1,9 +1,9 @@
 {
   "id": "herb-gathering",
-  "title": "The Healer's Request",
-  "summary": "Tomas at the inn needs whiteleaf herbs from Greenhollow. They grow near the old path.",
+  "title": "Healer's Request",
+  "summary": "Tomas needs moonpetals for poultices. Three, from the woods or the depths where they still grow.",
   "objectives": [
-    { "id": "find-herbs", "description": "Find whiteleaf herbs in Greenhollow Woods." }
+    { "id": "deliver-moonpetals", "description": "Deliver 3 moonpetals to Tomas." }
   ],
-  "reward": { "gold": 30, "xp": 50 }
+  "reward": { "gold": 35, "xp": 55 }
 }

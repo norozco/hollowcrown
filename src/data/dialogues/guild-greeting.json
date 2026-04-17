@@ -29,12 +29,324 @@
             { "type": "quest-not-turned-in", "questId": "iron-token" }
           ]
         },
+        {
+          "text": "The Hollow King is dead.",
+          "next": "hollow-king-turnin",
+          "requires": [
+            { "type": "quest-complete", "questId": "hollow-king-slayer" },
+            { "type": "quest-not-turned-in", "questId": "hollow-king-slayer" }
+          ]
+        },
+        {
+          "text": "The wolves are dealt with.",
+          "next": "wolf-cull-turnin",
+          "requires": [
+            { "type": "quest-complete", "questId": "wolf-cull" },
+            { "type": "quest-not-turned-in", "questId": "wolf-cull" }
+          ]
+        },
+        {
+          "text": "The skeletons are down.",
+          "next": "bone-collector-turnin",
+          "requires": [
+            { "type": "quest-complete", "questId": "bone-collector" },
+            { "type": "quest-not-turned-in", "questId": "bone-collector" }
+          ]
+        },
+        {
+          "text": "The spider nest is cleared.",
+          "next": "spider-nest-turnin",
+          "requires": [
+            { "type": "quest-complete", "questId": "spider-nest" },
+            { "type": "quest-not-turned-in", "questId": "spider-nest" }
+          ]
+        },
+        {
+          "text": "The wraiths are gone.",
+          "next": "wraith-hunt-turnin",
+          "requires": [
+            { "type": "quest-complete", "questId": "wraith-hunt" },
+            { "type": "quest-not-turned-in", "questId": "wraith-hunt" }
+          ]
+        },
+        {
+          "text": "I reached the third floor.",
+          "next": "depths-explorer-turnin",
+          "requires": [
+            { "type": "quest-complete", "questId": "depths-explorer" },
+            { "type": "quest-not-turned-in", "questId": "depths-explorer" }
+          ]
+        },
+        {
+          "text": "I need work.",
+          "next": "quest-hub"
+        },
         { "text": "I heard there was work here.", "next": "path-work" },
         { "text": "I followed a rumor.", "next": "path-rumor" },
         { "text": "I had nowhere else to go.", "next": "path-nowhere" },
         { "text": "[Watch her in silence.]", "next": "path-silent" }
       ]
     },
+
+    "quest-hub": {
+      "id": "quest-hub",
+      "speaker": "brenna",
+      "expression": "neutral",
+      "text": "The board has postings. I have a few more that are not on the board. Depends on how deep you are willing to go.",
+      "choices": [
+        {
+          "text": "Anything about spiders in the depths?",
+          "next": "spider-nest-offer",
+          "requires": [{ "type": "quest-not-started", "questId": "spider-nest" }]
+        },
+        {
+          "text": "What about wraiths?",
+          "next": "wraith-hunt-offer",
+          "requires": [{ "type": "quest-not-started", "questId": "wraith-hunt" }]
+        },
+        {
+          "text": "I want to go deeper into Mossbarrow.",
+          "next": "depths-explorer-offer",
+          "requires": [{ "type": "quest-not-started", "questId": "depths-explorer" }]
+        },
+        {
+          "text": "Tell me about the thing on the throne.",
+          "next": "hollow-king-offer",
+          "requires": [{ "type": "quest-not-started", "questId": "hollow-king-slayer" }]
+        },
+        {
+          "text": "Never mind.",
+          "next": null
+        }
+      ]
+    },
+
+    "spider-nest-offer": {
+      "id": "spider-nest-offer",
+      "speaker": "brenna",
+      "expression": "thoughtful",
+      "text": "The lower floors of Mossbarrow have spinners — cave spiders, big ones. They breed fast. Three confirmed nests on the first depth. Clear them and I will mark it on the ledger.",
+      "next": "spider-nest-accept",
+      "effects": [
+        { "type": "accept-quest", "questId": "spider-nest" }
+      ]
+    },
+    "spider-nest-accept": {
+      "id": "spider-nest-accept",
+      "speaker": "brenna",
+      "expression": "neutral",
+      "text": "Watch for the webs. They slow you, and the spiders do not.",
+      "next": null
+    },
+
+    "wraith-hunt-offer": {
+      "id": "wraith-hunt-offer",
+      "speaker": "brenna",
+      "expression": "sad",
+      "text": "Two wraiths. They drift through the cairn walls and ignore steel that is not true-edged. Something is anchoring them — not a haunt, something older. Kill them, and we will learn whether more follow.",
+      "next": "wraith-hunt-accept",
+      "effects": [
+        { "type": "accept-quest", "questId": "wraith-hunt" }
+      ]
+    },
+    "wraith-hunt-accept": {
+      "id": "wraith-hunt-accept",
+      "speaker": "brenna",
+      "expression": "neutral",
+      "text": "They are cold, and quiet, and they do not warn you. Keep your guard up.",
+      "next": null
+    },
+
+    "depths-explorer-offer": {
+      "id": "depths-explorer-offer",
+      "speaker": "brenna",
+      "expression": "thoughtful",
+      "text": "The guild needs a map of the third floor. No one has returned from it with one. If you reach the bottom and come back breathing, that alone is worth the contract.",
+      "next": "depths-explorer-accept",
+      "effects": [
+        { "type": "accept-quest", "questId": "depths-explorer" }
+      ]
+    },
+    "depths-explorer-accept": {
+      "id": "depths-explorer-accept",
+      "speaker": "brenna",
+      "expression": "neutral",
+      "text": "Do not linger down there. See it, note the exits, and come back. Heroism is for people who do not owe me a report.",
+      "next": null
+    },
+
+    "hollow-king-offer": {
+      "id": "hollow-king-offer",
+      "speaker": "brenna",
+      "expression": "sad",
+      "text": "At the bottom of Mossbarrow, on a throne that should not exist, something sits. The old records call it the Hollow King. It does not sleep. It does not leave. And everything that dies down there seems to serve it.",
+      "next": "hollow-king-offer-2"
+    },
+    "hollow-king-offer-2": {
+      "id": "hollow-king-offer-2",
+      "speaker": "brenna",
+      "expression": "thoughtful",
+      "text": "I will not pretend this is a standard contract. If you kill it, the corruption may lift. If you fail, I will add your name to the wall. Either way, the guild remembers.",
+      "next": "hollow-king-accept",
+      "effects": [
+        { "type": "accept-quest", "questId": "hollow-king-slayer" }
+      ]
+    },
+    "hollow-king-accept": {
+      "id": "hollow-king-accept",
+      "speaker": "brenna",
+      "expression": "neutral",
+      "text": "Prepare well. That thing has killed better than you. It may kill you too. But you already knew that.",
+      "next": null
+    },
+
+    "wolf-cull-turnin": {
+      "id": "wolf-cull-turnin",
+      "speaker": "brenna",
+      "expression": "neutral",
+      "text": "The woods are quieter now. Good. The farmers will sleep easier, though they will not say thank you. They never do.",
+      "effects": [
+        { "type": "turn-in-quest", "questId": "wolf-cull" },
+        { "type": "give-gold", "amount": 50 },
+        { "type": "give-xp", "amount": 75 }
+      ],
+      "next": "wolf-cull-done"
+    },
+    "wolf-cull-done": {
+      "id": "wolf-cull-done",
+      "speaker": "brenna",
+      "expression": "neutral",
+      "text": "Fifty gold, seventy-five experience. Honest pay for honest work. Check the board if you want more.",
+      "next": null
+    },
+
+    "bone-collector-turnin": {
+      "id": "bone-collector-turnin",
+      "speaker": "brenna",
+      "expression": "neutral",
+      "text": "Two skeletons. The cairn is a little less restless. For now.",
+      "effects": [
+        { "type": "turn-in-quest", "questId": "bone-collector" },
+        { "type": "give-gold", "amount": 80 },
+        { "type": "give-xp", "amount": 120 }
+      ],
+      "next": "bone-collector-done"
+    },
+    "bone-collector-done": {
+      "id": "bone-collector-done",
+      "speaker": "brenna",
+      "expression": "neutral",
+      "text": "Eighty gold, one-twenty experience. The dead do not stay down in that place. Keep your blade ready.",
+      "next": null
+    },
+
+    "spider-nest-turnin": {
+      "id": "spider-nest-turnin",
+      "speaker": "brenna",
+      "expression": "neutral",
+      "text": "Three nests cleared. The air down there might breathe a little easier. Might.",
+      "effects": [
+        { "type": "turn-in-quest", "questId": "spider-nest" },
+        { "type": "give-gold", "amount": 60 },
+        { "type": "give-xp", "amount": 100 }
+      ],
+      "next": "spider-nest-done"
+    },
+    "spider-nest-done": {
+      "id": "spider-nest-done",
+      "speaker": "brenna",
+      "expression": "neutral",
+      "text": "Sixty gold, a hundred experience. They will breed again. They always do. But you bought us time.",
+      "next": null
+    },
+
+    "wraith-hunt-turnin": {
+      "id": "wraith-hunt-turnin",
+      "speaker": "brenna",
+      "expression": "thoughtful",
+      "text": "Two wraiths put down. That is good. That is better than I expected. The question is what was holding them here, and whether it still is.",
+      "effects": [
+        { "type": "turn-in-quest", "questId": "wraith-hunt" },
+        { "type": "give-gold", "amount": 90 },
+        { "type": "give-xp", "amount": 150 }
+      ],
+      "next": "wraith-hunt-done"
+    },
+    "wraith-hunt-done": {
+      "id": "wraith-hunt-done",
+      "speaker": "brenna",
+      "expression": "neutral",
+      "text": "Ninety gold, one-fifty experience. If you see more of them, tell me before the wall does.",
+      "next": null
+    },
+
+    "depths-explorer-turnin": {
+      "id": "depths-explorer-turnin",
+      "speaker": "brenna",
+      "expression": "thoughtful",
+      "text": "You reached the third floor and came back. That puts you ahead of everyone else I have sent. Tell me what you saw — no, tell me later. I can see it in your face. It was bad.",
+      "effects": [
+        { "type": "turn-in-quest", "questId": "depths-explorer" },
+        { "type": "give-gold", "amount": 70 },
+        { "type": "give-xp", "amount": 130 }
+      ],
+      "next": "depths-explorer-done"
+    },
+    "depths-explorer-done": {
+      "id": "depths-explorer-done",
+      "speaker": "brenna",
+      "expression": "neutral",
+      "text": "Seventy gold, one-thirty experience. Rest. Then we talk about what sits at the bottom.",
+      "next": null
+    },
+
+    "hollow-king-turnin": {
+      "id": "hollow-king-turnin",
+      "speaker": "brenna",
+      "expression": "shocked",
+      "text": "You... you did it. The thing on the throne. You ended it.",
+      "next": "hollow-king-turnin-2"
+    },
+    "hollow-king-turnin-2": {
+      "id": "hollow-king-turnin-2",
+      "speaker": "narrator",
+      "text": "Brenna sets her ledger down. For the first time since you have known her, she has nothing in her hands. She looks at you the way one looks at a fire that has just gone out — not with relief, but with the understanding that the room is about to be very cold.",
+      "next": "hollow-king-turnin-3"
+    },
+    "hollow-king-turnin-3": {
+      "id": "hollow-king-turnin-3",
+      "speaker": "brenna",
+      "expression": "sad",
+      "text": "I sent four people before you. Their names are on that wall. I wrote the last one myself, with steady hands, because that is what a guildmaster does. I was ready to write yours.",
+      "next": "hollow-king-turnin-4"
+    },
+    "hollow-king-turnin-4": {
+      "id": "hollow-king-turnin-4",
+      "speaker": "brenna",
+      "expression": "thoughtful",
+      "text": "Two hundred gold from the guild purse. Five hundred experience — more than I have ever signed off on. And your name goes on the board in a different color. The color for people who come back.",
+      "effects": [
+        { "type": "turn-in-quest", "questId": "hollow-king-slayer" },
+        { "type": "give-gold", "amount": 200 },
+        { "type": "give-xp", "amount": 500 }
+      ],
+      "next": "hollow-king-turnin-5"
+    },
+    "hollow-king-turnin-5": {
+      "id": "hollow-king-turnin-5",
+      "speaker": "brenna",
+      "expression": "neutral",
+      "text": "The depths will still be dangerous. The corruption does not vanish overnight. But the source is gone. Because of you. That is enough. That is more than enough.",
+      "next": "hollow-king-close"
+    },
+    "hollow-king-close": {
+      "id": "hollow-king-close",
+      "speaker": "brenna",
+      "expression": "neutral",
+      "text": "Go rest. You have earned it. And if you ever need work again — the board is always here. So am I.",
+      "next": null
+    },
+
     "return-shock": {
       "id": "return-shock",
       "speaker": "brenna",

@@ -1,0 +1,9 @@
+{
+  "id": "bone-ritual",
+  "title": "The Bone Ritual",
+  "summary": "Orric knows a warding rite that requires bone shards from the cairn. Three should be enough to seal the eastern path.",
+  "objectives": [
+    { "id": "deliver-bones", "description": "Deliver 3 bone shards to Orric." }
+  ],
+  "reward": { "gold": 55, "xp": 80 }
+}

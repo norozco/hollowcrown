@@ -13,10 +13,56 @@
       "speaker": "kael",
       "text": "You need something made, or you need something fixed. Either way, bring materials and coin. The anvil does the rest.",
       "choices": [
+        {
+          "text": "I brought the iron ore.",
+          "next": "iron-turnin",
+          "requires": [
+            { "type": "quest-complete", "questId": "iron-delivery" },
+            { "type": "quest-not-turned-in", "questId": "iron-delivery" }
+          ]
+        },
+        {
+          "text": "You need iron ore?",
+          "next": "iron-offer",
+          "requires": [{ "type": "quest-not-started", "questId": "iron-delivery" }]
+        },
         { "text": "What can you make?", "next": "craft-info" },
         { "text": "Where do I find materials?", "next": "materials" },
         { "text": "[Leave.]", "next": "leave" }
       ]
+    },
+    "iron-offer": {
+      "id": "iron-offer",
+      "speaker": "kael",
+      "text": "The supply wagons stopped coming. I have coal, I have skill, but the ore bin is empty. Three pieces of iron ore — from the mines, from the depths, from wherever you find it. Bring it here and I can keep this forge running.",
+      "next": "iron-accept",
+      "effects": [
+        { "type": "accept-quest", "questId": "iron-delivery" }
+      ]
+    },
+    "iron-accept": {
+      "id": "iron-accept",
+      "speaker": "kael",
+      "text": "Raw ore, not slag. I can tell the difference.",
+      "next": null
+    },
+    "iron-turnin": {
+      "id": "iron-turnin",
+      "speaker": "kael",
+      "text": "Three pieces. Good weight, clean grain. This will keep the forge lit for a while.",
+      "next": "iron-done",
+      "effects": [
+        { "type": "remove-items", "itemKey": "iron_ore", "quantity": 3 },
+        { "type": "turn-in-quest", "questId": "iron-delivery" },
+        { "type": "give-gold", "amount": 45 },
+        { "type": "give-xp", "amount": 60 }
+      ]
+    },
+    "iron-done": {
+      "id": "iron-done",
+      "speaker": "kael",
+      "text": "Forty-five gold. And the next blade I make, I will give it an edge that remembers who brought the iron. Come back when you need steel.",
+      "next": null
     },
     "craft-info": {
       "id": "craft-info",

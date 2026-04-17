@@ -21,10 +21,66 @@
       "expression": "neutral",
       "text": "I'm Orric. These are my woods, for what that's worth — I've lived in them longer than the guild has had a door. Ask what you came to ask.",
       "choices": [
+        {
+          "text": "I have the bone shards you need.",
+          "next": "bone-ritual-turnin",
+          "requires": [
+            { "type": "quest-complete", "questId": "bone-ritual" },
+            { "type": "quest-not-turned-in", "questId": "bone-ritual" }
+          ]
+        },
+        {
+          "text": "You mentioned a warding rite?",
+          "next": "bone-ritual-offer",
+          "requires": [{ "type": "quest-not-started", "questId": "bone-ritual" }]
+        },
         { "text": "Have you seen an Elven scholar named Veyrin?", "next": "veyrin-seen" },
         { "text": "What is wrong with the woods?", "next": "woods" },
         { "text": "I'm just passing through.", "next": "passing" }
       ]
+    },
+    "bone-ritual-offer": {
+      "id": "bone-ritual-offer",
+      "speaker": "orric",
+      "expression": "thoughtful",
+      "text": "There is a rite — old, from before the guild, before the town. It seals a path against what walks it. I need bone shards from the cairn. Three of them. The dead leave them behind when they fall, and the shards still carry the resonance of the place they died in.",
+      "next": "bone-ritual-accept",
+      "effects": [
+        { "type": "accept-quest", "questId": "bone-ritual" }
+      ]
+    },
+    "bone-ritual-accept": {
+      "id": "bone-ritual-accept",
+      "speaker": "orric",
+      "expression": "neutral",
+      "text": "Bring them whole. Cracked ones lose the pitch. I will do the rest.",
+      "next": null
+    },
+    "bone-ritual-turnin": {
+      "id": "bone-ritual-turnin",
+      "speaker": "orric",
+      "expression": "neutral",
+      "text": "Three shards. Whole, clean breaks. Good. I can work with these.",
+      "next": "bone-ritual-turnin-2"
+    },
+    "bone-ritual-turnin-2": {
+      "id": "bone-ritual-turnin-2",
+      "speaker": "narrator",
+      "text": "Orric takes the bone shards and arranges them in a line on the porch railing. He murmurs something in a language that is not quite speech — more like the sound a forest makes when the wind dies and the leaves still move.",
+      "next": "bone-ritual-done",
+      "effects": [
+        { "type": "remove-items", "itemKey": "bone_shard", "quantity": 3 },
+        { "type": "turn-in-quest", "questId": "bone-ritual" },
+        { "type": "give-gold", "amount": 55 },
+        { "type": "give-xp", "amount": 80 }
+      ]
+    },
+    "bone-ritual-done": {
+      "id": "bone-ritual-done",
+      "speaker": "orric",
+      "expression": "neutral",
+      "text": "The eastern path will be quieter now. Not safe — nothing in these woods is safe. But quieter. Fifty-five gold, from my own stores. You have my thanks, which is worth less, but I give it anyway.",
+      "next": null
     },
     "veyrin-seen": {
       "id": "veyrin-seen",

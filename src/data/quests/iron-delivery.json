@@ -1,0 +1,9 @@
+{
+  "id": "iron-delivery",
+  "title": "Iron for the Smith",
+  "summary": "Kael's ore supply has run dry. Bring him 3 iron ore from the mines or the wilds.",
+  "objectives": [
+    { "id": "deliver-iron", "description": "Deliver 3 iron ore to Kael." }
+  ],
+  "reward": { "gold": 45, "xp": 60 }
+}

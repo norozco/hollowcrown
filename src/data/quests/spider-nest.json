@@ -1,0 +1,9 @@
+{
+  "id": "spider-nest",
+  "title": "Clear the Spider Nest",
+  "summary": "Spiders have taken root in the lower depths. Three of them, at least. Clear them before they breed further.",
+  "objectives": [
+    { "id": "kill-spiders", "description": "Kill 3 spiders in the depths." }
+  ],
+  "reward": { "gold": 60, "xp": 100 }
+}

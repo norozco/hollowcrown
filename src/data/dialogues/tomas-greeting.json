@@ -14,11 +14,61 @@
       "expression": "neutral",
       "text": "Welcome to the Whispering Hollow. The name is older than the inn, in case anyone has told you otherwise. What will it be — a bed, a meal, or just the fire?",
       "choices": [
+        {
+          "text": "I have the moonpetals you asked for.",
+          "next": "herb-turnin",
+          "requires": [
+            { "type": "quest-complete", "questId": "herb-gathering" },
+            { "type": "quest-not-turned-in", "questId": "herb-gathering" }
+          ]
+        },
+        {
+          "text": "You mentioned needing herbs?",
+          "next": "herb-offer",
+          "requires": [{ "type": "quest-not-started", "questId": "herb-gathering" }]
+        },
         { "text": "How much for a bed?", "next": "bed" },
         { "text": "Who usually stays here?", "next": "regulars" },
         { "text": "I'm looking for a scholar. An Elven man, Veyrin.", "next": "veyrin" },
         { "text": "[Leave quietly.]", "next": "leave" }
       ]
+    },
+    "herb-offer": {
+      "id": "herb-offer",
+      "speaker": "tomas",
+      "expression": "sad",
+      "text": "The healer left town two months ago. I have been making do with what poultices I can manage, but I am running low on moonpetals. They grow in the woods and the depths — pale things, purple-edged. Three would last me through the season.",
+      "next": "herb-accept",
+      "effects": [
+        { "type": "accept-quest", "questId": "herb-gathering" }
+      ]
+    },
+    "herb-accept": {
+      "id": "herb-accept",
+      "speaker": "tomas",
+      "expression": "neutral",
+      "text": "I will pay what I can. It is not much, but it is more than the petals would fetch on the road. Be careful where you pick them — they grow in places that are quiet for a reason.",
+      "next": null
+    },
+    "herb-turnin": {
+      "id": "herb-turnin",
+      "speaker": "tomas",
+      "expression": "neutral",
+      "text": "Three moonpetals. Still fresh. You have done me a kindness, and I do not forget kindnesses. They are too rare in this town to waste.",
+      "effects": [
+        { "type": "remove-items", "itemKey": "moonpetal", "quantity": 3 },
+        { "type": "turn-in-quest", "questId": "herb-gathering" },
+        { "type": "give-gold", "amount": 35 },
+        { "type": "give-xp", "amount": 55 }
+      ],
+      "next": "herb-done"
+    },
+    "herb-done": {
+      "id": "herb-done",
+      "speaker": "tomas",
+      "expression": "neutral",
+      "text": "Thirty-five gold, and my thanks. The fire and a bed are yours whenever you need them. No charge, for tonight.",
+      "next": null
     },
     "bed": {
       "id": "bed",
