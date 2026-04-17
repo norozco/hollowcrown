@@ -84,7 +84,7 @@
   gap: 4px;
 }
 .inv__bag-cell {
-  width: 56px; height: 56px;
+  width: 56px; height: 68px;
   background: rgba(10,6,4,0.7);
   border: 2px solid #3a2818;
   display: flex; align-items: center; justify-content: center;
@@ -99,11 +99,10 @@
   font-size: 0.7rem; color: #f4d488; text-shadow: 0 1px 2px #000; font-weight: bold;
 }
 .inv__cell-actions {
-  position: absolute; bottom: -28px; left: 50%; transform: translateX(-50%);
-  display: none; gap: 2px; z-index: 5;
-  background: rgba(10,6,4,0.95); border: 1px solid #5a3a1a; padding: 2px; white-space: nowrap;
+  position: absolute; bottom: -2px; left: 0; right: 0;
+  display: flex; gap: 1px; z-index: 5;
+  background: rgba(10,6,4,0.9); padding: 1px; justify-content: center;
 }
-.inv__bag-cell:hover .inv__cell-actions { display: flex; }
 .inv__cell-actions button {
   background: rgba(90,58,26,0.6); border: 1px solid #5a3a1a; color: #d4a968;
   font-family: inherit; font-size: 0.65rem; padding: 1px 4px; cursor: pointer;

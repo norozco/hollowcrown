@@ -222,7 +222,7 @@ function innLayout(): InteriorLayout {
     name: 'Whispering Hollow Inn', roomW: 18, roomH: 14, tiles,
     solidTiles: SOLID,
     npcs: [{ key: 'tomas', dialogueId: 'tomas-greeting', tileX: 6, tileY: 3 }],
-    interactables: [{ tileX: 13, tileY: 4, label: 'Rest at the inn (10g)', dialogueId: '__rest__' }],
+    interactables: [{ tileX: 14, tileY: 5, label: 'Rest at the inn (10g)', dialogueId: '__rest__' }],
     exitScene: 'TownScene', exitSpawn: 'fromInnInterior',
   };
 }
