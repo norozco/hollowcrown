@@ -11,6 +11,7 @@ import { CombatOverlay } from './Combat/CombatOverlay';
 import { InventoryScreen } from './Inventory/InventoryScreen';
 import { ShopScreen } from './Inventory/ShopScreen';
 import { LevelUpPopup } from './LevelUp/LevelUpPopup';
+import { QuestBoard } from './QuestBoard/QuestBoard';
 import { saveGame } from '../engine/saveLoad';
 import './InGameOverlay.css';
 
@@ -38,6 +39,14 @@ export function InGameOverlay() {
   const resetInventory = useInventoryStore((s) => s.reset);
 
   const [menuOpen, setMenuOpen] = useState(false);
+  const [questBoardOpen, setQuestBoardOpen] = useState(false);
+
+  // Listen for quest board open events from the Phaser interactable.
+  useEffect(() => {
+    const handler = () => setQuestBoardOpen(true);
+    window.addEventListener('openQuestBoard', handler);
+    return () => window.removeEventListener('openQuestBoard', handler);
+  }, []);
 
   // Esc opens/closes the corner menu (but not during dialogue — dialogue
   // owns Esc for its own exit).
@@ -147,6 +156,7 @@ export function InGameOverlay() {
 
       {inventoryOpen && <InventoryScreen />}
       {shopOpen && <ShopScreen onClose={closeShop} />}
+      {questBoardOpen && <QuestBoard onClose={() => setQuestBoardOpen(false)} />}
       {dialogueActive && <DialogueScene />}
       {combatActive && <CombatOverlay />}
       <LevelUpPopup />

@@ -1,0 +1,9 @@
+{
+  "id": "bone-collector",
+  "title": "Bone Collector",
+  "summary": "The alchemist needs bone shards from the Mossbarrow cairn. Dangerous work, but the pay is honest.",
+  "objectives": [
+    { "id": "collect-bones", "description": "Defeat 2 skeletons in Mossbarrow Cairn." }
+  ],
+  "reward": { "gold": 80, "xp": 120 }
+}

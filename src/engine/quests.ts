@@ -1,4 +1,7 @@
 import ironToken from '../data/quests/iron-token.json';
+import wolfCull from '../data/quests/wolf-cull.json';
+import boneCollector from '../data/quests/bone-collector.json';
+import herbGathering from '../data/quests/herb-gathering.json';
 import type { Quest } from './quest';
 
 /**
@@ -8,6 +11,9 @@ import type { Quest } from './quest';
  */
 const QUESTS: Record<string, Quest> = {
   'iron-token': ironToken as unknown as Quest,
+  'wolf-cull': wolfCull as unknown as Quest,
+  'bone-collector': boneCollector as unknown as Quest,
+  'herb-gathering': herbGathering as unknown as Quest,
 };
 
 export function getQuest(id: string): Quest {

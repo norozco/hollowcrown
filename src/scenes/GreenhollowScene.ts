@@ -57,10 +57,26 @@ export class GreenhollowScene extends BaseWorldScene {
       targetSpawn: 'orric',
     });
 
-    // Enemies — wolves roaming the forest paths.
-    this.spawnEnemy({ monsterKey: 'wolf', x: 22 * TILE, y: 10 * TILE, color: 0x707070 });
-    this.spawnEnemy({ monsterKey: 'wolf', x: 16 * TILE, y: 8 * TILE, color: 0x686868 });
-    this.spawnEnemy({ monsterKey: 'wolf', x: 26 * TILE, y: 14 * TILE, color: 0x787878 });
+    // Enemies — wolves roaming the forest.
+    this.spawnEnemy({ monsterKey: 'wolf', x: 22 * TILE, y: 10 * TILE });
+    this.spawnEnemy({ monsterKey: 'wolf', x: 16 * TILE, y: 8 * TILE });
+    this.spawnEnemy({ monsterKey: 'wolf', x: 26 * TILE, y: 14 * TILE });
+    this.spawnEnemy({ monsterKey: 'wolf', x: 12 * TILE, y: 16 * TILE });
+    this.spawnEnemy({ monsterKey: 'wolf', x: 30 * TILE, y: 18 * TILE });
+
+    // Herb interactable (for herb-gathering quest).
+    const herbSprite = this.add.circle(14 * TILE, 6 * TILE, 8, 0x40c040);
+    herbSprite.setStrokeStyle(1, 0x208020);
+    herbSprite.setDepth(10);
+    this.spawnInteractable({
+      sprite: herbSprite, label: 'Gather whiteleaf herbs', radius: 20,
+      action: () => {
+        const qs = import('../state/questStore').then(m => {
+          m.useQuestStore.getState().completeObjective('herb-gathering', 'find-herbs');
+        });
+        void qs;
+      },
+    });
 
     // Zone marker.
     this.add

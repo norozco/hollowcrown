@@ -1,0 +1,9 @@
+{
+  "id": "wolf-cull",
+  "title": "Cull the Pack",
+  "summary": "The wolves in Greenhollow have grown bold. A farmer's livestock is disappearing. Kill three.",
+  "objectives": [
+    { "id": "kill-wolves", "description": "Defeat 3 wolves in Greenhollow Woods." }
+  ],
+  "reward": { "gold": 50, "xp": 75 }
+}

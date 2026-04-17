@@ -69,9 +69,11 @@ export class InteriorScene extends BaseWorldScene {
         TILE - 4, TILE - 4, 0x000000, 0);
       sprite.setDepth(5);
       if (ix.dialogueId === '__shop__') {
-        // Shop interactable — opens the shop UI.
         this.spawnInteractable({ sprite, label: ix.label, radius: 24,
           action: () => { useInventoryStore.getState().openShop(); } });
+      } else if (ix.dialogueId === '__questboard__') {
+        this.spawnInteractable({ sprite, label: ix.label, radius: 24,
+          action: () => { window.dispatchEvent(new Event('openQuestBoard')); } });
       } else {
         const dlgId = ix.dialogueId;
         this.spawnInteractable({ sprite, label: ix.label, radius: 24,
@@ -173,7 +175,7 @@ function guildLayout(): InteriorLayout {
     name: "Adventurers' Guild", roomW: 20, roomH: 16, tiles,
     solidTiles: SOLID,
     npcs: [{ key: 'brenna', dialogueId: 'guild-greeting', tileX: 10, tileY: 3 }],
-    interactables: [{ tileX: 14, tileY: 1, label: 'Examine the trophy case', dialogueId: 'guild-greeting' }],
+    interactables: [{ tileX: 14, tileY: 1, label: 'Check the quest board', dialogueId: '__questboard__' }],
     exitScene: 'TownScene', exitSpawn: 'fromGuildInterior',
   };
 }

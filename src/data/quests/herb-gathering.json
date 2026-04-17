@@ -1,0 +1,9 @@
+{
+  "id": "herb-gathering",
+  "title": "The Healer's Request",
+  "summary": "Tomas at the inn needs whiteleaf herbs from Greenhollow. They grow near the old path.",
+  "objectives": [
+    { "id": "find-herbs", "description": "Find whiteleaf herbs in Greenhollow Woods." }
+  ],
+  "reward": { "gold": 30, "xp": 50 }
+}

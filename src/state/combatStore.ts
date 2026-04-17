@@ -9,6 +9,7 @@ import {
 import { type Monster, getMonster } from '../engine/monster';
 import { usePlayerStore } from './playerStore';
 import { useInventoryStore } from './inventoryStore';
+import { useQuestStore } from './questStore';
 
 /**
  * Combat store — manages the active battle. Null when not in combat.
@@ -110,6 +111,16 @@ export const useCombatStore = create<CombatStoreState>((set, get) => ({
         // Mark the enemy as killed so it doesn't respawn.
         const enemyId = get()._pendingEnemyId;
         if (enemyId) get().killedEnemies.add(enemyId);
+
+        // Check kill-based quest objectives.
+        const killed = get().killedEnemies;
+        const questStore = useQuestStore.getState();
+        // Wolf cull: need 3 wolves killed.
+        const wolfKills = Array.from(killed).filter((id) => id.includes('wolf')).length;
+        if (wolfKills >= 3) questStore.completeObjective('wolf-cull', 'kill-wolves');
+        // Bone collector: need 2 skeletons killed.
+        const skelKills = Array.from(killed).filter((id) => id.includes('skeleton')).length;
+        if (skelKills >= 2) questStore.completeObjective('bone-collector', 'collect-bones');
       } else if (state.phase === 'defeat') {
         if (character.difficulty === 'hardcore') {
           character.hp = 0;
