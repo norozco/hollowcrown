@@ -26,7 +26,7 @@ const DEATH_MESSAGES = [
 export function CombatOverlay() {
   const state = useCombatStore((s) => s.state);
   const monster = useCombatStore((s) => s.monster);
-  const lastLoot = useCombatStore((s) => s.lastLoot);
+  const lastLoot = useCombatStore((s) => s.lastLoot) ?? [];
   const act = useCombatStore((s) => s.act);
   const finish = useCombatStore((s) => s.finish);
   const useItem = useCombatStore((s) => s.useItem);
@@ -105,6 +105,10 @@ export function CombatOverlay() {
 
   if (!state || !monster || !character) return null;
 
+  // Defensive: ensure status objects exist (old saves may not have them)
+  const playerStatus = state.playerStatus ?? { poison: 0, burn: 0, stun: 0, bleed: 0, marked: 0 };
+  const monsterStatus = state.monsterStatus ?? { poison: 0, burn: 0, stun: 0, bleed: 0, marked: 0 };
+
   const ELEMENT_ICONS: Record<string, string> = {
     fire: '🔥',
     ice: '❄',
@@ -149,9 +153,9 @@ export function CombatOverlay() {
       </div>
 
       <div className="combat__status">
-        <StatusSide status={state.playerStatus} />
+        <StatusSide status={playerStatus} />
         <div className="combat__status-enemy-col">
-          <StatusSide status={state.monsterStatus} enemy />
+          <StatusSide status={monsterStatus} enemy />
           {monster.weakness && (
             <span className="combat__weakness-hint">
               Weak to: {ELEMENT_ICONS[monster.weakness] ?? monster.weakness}
