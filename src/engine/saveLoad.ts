@@ -125,20 +125,38 @@ export function loadGame(slot: string): boolean {
   }
 }
 
-export function getSaveSlots(): Array<{ slot: string; label: string; timestamp: number | null }> {
+export interface SaveSlotInfo {
+  slot: string;
+  label: string;
+  timestamp: number | null;
+  characterName: string | null;
+  level: number | null;
+  className: string | null;
+  raceName: string | null;
+}
+
+export function getSaveSlots(): SaveSlotInfo[] {
   const slots = ['slot1', 'slot2', 'slot3', 'autosave'];
   return slots.map((slot) => {
+    const label = slot === 'autosave' ? 'Autosave' : `Slot ${slot.slice(-1)}`;
     try {
       const raw = localStorage.getItem(SAVE_PREFIX + slot);
-      if (!raw) return { slot, label: slot === 'autosave' ? 'Autosave' : `Slot ${slot.slice(-1)}`, timestamp: null };
+      if (!raw) return { slot, label, timestamp: null, characterName: null, level: null, className: null, raceName: null };
       const data: SaveData = JSON.parse(raw);
+      // Derive human-readable class/race names from keys (capitalize first letter of each word)
+      const toTitle = (key: string) =>
+        key.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
       return {
         slot,
-        label: slot === 'autosave' ? 'Autosave' : `Slot ${slot.slice(-1)}`,
+        label,
         timestamp: data.timestamp,
+        characterName: data.characterInit.name,
+        level: data.characterInit.level,
+        className: toTitle(data.characterInit.classKey),
+        raceName: toTitle(data.characterInit.raceKey),
       };
     } catch {
-      return { slot, label: slot, timestamp: null };
+      return { slot, label, timestamp: null, characterName: null, level: null, className: null, raceName: null };
     }
   });
 }

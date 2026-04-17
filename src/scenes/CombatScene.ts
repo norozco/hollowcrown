@@ -34,6 +34,7 @@ export class CombatScene extends Phaser.Scene {
   private enemyBaseX = 0;
   private combatEnded = false;
   private deathScreenShown = false;
+  private deathAnimPlayed = false;
   private savedReturnScene = 'TownScene';
   private savedReturnX = 0;
   private savedReturnY = 0;
@@ -130,6 +131,7 @@ export class CombatScene extends Phaser.Scene {
     this.lastLogLength = useCombatStore.getState().state?.log.length ?? 0;
     this.combatEnded = false;
     this.deathScreenShown = false;
+    this.deathAnimPlayed = false;
     // Save return info NOW before finish() clears it.
     const combatState = useCombatStore.getState();
     this.savedReturnScene = combatState.returnScene ?? 'TownScene';
@@ -229,6 +231,113 @@ export class CombatScene extends Phaser.Scene {
             this.showDamageNumber(this.playerBaseX, this.playerSprite.y - SPRITE_H, entry.text, '#e08030');
           } else if (entry.text.includes('Wound bleeds')) {
             this.showDamageNumber(this.playerBaseX, this.playerSprite.y - SPRITE_H, entry.text, '#d04040');
+          }
+
+          // Enemy death animation (triggered once when victory log appears)
+          if (entry.text.includes('falls') && !this.deathAnimPlayed) {
+            this.deathAnimPlayed = true;
+            this.tweens.add({
+              targets: this.enemySprite,
+              alpha: 0, y: this.enemySprite.y + 30, angle: 15,
+              duration: 800, ease: 'Power2',
+            });
+            // Death particles — red burst
+            for (let i = 0; i < 8; i++) {
+              const angle = (i / 8) * Math.PI * 2;
+              const particle = this.add.circle(
+                this.enemyBaseX + Math.cos(angle) * 10,
+                this.enemySprite.y + Math.sin(angle) * 10,
+                4, 0xc04040,
+              ).setDepth(20);
+              this.tweens.add({
+                targets: particle,
+                x: particle.x + Math.cos(angle) * 40,
+                y: particle.y + Math.sin(angle) * 40,
+                alpha: 0, duration: 600, onComplete: () => particle.destroy(),
+              });
+            }
+            // Brief white screen flash
+            this.cameras.main.flash(200, 255, 255, 255);
+          }
+
+          // Fireball spell effect
+          if (entry.text.includes('Fireball erupts')) {
+            const fireball = this.add.circle(this.enemyBaseX, this.enemySprite.y, 10, 0xf08020).setDepth(15);
+            this.tweens.add({
+              targets: fireball, scale: 4, alpha: 0, duration: 500,
+              onComplete: () => fireball.destroy(),
+            });
+            for (let i = 0; i < 6; i++) {
+              const fp = this.add.circle(
+                this.enemyBaseX + Phaser.Math.Between(-20, 20),
+                this.enemySprite.y + Phaser.Math.Between(-20, 10),
+                3, [0xf08020, 0xf0c040, 0xf04020][i % 3],
+              ).setDepth(16);
+              this.tweens.add({
+                targets: fp, y: fp.y - 30, alpha: 0, duration: 400 + i * 100,
+                onComplete: () => fp.destroy(),
+              });
+            }
+          }
+
+          // Cure Wounds healing effect
+          if (entry.text.includes('Divine light')) {
+            for (let i = 0; i < 8; i++) {
+              const hp = this.add.circle(
+                this.playerBaseX + Phaser.Math.Between(-15, 15),
+                this.playerSprite.y + 10,
+                3, i % 2 === 0 ? 0x40c060 : 0xffffff,
+              ).setAlpha(0.7).setDepth(16);
+              this.tweens.add({
+                targets: hp, y: hp.y - 40 - i * 5, alpha: 0,
+                duration: 600 + i * 80, delay: i * 50,
+                onComplete: () => hp.destroy(),
+              });
+            }
+          }
+
+          // Sneak Attack — player goes transparent, slash lines at enemy
+          if (entry.text.includes('from the shadows')) {
+            this.tweens.add({
+              targets: this.playerSprite, alpha: 0.1, duration: 100, yoyo: true,
+              onYoyo: () => {
+                for (let i = 0; i < 3; i++) {
+                  const eX = this.enemyBaseX;
+                  const eY = this.enemySprite.y;
+                  const slash = this.add.line(
+                    0, 0,
+                    eX - 40 + i * 8, eY - 15 + i * 10,
+                    eX + 5 + i * 8, eY + 5 + i * 10,
+                    0xd4d4ff,
+                  ).setLineWidth(2).setAlpha(0.9).setDepth(15);
+                  this.tweens.add({ targets: slash, alpha: 0, duration: 300, delay: i * 60, onComplete: () => slash.destroy() });
+                }
+              },
+            });
+          }
+
+          // Level-up during combat — gold flash + floating text
+          if (entry.text.toLowerCase().includes('level up') || entry.text.toLowerCase().includes('level') && entry.text.includes('!')) {
+            this.cameras.main.flash(300, 212, 169, 104);
+            const W = 1280;
+            const lvlText = this.add.text(
+              this.playerBaseX,
+              this.playerSprite.y - SPRITE_H * 2,
+              'LEVEL UP!',
+              { fontFamily: 'Courier New', fontSize: '28px', color: '#f4d488', stroke: '#1a1008', strokeThickness: 4 },
+            ).setOrigin(0.5).setDepth(40).setAlpha(0);
+            void W; // suppress unused warning
+            this.tweens.add({
+              targets: lvlText,
+              alpha: 1, y: lvlText.y - 30,
+              duration: 400, ease: 'Power2',
+              onComplete: () => {
+                this.tweens.add({
+                  targets: lvlText, alpha: 0, duration: 600, delay: 800,
+                  onComplete: () => lvlText.destroy(),
+                });
+              },
+            });
           }
         }
       }

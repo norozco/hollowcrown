@@ -78,3 +78,109 @@
   font-size: 0.78rem;
   letter-spacing: 0.1rem;
 }
+
+/* ── Load Game panel ─────────────────────────────────────── */
+.main-menu__load-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+  max-width: 420px;
+}
+
+.main-menu__load-title {
+  font-family: 'Courier New', monospace;
+  color: #d4a968;
+  letter-spacing: 0.3rem;
+  font-size: 1.4rem;
+  margin: 0;
+}
+
+.main-menu__load-slots {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.main-menu__load-slot {
+  background: rgba(10, 6, 6, 0.7);
+  border: 2px solid #5a3a1a;
+  color: #d4a968;
+  font-family: 'Courier New', monospace;
+  padding: 0.6rem 1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  transition: background-color 120ms, border-color 120ms, transform 120ms;
+  text-align: left;
+  width: 100%;
+}
+
+.main-menu__load-slot:hover:not(:disabled) {
+  background: rgba(90, 58, 26, 0.4);
+  border-color: #d4a968;
+  transform: translateX(3px);
+}
+
+.main-menu__load-slot:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.main-menu__load-slot-label {
+  font-size: 0.8rem;
+  color: #8a7a48;
+  letter-spacing: 0.1rem;
+  min-width: 60px;
+  flex-shrink: 0;
+}
+
+.main-menu__load-slot-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  flex: 1;
+}
+
+.main-menu__load-slot-name {
+  font-size: 1rem;
+  font-weight: bold;
+  color: #f4d488;
+}
+
+.main-menu__load-slot-detail {
+  font-size: 0.8rem;
+  color: #a89060;
+}
+
+.main-menu__load-slot-date {
+  font-size: 0.72rem;
+  color: #6a5a38;
+}
+
+.main-menu__load-slot-empty-label {
+  font-size: 0.85rem;
+  color: #5a4a28;
+  font-style: italic;
+}
+
+.main-menu__load-back {
+  background: transparent;
+  color: #8a7a48;
+  border: 1px solid #3a2818;
+  padding: 0.5rem 2rem;
+  font-family: 'Courier New', monospace;
+  font-size: 0.9rem;
+  letter-spacing: 0.1rem;
+  cursor: pointer;
+  transition: color 120ms, border-color 120ms;
+  margin-top: 0.25rem;
+}
+
+.main-menu__load-back:hover {
+  color: #d4a968;
+  border-color: #5a3a1a;
+}

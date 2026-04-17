@@ -17,6 +17,8 @@ import { OptionsMenu } from './OptionsMenu/OptionsMenu';
 import { getCurrentRank } from '../engine/ranks';
 import { xpForLevel, MAX_LEVEL } from '../engine/character';
 import { saveGame } from '../engine/saveLoad';
+import { COMPANIONS, companionBonusLabel } from '../engine/companion';
+import { TouchControls } from './TouchControls/TouchControls';
 import './InGameOverlay.css';
 
 /**
@@ -31,6 +33,7 @@ export function InGameOverlay() {
   // Subscribing to `version` forces re-renders when character fields
   // (gold, xp, hp, level, mp) mutate — the object reference stays stable.
   usePlayerStore((s) => s.version);
+  const companionKey = usePlayerStore((s) => s.companion);
   const setScreen = useUIStore((s) => s.setScreen);
   const clearPlayer = usePlayerStore((s) => s.clear);
   const dialogueActive = useDialogueStore((s) => s.dialogue !== null);
@@ -133,16 +136,43 @@ export function InGameOverlay() {
   const questsCompleted = Object.values(questActive).filter((q) => q.turnedIn).length;
   const rank = getCurrentRank(questsCompleted, character.level);
 
+  // Portrait palette derived from the character's race (matches StepPortrait palettes)
+  const portraitPalettes: Array<[string, string]> = [
+    ['#7a4a30', '#d4a968'],
+    ['#3a4a30', '#a8c468'],
+    ['#3a3060', '#8868d4'],
+    ['#5a3030', '#c46868'],
+    ['#306060', '#68c4c4'],
+    ['#604030', '#d49868'],
+  ];
+  // Map race key to a stable palette index
+  const racePortraitMap: Record<string, number> = {
+    human: 0, elf: 1, 'high-elf': 1, 'wood-elf': 1, dwarf: 2,
+    halfling: 3, 'half-elf': 4, 'half-orc': 5, tiefling: 2,
+    dragonborn: 5, gnome: 3,
+  };
+  const paletteIdx = racePortraitMap[character.race.key] ?? 0;
+  const [portraitBg, portraitFg] = portraitPalettes[paletteIdx];
+
   return (
     <div className="ig">
       <header className="ig__hud">
-        <div className="ig__hud-block">
-          <span className="ig__name">{character.name}</span>
-          <span className="ig__sub">
-            Lvl {character.level} {character.race.name} {character.characterClass.name}
-            {character.difficulty === 'hardcore' && <span className="ig__hc"> · ⚠ HC</span>}
-            {' '}<span className="ig__rank" style={{ color: rank.color }}>[{rank.label}] {rank.name}</span>
-          </span>
+        <div className="ig__hud-block ig__hud-block--identity">
+          <div
+            className="ig__portrait"
+            style={{ background: portraitBg, borderColor: portraitFg, color: portraitFg }}
+            title={`${character.race.name} ${character.characterClass.name}`}
+          >
+            {character.race.name[0].toUpperCase()}
+          </div>
+          <div className="ig__identity">
+            <span className="ig__name">{character.name}</span>
+            <span className="ig__sub">
+              Lvl {character.level} {character.race.name} {character.characterClass.name}
+              {character.difficulty === 'hardcore' && <span className="ig__hc"> · ⚠ HC</span>}
+              {' '}<span className="ig__rank" style={{ color: rank.color }}>[{rank.label}] {rank.name}</span>
+            </span>
+          </div>
         </div>
         <div className="ig__hud-block ig__bars">
           <span>HP {character.hp}/{d.maxHp}</span>
@@ -161,6 +191,11 @@ export function InGameOverlay() {
           <span className="ig__weapon" title={character.weapon.description}>
             ⚔ {character.weapon.name}
           </span>
+          {companionKey && COMPANIONS[companionKey] && (
+            <span className="ig__companion" title={COMPANIONS[companionKey].description}>
+              ☻ {COMPANIONS[companionKey].name.split(' ')[0]} ({companionBonusLabel(COMPANIONS[companionKey])})
+            </span>
+          )}
           <button
             type="button"
             className="ig__menu-btn"
@@ -212,6 +247,7 @@ export function InGameOverlay() {
       {dialogueActive && <DialogueScene />}
       {combatActive && <CombatOverlay />}
       <LevelUpPopup />
+      <TouchControls />
     </div>
   );
 }
