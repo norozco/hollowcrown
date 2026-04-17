@@ -62,7 +62,7 @@ export class CombatScene extends Phaser.Scene {
     if (character) {
       const rk = character.race.key;
       const ck = character.characterClass.key;
-      generateCharacterSprite(this, 'combat-player', playerPalette(rk, ck, character.playerChoice), rk, ck);
+      generateCharacterSprite(this, 'combat-player', playerPalette(rk, ck, character.playerChoice), rk, ck, undefined, character.gender);
     }
     this.playerBaseX = W * 0.25;
     const playerY = H * 0.55;

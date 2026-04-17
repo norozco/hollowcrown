@@ -7,6 +7,7 @@ import {
 } from '../../state/characterCreationStore';
 import { StepperHeader } from './StepperHeader';
 import { StepDifficulty } from './StepDifficulty';
+import { StepGender } from './StepGender';
 import { StepName } from './StepName';
 import { StepRace } from './StepRace';
 import { StepClass } from './StepClass';
@@ -71,12 +72,13 @@ export function CharacterCreator() {
 
       <main className="cc__body">
         {step === 0 && <StepDifficulty />}
-        {step === 1 && <StepName />}
-        {step === 2 && <StepRace />}
-        {step === 3 && <StepClass />}
-        {step === 4 && <StepStats />}
-        {step === 5 && <StepPortrait />}
-        {step === 6 && <StepConfirm />}
+        {step === 1 && <StepGender />}
+        {step === 2 && <StepName />}
+        {step === 3 && <StepRace />}
+        {step === 4 && <StepClass />}
+        {step === 5 && <StepStats />}
+        {step === 6 && <StepPortrait />}
+        {step === 7 && <StepConfirm />}
       </main>
 
       <footer className="cc__nav">

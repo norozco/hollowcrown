@@ -116,6 +116,11 @@ const NPC_RACE:Record<string,string>={
 export function getNpcEquip(k:string):ClassEquip{return NPC_EQUIP[k]??CE.fighter;}
 export function getNpcRace(k:string):string{return NPC_RACE[k]??'human';}
 
+const NPC_GENDER:Record<string,'male'|'female'>={
+  brenna:'female', tomas:'male', vira:'female', orric:'male',
+};
+export function getNpcGender(k:string):'male'|'female'{return NPC_GENDER[k]??'male';}
+
 const RL:Record<string,{skin:string;skinShadow:string;hair:string;hairHighlight:string}>={
   human:     {skin:'#e8c090',skinShadow:'#c8a070',hair:'#705030',hairHighlight:'#907050'},
   elf:       {skin:'#f0e0d0',skinShadow:'#d0c0b0',hair:'#b8a848',hairHighlight:'#d0c060'}, // paler/more silvery skin, brighter gold hair vs half-elf
@@ -155,12 +160,17 @@ export function playerPalette(race:string,cls:string,choice?:string):CharacterCo
 
 // ─── Main ─────────────────────────────────────────────────────
 
-export function generateCharacterSprite(scene:Phaser.Scene,key:string,col:CharacterColors=DEFAULT_COLORS,race='human',cls='fighter',equipOverride?:ClassEquip):void{
+export function generateCharacterSprite(scene:Phaser.Scene,key:string,col:CharacterColors=DEFAULT_COLORS,race='human',cls='fighter',equipOverride?:ClassEquip,gender:'male'|'female'='male'):void{
   if(scene.textures.exists(key))return;
   const cv=document.createElement('canvas');cv.width=FRAMES*SPRITE_W;cv.height=SPRITE_H;
   const ctx=cv.getContext('2d')!;
-  const rb=RB[race]??RB.human;const ce=equipOverride??(CE[cls]??CE.fighter);
-  for(let f=0;f<8;f++)draw(ctx,f,col,rb,ce,f%4,f>=4,race);
+  let rb={...(RB[race]??RB.human)};
+  if(gender==='female'){
+    rb={...rb,bodyW:Math.max(10,rb.bodyW-2),armW:Math.max(2,rb.armW-1)};
+    if(!rb.longHair&&!rb.catEars&&!rb.snout)rb.longHair=true;
+  }
+  const ce=equipOverride??(CE[cls]??CE.fighter);
+  for(let f=0;f<8;f++)draw(ctx,f,col,rb,ce,f%4,f>=4,race,gender);
   const tx=scene.textures.addCanvas(key,cv);
   if(tx){for(let i=0;i<FRAMES;i++)tx.add(i,0,i*SPRITE_W,0,SPRITE_W,SPRITE_H);}
 }
@@ -171,7 +181,7 @@ type C=CanvasRenderingContext2D;
 function px(c:C,f:number,x:number,y:number,cl:string){c.fillStyle=cl;c.fillRect(f*SPRITE_W+x,y,1,1);}
 function bk(c:C,f:number,x:number,y:number,w:number,h:number,cl:string){c.fillStyle=cl;c.fillRect(f*SPRITE_W+x,y,w,h);}
 
-function draw(c:C,f:number,col:CharacterColors,rb:RaceBody,ce:ClassEquip,dir:number,walk:boolean,race:string){
+function draw(c:C,f:number,col:CharacterColors,rb:RaceBody,ce:ClassEquip,dir:number,walk:boolean,race:string,gender:'male'|'female'='male'){
   const cx=16,isFr=dir===0,isBk=dir===1,isSd=dir>=2;
   const bx=cx-rb.bodyW/2,legOff=walk?2:0;
 
@@ -264,6 +274,12 @@ function draw(c:C,f:number,col:CharacterColors,rb:RaceBody,ce:ClassEquip,dir:num
       for(let sx=bx+2;sx<bx+rb.bodyW-2;sx+=3)
         bk(c,f,sx,rb.bodyY+2,1,rb.bodyH-4,col.tunicDark);
     }
+  }
+
+  // Female: tapered waist (indent 1px on each side at the belt line)
+  if(gender==='female'&&isFr){
+    bk(c,f,bx,rb.bodyY+rb.bodyH-5,1,3,col.tunicDark);
+    bk(c,f,bx+rb.bodyW-1,rb.bodyY+rb.bodyH-5,1,3,col.tunicDark);
   }
 
   // Belt with buckle + details
@@ -370,6 +386,12 @@ function draw(c:C,f:number,col:CharacterColors,rb:RaceBody,ce:ClassEquip,dir:num
     }
     // Mouth
     px(c,f,cx-1,rb.headY+rb.headH-3,col.skinShadow);px(c,f,cx,rb.headY+rb.headH-3,col.skinShadow);
+    // Female: eyelashes + lips
+    if(gender==='female'){
+      px(c,f,hx+2,rb.headY+4,col.eyes);px(c,f,hx+3,rb.headY+4,col.eyes);
+      px(c,f,hx+rb.headW-4,rb.headY+4,col.eyes);px(c,f,hx+rb.headW-3,rb.headY+4,col.eyes);
+      px(c,f,cx-1,rb.headY+rb.headH-3,'#c08070');px(c,f,cx,rb.headY+rb.headH-3,'#c08070');
+    }
     if(rb.pointedEars){
       px(c,f,hx-2,rb.headY+4,col.skin);px(c,f,hx+rb.headW+1,rb.headY+4,col.skin);
       if(rb.longEars){px(c,f,hx-3,rb.headY+3,col.skin);px(c,f,hx+rb.headW+2,rb.headY+3,col.skin);} // elf: taller ears

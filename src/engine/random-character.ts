@@ -106,6 +106,7 @@ export function rollRandomCharacter(): CharacterInit {
     classKey,
     rolledStats,
     difficulty: 'normal',
+    gender: Math.random() > 0.5 ? 'female' : 'male',
     extraBonuses,
     playerChoice,
   };

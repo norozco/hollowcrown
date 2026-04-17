@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import type { RaceKey } from '../engine/race';
 import { getRace } from '../engine/race';
 import type { ClassKey } from '../engine/classes';
-import type { Difficulty } from '../engine/character';
+import type { Difficulty, Gender } from '../engine/character';
 import { type StatBlock, STAT_KEYS, ZERO_STATS } from '../engine/stats';
 import { DiceRoller } from '../engine/dice';
 
@@ -22,6 +22,7 @@ import { DiceRoller } from '../engine/dice';
  */
 export const STEP_LABELS = [
   'Difficulty',
+  'Gender',
   'Name',
   'Race',
   'Class',
@@ -36,6 +37,7 @@ export interface CharacterCreationState {
   step: number;
 
   difficulty: Difficulty | null;
+  gender: Gender | null;
   name: string;
   raceKey: RaceKey | null;
   classKey: ClassKey | null;
@@ -61,6 +63,7 @@ export interface CharacterCreationState {
 
   /** Setters — granular so each step only touches its own field. */
   setDifficulty: (d: Difficulty) => void;
+  setGender: (g: Gender) => void;
   setName: (n: string) => void;
   setRace: (k: RaceKey) => void;
   setClass: (k: ClassKey) => void;
@@ -84,6 +87,7 @@ export interface CharacterCreationState {
 const INITIAL = {
   step: 0,
   difficulty: null,
+  gender: null,
   name: '',
   raceKey: null,
   classKey: null,
@@ -100,6 +104,7 @@ export const useCharacterCreationStore = create<CharacterCreationState>((set) =>
   ...INITIAL,
 
   setDifficulty: (difficulty) => set({ difficulty }),
+  setGender: (gender) => set({ gender }),
   setName: (name) => set({ name }),
   setRace: (raceKey) => {
     // Race change wipes any race-tied player choices (and portrait, since
@@ -182,20 +187,22 @@ export function canProceedFromStep(state: CharacterCreationState, step: number):
     case 0:
       return state.difficulty !== null;
     case 1:
-      return state.name.length > 0 && state.name.length <= 15;
+      return state.gender !== null;
     case 2:
-      return state.raceKey !== null;
+      return state.name.length > 0 && state.name.length <= 15;
     case 3:
-      return state.classKey !== null;
+      return state.raceKey !== null;
     case 4:
+      return state.classKey !== null;
+    case 5:
       return (
         state.rolls !== null &&
         state.assignment !== null &&
         isPlayerChoiceComplete(state)
       );
-    case 5:
-      return true; // portrait always has a default
     case 6:
+      return true; // portrait always has a default
+    case 7:
       return (
         state.difficulty !== null &&
         state.name.length > 0 &&

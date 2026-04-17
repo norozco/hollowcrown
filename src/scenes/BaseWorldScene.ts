@@ -9,6 +9,7 @@ import {
   getNpcPalette,
   getNpcEquip,
   getNpcRace,
+  getNpcGender,
   playerPalette,
   SPRITE_W,
   SPRITE_H,
@@ -356,11 +357,11 @@ export abstract class BaseWorldScene extends Phaser.Scene {
       return;
     }
 
-    // Generate a unique sprite with this NPC's palette + their own equipment.
     const spriteKey = `npc-${cfg.key}`;
     const npcRace = getNpcRace(cfg.key);
     const npcEquip = getNpcEquip(cfg.key);
-    generateCharacterSprite(this, spriteKey, getNpcPalette(cfg.key, data.portraitColor), npcRace, 'fighter', npcEquip);
+    const npcGender = getNpcGender(cfg.key);
+    generateCharacterSprite(this, spriteKey, getNpcPalette(cfg.key, data.portraitColor), npcRace, 'fighter', npcEquip, npcGender);
 
     const sprite = this.add.sprite(cfg.x, cfg.y, spriteKey, 0); // face down
     sprite.setDepth(10);
@@ -452,8 +453,9 @@ export abstract class BaseWorldScene extends Phaser.Scene {
     // Generate player sprite with race-specific proportions + class equipment.
     const raceKey = character?.race.key ?? 'human';
     const classKey = character?.characterClass.key ?? 'fighter';
+    const genderKey = character?.gender ?? 'male';
     const colors = playerPalette(raceKey, classKey, character?.playerChoice ?? undefined);
-    generateCharacterSprite(this, 'player-sprite', colors, raceKey, classKey);
+    generateCharacterSprite(this, 'player-sprite', colors, raceKey, classKey, undefined, genderKey);
 
     this.player = this.add.sprite(spawnX, spawnY, 'player-sprite', 0);
     this.player.setDepth(10);

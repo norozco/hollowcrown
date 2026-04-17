@@ -28,10 +28,10 @@ export function StepConfirm() {
   const createPlayer = usePlayerStore((s) => s.create);
   const setScreen = useUIStore((s) => s.setScreen);
 
-  const { name, raceKey, classKey, difficulty, playerChoice } = state;
+  const { name, raceKey, classKey, difficulty, gender, playerChoice } = state;
   const rolled = computeRolledStats(state);
 
-  if (!raceKey || !classKey || !difficulty || !rolled) {
+  if (!raceKey || !classKey || !difficulty || !gender || !rolled) {
     return (
       <section className="cc__step-content">
         <p className="cc__hint">Some required fields are missing — go back and complete them.</p>
@@ -54,6 +54,7 @@ export function StepConfirm() {
         classKey,
         rolledStats: rolled,
         difficulty,
+        gender,
         extraBonuses: state.extraBonuses ?? undefined,
         playerChoice: playerChoice ?? undefined,
       });

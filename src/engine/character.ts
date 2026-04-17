@@ -13,6 +13,7 @@ import {
 import { pickStartingWeapon, type Weapon } from './weapons';
 
 export type Difficulty = 'normal' | 'hardcore';
+export type Gender = 'male' | 'female';
 
 export const MAX_NAME_LENGTH = 15;
 
@@ -43,6 +44,7 @@ export interface CharacterInit {
   /** Stats as rolled, before any racial bonuses. */
   rolledStats: StatBlock;
   difficulty: Difficulty;
+  gender: Gender;
   /** Optional: player-choice bonuses (e.g. half-elf's two extra +1s).
    *  Get added on top of the race's locked bonuses. */
   extraBonuses?: Partial<StatBlock>;
@@ -89,6 +91,7 @@ export class Character {
   readonly race: Race;
   readonly characterClass: CharacterClass;
   readonly difficulty: Difficulty;
+  readonly gender: Gender;
   readonly playerChoice?: string;
 
   /** Final stats AFTER applying race + extra bonuses. */
@@ -115,6 +118,7 @@ export class Character {
     this.race = getRace(init.raceKey);
     this.characterClass = getClass(init.classKey);
     this.difficulty = init.difficulty;
+    this.gender = init.gender ?? 'male';
     this.playerChoice = init.playerChoice;
     this.rolledStats = { ...init.rolledStats };
 
