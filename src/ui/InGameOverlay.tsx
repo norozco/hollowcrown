@@ -18,6 +18,8 @@ import { QuestBoard } from './QuestBoard/QuestBoard';
 import { OptionsMenu } from './OptionsMenu/OptionsMenu';
 import { AchievementsScreen } from './Achievements/AchievementsScreen';
 import { AchievementToast } from './AchievementToast/AchievementToast';
+import { Bestiary } from './Bestiary/Bestiary';
+import { StatScreen } from './StatScreen/StatScreen';
 import { getCurrentRank } from '../engine/ranks';
 import { xpForLevel, MAX_LEVEL } from '../engine/character';
 import { saveGame } from '../engine/saveLoad';
@@ -65,6 +67,8 @@ export function InGameOverlay() {
   const [optionsOpen, setOptionsOpen] = useState(false);
   const [achievementsOpen, setAchievementsOpen] = useState(false);
   const [worldMapOpen, setWorldMapOpen] = useState(false);
+  const [bestiaryOpen, setBestiaryOpen] = useState(false);
+  const [statScreenOpen, setStatScreenOpen] = useState(false);
   const [gameMsg, setGameMsg] = useState<string | null>(null);
   const [toastKey, setToastKey] = useState<string | null>(null);
 
@@ -323,6 +327,12 @@ export function InGameOverlay() {
           <button type="button" className="cc__btn" onClick={() => { setWorldMapOpen(true); setMenuOpen(false); }}>
             World Map
           </button>
+          <button type="button" className="cc__btn" onClick={() => { setBestiaryOpen(true); setMenuOpen(false); }}>
+            Bestiary
+          </button>
+          <button type="button" className="cc__btn" onClick={() => { setStatScreenOpen(true); setMenuOpen(false); }}>
+            Stats
+          </button>
           <button type="button" className="cc__btn" onClick={returnToMenu}>
             Return to main menu
           </button>
@@ -341,6 +351,8 @@ export function InGameOverlay() {
       {optionsOpen && <OptionsMenu onClose={() => setOptionsOpen(false)} />}
       {achievementsOpen && <AchievementsScreen onClose={() => setAchievementsOpen(false)} />}
       {worldMapOpen && <WorldMap onClose={() => setWorldMapOpen(false)} />}
+      {bestiaryOpen && <Bestiary onClose={() => setBestiaryOpen(false)} />}
+      {statScreenOpen && <StatScreen onClose={() => setStatScreenOpen(false)} />}
       {dialogueActive && <DialogueScene />}
       {combatActive && <CombatOverlay />}
       <LevelUpPopup />

@@ -1,0 +1,123 @@
+.bestiary {
+  position: absolute;
+  inset: 0;
+  background: rgba(10, 6, 4, 0.96);
+  display: flex;
+  flex-direction: column;
+  font-family: 'Courier New', monospace;
+  color: #e4d4a0;
+  z-index: 22;
+  pointer-events: auto;
+}
+
+.bestiary__header {
+  display: flex;
+  align-items: center;
+  padding: 0.8rem 1.5rem;
+  border-bottom: 2px solid #5a3a1a;
+  background: rgba(20, 12, 8, 0.8);
+  gap: 1rem;
+}
+
+.bestiary__header h2 {
+  margin: 0;
+  color: #d4a968;
+  letter-spacing: 0.15rem;
+}
+
+.bestiary__progress {
+  flex: 1;
+  text-align: center;
+  color: #c0a040;
+  font-size: 0.9rem;
+}
+
+.bestiary__close {
+  background: none;
+  border: 1px solid #5a3a1a;
+  color: #d4a968;
+  width: 2rem;
+  height: 2rem;
+  cursor: pointer;
+  font-size: 1rem;
+  font-family: inherit;
+}
+
+.bestiary__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 0.75rem;
+  padding: 1rem 1.5rem;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.bestiary__card {
+  border: 2px solid #3a2818;
+  background: rgba(20, 12, 8, 0.6);
+  padding: 0.8rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  transition: border-color 200ms;
+}
+
+.bestiary__card--known {
+  border-left-width: 4px;
+}
+
+.bestiary__card--unknown {
+  opacity: 0.35;
+  filter: grayscale(0.7);
+  border-color: #2a1a0a;
+}
+
+.bestiary__card-name {
+  font-size: 1rem;
+  font-weight: bold;
+  color: #f4d488;
+  margin: 0;
+}
+
+.bestiary__card--unknown .bestiary__card-name {
+  color: #6a6a50;
+}
+
+.bestiary__stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.15rem 1rem;
+  font-size: 0.8rem;
+  color: #c0b080;
+}
+
+.bestiary__stat-label {
+  color: #a09060;
+}
+
+.bestiary__stat-value {
+  text-align: right;
+}
+
+.bestiary__element {
+  font-size: 0.78rem;
+  color: #a09868;
+  margin-top: 0.2rem;
+}
+
+.bestiary__loot {
+  font-size: 0.78rem;
+  color: #a09868;
+  margin-top: 0.15rem;
+}
+
+.bestiary__loot-label {
+  color: #c0a040;
+}
+
+.bestiary__kills {
+  font-size: 0.82rem;
+  color: #c06040;
+  margin-top: 0.25rem;
+  text-align: right;
+}

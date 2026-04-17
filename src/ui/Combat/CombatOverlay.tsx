@@ -15,6 +15,14 @@ import './CombatOverlay.css';
  *
  * Keys: 1=Attack, 2=Defend, 3=Flee, Enter/Space=Continue after end.
  */
+const DEATH_MESSAGES = [
+  'You fall. The darkness takes you.',
+  'The world goes quiet.',
+  'You tried. The cairn remembers.',
+  'Not yet. Not like this.',
+  'The ground is cold. You close your eyes.',
+];
+
 export function CombatOverlay() {
   const state = useCombatStore((s) => s.state);
   const monster = useCombatStore((s) => s.monster);
@@ -32,6 +40,14 @@ export function CombatOverlay() {
   const continueReadyRef = useRef(false);
   const [continueReady, setContinueReady] = useState(false);
   const [itemPopupOpen, setItemPopupOpen] = useState(false);
+  const deathMsgRef = useRef<string>('');
+
+  // Lock in a death message when defeat phase is first reached.
+  useEffect(() => {
+    if (state?.phase === 'defeat') {
+      deathMsgRef.current = DEATH_MESSAGES[Math.floor(Math.random() * DEATH_MESSAGES.length)];
+    }
+  }, [state?.phase]);
 
   // Keep ref in sync with state for keydown handler
   useEffect(() => { continueReadyRef.current = continueReady; }, [continueReady]);
@@ -252,9 +268,12 @@ export function CombatOverlay() {
               );
             })()}
             {state.phase === 'defeat' && (
-              <p className="combat__defeat">
-                {character.difficulty === 'hardcore' ? 'Death is final.' : 'Lost 10% gold. You wake in town.'}
-              </p>
+              <div className="combat__defeat">
+                <p className="combat__defeat-msg">{deathMsgRef.current}</p>
+                <p className="combat__defeat-penalty">
+                  {character.difficulty === 'hardcore' ? 'Death is final.' : 'Lost 10% gold. You wake in town.'}
+                </p>
+              </div>
             )}
             {state.phase === 'fled' && <p className="combat__fled">You escaped.</p>}
             {(state.phase === 'defeat' || state.phase === 'fled') && (state.phase !== 'defeat' || continueReady) && (

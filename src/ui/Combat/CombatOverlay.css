@@ -162,7 +162,9 @@
 .combat__waiting { color: #8a7a48; font-style: italic; margin: 0; }
 .combat__result { display: flex; gap: 0.8rem; align-items: center; flex: 1; }
 .combat__victory { color: #60c060; font-weight: bold; margin: 0; }
-.combat__defeat { color: #d04040; font-weight: bold; margin: 0; }
+.combat__defeat { text-align: center; margin: 0; }
+.combat__defeat-msg { color: #c0a040; font-style: italic; font-size: 1.05rem; margin: 0 0 0.4rem; }
+.combat__defeat-penalty { color: #d04040; font-weight: bold; margin: 0; font-size: 0.9rem; }
 .combat__fled { color: #a0a060; font-style: italic; margin: 0; }
 
 /* Victory results panel */

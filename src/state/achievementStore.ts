@@ -7,13 +7,17 @@ interface AchievementState {
   unlocked: Set<string>;
   // Tracking counters (persisted across the session)
   totalKills: number;
+  totalDeaths: number;
   itemsCrafted: number;
   chestsOpened: number;
   bossesKilled: string[];
   zonesVisited: Set<string>;
+  monstersEncountered: Record<string, { kills: number; encountered: boolean }>;
 
   // Actions
-  recordKill: () => void;
+  recordKill: (monsterKey?: string) => void;
+  recordDeath: () => void;
+  recordEncounter: (monsterKey: string) => void;
   recordCraft: () => void;
   recordChest: () => void;
   recordBossKill: (key: string) => void;
@@ -27,12 +31,39 @@ interface AchievementState {
 export const useAchievementStore = create<AchievementState>((set, get) => ({
   unlocked: new Set<string>(),
   totalKills: 0,
+  totalDeaths: 0,
   itemsCrafted: 0,
   chestsOpened: 0,
   bossesKilled: [],
   zonesVisited: new Set<string>(),
+  monstersEncountered: {},
 
-  recordKill: () => set((s) => ({ totalKills: s.totalKills + 1 })),
+  recordKill: (monsterKey?: string) =>
+    set((s) => {
+      const next: Partial<AchievementState> = { totalKills: s.totalKills + 1 };
+      if (monsterKey) {
+        const prev = s.monstersEncountered[monsterKey] ?? { kills: 0, encountered: true };
+        next.monstersEncountered = {
+          ...s.monstersEncountered,
+          [monsterKey]: { ...prev, kills: prev.kills + 1 },
+        };
+      }
+      return next;
+    }),
+
+  recordDeath: () => set((s) => ({ totalDeaths: s.totalDeaths + 1 })),
+
+  recordEncounter: (monsterKey: string) =>
+    set((s) => {
+      if (s.monstersEncountered[monsterKey]) return s;
+      return {
+        monstersEncountered: {
+          ...s.monstersEncountered,
+          [monsterKey]: { kills: 0, encountered: true },
+        },
+      };
+    }),
+
   recordCraft: () => set((s) => ({ itemsCrafted: s.itemsCrafted + 1 })),
   recordChest: () => set((s) => ({ chestsOpened: s.chestsOpened + 1 })),
 
@@ -87,9 +118,11 @@ export const useAchievementStore = create<AchievementState>((set, get) => ({
     set({
       unlocked: new Set<string>(),
       totalKills: 0,
+      totalDeaths: 0,
       itemsCrafted: 0,
       chestsOpened: 0,
       bossesKilled: [],
       zonesVisited: new Set<string>(),
+      monstersEncountered: {},
     }),
 }));

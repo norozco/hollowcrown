@@ -63,6 +63,9 @@ export const useCombatStore = create<CombatStoreState>((set, get) => ({
     const state = initCombat(character, monster);
     set({ state, monster, _enemyActing: false, returnScene: returnScene ?? null, returnX: playerX ?? 0, returnY: playerY ?? 0 });
 
+    // Track encounter in the bestiary.
+    useAchievementStore.getState().recordEncounter(monsterKey);
+
     // If enemy goes first, auto-act after a brief pause.
     if (state.phase === 'enemy_turn') {
       set({ _enemyActing: true });
@@ -261,12 +264,13 @@ export const useCombatStore = create<CombatStoreState>((set, get) => ({
 
         // Achievement tracking.
         const achStore = useAchievementStore.getState();
-        achStore.recordKill();
+        achStore.recordKill(monster.key);
         const bossKeys = ['hollow_king', 'hollow_knight'];
         if (bossKeys.includes(monster.key)) {
           achStore.recordBossKill(monster.key);
         }
       } else if (state.phase === 'defeat') {
+        useAchievementStore.getState().recordDeath();
         if (character.difficulty === 'hardcore') {
           character.hp = 0;
           player.notify();
