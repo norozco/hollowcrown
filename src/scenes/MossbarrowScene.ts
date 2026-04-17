@@ -90,12 +90,49 @@ export class MossbarrowScene extends BaseWorldScene {
         useDialogueStore.getState().start(getDialogue('mossbarrow-cairn'));
       },
     });
+
+    // Stairway entrance — south of the center stone, leads to Mossbarrow Depths.
+    const stairCx = cairnCx;
+    const stairCy = cairnCy + 3 * TILE;
+    // Visual: dark rectangle to suggest a pit/descent
+    const stairRect = this.add.rectangle(stairCx, stairCy, 64, 40, 0x101018);
+    stairRect.setStrokeStyle(2, 0x303040);
+    stairRect.setDepth(4);
+    this.add
+      .text(stairCx, stairCy - 2, 'Stairs Down', {
+        fontFamily: 'Courier New',
+        fontSize: '10px',
+        color: '#6060a0',
+      })
+      .setOrigin(0.5, 0.5)
+      .setDepth(5);
+    this.add
+      .text(stairCx, stairCy + 12, '▼', {
+        fontFamily: 'Courier New',
+        fontSize: '14px',
+        color: '#4040a8',
+      })
+      .setOrigin(0.5, 0.5)
+      .setDepth(5);
+
+    // Exit trigger — slightly wider than the visual so it's easy to enter
+    this.addExit({
+      x: stairCx - 32,
+      y: stairCy - 20,
+      w: 64,
+      h: 40,
+      targetScene: 'MossbarrowDepthsScene',
+      targetSpawn: 'fromMossbarrow',
+    });
   }
 
   protected spawnAt(name: string): { x: number; y: number } {
     switch (name) {
       case 'fromGreenhollow':
         return { x: 2 * TILE + 16, y: WORLD_H / 2 };
+      case 'fromDepths':
+        // Surface exit — just south of the stair entrance (center stone area)
+        return { x: 22 * TILE, y: 15 * TILE };
       case 'default':
       default:
         return { x: 2 * TILE + 16, y: WORLD_H / 2 };

@@ -4,6 +4,7 @@ import { PlaceholderScene } from '../scenes/PlaceholderScene';
 import { TownScene } from '../scenes/TownScene';
 import { GreenhollowScene } from '../scenes/GreenhollowScene';
 import { MossbarrowScene } from '../scenes/MossbarrowScene';
+import { MossbarrowDepthsScene } from '../scenes/MossbarrowDepthsScene';
 import { InteriorScene } from '../scenes/InteriorScene';
 import { CombatScene } from '../scenes/CombatScene';
 
@@ -32,5 +33,5 @@ export const gameConfig: Phaser.Types.Core.GameConfig = {
       debug: false,
     },
   },
-  scene: [BootScene, PlaceholderScene, TownScene, GreenhollowScene, MossbarrowScene, InteriorScene, CombatScene],
+  scene: [BootScene, PlaceholderScene, TownScene, GreenhollowScene, MossbarrowScene, MossbarrowDepthsScene, InteriorScene, CombatScene],
 };
