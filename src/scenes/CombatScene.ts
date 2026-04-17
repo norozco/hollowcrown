@@ -1,6 +1,7 @@
 import * as Phaser from 'phaser';
 import { useCombatStore } from '../state/combatStore';
 import { usePlayerStore } from '../state/playerStore';
+import { StatusEffects } from '../engine/combat';
 import { generateTileset, TILE_SIZE } from './tiles/generateTiles';
 import {
   generateCharacterSprite,
@@ -23,6 +24,7 @@ export class CombatScene extends Phaser.Scene {
   private enemySprite!: Phaser.GameObjects.Sprite;
   private playerHpBar!: Phaser.GameObjects.Graphics;
   private enemyHpBar!: Phaser.GameObjects.Graphics;
+  private statusIconsGfx!: Phaser.GameObjects.Graphics;
   private playerHpText!: Phaser.GameObjects.Text;
   private enemyHpText!: Phaser.GameObjects.Text;
   // Name refs stored but only used for positioning in create.
@@ -114,6 +116,7 @@ export class CombatScene extends Phaser.Scene {
     // HP bars (Phaser graphics — updated each frame)
     this.playerHpBar = this.add.graphics().setDepth(20);
     this.enemyHpBar = this.add.graphics().setDepth(20);
+    this.statusIconsGfx = this.add.graphics().setDepth(22);
     this.playerHpText = this.add.text(this.playerBaseX, playerY - SPRITE_H * 1.5, '', {
       fontFamily: 'Courier New', fontSize: '13px', color: '#ffffff',
       stroke: '#000000', strokeThickness: 2,
@@ -172,6 +175,11 @@ export class CombatScene extends Phaser.Scene {
     this.enemyHpText.setText(`${state.monsterHp}/${monster.maxHp}`);
     this.enemyHpText.setPosition(this.enemyBaseX, eY - eHalfH - 12);
 
+    // Status effect indicators under HP bars
+    this.statusIconsGfx.clear();
+    this.drawStatusIcons(this.playerBaseX - 40, this.playerSprite.y - SPRITE_H * 1.3, state.playerStatus);
+    this.drawStatusIcons(this.enemyBaseX - 40, eY - eHalfH - 4, state.monsterStatus);
+
     // Detect new log entries → trigger animations
     if (state.log.length > this.lastLogLength) {
       const newEntries = state.log.slice(this.lastLogLength);
@@ -189,6 +197,15 @@ export class CombatScene extends Phaser.Scene {
           this.flashSprite(this.playerSprite);
         } else if (entry.type === 'enemy_miss') {
           this.animateEnemyAttack();
+        } else {
+          // Status-effect damage numbers
+          if (entry.text.includes('Poison burns')) {
+            this.showDamageNumber(this.playerBaseX, this.playerSprite.y - SPRITE_H, entry.text, '#60c060');
+          } else if (entry.text.includes('Fire sears')) {
+            this.showDamageNumber(this.playerBaseX, this.playerSprite.y - SPRITE_H, entry.text, '#e08030');
+          } else if (entry.text.includes('Wound bleeds')) {
+            this.showDamageNumber(this.playerBaseX, this.playerSprite.y - SPRITE_H, entry.text, '#d04040');
+          }
         }
       }
     }
@@ -324,11 +341,11 @@ export class CombatScene extends Phaser.Scene {
     });
   }
 
-  private showDamageNumber(x: number, y: number, logText: string): void {
+  private showDamageNumber(x: number, y: number, logText: string, colorOverride?: string): void {
     // Extract damage from log text
     const dmgMatch = logText.match(/(\d+) damage/);
     const text = dmgMatch ? `-${dmgMatch[1]}` : 'Miss';
-    const color = dmgMatch ? '#ff4040' : '#a0a060';
+    const color = colorOverride ?? (dmgMatch ? '#ff4040' : '#a0a060');
 
     const dmgText = this.add.text(x + Phaser.Math.Between(-20, 20), y, text, {
       fontFamily: 'Courier New', fontSize: '20px', color,
@@ -343,5 +360,30 @@ export class CombatScene extends Phaser.Scene {
       ease: 'Power2',
       onComplete: () => dmgText.destroy(),
     });
+  }
+
+  private drawStatusIcons(x: number, y: number, status: StatusEffects): void {
+    // Colors per effect: poison=green, burn=orange, bleed=red, stun=yellow, marked=blue
+    const effectColors: Record<keyof StatusEffects, number> = {
+      poison: 0x60c060,
+      burn:   0xe08030,
+      bleed:  0xd04040,
+      stun:   0xe0e040,
+      marked: 0x40a0e0,
+    };
+
+    // We clear and redraw each frame via the shared statusIconsGfx; drawing here
+    // accumulates calls each frame so we use the graphics object cleared in update.
+    // Each dot is drawn at an offset based on its position in the active list.
+    let offsetX = 0;
+    for (const [key, turns] of Object.entries(status) as [keyof StatusEffects, number][]) {
+      if (turns <= 0) continue;
+      const col = effectColors[key];
+      this.statusIconsGfx.fillStyle(col, 0.9);
+      this.statusIconsGfx.fillCircle(x + offsetX + 5, y + 5, 5);
+      this.statusIconsGfx.lineStyle(1, 0x000000, 0.6);
+      this.statusIconsGfx.strokeCircle(x + offsetX + 5, y + 5, 5);
+      offsetX += 14;
+    }
   }
 }

@@ -69,6 +69,31 @@
   font-weight: bold;
 }
 
+.combat__status {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.2rem 1rem;
+  min-height: 1.4rem;
+  border-top: 1px solid #2a1810;
+}
+.combat__status-side {
+  display: flex;
+  gap: 0.4rem;
+  align-items: center;
+}
+.combat__status-badge {
+  font-size: 0.75rem;
+  padding: 1px 6px;
+  border-radius: 3px;
+  background: rgba(40, 20, 10, 0.7);
+  border: 1px solid #3a2818;
+}
+.combat__status--poison { color: #60c060; border-color: #306030; }
+.combat__status--burn { color: #e08030; border-color: #804020; }
+.combat__status--bleed { color: #d04040; border-color: #802020; }
+.combat__status--stun { color: #e0e040; border-color: #808020; }
+.combat__status--marked { color: #40a0e0; border-color: #205080; }
+
 .combat__waiting { color: #8a7a48; font-style: italic; margin: 0; }
 .combat__result { display: flex; gap: 0.8rem; align-items: center; flex: 1; }
 .combat__victory { color: #60c060; font-weight: bold; margin: 0; }

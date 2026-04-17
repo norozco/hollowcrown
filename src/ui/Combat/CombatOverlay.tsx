@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { useCombatStore } from '../../state/combatStore';
 import { usePlayerStore } from '../../state/playerStore';
-import { CLASS_SKILLS } from '../../engine/combat';
+import { CLASS_SKILLS, StatusEffects } from '../../engine/combat';
 import './CombatOverlay.css';
 
 /**
@@ -46,6 +46,27 @@ export function CombatOverlay() {
 
   if (!state || !monster || !character) return null;
 
+  const STATUS_ICONS: Record<keyof StatusEffects, string> = {
+    poison: '☠',
+    burn: '🔥',
+    bleed: '🩸',
+    stun: '⚡',
+    marked: '🎯',
+  };
+
+  function StatusSide({ status, enemy }: { status: StatusEffects; enemy?: boolean }) {
+    const entries = (Object.entries(status) as [keyof StatusEffects, number][]).filter(([, v]) => v > 0);
+    return (
+      <div className={`combat__status-side${enemy ? ' combat__status-side--enemy' : ''}`}>
+        {entries.map(([name, turns]) => (
+          <span key={name} className={`combat__status-badge combat__status--${name}`}>
+            {STATUS_ICONS[name]} {turns}
+          </span>
+        ))}
+      </div>
+    );
+  }
+
   const isOver = state.phase === 'victory' || state.phase === 'defeat' || state.phase === 'fled';
   const isPlayerTurn = state.phase === 'player_turn';
 
@@ -58,6 +79,11 @@ export function CombatOverlay() {
           </p>
         ))}
         <div ref={logEndRef} />
+      </div>
+
+      <div className="combat__status">
+        <StatusSide status={state.playerStatus} />
+        <StatusSide status={state.monsterStatus} enemy />
       </div>
 
       <div className="combat__actions">
