@@ -169,6 +169,21 @@ export class DepthsFloor3Scene extends BaseWorldScene {
       },
     });
 
+    // ── Lore interactable ──
+    // Pile of broken weapons near the throne
+    const weaponPile = this.add.circle(11 * TILE + TILE / 2, 14 * TILE + TILE / 2, 5, 0xa09878, 0.6);
+    weaponPile.setDepth(6);
+    this.spawnInteractable({
+      sprite: weaponPile as any,
+      label: 'Examine weapon pile',
+      radius: 20,
+      action: () => {
+        window.dispatchEvent(new CustomEvent('gameMessage', {
+          detail: 'Swords, axes, a staff. All broken. All pointed at the throne. None reached it.',
+        }));
+      },
+    });
+
     // Boss enemy — The Hollow King (on walkable tile)
     this.spawnEnemy({ monsterKey: 'hollow_king', x: 15 * TILE, y: 14 * TILE });
 

@@ -171,6 +171,21 @@ export class DepthsFloor2Scene extends BaseWorldScene {
       },
     });
 
+    // ── Lore interactable ──
+    // Open sarcophagus lid — south chamber sarcophagus, lid pushed aside
+    const sarcLid = this.add.circle(6 * TILE + TILE / 2, 14 * TILE + TILE / 2, 5, 0xa09878, 0.6);
+    sarcLid.setDepth(6);
+    this.spawnInteractable({
+      sprite: sarcLid as any,
+      label: 'Examine sarcophagus',
+      radius: 20,
+      action: () => {
+        window.dispatchEvent(new CustomEvent('gameMessage', {
+          detail: 'The lid is pushed aside. Whatever was inside left on its own.',
+        }));
+      },
+    });
+
     // Enemies — wraiths and spiders (positions on walkable floor tiles)
     this.spawnEnemy({ monsterKey: 'spider', x: 8 * TILE, y: 4 * TILE });
     this.spawnEnemy({ monsterKey: 'wraith', x: 11 * TILE, y: 5 * TILE });

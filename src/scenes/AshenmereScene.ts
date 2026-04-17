@@ -21,6 +21,26 @@ export class AshenmereScene extends BaseWorldScene {
 
   protected getZoneName(): string | null { return 'Ashenmere Marshes'; }
 
+  protected getRandomEvents(): Array<() => void> {
+    return [
+      () => {
+        window.dispatchEvent(new CustomEvent('gameMessage', {
+          detail: 'Something surfaces in the water nearby. When you look, only ripples remain.',
+        }));
+      },
+      () => {
+        window.dispatchEvent(new CustomEvent('gameMessage', {
+          detail: 'The fog thickens. For a moment, you see shapes — then nothing.',
+        }));
+      },
+      () => {
+        window.dispatchEvent(new CustomEvent('gameMessage', {
+          detail: 'A firefly lands on your shoulder, glows once, and vanishes.',
+        }));
+      },
+    ];
+  }
+
   protected layout(): void {
     generateTileset(this);
 
@@ -165,6 +185,39 @@ export class AshenmereScene extends BaseWorldScene {
         useInventoryStore.getState().addItem('iron_ore');
         window.dispatchEvent(new CustomEvent('gameMessage', { detail: 'Found iron ore!' }));
         ironOre.destroy();
+      },
+    });
+
+    // ── Lore interactables ──
+
+    // Submerged rooftop (in the water, east side of the central island)
+    const subRoof = this.add.circle(24 * TILE, 4 * TILE, 5, 0xa09878, 0.6);
+    subRoof.setDepth(6);
+    this.spawnInteractable({
+      sprite: subRoof as any,
+      label: 'Examine submerged structure',
+      radius: 20,
+      action: () => {
+        window.dispatchEvent(new CustomEvent('gameMessage', {
+          detail: 'Stone tiles just beneath the water. A chimney, half-collapsed. Someone lived here once.',
+        }));
+      },
+    });
+
+    // Warning post at the marsh edge (west side near entrance)
+    const warnPost = this.add.rectangle(4 * TILE, 8 * TILE, 4, 28, 0x5a3a1a);
+    warnPost.setDepth(6);
+    const warnCloth = this.add.rectangle(4 * TILE + 8, 8 * TILE - 4, 16, 10, 0x6a3030);
+    warnCloth.setAlpha(0.7);
+    warnCloth.setDepth(6);
+    this.spawnInteractable({
+      sprite: warnPost as any,
+      label: 'Examine warning post',
+      radius: 20,
+      action: () => {
+        window.dispatchEvent(new CustomEvent('gameMessage', {
+          detail: 'A post driven into the mud. Cloth wrapped around it, faded. It might have been red once.',
+        }));
       },
     });
 

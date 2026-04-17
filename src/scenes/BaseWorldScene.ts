@@ -106,6 +106,10 @@ export abstract class BaseWorldScene extends Phaser.Scene {
 
   /** Guards against re-entering checkExits during a transition. */
   private transitionLock = false;
+
+  // ── World event system ──
+  private worldEventTimer = 0;
+  private readonly worldEventCooldown = 30000; // 30 s between checks
   /** Brief immunity after returning from combat — prevents instant re-engage on flee. */
   private combatImmunity = 0;
   /** Exit zone the player spawned inside — suppressed until they walk out of it. */
@@ -123,6 +127,9 @@ export abstract class BaseWorldScene extends Phaser.Scene {
 
   /** Override in subclasses to return the zone's display name. Return null to skip the indicator. */
   protected getZoneName(): string | null { return null; }
+
+  /** Override in outdoor zones to supply random events that can fire while walking. */
+  protected getRandomEvents(): Array<() => void> { return []; }
 
   // ──────────────────────────────────────────────────────────────
   // Phaser lifecycle
@@ -219,6 +226,7 @@ export abstract class BaseWorldScene extends Phaser.Scene {
     this.updateEnemyPatrol();
     if (this.combatImmunity <= 0) this.checkEnemyContact();
     this.checkExits();
+    this.checkWorldEvents();
   }
 
   // ──────────────────────────────────────────────────────────────
@@ -910,6 +918,23 @@ export abstract class BaseWorldScene extends Phaser.Scene {
         return;
       }
     }
+  }
+
+  private checkWorldEvents(): void {
+    // Only fire in zones that have a name (outdoor/overworld scenes).
+    if (!this.getZoneName()) return;
+
+    this.worldEventTimer += this.game.loop.delta;
+    if (this.worldEventTimer < this.worldEventCooldown) return;
+    this.worldEventTimer = 0;
+
+    // 15% chance per check.
+    if (Math.random() > 0.15) return;
+
+    const events = this.getRandomEvents();
+    if (events.length === 0) return;
+    const event = events[Math.floor(Math.random() * events.length)];
+    try { event(); } catch (err) { console.warn('World event error:', err); }
   }
 
   private checkExits(): void {

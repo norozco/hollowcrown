@@ -134,6 +134,21 @@ export class MossbarrowDepthsScene extends BaseWorldScene {
       },
     });
 
+    // ── Lore interactable ──
+    // Scratched message on the wall (near the east alcove entrance)
+    const wallScratch = this.add.circle(13 * TILE + TILE / 2, 5 * TILE + TILE / 2, 5, 0xa09878, 0.6);
+    wallScratch.setDepth(6);
+    this.spawnInteractable({
+      sprite: wallScratch as any,
+      label: 'Read scratched message',
+      radius: 20,
+      action: () => {
+        window.dispatchEvent(new CustomEvent('gameMessage', {
+          detail: "Scratched into the stone: 'The spiders came from below. Do not sleep.'",
+        }));
+      },
+    });
+
     // Enemies — spiders along the corridor (positions unchanged, on walkable tiles)
     this.spawnEnemy({ monsterKey: 'spider', x: 8 * TILE, y: 5 * TILE });
     this.spawnEnemy({ monsterKey: 'spider', x: 9 * TILE, y: 10 * TILE });

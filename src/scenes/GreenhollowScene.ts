@@ -17,6 +17,44 @@ export class GreenhollowScene extends BaseWorldScene {
 
   protected getZoneName(): string | null { return 'Greenhollow Woods'; }
 
+  protected getRandomEvents(): Array<() => void> {
+    return [
+      // Traveling merchant — temporary interactable that opens the shop
+      () => {
+        window.dispatchEvent(new CustomEvent('gameMessage', {
+          detail: 'A traveling merchant waves from the path.',
+        }));
+        const merchant = this.add.circle(this.player.x + 60, this.player.y, 10, 0xd4a968);
+        merchant.setDepth(10);
+        this.spawnInteractable({
+          sprite: merchant as any,
+          label: 'Trade with merchant',
+          radius: 28,
+          action: () => {
+            useInventoryStore.getState().openShop();
+            merchant.destroy();
+          },
+        });
+        this.time.delayedCall(20000, () => { if (merchant.active) merchant.destroy(); });
+      },
+      // Ambush — wolf spawns nearby
+      () => {
+        window.dispatchEvent(new CustomEvent('gameMessage', {
+          detail: 'Something moves in the bushes.',
+        }));
+        this.spawnEnemy({ monsterKey: 'wolf', x: this.player.x + 80, y: this.player.y });
+      },
+      // Found item — random consumable
+      () => {
+        const found = Math.random() > 0.5 ? 'health_potion' : 'antidote';
+        window.dispatchEvent(new CustomEvent('gameMessage', {
+          detail: 'You spot something glinting in the grass.',
+        }));
+        useInventoryStore.getState().addItem(found);
+      },
+    ];
+  }
+
   protected layout(): void {
     generateTileset(this);
 
@@ -134,6 +172,52 @@ export class GreenhollowScene extends BaseWorldScene {
         useInventoryStore.getState().addItem('iron_ore');
         window.dispatchEvent(new CustomEvent('gameMessage', { detail: 'Found iron ore!' }));
         ironOre1.destroy();
+      },
+    });
+
+    // ── Lore interactables ──
+
+    // Old grave marker off the main path (west side of the forest)
+    const grave = this.add.rectangle(4 * TILE, 17 * TILE, 20, 28, 0x706858);
+    grave.setStrokeStyle(1, 0x4a3a28);
+    grave.setDepth(6);
+    this.spawnInteractable({
+      sprite: grave as any,
+      label: 'Examine grave marker',
+      radius: 20,
+      action: () => {
+        window.dispatchEvent(new CustomEvent('gameMessage', {
+          detail: "Here lies Maren. She went looking for something. She found it.",
+        }));
+      },
+    });
+
+    // Broken cart near Orric's cabin
+    const cartBody = this.add.rectangle(27 * TILE, 13 * TILE, 36, 20, 0x5a3a18);
+    cartBody.setStrokeStyle(1, 0x3a2210);
+    cartBody.setDepth(6);
+    this.spawnInteractable({
+      sprite: cartBody as any,
+      label: 'Examine overturned cart',
+      radius: 22,
+      action: () => {
+        window.dispatchEvent(new CustomEvent('gameMessage', {
+          detail: 'An overturned cart. Whatever it carried is long gone. Claw marks on the wood.',
+        }));
+      },
+    });
+
+    // Carved tree (small circle marker on a tree position)
+    const carvedTree = this.add.circle(7 * TILE, 10 * TILE, 5, 0xa09878, 0.6);
+    carvedTree.setDepth(6);
+    this.spawnInteractable({
+      sprite: carvedTree as any,
+      label: 'Examine carved tree',
+      radius: 20,
+      action: () => {
+        window.dispatchEvent(new CustomEvent('gameMessage', {
+          detail: 'Someone carved initials into the bark. The tree has grown around them, half-swallowed.',
+        }));
       },
     });
 

@@ -21,6 +21,21 @@ export class TownScene extends BaseWorldScene {
 
   protected getZoneName(): string | null { return 'Ashenvale'; }
 
+  protected getRandomEvents(): Array<() => void> {
+    return [
+      () => {
+        window.dispatchEvent(new CustomEvent('gameMessage', {
+          detail: 'A cat darts across the path.',
+        }));
+      },
+      () => {
+        window.dispatchEvent(new CustomEvent('gameMessage', {
+          detail: 'An old woman nods to you from a doorway. When you look again, the door is closed.',
+        }));
+      },
+    ];
+  }
+
   protected layout(): void {
     // Generate the pixel-art tileset (idempotent).
     generateTileset(this);
@@ -209,6 +224,45 @@ export class TownScene extends BaseWorldScene {
         }));
       }, 3000);
     }
+
+    // ── Lore interactables ──
+
+    // Memorial wall near the Guild
+    const memWall = this.add.rectangle(
+      (GUILD.x + GUILD.w) * TILE - TILE / 2, (GUILD.y + 1) * TILE, 6, 48, 0x7a6a50,
+    );
+    memWall.setStrokeStyle(1, 0x4a3a28);
+    memWall.setDepth(6);
+    this.spawnInteractable({
+      sprite: memWall as any,
+      label: 'Examine memorial wall',
+      radius: 20,
+      action: () => {
+        window.dispatchEvent(new CustomEvent('gameMessage', {
+          detail: 'Names are carved here. Some recent. The stone is never full.',
+        }));
+      },
+    });
+
+    // Notice board near the south exit
+    const boardPost = this.add.rectangle(20 * TILE, 13 * TILE, 4, 24, 0x5a3a1a);
+    boardPost.setDepth(6);
+    const boardFace = this.add.rectangle(20 * TILE, 13 * TILE - 14, 52, 28, 0x4a3420);
+    boardFace.setStrokeStyle(1, 0x2a1810);
+    boardFace.setDepth(6);
+    this.add.text(20 * TILE, 13 * TILE - 14, 'NOTICE', {
+      fontFamily: 'Courier New', fontSize: '8px', color: '#d4c488',
+    }).setOrigin(0.5).setDepth(7);
+    this.spawnInteractable({
+      sprite: boardFace as any,
+      label: 'Read notice board',
+      radius: 24,
+      action: () => {
+        window.dispatchEvent(new CustomEvent('gameMessage', {
+          detail: 'Warning: Greenhollow Woods — wolves reported. Guild escort recommended.',
+        }));
+      },
+    });
 
     // ── Random loot bags (rare — 40% spawn chance) ──
     this.spawnLootBag({

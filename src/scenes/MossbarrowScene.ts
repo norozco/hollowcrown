@@ -19,6 +19,21 @@ export class MossbarrowScene extends BaseWorldScene {
 
   protected getZoneName(): string | null { return 'Mossbarrow Cairn'; }
 
+  protected getRandomEvents(): Array<() => void> {
+    return [
+      () => {
+        window.dispatchEvent(new CustomEvent('gameMessage', {
+          detail: 'The ground trembles briefly. Dust falls from the cairn stones.',
+        }));
+      },
+      () => {
+        window.dispatchEvent(new CustomEvent('gameMessage', {
+          detail: 'A cold wind passes through. The token in your pocket stirs.',
+        }));
+      },
+    ];
+  }
+
   protected layout(): void {
     generateTileset(this);
 
@@ -97,6 +112,37 @@ export class MossbarrowScene extends BaseWorldScene {
         useInventoryStore.getState().addItem('bone_shard');
         window.dispatchEvent(new CustomEvent('gameMessage', { detail: 'Found bone shard!' }));
         boneShard.destroy();
+      },
+    });
+
+    // ── Lore interactables ──
+
+    // Crumbling stone tablet near the entrance path
+    const tablet = this.add.rectangle(6 * TILE, 11 * TILE, 22, 30, 0x706858);
+    tablet.setStrokeStyle(1, 0x4a3a28);
+    tablet.setDepth(6);
+    this.spawnInteractable({
+      sprite: tablet as any,
+      label: 'Examine stone tablet',
+      radius: 20,
+      action: () => {
+        window.dispatchEvent(new CustomEvent('gameMessage', {
+          detail: "The old script is worn. One word is still legible: 'BENEATH.'",
+        }));
+      },
+    });
+
+    // Discarded shield near a cairn stone
+    const shield = this.add.circle(25 * TILE, 9 * TILE, 5, 0xa09878, 0.6);
+    shield.setDepth(6);
+    this.spawnInteractable({
+      sprite: shield as any,
+      label: 'Examine discarded shield',
+      radius: 20,
+      action: () => {
+        window.dispatchEvent(new CustomEvent('gameMessage', {
+          detail: 'A shield, face-down. The arm strap is broken. The owner did not drop it gently.',
+        }));
       },
     });
 
