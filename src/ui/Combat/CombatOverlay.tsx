@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { useCombatStore } from '../../state/combatStore';
 import { usePlayerStore } from '../../state/playerStore';
+import { CLASS_SKILLS } from '../../engine/combat';
 import './CombatOverlay.css';
 
 /**
@@ -28,8 +29,9 @@ export function CombatOverlay() {
     const onKey = (e: KeyboardEvent) => {
       if (state.phase === 'player_turn') {
         if (e.key === '1') { e.preventDefault(); act('attack'); }
-        else if (e.key === '2') { e.preventDefault(); act('defend'); }
-        else if (e.key === '3') { e.preventDefault(); act('flee'); }
+        else if (e.key === '2') { e.preventDefault(); act('skill'); }
+        else if (e.key === '3') { e.preventDefault(); act('defend'); }
+        else if (e.key === '4') { e.preventDefault(); act('flee'); }
       } else if (state.phase === 'victory' || state.phase === 'defeat' || state.phase === 'fled') {
         if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); finish(); }
       }
@@ -60,11 +62,27 @@ export function CombatOverlay() {
             <button type="button" className="combat__btn" onClick={() => act('attack')}>
               <span className="combat__btn-key">1</span> Attack
             </button>
+            {character && CLASS_SKILLS[character.characterClass.key] && (
+              <button
+                type="button"
+                className="combat__btn"
+                onClick={() => act('skill')}
+                title={CLASS_SKILLS[character.characterClass.key].description}
+              >
+                <span className="combat__btn-key">2</span>
+                {CLASS_SKILLS[character.characterClass.key].name}
+                {CLASS_SKILLS[character.characterClass.key].mpCost > 0 && (
+                  <span style={{ color: '#80a0e0', fontSize: '0.75rem', marginLeft: '0.3rem' }}>
+                    ({CLASS_SKILLS[character.characterClass.key].mpCost} MP)
+                  </span>
+                )}
+              </button>
+            )}
             <button type="button" className="combat__btn" onClick={() => act('defend')}>
-              <span className="combat__btn-key">2</span> Defend
+              <span className="combat__btn-key">3</span> Defend
             </button>
             <button type="button" className="combat__btn combat__btn--flee" onClick={() => act('flee')}>
-              <span className="combat__btn-key">3</span> Flee
+              <span className="combat__btn-key">4</span> Flee
             </button>
           </>
         )}

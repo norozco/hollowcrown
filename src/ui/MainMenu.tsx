@@ -2,6 +2,7 @@ import { useUIStore } from '../state/uiStore';
 import { useCharacterCreationStore } from '../state/characterCreationStore';
 import { usePlayerStore } from '../state/playerStore';
 import { rollRandomCharacter } from '../engine/random-character';
+import { loadGame, getSaveSlots } from '../engine/saveLoad';
 import './MainMenu.css';
 
 /**
@@ -51,7 +52,13 @@ export function MainMenu() {
         </button>
         <button
           type="button"
-          onClick={() => alert('Load game: coming in Milestone 14')}
+          onClick={() => {
+            const slots = getSaveSlots().filter((s) => s.timestamp !== null);
+            if (slots.length === 0) { alert('No saves found.'); return; }
+            const latest = slots.sort((a, b) => (b.timestamp ?? 0) - (a.timestamp ?? 0))[0];
+            if (loadGame(latest.slot)) { setScreen('game'); }
+            else { alert('Failed to load save.'); }
+          }}
         >
           Load Game
         </button>

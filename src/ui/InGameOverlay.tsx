@@ -10,6 +10,8 @@ import { QuestTracker } from './QuestTracker/QuestTracker';
 import { CombatOverlay } from './Combat/CombatOverlay';
 import { InventoryScreen } from './Inventory/InventoryScreen';
 import { ShopScreen } from './Inventory/ShopScreen';
+import { LevelUpPopup } from './LevelUp/LevelUpPopup';
+import { saveGame } from '../engine/saveLoad';
 import './InGameOverlay.css';
 
 /**
@@ -127,6 +129,12 @@ export function InGameOverlay() {
           >
             Resume
           </button>
+          <button type="button" className="cc__btn" onClick={() => { saveGame('slot1'); setMenuOpen(false); }}>
+            Save (Slot 1)
+          </button>
+          <button type="button" className="cc__btn" onClick={() => { saveGame('slot2'); setMenuOpen(false); }}>
+            Save (Slot 2)
+          </button>
           <button type="button" className="cc__btn" onClick={returnToMenu}>
             Return to main menu
           </button>
@@ -141,6 +149,7 @@ export function InGameOverlay() {
       {shopOpen && <ShopScreen onClose={closeShop} />}
       {dialogueActive && <DialogueScene />}
       {combatActive && <CombatOverlay />}
+      <LevelUpPopup />
     </div>
   );
 }

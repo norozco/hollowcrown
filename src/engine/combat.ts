@@ -20,7 +20,23 @@ import { modifier } from './stats';
 import type { Character } from './character';
 import type { Monster } from './monster';
 
-export type CombatAction = 'attack' | 'defend' | 'flee';
+/** Class-specific combat skills with MP cost and special effects. */
+export interface CombatSkill {
+  name: string;
+  mpCost: number;
+  description: string;
+}
+
+export const CLASS_SKILLS: Record<string, CombatSkill> = {
+  fighter:  { name: 'Action Surge', mpCost: 0, description: 'Strike twice in one turn.' },
+  rogue:    { name: 'Sneak Attack', mpCost: 0, description: 'Deal bonus damage from the shadows.' },
+  wizard:   { name: 'Fireball', mpCost: 8, description: 'Hurl a ball of fire for heavy damage.' },
+  cleric:   { name: 'Cure Wounds', mpCost: 6, description: 'Heal yourself with divine light.' },
+  ranger:   { name: "Hunter's Mark", mpCost: 4, description: 'Mark the enemy — your next attacks deal bonus damage.' },
+  bard:     { name: 'Vicious Mockery', mpCost: 3, description: 'Insult the enemy, reducing their next attack.' },
+};
+
+export type CombatAction = 'attack' | 'defend' | 'flee' | 'skill';
 export type CombatPhase = 'start' | 'player_turn' | 'enemy_turn' | 'victory' | 'defeat' | 'fled';
 
 export interface CombatLogEntry {
@@ -111,6 +127,68 @@ export function playerAct(
   } else if (action === 'defend') {
     s.playerDefending = true;
     s.log.push({ text: 'You brace yourself. (+2 AC until your next turn)', type: 'info' });
+  } else if (action === 'skill') {
+    const classKey = player.characterClass.key;
+    const skill = CLASS_SKILLS[classKey];
+    if (!skill) {
+      s.log.push({ text: 'No skill available.', type: 'info' });
+    } else if (player.mp < skill.mpCost) {
+      s.log.push({ text: `Not enough MP for ${skill.name} (need ${skill.mpCost}).`, type: 'info' });
+    } else {
+      player.spendMp(skill.mpCost);
+
+      if (classKey === 'cleric') {
+        // Cure Wounds: heal self
+        const healAmt = 8 + modifier(player.stats.wis) * 2;
+        s.playerHp = Math.min(player.derived.maxHp, s.playerHp + healAmt);
+        s.log.push({ text: `${skill.name}! You heal for ${healAmt} HP.`, type: 'player_hit' });
+      } else if (classKey === 'wizard') {
+        // Fireball: guaranteed heavy damage
+        const dmg = 10 + modifier(player.stats.int) * 2;
+        s.monsterHp = Math.max(0, s.monsterHp - dmg);
+        s.log.push({ text: `${skill.name}! ${dmg} fire damage!`, type: 'player_hit' });
+      } else if (classKey === 'fighter') {
+        // Action Surge: two attacks in one turn
+        for (let strike = 0; strike < 2; strike++) {
+          const r = dice.d(20);
+          const b = modifier(player.stats.str);
+          const t = r + b;
+          const ac = monster.ac + (s.monsterDefending ? 2 : 0);
+          if (r === 20 || (r !== 1 && t >= ac)) {
+            const d2 = Math.max(1, modifier(player.stats.str) + 3);
+            s.monsterHp = Math.max(0, s.monsterHp - d2);
+            s.log.push({ text: `${skill.name} strike ${strike+1}! (${r}+${b}=${t}) — ${d2} damage!`, type: 'player_hit' });
+          } else {
+            s.log.push({ text: `${skill.name} strike ${strike+1}! (${r}+${b}=${t}) — Miss.`, type: 'player_miss' });
+          }
+        }
+      } else if (classKey === 'rogue') {
+        // Sneak Attack: guaranteed hit + bonus damage
+        const dmg = 6 + modifier(player.stats.dex) * 2;
+        s.monsterHp = Math.max(0, s.monsterHp - dmg);
+        s.log.push({ text: `${skill.name}! ${dmg} damage from the shadows!`, type: 'player_hit' });
+      } else if (classKey === 'ranger') {
+        // Hunter's Mark: attack with bonus damage
+        const r = dice.d(20);
+        const b = modifier(player.stats.dex);
+        const t = r + b;
+        const ac = monster.ac;
+        const bonusDmg = 4;
+        if (r === 20 || (r !== 1 && t >= ac)) {
+          const d2 = Math.max(1, modifier(player.stats.dex) + 2 + bonusDmg);
+          s.monsterHp = Math.max(0, s.monsterHp - d2);
+          s.log.push({ text: `${skill.name}! Marked shot for ${d2} damage!`, type: 'player_hit' });
+        } else {
+          s.log.push({ text: `${skill.name}! (${r}+${b}=${t}) — Missed!`, type: 'player_miss' });
+        }
+      } else if (classKey === 'bard') {
+        // Vicious Mockery: small damage + enemy debuff (reduced next attack)
+        const dmg = 3 + modifier(player.stats.cha);
+        s.monsterHp = Math.max(0, s.monsterHp - dmg);
+        s.monsterDefending = false; // cancel any defend
+        s.log.push({ text: `${skill.name}! "${monster.name} couldn't pour water from a boot with instructions on the heel." ${dmg} psychic damage!`, type: 'player_hit' });
+      }
+    }
   } else if (action === 'flee') {
     const roll = dice.d(20);
     const bonus = modifier(player.stats.dex);
