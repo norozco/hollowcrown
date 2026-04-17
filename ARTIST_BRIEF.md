@@ -105,11 +105,11 @@ Work these in order. Each row is a shippable chunk — commit + push between row
 
 ### v0 art pass 2 — Tileset + character sprites
 
-1. [ ] Ground tiles — grass (Ashenvale), forest floor (Greenhollow), dirt path, stone
-2. [ ] Building tilesets — wood walls, stone walls, doorways, roofs
-3. [ ] Character sprites for the 10 races (even if placeholder color-swaps of one base sprite)
-4. [ ] Tree sprites for Greenhollow
-5. [ ] Propose integration (swap Phaser primitives → sprite-based rendering)
+1. [x] Ground tiles — grass (Ashenvale), forest floor (Greenhollow), dirt path, stone
+2. [x] Building tilesets — wood walls, stone walls, doorways, roofs
+3. [x] Character sprites for the 10 races (fighter class, 4-direction idle+walk)
+4. [x] Tree sprites for Greenhollow (oak, pine, dead tree, stump)
+5. [x] Propose integration (swap Phaser primitives → sprite-based rendering)
 
 ### v1+ (later)
 
@@ -120,6 +120,34 @@ Work these in order. Each row is a shippable chunk — commit + push between row
 ## Status log
 
 > Append-only. Newest at the top. Keep entries short; link to commits.
+
+### 2026-04-16 — v0 art pass 2: tileset + character sprites shipped
+
+All static PNG assets for v0 art pass 2 are dropped:
+
+**Tileset:**
+- `src/assets/tiles/tileset.png` — 36 tiles × 32×32 horizontal strip (10.3 KB). Indices match the `TILE` enum in `generateTiles.ts` exactly.
+- `src/assets/tiles/trees.png` — 4 tree variants × 48×64 (2.4 KB): Oak, Pine, Dead tree, Stump.
+
+**Character sprites (10 races):**
+- `src/assets/sprites/{human,elf,dwarf,halfling,orc,tiefling,dragonborn,gnome,half-elf,tabaxi}.png`
+- Each: 8 frames × 32×48 = 256×48 strip. Frame order: front/back/left/right idle, then front/back/left/right walk.
+- All in fighter class gear (helmet, heavy armor, sword, shield) as default showcase.
+- Race-unique features: dwarf beard, elf long ears, orc tusks, tiefling horns, dragonborn snout+tail+scales, gnome big eyes, halfling bare feet, half-elf long hair+clasp, tabaxi cat ears+tail+stripes.
+- 15.1 KB total across all 10 files.
+
+**Generator scripts:**
+- `tools/generate-tileset.mjs`, `tools/generate-trees.mjs`, `tools/generate-sprites.mjs`
+- Require `canvas` npm package (added as devDep). Fully deterministic — re-run to regenerate.
+
+**Documentation updated:**
+- `STYLE_GUIDE.md` §10 — full sprite pipeline docs (tooling, layout, extending)
+- `src/assets/CREDITS.md` — pixel art section added
+
+**What's NOT done (deferred):**
+- Class-variant sprite sheets (rogue, wizard, cleric, ranger, bard) — only fighter rendered. Color-swap or multi-class sheets are a v1 task.
+- NPC-specific sprites (Brenna, Tomas, Vira, Orric with their unique equipment) — the runtime `generateSprites.ts` already handles these well; static PNGs for NPCs can be added later if needed.
+- Animation beyond idle+walk (attack, death, cast) — v1+.
 
 ### 2026-04-15 — Brenna portraits shipped (v0 placeholder, iter3)
 - **STYLE_GUIDE §7 rewritten** — pipeline locked to Pollinations.ai (Flux backend, free, no-auth). Reasoning in §7.1: HF free Inference API is effectively broken for image gen in 2026 (CUDA OOM on Flux, SDXL deprecated, routed providers require paid credits). Pollinations works, returns 512×768 directly, honors seeds.
@@ -185,3 +213,47 @@ On the code side I've already removed the bordered frame (no border, no backgrou
 4. **Size stays 512×768** — no change needed there.
 
 Priority: **not urgent for Brenna** (her current painterly bg works acceptably). But aim for cleaner backgrounds starting with Tomas. If you can retro-fix Brenna cheaply, great; if not, we'll batch it in a v1 art polish pass.
+
+### 2026-04-16 — Integrate static tileset + sprite PNGs (swap procedural → file-based)
+
+Static PNG assets are now available at:
+- `src/assets/tiles/tileset.png` — 36 tiles, 32×32 each, horizontal strip
+- `src/assets/tiles/trees.png` — 4 tree variants, 48×64 each, horizontal strip
+- `src/assets/sprites/{race}.png` — 10 race sprite sheets, 8 frames × 32×48
+
+**The integration is optional and non-urgent.** The runtime procedural generation (`generateTiles.ts`, `generateSprites.ts`) already works well and produces identical visuals. The PNGs exist so that:
+1. A human pixel artist can hand-edit them later without touching code
+2. Assets are visible in the repo and version-controlled as images
+3. The game can eventually skip runtime canvas generation and just load PNGs
+
+**If/when you want to integrate:**
+
+**Tileset** — load `tileset.png` as a Phaser spritesheet instead of calling `generateTileset()`:
+```ts
+// In preload:
+this.load.spritesheet('tileset', 'src/assets/tiles/tileset.png', {
+  frameWidth: 32, frameHeight: 32
+});
+// Skip calling generateTileset(this) in create
+```
+
+**Trees** — load `trees.png` as a spritesheet:
+```ts
+this.load.spritesheet('trees', 'src/assets/tiles/trees.png', {
+  frameWidth: 48, frameHeight: 64
+});
+// Use this.add.sprite(x, y, 'trees', frameIndex) where 0=oak, 1=pine, 2=dead, 3=stump
+```
+
+**Character sprites** — load per-race PNGs instead of calling `generateCharacterSprite()`:
+```ts
+// In preload:
+this.load.spritesheet('sprite-human', 'src/assets/sprites/human.png', {
+  frameWidth: 32, frameHeight: 48
+});
+// Frame indices: 0-3 = front/back/left/right idle, 4-7 = front/back/left/right walk
+```
+
+**Fallback strategy:** keep the procedural generators in place as fallback. Load the PNG if it exists; if not (e.g. for NPC-specific sprites with custom equipment), fall back to runtime generation. This way the transition can be gradual.
+
+**No rush.** The procedural system is solid. This is about having the PNGs ready for when we want to diverge from code-generated art.

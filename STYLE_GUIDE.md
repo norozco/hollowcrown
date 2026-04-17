@@ -326,3 +326,44 @@ Free / CC0 sources suitable for placeholder or even production:
 - **OpenGameArt.org** — deeper library but licensing varies; read per-asset
 
 Document any external asset used with its license and attribution in a new `src/assets/CREDITS.md` (create if missing).
+
+## 10. Pixel art sprite pipeline (locked for v0)
+
+v0 tileset and character sprites are procedurally generated via Node.js scripts using `node-canvas`. The scripts mirror the runtime drawing logic from `generateTiles.ts` / `generateSprites.ts` but output static PNG files that can be hand-edited, version-controlled, and eventually replaced by human pixel art.
+
+### 10.1 Tooling
+
+- **Package**: `canvas` (npm, node-canvas — server-side Canvas2D)
+- **Scripts**: `tools/generate-tileset.mjs`, `tools/generate-trees.mjs`, `tools/generate-sprites.mjs`
+- **Output format**: PNG with alpha transparency
+- **Regeneration**: `node tools/generate-tileset.mjs && node tools/generate-trees.mjs && node tools/generate-sprites.mjs`
+
+### 10.2 Tileset (`src/assets/tiles/tileset.png`)
+
+- **Layout**: horizontal strip, 36 tiles × 32×32 px = 1152×32 total
+- **Tile indices**: match `TILE` enum in `generateTiles.ts` exactly (0=GRASS_DARK through 35=BASEBOARD)
+- **Palette**: uses the §3 gameplay palette (warm, earthy, restrained)
+- **Dithering**: seeded RNG for organic variation on grass/path tiles; deterministic output
+
+### 10.3 Trees (`src/assets/tiles/trees.png`)
+
+- **Layout**: horizontal strip, 4 variants × 48×64 px = 192×64 total
+- **Variants**: 0=Oak (broad canopy), 1=Pine (conifer), 2=Dead tree (leafless), 3=Stump
+- **Transparency**: full alpha; trees have transparent background for layering
+
+### 10.4 Character sprites (`src/assets/sprites/{race}.png`)
+
+- **Layout**: horizontal strip, 8 frames × 32×48 px = 256×48 per race
+- **Frame order**: `[front-idle, back-idle, left-idle, right-idle, front-walk, back-walk, left-walk, right-walk]`
+- **Races**: human, elf, dwarf, halfling, orc, tiefling, dragonborn, gnome, half-elf, tabaxi
+- **Equipment**: all sprites show fighter class (helmet, heavy armor, sword, shield) as the default showcase
+- **Race features**: each race has unique proportions, facial features (tusks, horns, cat ears, snout, beard, etc.), and skin/hair palettes matching the runtime system
+- **Outlines**: 1px dark outline (#1a1008) around all opaque pixels for readability at any scale
+
+### 10.5 Extending
+
+To add a new race or tile:
+1. Add the drawing function to the appropriate `tools/generate-*.mjs` script
+2. Run the script to regenerate the PNG
+3. Update `src/assets/CREDITS.md` with the new entry
+4. If the tile index changes, coordinate with game-dev to update the tilemap references
