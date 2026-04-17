@@ -199,16 +199,11 @@ export class DrownedSanctumF1Scene extends BaseWorldScene {
       fontFamily: 'Courier New', fontSize: '10px', color: '#306070',
     }).setOrigin(0.5).setDepth(4);
 
-    // ── Random loot bags ──
+    // ── Random loot bag ──
     this.spawnLootBag({
       x: 6 * TILE, y: 18 * TILE,
       loot: [{ itemKey: 'health_potion', weight: 3 }, { itemKey: 'shadow_essence', weight: 2 }, { itemKey: 'wraith_dust', weight: 2 }],
-      gold: 20, spawnChance: 0.4,
-    });
-    this.spawnLootBag({
-      x: 14 * TILE, y: 4 * TILE,
-      loot: [{ itemKey: 'mana_potion', weight: 3 }, { itemKey: 'moonpetal', weight: 2 }, { itemKey: 'shadow_essence', weight: 1 }],
-      gold: 15, spawnChance: 0.4,
+      gold: 20, spawnChance: 0.2,
     });
 
     // ── Quest trigger: entering the sanctum completes the objective ──

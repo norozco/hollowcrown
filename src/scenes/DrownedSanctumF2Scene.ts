@@ -172,7 +172,7 @@ export class DrownedSanctumF2Scene extends BaseWorldScene {
     this.spawnLootBag({
       x: 13 * TILE, y: 10 * TILE,
       loot: [{ itemKey: 'shadow_essence', weight: 2 }, { itemKey: 'troll_heart', weight: 2 }, { itemKey: 'steel_sword', weight: 1 }, { itemKey: 'chainmail', weight: 1 }],
-      gold: 35, spawnChance: 0.3,
+      gold: 35, spawnChance: 0.25,
     });
   }
 

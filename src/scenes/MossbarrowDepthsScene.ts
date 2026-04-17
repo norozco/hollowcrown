@@ -214,16 +214,11 @@ export class MossbarrowDepthsScene extends BaseWorldScene {
       fontFamily: 'Courier New', fontSize: '10px', color: '#6050a0',
     }).setOrigin(0.5).setDepth(4);
 
-    // ── Random loot bags ──
+    // ── Random loot bag ──
     this.spawnLootBag({
       x: 10 * TILE, y: 8 * TILE,
       loot: [{ itemKey: 'health_potion', weight: 3 }, { itemKey: 'spider_silk', weight: 2 }, { itemKey: 'iron_ore', weight: 1 }],
-      gold: 8, spawnChance: 0.45,
-    });
-    this.spawnLootBag({
-      x: 6 * TILE, y: 17 * TILE,
-      loot: [{ itemKey: 'antidote', weight: 2 }, { itemKey: 'mana_potion', weight: 2 }, { itemKey: 'shadow_essence', weight: 1 }],
-      gold: 12, spawnChance: 0.35,
+      gold: 8, spawnChance: 0.2,
     });
   }
 

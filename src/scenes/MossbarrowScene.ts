@@ -258,7 +258,7 @@ export class MossbarrowScene extends BaseWorldScene {
     this.spawnLootBag({
       x: 30 * TILE, y: 16 * TILE,
       loot: [{ itemKey: 'bone_shard', weight: 3 }, { itemKey: 'iron_ore', weight: 2 }, { itemKey: 'health_potion', weight: 2 }, { itemKey: 'shadow_essence', weight: 1 }],
-      gold: 12, spawnChance: 0.4,
+      gold: 12, spawnChance: 0.15,
     });
   }
 

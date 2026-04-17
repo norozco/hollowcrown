@@ -149,7 +149,7 @@ export class AshenmereScene extends BaseWorldScene {
         { itemKey: 'wraith_dust', weight: 2 },
         { itemKey: 'troll_heart', weight: 1 },
       ],
-      gold: 30, spawnChance: 0.5,
+      gold: 30, spawnChance: 0.15,
     });
     this.spawnLootBag({
       x: 12 * TILE, y: 7 * TILE,
@@ -158,7 +158,7 @@ export class AshenmereScene extends BaseWorldScene {
         { itemKey: 'troll_heart', weight: 2 },
         { itemKey: 'wraith_dust', weight: 2 },
       ],
-      gold: 25, spawnChance: 0.45,
+      gold: 25, spawnChance: 0.15,
     });
 
     // ── Material pickups ──

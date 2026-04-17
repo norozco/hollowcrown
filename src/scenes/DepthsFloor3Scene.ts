@@ -1,5 +1,6 @@
 import { useInventoryStore } from '../state/inventoryStore';
 import { useQuestStore } from '../state/questStore';
+import { useCombatStore } from '../state/combatStore';
 import { BaseWorldScene, TILE, WORLD_W, WORLD_H } from './BaseWorldScene';
 import { generateTileset, TILE as T, TILE_SIZE } from './tiles/generateTiles';
 
@@ -220,6 +221,22 @@ export class DepthsFloor3Scene extends BaseWorldScene {
 
     // ── Depths-explorer quest: reaching Floor 3 completes the objective ──
     useQuestStore.getState().completeObjective('depths-explorer', 'reach-floor-3');
+
+    // ── Victory chest: spawns at the throne if the Hollow King has been defeated ──
+    const killed = useCombatStore.getState().killedEnemies;
+    const bossKilled = Array.from(killed).some(id => id.includes('hollow_king'));
+    if (bossKilled) {
+      this.spawnChest({
+        x: 15 * TILE, y: 15 * TILE,  // in front of the throne
+        loot: [
+          { itemKey: 'kings_crown', qty: 1 },
+          { itemKey: 'health_potion', qty: 3 },
+          { itemKey: 'mana_potion', qty: 2 },
+          { itemKey: 'shadow_essence', qty: 2 },
+        ],
+        gold: 100,
+      });
+    }
 
     // ── Random loot bag (rare, high value — boss floor) ──
     this.spawnLootBag({

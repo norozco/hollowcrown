@@ -206,8 +206,10 @@ export class TownScene extends BaseWorldScene {
     }
 
     // ── Tutorial for first-time players ──
-    if (!localStorage.getItem('hc_tutorial_done')) {
-      localStorage.setItem('hc_tutorial_done', '1');
+    // Show if: no quests accepted yet (truly fresh character).
+    // The localStorage flag is a backup — cleared on New Game.
+    const hasAnyQuests = Object.keys(useQuestStore.getState().active).length > 0;
+    if (!hasAnyQuests) {
       const arrowX = (GUILD.doorX1 + 1) * TILE;
       const arrowY = (GUILD.y + GUILD.h) * TILE - TILE;
       const arrow = this.add.text(arrowX, arrowY, '\u25BC Visit the Guild', {
@@ -264,17 +266,6 @@ export class TownScene extends BaseWorldScene {
       },
     });
 
-    // ── Random loot bags (rare — 40% spawn chance) ──
-    this.spawnLootBag({
-      x: 36 * TILE, y: 14 * TILE,
-      loot: [{ itemKey: 'health_potion', weight: 3 }, { itemKey: 'antidote', weight: 2 }, { itemKey: 'copper_ring', weight: 1 }],
-      gold: 8, spawnChance: 0.4,
-    });
-    this.spawnLootBag({
-      x: 4 * TILE, y: 19 * TILE,
-      loot: [{ itemKey: 'health_potion', weight: 2 }, { itemKey: 'mana_potion', weight: 2 }, { itemKey: 'iron_ore', weight: 1 }],
-      gold: 5, spawnChance: 0.35,
-    });
   }
 
   protected spawnAt(name: string): { x: number; y: number } {
