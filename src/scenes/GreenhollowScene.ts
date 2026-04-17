@@ -1,3 +1,4 @@
+import { useInventoryStore } from '../state/inventoryStore';
 import { BaseWorldScene, TILE, WORLD_W, WORLD_H } from './BaseWorldScene';
 import { generateTileset, TILE as T, TILE_SIZE } from './tiles/generateTiles';
 
@@ -75,6 +76,46 @@ export class GreenhollowScene extends BaseWorldScene {
           m.useQuestStore.getState().completeObjective('herb-gathering', 'find-herbs');
         });
         void qs;
+      },
+    });
+
+    // ── Material pickups ──
+    // Moonpetal herb patch 1 (near the south path)
+    const moonpetal1 = this.add.circle(18 * TILE, 16 * TILE, 7, 0x40a848);
+    moonpetal1.setStrokeStyle(2, 0x8040c0);
+    moonpetal1.setDepth(6);
+    this.spawnInteractable({
+      sprite: moonpetal1 as any, label: 'Gather moonpetal', radius: 20,
+      action: () => {
+        useInventoryStore.getState().addItem('moonpetal');
+        window.dispatchEvent(new CustomEvent('gameMessage', { detail: 'Found moonpetal!' }));
+        moonpetal1.destroy();
+      },
+    });
+
+    // Moonpetal herb patch 2 (east side near cabin approach)
+    const moonpetal2 = this.add.circle(28 * TILE, 9 * TILE, 7, 0x40a848);
+    moonpetal2.setStrokeStyle(2, 0x8040c0);
+    moonpetal2.setDepth(6);
+    this.spawnInteractable({
+      sprite: moonpetal2 as any, label: 'Gather moonpetal', radius: 20,
+      action: () => {
+        useInventoryStore.getState().addItem('moonpetal');
+        window.dispatchEvent(new CustomEvent('gameMessage', { detail: 'Found moonpetal!' }));
+        moonpetal2.destroy();
+      },
+    });
+
+    // Iron ore vein (rocky area near south path)
+    const ironOre1 = this.add.circle(22 * TILE, 14 * TILE, 8, 0x808080);
+    ironOre1.setStrokeStyle(2, 0x606060);
+    ironOre1.setDepth(6);
+    this.spawnInteractable({
+      sprite: ironOre1 as any, label: 'Pick up iron ore', radius: 20,
+      action: () => {
+        useInventoryStore.getState().addItem('iron_ore');
+        window.dispatchEvent(new CustomEvent('gameMessage', { detail: 'Found iron ore!' }));
+        ironOre1.destroy();
       },
     });
 

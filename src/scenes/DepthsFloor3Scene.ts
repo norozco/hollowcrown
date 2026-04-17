@@ -1,3 +1,4 @@
+import { useInventoryStore } from '../state/inventoryStore';
 import { BaseWorldScene, TILE, WORLD_W, WORLD_H } from './BaseWorldScene';
 import { generateTileset, TILE as T, TILE_SIZE } from './tiles/generateTiles';
 
@@ -137,6 +138,33 @@ export class DepthsFloor3Scene extends BaseWorldScene {
       this.add.rectangle(fx * TILE + TILE / 2 - 3, (fy + fh) * TILE - 4, 4, 6, 0x402060, 0.5).setDepth(6);
       this.add.rectangle(fx * TILE + TILE / 2 + 3, (fy + fh) * TILE - 2, 4, 8, 0x402060, 0.6).setDepth(6);
     }
+
+    // ── Material pickups ──
+    // Shadow essence — near the throne (walkable at 13,17 area, but that's blood_stone which is walkable)
+    const shadowEssence = this.add.circle(12 * TILE + TILE / 2, 15 * TILE + TILE / 2, 7, 0x8040c0);
+    shadowEssence.setStrokeStyle(2, 0x6030a0);
+    shadowEssence.setDepth(6);
+    this.spawnInteractable({
+      sprite: shadowEssence as any, label: 'Collect shadow essence', radius: 20,
+      action: () => {
+        useInventoryStore.getState().addItem('shadow_essence');
+        window.dispatchEvent(new CustomEvent('gameMessage', { detail: 'Found shadow essence!' }));
+        shadowEssence.destroy();
+      },
+    });
+
+    // Iron ore vein — near a pillar (walkable at 8,6)
+    const ironOre = this.add.circle(8 * TILE + TILE / 2, 6 * TILE + TILE / 2, 8, 0x808080);
+    ironOre.setStrokeStyle(2, 0x606060);
+    ironOre.setDepth(6);
+    this.spawnInteractable({
+      sprite: ironOre as any, label: 'Pick up iron ore', radius: 20,
+      action: () => {
+        useInventoryStore.getState().addItem('iron_ore');
+        window.dispatchEvent(new CustomEvent('gameMessage', { detail: 'Found iron ore!' }));
+        ironOre.destroy();
+      },
+    });
 
     // Boss enemy — The Hollow King (on walkable tile)
     this.spawnEnemy({ monsterKey: 'hollow_king', x: 15 * TILE, y: 14 * TILE });

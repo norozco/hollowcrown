@@ -94,6 +94,34 @@ export class TownScene extends BaseWorldScene {
       visual: false,
     });
 
+    // ── Building sign posts ──
+    // General Store sign (south of door, near tiles 29-30, y=7 shadow row + 1)
+    const shopSignX = (SHOP.doorX1 + 1) * TILE;
+    const shopSignY = (SHOP.y + SHOP.h + 1) * TILE + TILE / 2;
+    this.add.rectangle(shopSignX + TILE + 8, shopSignY, 4, 20, 0x5a3a1a).setDepth(11); // post
+    this.add.rectangle(shopSignX + TILE + 8, shopSignY - 12, 64, 18, 0x4a3420).setStrokeStyle(1, 0x2a1810).setDepth(11); // board
+    this.add.text(shopSignX + TILE + 8, shopSignY - 12, 'General Store', {
+      fontFamily: 'Courier New', fontSize: '9px', color: '#d4c488',
+    }).setOrigin(0.5).setDepth(12);
+
+    // Adventurers' Guild sign
+    const guildSignX = (GUILD.doorX1 + 1) * TILE;
+    const guildSignY = (GUILD.y + GUILD.h + 1) * TILE + TILE / 2;
+    this.add.rectangle(guildSignX + TILE + 8, guildSignY, 4, 20, 0x5a3a1a).setDepth(11);
+    this.add.rectangle(guildSignX + TILE + 8, guildSignY - 12, 54, 18, 0x4a3420).setStrokeStyle(1, 0x2a1810).setDepth(11);
+    this.add.text(guildSignX + TILE + 8, guildSignY - 12, 'Guild', {
+      fontFamily: 'Courier New', fontSize: '9px', color: '#d4c488',
+    }).setOrigin(0.5).setDepth(12);
+
+    // Kael's Smithy sign
+    const smithySignX = (SMITHY.doorX1 + 1) * TILE;
+    const smithySignY = (SMITHY.y + SMITHY.h + 1) * TILE + TILE / 2;
+    this.add.rectangle(smithySignX + TILE + 8, smithySignY, 4, 20, 0x5a3a1a).setDepth(11);
+    this.add.rectangle(smithySignX + TILE + 8, smithySignY - 12, 54, 18, 0x4a3420).setStrokeStyle(1, 0x2a1810).setDepth(11);
+    this.add.text(smithySignX + TILE + 8, smithySignY - 12, 'Smithy', {
+      fontFamily: 'Courier New', fontSize: '9px', color: '#d4c488',
+    }).setOrigin(0.5).setDepth(12);
+
     // Door exits → building interiors (NPCs are INSIDE now).
     this.addExit({
       x: GUILD.doorX1 * TILE,

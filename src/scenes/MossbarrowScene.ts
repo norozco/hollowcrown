@@ -1,5 +1,6 @@
 import { useDialogueStore } from '../state/dialogueStore';
 import { getDialogue } from '../engine/dialogues';
+import { useInventoryStore } from '../state/inventoryStore';
 import { BaseWorldScene, TILE, WORLD_H } from './BaseWorldScene';
 import { generateTileset, TILE as T, TILE_SIZE } from './tiles/generateTiles';
 
@@ -48,6 +49,33 @@ export class MossbarrowScene extends BaseWorldScene {
     this.spawnEnemy({ monsterKey: 'skeleton', x: 12 * TILE, y: 14 * TILE });
     this.spawnEnemy({ monsterKey: 'skeleton', x: 32 * TILE, y: 8 * TILE });
 
+    // ── Material pickups ──
+    // Iron ore vein near the hollow oak (oak is at 10,8)
+    const ironOre = this.add.circle(12 * TILE, 7 * TILE, 8, 0x808080);
+    ironOre.setStrokeStyle(2, 0x606060);
+    ironOre.setDepth(6);
+    this.spawnInteractable({
+      sprite: ironOre as any, label: 'Pick up iron ore', radius: 20,
+      action: () => {
+        useInventoryStore.getState().addItem('iron_ore');
+        window.dispatchEvent(new CustomEvent('gameMessage', { detail: 'Found iron ore!' }));
+        ironOre.destroy();
+      },
+    });
+
+    // Bone shard near a cairn stone (cairn stone at 19,14)
+    const boneShard = this.add.circle(20 * TILE, 15 * TILE, 7, 0xd0c8a0);
+    boneShard.setStrokeStyle(2, 0xa09878);
+    boneShard.setDepth(6);
+    this.spawnInteractable({
+      sprite: boneShard as any, label: 'Pick up bone shard', radius: 20,
+      action: () => {
+        useInventoryStore.getState().addItem('bone_shard');
+        window.dispatchEvent(new CustomEvent('gameMessage', { detail: 'Found bone shard!' }));
+        boneShard.destroy();
+      },
+    });
+
     // Zone marker.
     this.add
       .text(2 * TILE, WORLD_H / 2, 'MOSSBARROW CAIRN', {
@@ -94,12 +122,16 @@ export class MossbarrowScene extends BaseWorldScene {
     // Stairway entrance — south of the center stone, leads to Mossbarrow Depths.
     const stairCx = cairnCx;
     const stairCy = cairnCy + 3 * TILE;
-    // Visual: large dark rectangle to clearly suggest descent
-    const stairRect = this.add.rectangle(stairCx, stairCy, 128, 64, 0x101018);
-    stairRect.setStrokeStyle(2, 0x303040);
-    stairRect.setDepth(4);
+    // Outer stone border
+    this.add.rectangle(stairCx, stairCy, 136, 72, 0x585850).setStrokeStyle(2, 0x3a3a35).setDepth(3);
+    // Inner pit (dark center suggests depth)
+    this.add.rectangle(stairCx, stairCy, 112, 52, 0x0a0a10).setDepth(3);
+    // Step lines (suggest stairs descending)
+    for (let s = 0; s < 3; s++) {
+      this.add.rectangle(stairCx, stairCy - 16 + s * 12, 96 - s * 16, 2, 0x404048).setDepth(4);
+    }
     this.add
-      .text(stairCx, stairCy - 8, '▼ Stairs Down', {
+      .text(stairCx, stairCy - 28, '▼ Stairs Down', {
         fontFamily: 'Courier New',
         fontSize: '12px',
         color: '#6060a0',
@@ -107,7 +139,7 @@ export class MossbarrowScene extends BaseWorldScene {
       .setOrigin(0.5, 0.5)
       .setDepth(5);
     this.add
-      .text(stairCx, stairCy + 10, 'Mossbarrow Depths', {
+      .text(stairCx, stairCy + 32, 'Mossbarrow Depths', {
         fontFamily: 'Courier New',
         fontSize: '10px',
         color: '#4040a8',

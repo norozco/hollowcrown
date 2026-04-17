@@ -1,3 +1,4 @@
+import { useInventoryStore } from '../state/inventoryStore';
 import { BaseWorldScene, TILE, WORLD_W, WORLD_H } from './BaseWorldScene';
 import { generateTileset, TILE as T, TILE_SIZE } from './tiles/generateTiles';
 
@@ -90,6 +91,46 @@ export class MossbarrowDepthsScene extends BaseWorldScene {
     this.add.rectangle(14 * TILE + TILE / 2 + 6, 8 * TILE + TILE / 2 - 2, 12, 6, 0xc8c0a8, 0.5).setDepth(5);
     // West alcove bone pile
     this.add.rectangle(2 * TILE + TILE / 2, 15 * TILE + TILE / 2, 18, 8, 0xd0c8b0, 0.6).setDepth(5);
+
+    // ── Material pickups ──
+    // Iron ore vein 1 — west alcove (walkable tile at 1,14)
+    const ironOre1 = this.add.circle(1 * TILE + TILE / 2, 14 * TILE + TILE / 2, 8, 0x808080);
+    ironOre1.setStrokeStyle(2, 0x606060);
+    ironOre1.setDepth(6);
+    this.spawnInteractable({
+      sprite: ironOre1 as any, label: 'Pick up iron ore', radius: 20,
+      action: () => {
+        useInventoryStore.getState().addItem('iron_ore');
+        window.dispatchEvent(new CustomEvent('gameMessage', { detail: 'Found iron ore!' }));
+        ironOre1.destroy();
+      },
+    });
+
+    // Iron ore vein 2 — east alcove (walkable tile at 14,7)
+    const ironOre2 = this.add.circle(14 * TILE + TILE / 2, 7 * TILE + TILE / 2, 8, 0x808080);
+    ironOre2.setStrokeStyle(2, 0x606060);
+    ironOre2.setDepth(6);
+    this.spawnInteractable({
+      sprite: ironOre2 as any, label: 'Pick up iron ore', radius: 20,
+      action: () => {
+        useInventoryStore.getState().addItem('iron_ore');
+        window.dispatchEvent(new CustomEvent('gameMessage', { detail: 'Found iron ore!' }));
+        ironOre2.destroy();
+      },
+    });
+
+    // Spider silk bundle — near egg sacs in east alcove (walkable tile at 15,8)
+    const spiderSilk = this.add.circle(15 * TILE + TILE / 2, 8 * TILE + TILE / 2, 7, 0xe8e0d0);
+    spiderSilk.setStrokeStyle(2, 0xc0b8a0);
+    spiderSilk.setDepth(6);
+    this.spawnInteractable({
+      sprite: spiderSilk as any, label: 'Pick up spider silk', radius: 20,
+      action: () => {
+        useInventoryStore.getState().addItem('spider_silk');
+        window.dispatchEvent(new CustomEvent('gameMessage', { detail: 'Found spider silk!' }));
+        spiderSilk.destroy();
+      },
+    });
 
     // Enemies — spiders along the corridor (positions unchanged, on walkable tiles)
     this.spawnEnemy({ monsterKey: 'spider', x: 8 * TILE, y: 5 * TILE });

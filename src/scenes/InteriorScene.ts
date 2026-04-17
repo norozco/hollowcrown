@@ -72,9 +72,19 @@ export class InteriorScene extends BaseWorldScene {
       if (ix.dialogueId === '__shop__') {
         this.spawnInteractable({ sprite, label: ix.label, radius: 24,
           action: () => { useInventoryStore.getState().openShop(); } });
+        // Permanent "Shop" label above the counter
+        this.add.text(oX + ix.tileX * TILE + TILE / 2, oY + ix.tileY * TILE - 6, 'Shop', {
+          fontFamily: 'Courier New', fontSize: '11px', color: '#d4a968',
+          backgroundColor: 'rgba(10,6,6,0.7)', padding: { x: 4, y: 2 },
+        }).setOrigin(0.5, 1).setDepth(11);
       } else if (ix.dialogueId === '__craft__') {
         this.spawnInteractable({ sprite, label: ix.label, radius: 24,
           action: () => { useInventoryStore.getState().openCrafting(); } });
+        // Permanent "Forge" label above the anvil
+        this.add.text(oX + ix.tileX * TILE + TILE / 2, oY + ix.tileY * TILE - 6, 'Forge', {
+          fontFamily: 'Courier New', fontSize: '11px', color: '#d4a968',
+          backgroundColor: 'rgba(10,6,6,0.7)', padding: { x: 4, y: 2 },
+        }).setOrigin(0.5, 1).setDepth(11);
       } else if (ix.dialogueId === '__questboard__') {
         this.spawnInteractable({ sprite, label: ix.label, radius: 24,
           action: () => { window.dispatchEvent(new Event('openQuestBoard')); } });

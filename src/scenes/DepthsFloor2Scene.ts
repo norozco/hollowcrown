@@ -1,4 +1,5 @@
 import * as Phaser from 'phaser';
+import { useInventoryStore } from '../state/inventoryStore';
 import { BaseWorldScene, TILE, WORLD_W, WORLD_H } from './BaseWorldScene';
 import { generateTileset, TILE as T, TILE_SIZE } from './tiles/generateTiles';
 
@@ -114,6 +115,59 @@ export class DepthsFloor2Scene extends BaseWorldScene {
       this.add.circle(sx * TILE + TILE / 2 + 6, sy * TILE + TILE / 2 + 2, 4, 0xc8c0a8, 0.5).setDepth(5);
       this.add.circle(sx * TILE + TILE / 2 - 4, sy * TILE + TILE / 2 + 3, 3, 0xc0b8a0, 0.4).setDepth(5);
     }
+
+    // ── Material pickups ──
+    // Moonpetal patch 1 — damp corner in north chamber (walkable at 5,6)
+    const moonpetal1 = this.add.circle(5 * TILE + TILE / 2, 6 * TILE + TILE / 2, 7, 0x40a848);
+    moonpetal1.setStrokeStyle(2, 0x8040c0);
+    moonpetal1.setDepth(6);
+    this.spawnInteractable({
+      sprite: moonpetal1 as any, label: 'Gather moonpetal', radius: 20,
+      action: () => {
+        useInventoryStore.getState().addItem('moonpetal');
+        window.dispatchEvent(new CustomEvent('gameMessage', { detail: 'Found moonpetal!' }));
+        moonpetal1.destroy();
+      },
+    });
+
+    // Moonpetal patch 2 — damp corner in south chamber (walkable at 14,19)
+    const moonpetal2 = this.add.circle(14 * TILE + TILE / 2, 19 * TILE + TILE / 2, 7, 0x40a848);
+    moonpetal2.setStrokeStyle(2, 0x8040c0);
+    moonpetal2.setDepth(6);
+    this.spawnInteractable({
+      sprite: moonpetal2 as any, label: 'Gather moonpetal', radius: 20,
+      action: () => {
+        useInventoryStore.getState().addItem('moonpetal');
+        window.dispatchEvent(new CustomEvent('gameMessage', { detail: 'Found moonpetal!' }));
+        moonpetal2.destroy();
+      },
+    });
+
+    // Shadow essence — glowing purple orb near north sarcophagus (walkable at 7,3)
+    const shadowEssence = this.add.circle(7 * TILE + TILE / 2, 3 * TILE + TILE / 2, 7, 0x8040c0);
+    shadowEssence.setStrokeStyle(2, 0x6030a0);
+    shadowEssence.setDepth(6);
+    this.spawnInteractable({
+      sprite: shadowEssence as any, label: 'Collect shadow essence', radius: 20,
+      action: () => {
+        useInventoryStore.getState().addItem('shadow_essence');
+        window.dispatchEvent(new CustomEvent('gameMessage', { detail: 'Found shadow essence!' }));
+        shadowEssence.destroy();
+      },
+    });
+
+    // Bone shard pile — south chamber (walkable at 8,16)
+    const boneShard = this.add.circle(8 * TILE + TILE / 2, 16 * TILE + TILE / 2, 7, 0xd0c8a0);
+    boneShard.setStrokeStyle(2, 0xa09878);
+    boneShard.setDepth(6);
+    this.spawnInteractable({
+      sprite: boneShard as any, label: 'Pick up bone shard', radius: 20,
+      action: () => {
+        useInventoryStore.getState().addItem('bone_shard');
+        window.dispatchEvent(new CustomEvent('gameMessage', { detail: 'Found bone shard!' }));
+        boneShard.destroy();
+      },
+    });
 
     // Enemies — wraiths and spiders (positions on walkable floor tiles)
     this.spawnEnemy({ monsterKey: 'spider', x: 8 * TILE, y: 4 * TILE });
