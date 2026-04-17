@@ -8,6 +8,7 @@ import {
 } from '../engine/combat';
 import { type Monster, getMonster } from '../engine/monster';
 import { usePlayerStore } from './playerStore';
+import { useInventoryStore } from './inventoryStore';
 
 /**
  * Combat store — manages the active battle. Null when not in combat.
@@ -99,6 +100,13 @@ export const useCombatStore = create<CombatStoreState>((set, get) => ({
         character.gainXp(monster.xpReward);
         character.hp = state.playerHp;
         player.notify();
+        // Drop loot
+        const inv = useInventoryStore.getState();
+        for (const drop of monster.loot) {
+          if (Math.random() < drop.chance) {
+            inv.addItem(drop.itemKey);
+          }
+        }
         // Mark the enemy as killed so it doesn't respawn.
         const enemyId = get()._pendingEnemyId;
         if (enemyId) get().killedEnemies.add(enemyId);

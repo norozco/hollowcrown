@@ -1,0 +1,69 @@
+.inv {
+  position: absolute;
+  inset: 0;
+  background: rgba(10,6,4,0.95);
+  display: flex;
+  flex-direction: column;
+  font-family: 'Courier New', monospace;
+  color: #e4d4a0;
+  z-index: 22;
+  pointer-events: auto;
+}
+.inv__header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.8rem 1.5rem;
+  border-bottom: 2px solid #5a3a1a;
+  background: rgba(20,12,8,0.8);
+}
+.inv__header h2 { margin: 0; color: #d4a968; letter-spacing: 0.2rem; flex: 1; }
+.inv__gold { color: #f4d488; font-size: 1.1rem; }
+.inv__close {
+  background: none; border: 1px solid #5a3a1a; color: #d4a968;
+  width: 2rem; height: 2rem; cursor: pointer; font-size: 1rem;
+  font-family: inherit;
+}
+.inv__close:hover { background: rgba(90,58,26,0.3); }
+.inv__body {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 1rem;
+  padding: 1rem 1.5rem;
+  flex: 1;
+  overflow-y: auto;
+}
+.inv__equip, .inv__bag { background: rgba(20,12,8,0.5); border: 1px solid #3a2818; padding: 0.8rem; }
+.inv__equip h3, .inv__bag h3 {
+  margin: 0 0 0.6rem 0; color: #d4a968; font-size: 0.95rem;
+  border-bottom: 1px solid #3a2818; padding-bottom: 0.3rem; letter-spacing: 0.1rem;
+}
+.inv__equip-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.3rem; }
+.inv__equip-slot {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 0.2rem 0.4rem; font-size: 0.9rem;
+}
+.inv__slot-label { color: #8a7a48; min-width: 70px; }
+.inv__item-btn {
+  background: none; border: none; font-family: inherit; font-size: 0.9rem;
+  cursor: pointer; text-align: right;
+}
+.inv__item-btn:hover { text-decoration: underline; }
+.inv__empty { color: #4a3828; font-style: italic; font-size: 0.85rem; }
+.inv__empty-bag { color: #6a5838; font-style: italic; text-align: center; padding: 2rem 0; }
+.inv__bag-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.25rem; }
+.inv__bag-item {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 0.3rem 0.5rem; border-bottom: 1px solid #2a1810;
+}
+.inv__bag-item:hover { background: rgba(90,58,26,0.15); }
+.inv__item-name { font-size: 0.9rem; }
+.inv__qty { color: #8a7a48; font-size: 0.8rem; }
+.inv__item-actions { display: flex; gap: 0.3rem; }
+.inv__act-btn {
+  background: rgba(90,58,26,0.4); border: 1px solid #5a3a1a; color: #d4a968;
+  padding: 0.2rem 0.5rem; font-family: inherit; font-size: 0.78rem;
+  cursor: pointer;
+}
+.inv__act-btn:hover { background: rgba(140,90,40,0.5); }
+.inv__act-sell { border-color: #3a5a1a; color: #a0c060; }

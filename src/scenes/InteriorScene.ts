@@ -1,5 +1,6 @@
 import { useDialogueStore } from '../state/dialogueStore';
 import { getDialogue } from '../engine/dialogues';
+import { useInventoryStore } from '../state/inventoryStore';
 import { BaseWorldScene, TILE, WORLD_W, WORLD_H } from './BaseWorldScene';
 import { generateTileset, TILE as T, TILE_SIZE } from './tiles/generateTiles';
 
@@ -67,9 +68,15 @@ export class InteriorScene extends BaseWorldScene {
         oX + ix.tileX * TILE + TILE / 2, oY + ix.tileY * TILE + TILE / 2,
         TILE - 4, TILE - 4, 0x000000, 0);
       sprite.setDepth(5);
-      const dlgId = ix.dialogueId;
-      this.spawnInteractable({ sprite, label: ix.label, radius: 24,
-        action: () => { useDialogueStore.getState().start(getDialogue(dlgId)); } });
+      if (ix.dialogueId === '__shop__') {
+        // Shop interactable — opens the shop UI.
+        this.spawnInteractable({ sprite, label: ix.label, radius: 24,
+          action: () => { useInventoryStore.getState().openShop(); } });
+      } else {
+        const dlgId = ix.dialogueId;
+        this.spawnInteractable({ sprite, label: ix.label, radius: 24,
+          action: () => { useDialogueStore.getState().start(getDialogue(dlgId)); } });
+      }
     }
 
     // Door tiles are at row (roomH - 2) because the last row is
@@ -232,7 +239,7 @@ function shopLayout(): InteriorLayout {
     name: 'General Store', roomW: 16, roomH: 14, tiles,
     solidTiles: SOLID,
     npcs: [{ key: 'vira', dialogueId: 'vira-greeting', tileX: 8, tileY: 3 }],
-    interactables: [],
+    interactables: [{ tileX: 5, tileY: 3, label: 'Browse wares', dialogueId: '__shop__' }],
     exitScene: 'TownScene', exitSpawn: 'fromShopInterior',
   };
 }

@@ -21,6 +21,8 @@ export interface Monster {
   description: string;
   /** Sprite color for procedural rendering. */
   color: string;
+  /** Items dropped on defeat — { itemKey, dropChance (0-1) }. */
+  loot: Array<{ itemKey: string; chance: number }>;
 }
 
 const MONSTERS: Record<string, Monster> = {
@@ -36,6 +38,7 @@ const MONSTERS: Record<string, Monster> = {
     goldReward: 5,
     description: 'Grey fur, yellow eyes. It does not growl — it has already decided.',
     color: '#707070',
+    loot: [{ itemKey: 'wolf_pelt', chance: 0.7 }, { itemKey: 'health_potion', chance: 0.2 }],
   },
   skeleton: {
     key: 'skeleton',
@@ -49,6 +52,7 @@ const MONSTERS: Record<string, Monster> = {
     goldReward: 12,
     description: 'It assembles itself from the cairn floor, one joint at a time. It remembers how to hold a sword.',
     color: '#d0d0c0',
+    loot: [{ itemKey: 'bone_shard', chance: 0.8 }, { itemKey: 'mana_potion', chance: 0.25 }],
   },
   hollow_knight: {
     key: 'hollow_knight',
@@ -62,6 +66,7 @@ const MONSTERS: Record<string, Monster> = {
     goldReward: 50,
     description: 'Rusted armor, no face behind the visor. It kneels, then stands, then does not kneel again.',
     color: '#506068',
+    loot: [{ itemKey: 'iron_sword', chance: 0.4 }, { itemKey: 'iron_helm', chance: 0.3 }, { itemKey: 'health_potion', chance: 0.5 }],
   },
 };
 

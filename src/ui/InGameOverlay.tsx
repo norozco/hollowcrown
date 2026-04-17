@@ -4,9 +4,12 @@ import { useUIStore } from '../state/uiStore';
 import { useDialogueStore } from '../state/dialogueStore';
 import { useQuestStore } from '../state/questStore';
 import { useCombatStore } from '../state/combatStore';
+import { useInventoryStore } from '../state/inventoryStore';
 import { DialogueScene } from './Dialogue/DialogueScene';
 import { QuestTracker } from './QuestTracker/QuestTracker';
 import { CombatOverlay } from './Combat/CombatOverlay';
+import { InventoryScreen } from './Inventory/InventoryScreen';
+import { ShopScreen } from './Inventory/ShopScreen';
 import './InGameOverlay.css';
 
 /**
@@ -26,6 +29,11 @@ export function InGameOverlay() {
   const dialogueActive = useDialogueStore((s) => s.dialogue !== null);
   const combatActive = useCombatStore((s) => s.state !== null);
   const resetQuests = useQuestStore((s) => s.reset);
+  const inventoryOpen = useInventoryStore((s) => s.isOpen);
+  const shopOpen = useInventoryStore((s) => s.isShopOpen);
+  const toggleInventory = useInventoryStore((s) => s.toggle);
+  const closeShop = useInventoryStore((s) => s.closeShop);
+  const resetInventory = useInventoryStore((s) => s.reset);
 
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -36,9 +44,15 @@ export function InGameOverlay() {
       const tag = (e.target as HTMLElement | null)?.tagName;
       if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
       if (useDialogueStore.getState().dialogue) return;
+      if (useCombatStore.getState().state) return;
       if (e.key === 'Escape') {
+        if (inventoryOpen) { toggleInventory(); return; }
         e.preventDefault();
         setMenuOpen((m) => !m);
+      }
+      if (e.key === 'i' || e.key === 'I') {
+        e.preventDefault();
+        toggleInventory();
       }
     };
     window.addEventListener('keydown', onKey);
@@ -65,6 +79,7 @@ export function InGameOverlay() {
   const returnToMenu = () => {
     clearPlayer();
     resetQuests();
+    resetInventory();
     setMenuOpen(false);
     setScreen('menu');
   };
@@ -120,8 +135,10 @@ export function InGameOverlay() {
 
       <QuestTracker />
 
-      <p className="ig__controls-hint">WASD / Arrows to move · E to interact · Esc for menu</p>
+      <p className="ig__controls-hint">WASD to move · E interact · I inventory · Esc menu</p>
 
+      {inventoryOpen && <InventoryScreen />}
+      {shopOpen && <ShopScreen onClose={closeShop} />}
       {dialogueActive && <DialogueScene />}
       {combatActive && <CombatOverlay />}
     </div>
