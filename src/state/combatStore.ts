@@ -107,10 +107,11 @@ export const useCombatStore = create<CombatStoreState>((set, get) => ({
           character.hp = 0;
           player.notify();
         } else {
-          // Normal: lose 10% gold, respawn at town with some HP.
+          // Normal: lose 10% gold, respawn at town with FULL HP.
           const lost = Math.floor(character.gold * 0.1);
           character.loseGold(lost);
-          character.hp = Math.max(1, Math.floor(character.derived.maxHp * 0.25));
+          character.hp = character.derived.maxHp;
+          character.mp = character.derived.maxMp;
           player.notify();
         }
         // Enemy NOT marked as killed — it survives if player dies.
