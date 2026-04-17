@@ -202,6 +202,18 @@ export class DepthsFloor2Scene extends BaseWorldScene {
     this.add.text(stairX, stairY + 10, 'Boss Floor', {
       fontFamily: 'Courier New', fontSize: '10px', color: '#803060',
     }).setOrigin(0.5).setDepth(4);
+
+    // ── Random loot bags ──
+    this.spawnLootBag({
+      x: 13 * TILE, y: 5 * TILE,
+      loot: [{ itemKey: 'mana_potion', weight: 3 }, { itemKey: 'shadow_essence', weight: 2 }, { itemKey: 'wraith_dust', weight: 1 }],
+      gold: 15, spawnChance: 0.4,
+    });
+    this.spawnLootBag({
+      x: 6 * TILE, y: 18 * TILE,
+      loot: [{ itemKey: 'health_potion', weight: 2 }, { itemKey: 'moonpetal', weight: 2 }, { itemKey: 'bone_shard', weight: 2 }],
+      gold: 10, spawnChance: 0.4,
+    });
   }
 
   protected spawnAt(name: string): { x: number; y: number } {

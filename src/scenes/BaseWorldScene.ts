@@ -2,7 +2,9 @@ import * as Phaser from 'phaser';
 import { usePlayerStore } from '../state/playerStore';
 import { useDialogueStore } from '../state/dialogueStore';
 import { useCombatStore } from '../state/combatStore';
+import { useInventoryStore } from '../state/inventoryStore';
 import { getDialogue } from '../engine/dialogues';
+import { getItem } from '../engine/items';
 import { getNPC } from '../engine/npcs';
 import {
   generateCharacterSprite,
@@ -338,6 +340,66 @@ export abstract class BaseWorldScene extends Phaser.Scene {
       label: cfg.label,
       radius: cfg.radius ?? 24,
       action: cfg.action,
+    });
+  }
+
+  /**
+   * Spawn a loot bag — a small sack the player can pick up with E.
+   * Gives a random item from the provided loot table. One-time per visit
+   * (the sprite is destroyed on pickup). Each bag has a % chance to
+   * actually appear (default 50%), so they feel rare but rewarding.
+   */
+  protected spawnLootBag(cfg: {
+    x: number;
+    y: number;
+    /** Array of { itemKey, weight } — higher weight = more likely. */
+    loot: Array<{ itemKey: string; weight: number }>;
+    /** Chance this bag spawns at all (0-1, default 0.5). */
+    spawnChance?: number;
+    /** Optional gold amount included. */
+    gold?: number;
+  }): void {
+    if (Math.random() > (cfg.spawnChance ?? 0.5)) return; // bag didn't spawn this visit
+
+    // Draw the bag: small brown sack with a tie
+    const bag = this.add.circle(cfg.x, cfg.y, 7, 0xa08040);
+    bag.setStrokeStyle(2, 0x705020);
+    bag.setDepth(8);
+    // Tie/knot on top
+    const tie = this.add.circle(cfg.x, cfg.y - 6, 3, 0xc0a050);
+    tie.setDepth(8);
+
+    this.spawnInteractable({
+      sprite: bag as any,
+      label: 'Open loot bag',
+      radius: 22,
+      action: () => {
+        // Pick a random item based on weights
+        const totalWeight = cfg.loot.reduce((s, l) => s + l.weight, 0);
+        let roll = Math.random() * totalWeight;
+        let picked = cfg.loot[0].itemKey;
+        for (const entry of cfg.loot) {
+          roll -= entry.weight;
+          if (roll <= 0) { picked = entry.itemKey; break; }
+        }
+
+        const inv = useInventoryStore.getState();
+        inv.addItem(picked);
+        const itemName = getItem(picked).name;
+
+        let msg = `Found ${itemName}!`;
+        if (cfg.gold && cfg.gold > 0) {
+          const char = usePlayerStore.getState().character;
+          if (char) {
+            char.addGold(cfg.gold);
+            usePlayerStore.getState().notify();
+          }
+          msg += ` +${cfg.gold}g`;
+        }
+        window.dispatchEvent(new CustomEvent('gameMessage', { detail: msg }));
+        bag.destroy();
+        tie.destroy();
+      },
     });
   }
 

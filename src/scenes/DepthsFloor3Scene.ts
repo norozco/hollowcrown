@@ -183,6 +183,13 @@ export class DepthsFloor3Scene extends BaseWorldScene {
     this.add.text(15 * TILE, 1.2 * TILE, '▲ Floor 2', {
       fontFamily: 'Courier New', fontSize: '11px', color: '#8888aa',
     }).setOrigin(0.5).setDepth(4);
+
+    // ── Random loot bag (rare, high value — boss floor) ──
+    this.spawnLootBag({
+      x: 20 * TILE, y: 6 * TILE,
+      loot: [{ itemKey: 'shadow_essence', weight: 2 }, { itemKey: 'troll_heart', weight: 2 }, { itemKey: 'steel_sword', weight: 1 }, { itemKey: 'chainmail', weight: 1 }],
+      gold: 30, spawnChance: 0.3,
+    });
   }
 
   protected spawnAt(name: string): { x: number; y: number } {

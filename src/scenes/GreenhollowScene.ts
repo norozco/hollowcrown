@@ -151,6 +151,23 @@ export class GreenhollowScene extends BaseWorldScene {
       targetSpawn: 'fromGreenhollow',
       label: '→ Mossbarrow',
     });
+
+    // ── Random loot bags ──
+    this.spawnLootBag({
+      x: 14 * TILE, y: 16 * TILE,
+      loot: [{ itemKey: 'health_potion', weight: 3 }, { itemKey: 'wolf_pelt', weight: 2 }, { itemKey: 'moonpetal', weight: 1 }],
+      gold: 10, spawnChance: 0.45,
+    });
+    this.spawnLootBag({
+      x: 30 * TILE, y: 18 * TILE,
+      loot: [{ itemKey: 'iron_ore', weight: 2 }, { itemKey: 'antidote', weight: 2 }, { itemKey: 'health_potion', weight: 1 }],
+      gold: 6, spawnChance: 0.4,
+    });
+    this.spawnLootBag({
+      x: 8 * TILE, y: 6 * TILE,
+      loot: [{ itemKey: 'moonpetal', weight: 2 }, { itemKey: 'mana_potion', weight: 2 }, { itemKey: 'wolf_pelt', weight: 1 }],
+      spawnChance: 0.35,
+    });
   }
 
   protected spawnAt(name: string): { x: number; y: number } {
