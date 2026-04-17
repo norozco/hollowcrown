@@ -1,3 +1,4 @@
+import { useQuestStore } from '../state/questStore';
 import { BaseWorldScene, TILE, WORLD_W, WORLD_H } from './BaseWorldScene';
 import { generateTileset, TILE as T, TILE_SIZE } from './tiles/generateTiles';
 
@@ -169,6 +170,46 @@ export class TownScene extends BaseWorldScene {
       label: '→ Greenhollow Woods',
     });
 
+    // East-edge exit to Ashenmere Marshes — unlocked after Hollow King.
+    const hollowKingDone = useQuestStore.getState().active['hollow-king-slayer']?.turnedIn;
+    if (hollowKingDone) {
+      this.addExit({
+        x: WORLD_W - TILE,
+        y: 8 * TILE,
+        w: TILE,
+        h: 4 * TILE,
+        targetScene: 'AshenmereScene',
+        targetSpawn: 'fromTown',
+        label: '→ Ashenmere Marshes',
+      });
+    } else {
+      // Blocked path sign on the east edge.
+      this.add.text(WORLD_W - 2 * TILE, 9.5 * TILE, 'The eastern road\nis sealed.', {
+        fontFamily: 'Courier New', fontSize: '11px', color: '#8a6a4a',
+        align: 'center',
+      }).setOrigin(0.5).setAlpha(0.7).setDepth(15);
+    }
+
+    // ── Tutorial for first-time players ──
+    if (!localStorage.getItem('hc_tutorial_done')) {
+      localStorage.setItem('hc_tutorial_done', '1');
+      const arrowX = (GUILD.doorX1 + 1) * TILE;
+      const arrowY = (GUILD.y + GUILD.h) * TILE - TILE;
+      const arrow = this.add.text(arrowX, arrowY, '\u25BC Visit the Guild', {
+        fontFamily: 'Courier New', fontSize: '14px', color: '#f4d488',
+        stroke: '#000000', strokeThickness: 3,
+      }).setOrigin(0.5).setDepth(50);
+      this.tweens.add({
+        targets: arrow, y: arrowY - 8, duration: 600, yoyo: true, repeat: 8,
+      });
+      setTimeout(() => arrow.destroy(), 10000);
+      setTimeout(() => {
+        window.dispatchEvent(new CustomEvent('gameMessage', {
+          detail: 'WASD to move \u00b7 E to interact \u00b7 I inventory \u00b7 Q quests',
+        }));
+      }, 3000);
+    }
+
     // ── Random loot bags (rare — 40% spawn chance) ──
     this.spawnLootBag({
       x: 36 * TILE, y: 14 * TILE,
@@ -194,6 +235,8 @@ export class TownScene extends BaseWorldScene {
         return { x: (SHOP.doorX1 + 1) * TILE, y: (SHOP.y + SHOP.h + 1) * TILE };
       case 'fromSmithyInterior':
         return { x: (SMITHY.doorX1 + 1) * TILE, y: (SMITHY.y + SMITHY.h + 1) * TILE };
+      case 'fromAshenmere':
+        return { x: WORLD_W - 3 * TILE, y: 9 * TILE };
       case 'default':
       default:
         return { x: WORLD_W / 2, y: 16 * TILE };

@@ -1,0 +1,74 @@
+/* Touch controls overlay — only rendered on touch devices. */
+.touch {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 50;
+}
+
+/* Left-side virtual joystick */
+.touch__joystick {
+  position: absolute;
+  bottom: 60px;
+  left: 40px;
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+  border: 2px solid rgba(255, 255, 255, 0.18);
+  pointer-events: auto;
+  touch-action: none;
+  user-select: none;
+}
+
+/* Draggable nub — positioned from the circle's centre */
+.touch__nub {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.28);
+  border: 2px solid rgba(255, 255, 255, 0.38);
+  /* translate is applied via inline style; this centres the nub at (0,0) */
+  transform: translate(-50%, -50%);
+  transition: transform 60ms linear;
+  pointer-events: none;
+}
+
+/* Right-side action buttons */
+.touch__buttons {
+  position: absolute;
+  bottom: 60px;
+  right: 40px;
+  display: flex;
+  gap: 12px;
+  pointer-events: auto;
+  align-items: flex-end;
+}
+
+.touch__btn {
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  background: rgba(90, 58, 26, 0.5);
+  border: 2px solid rgba(212, 169, 104, 0.4);
+  color: #d4a968;
+  font-family: 'Courier New', monospace;
+  font-size: 1rem;
+  font-weight: bold;
+  touch-action: none;
+  user-select: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* pressed feedback */
+  transition: background-color 80ms, border-color 80ms;
+}
+
+.touch__btn:active {
+  background: rgba(212, 169, 104, 0.25);
+  border-color: rgba(212, 169, 104, 0.8);
+}

@@ -189,6 +189,30 @@ export class DepthsFloor2Scene extends BaseWorldScene {
       fontFamily: 'Courier New', fontSize: '11px', color: '#8888aa',
     }).setOrigin(0.5).setDepth(4);
 
+    // ── Spike traps in the corridor ──
+    this.spawnTrap({ x: 9 * TILE + TILE / 2, y: 9 * TILE, damage: 4 });
+    this.spawnTrap({ x: 11 * TILE, y: 10 * TILE, damage: 4 });
+    this.spawnTrap({ x: 10 * TILE, y: 11 * TILE + TILE / 2, damage: 4 });
+
+    // ── Locked door before stairs to Floor 3 (requires Warden Key from wraiths) ──
+    this.spawnLockedDoor({
+      x: 7 * TILE, y: 18 * TILE, w: 5 * TILE, h: 6,
+      keyItem: 'boss_key', label: 'Sealed gate',
+    });
+
+    // ── Treasure chest in north chamber ──
+    this.spawnChest({
+      x: 14 * TILE + TILE / 2, y: 4 * TILE + TILE / 2,
+      loot: [{ itemKey: 'mana_potion', qty: 2 }, { itemKey: 'moonpetal' }],
+      gold: 20,
+    });
+
+    // ── Treasure chest in south chamber ──
+    this.spawnChest({
+      x: 6 * TILE + TILE / 2, y: 16 * TILE + TILE / 2,
+      loot: [{ itemKey: 'shadow_essence' }, { itemKey: 'bone_shard', qty: 2 }],
+    });
+
     // ── EXIT DOWN → Floor 3 (bottom-center, wide) ──
     this.addExit({
       x: 7 * TILE, y: 19 * TILE, w: 5 * TILE, h: 2 * TILE,

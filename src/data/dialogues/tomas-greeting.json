@@ -27,6 +27,7 @@
           "next": "herb-offer",
           "requires": [{ "type": "quest-not-started", "questId": "herb-gathering" }]
         },
+        { "text": "Fight alongside me. (60g)", "next": "hire-tomas" },
         { "text": "How much for a bed?", "next": "bed" },
         { "text": "Who usually stays here?", "next": "regulars" },
         { "text": "I'm looking for a scholar. An Elven man, Veyrin.", "next": "veyrin" },
@@ -103,6 +104,24 @@
       "speaker": "tomas",
       "expression": "neutral",
       "text": "As you like. The fire will be here. So will I.",
+      "next": null
+    },
+    "hire-tomas": {
+      "id": "hire-tomas",
+      "speaker": "tomas",
+      "expression": "thoughtful",
+      "text": "Sixty gold. I have some field medicine — not much, but enough to keep a wound from ending you between blows. I have done it before, in harder times than these.",
+      "next": "hire-tomas-confirm",
+      "effects": [
+        { "type": "spend-gold", "amount": 60 },
+        { "type": "hire-companion", "companionKey": "tomas" }
+      ]
+    },
+    "hire-tomas-confirm": {
+      "id": "hire-tomas-confirm",
+      "speaker": "tomas",
+      "expression": "neutral",
+      "text": "I will leave the inn to Marta. She manages better than she lets on. Let us go before I reconsider.",
       "next": null
     }
   }

@@ -199,6 +199,13 @@ export class MossbarrowScene extends BaseWorldScene {
       targetSpawn: 'fromMossbarrow',
     });
 
+    // ── Treasure chest near cairn stone ──
+    this.spawnChest({
+      x: 26 * TILE, y: 14 * TILE,
+      loot: [{ itemKey: 'bone_shard', qty: 2 }, { itemKey: 'mana_potion' }],
+      gold: 15,
+    });
+
     // ── Random loot bag ──
     this.spawnLootBag({
       x: 30 * TILE, y: 16 * TILE,

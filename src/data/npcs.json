@@ -62,5 +62,13 @@
     "portraitColor": "#4a2a1a",
     "accentColor": "#e08040",
     "description": "Arms like oak roots. Speaks little, hammers much. The anvil answers for him."
+  },
+  "hermit": {
+    "key": "hermit",
+    "name": "The Hermit",
+    "title": "Marsh Dweller",
+    "portraitColor": "#3a4830",
+    "accentColor": "#8a9868",
+    "description": "Thin as a reed and twice as patient. Lives where no one else would choose to."
   }
 }

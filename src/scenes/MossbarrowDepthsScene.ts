@@ -150,6 +150,22 @@ export class MossbarrowDepthsScene extends BaseWorldScene {
       fontFamily: 'Courier New', fontSize: '11px', color: '#8888aa',
     }).setOrigin(0.5).setDepth(4);
 
+    // ── Spike traps in the main hall ──
+    this.spawnTrap({ x: 8 * TILE, y: 8 * TILE, damage: 3 });
+    this.spawnTrap({ x: 10 * TILE, y: 13 * TILE, damage: 3 });
+
+    // ── Locked door before stairs down (requires Rusty Key from spiders) ──
+    this.spawnLockedDoor({
+      x: 6 * TILE, y: 18 * TILE, w: 5 * TILE, h: 6,
+      keyItem: 'dungeon_key', label: 'Locked gate',
+    });
+
+    // ── Treasure chest in east alcove ──
+    this.spawnChest({
+      x: 16 * TILE + TILE / 2, y: 7 * TILE + TILE / 2,
+      loot: [{ itemKey: 'health_potion', qty: 2 }, { itemKey: 'iron_ore' }],
+    });
+
     // ── EXIT DOWN → Floor 2 (bottom-center, wide and obvious) ──
     this.addExit({
       x: 6 * TILE, y: 19 * TILE, w: 5 * TILE, h: 2 * TILE,

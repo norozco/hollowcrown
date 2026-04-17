@@ -55,8 +55,10 @@ export type DialogueEffect =
   | { type: 'complete-objective'; questId: string; objectiveId: string }
   | { type: 'turn-in-quest'; questId: string }
   | { type: 'give-gold'; amount: number }
+  | { type: 'spend-gold'; amount: number }
   | { type: 'give-xp'; amount: number }
-  | { type: 'remove-items'; itemKey: string; quantity: number };
+  | { type: 'remove-items'; itemKey: string; quantity: number }
+  | { type: 'hire-companion'; companionKey: string };
 
 /**
  * Pure evaluator — given a map of {questId → {isComplete, turnedIn}},

@@ -50,11 +50,17 @@ function applyEffects(effects: readonly DialogueEffect[] | undefined): void {
       case 'give-gold':
         player.giveGold(e.amount);
         break;
+      case 'spend-gold':
+        player.spendGold(e.amount);
+        break;
       case 'give-xp':
         player.giveXp(e.amount);
         break;
       case 'remove-items':
         inventory.removeItem(e.itemKey, e.quantity);
+        break;
+      case 'hire-companion':
+        player.hireCompanion(e.companionKey);
         break;
     }
   }

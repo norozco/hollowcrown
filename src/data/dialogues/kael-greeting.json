@@ -26,6 +26,7 @@
           "next": "iron-offer",
           "requires": [{ "type": "quest-not-started", "questId": "iron-delivery" }]
         },
+        { "text": "Fight alongside me. (75g)", "next": "hire-kael" },
         { "text": "What can you make?", "next": "craft-info" },
         { "text": "Where do I find materials?", "next": "materials" },
         { "text": "[Leave.]", "next": "leave" }
@@ -80,6 +81,22 @@
       "id": "leave",
       "speaker": "kael",
       "text": "The forge stays hot. Come back when you have something worth hammering.",
+      "next": null
+    },
+    "hire-kael": {
+      "id": "hire-kael",
+      "speaker": "kael",
+      "text": "Seventy-five gold. I do not work cheap, and I do not die easy. You get a man who takes hits that would drop most. That is worth the price.",
+      "next": "hire-kael-confirm",
+      "effects": [
+        { "type": "spend-gold", "amount": 75 },
+        { "type": "hire-companion", "companionKey": "kael" }
+      ]
+    },
+    "hire-kael-confirm": {
+      "id": "hire-kael-confirm",
+      "speaker": "kael",
+      "text": "Right. Let me bank the forge and get my hammer. Lead on.",
       "next": null
     }
   }

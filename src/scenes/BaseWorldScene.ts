@@ -90,6 +90,7 @@ export abstract class BaseWorldScene extends Phaser.Scene {
   protected walls!: Phaser.Physics.Arcade.StaticGroup;
   protected npcs: NpcSprite[] = [];
   protected interactables: Interactable[] = [];
+  protected traps: Array<{ x: number; y: number; damage: number; cooldown: number }> = [];
   protected enemies: Array<{
     sprite: Phaser.GameObjects.Arc | Phaser.GameObjects.Sprite;
     monsterKey: string;
@@ -132,6 +133,7 @@ export abstract class BaseWorldScene extends Phaser.Scene {
     this.interactables = [];
     this.enemies = [];
     this.exits = [];
+    this.traps = [];
     this.nearbyTarget = null;
     this.transitionLock = false;
     this.combatImmunity = 0;
@@ -210,6 +212,7 @@ export abstract class BaseWorldScene extends Phaser.Scene {
     }
 
     this.handleMovement();
+    this.checkTraps();
     this.updatePlayerLabel();
     this.updateProximityPrompt();
     this.handleInteraction();
@@ -439,6 +442,99 @@ export abstract class BaseWorldScene extends Phaser.Scene {
     });
   }
 
+  /** Spawn a spike trap that damages the player on contact. */
+  protected spawnTrap(cfg: { x: number; y: number; damage: number; label?: string }): void {
+    const trap = this.add.rectangle(cfg.x, cfg.y, 24, 24, 0x808080, 0.4);
+    trap.setStrokeStyle(1, 0xa0a098);
+    trap.setDepth(3);
+    // Spike shapes (small triangles)
+    for (const [dx, dy] of [[-6,-6],[6,-6],[-6,6],[6,6],[0,0]] as [number,number][]) {
+      this.add.triangle(cfg.x + dx, cfg.y + dy, 0, 4, 3, -4, -3, -4, 0x606060).setDepth(3);
+    }
+    this.traps.push({ x: cfg.x, y: cfg.y, damage: cfg.damage, cooldown: 0 });
+  }
+
+  /** Spawn a locked door that requires a key item to open. */
+  protected spawnLockedDoor(cfg: {
+    x: number; y: number; w: number; h: number;
+    keyItem: string; label?: string;
+  }): void {
+    const door = this.add.rectangle(cfg.x + cfg.w/2, cfg.y + cfg.h/2, cfg.w, cfg.h, 0x6a5030);
+    door.setStrokeStyle(2, 0x8a7040);
+    door.setDepth(8);
+    // Lock icon
+    const lock = this.add.circle(cfg.x + cfg.w/2, cfg.y + cfg.h/2, 6, 0xc0a040);
+    lock.setDepth(9);
+    // Collision
+    this.physics.add.existing(door, true);
+    this.walls.add(door);
+
+    const doorInteract = this.add.rectangle(cfg.x + cfg.w/2, cfg.y + cfg.h/2, cfg.w + 16, cfg.h + 16, 0x000000, 0);
+    doorInteract.setDepth(1);
+    this.spawnInteractable({
+      sprite: doorInteract as any,
+      label: cfg.label ?? 'Locked door',
+      radius: 28,
+      action: () => {
+        const inv = useInventoryStore.getState();
+        if (inv.hasItem(cfg.keyItem)) {
+          inv.removeItem(cfg.keyItem);
+          door.destroy();
+          lock.destroy();
+          const body = door.body as Phaser.Physics.Arcade.StaticBody;
+          if (body) body.destroy();
+          window.dispatchEvent(new CustomEvent('gameMessage', { detail: 'Door unlocked.' }));
+        } else {
+          window.dispatchEvent(new CustomEvent('gameMessage', { detail: 'Locked. You need a key.' }));
+        }
+      },
+    });
+  }
+
+  /** Spawn a treasure chest with guaranteed loot. One-time per visit. */
+  protected spawnChest(cfg: {
+    x: number; y: number;
+    loot: Array<{ itemKey: string; qty?: number }>;
+    gold?: number;
+  }): void {
+    // Chest body
+    const chest = this.add.rectangle(cfg.x, cfg.y, 24, 20, 0x6a4820);
+    chest.setStrokeStyle(2, 0xc0a040);
+    chest.setDepth(8);
+    // Lid highlight
+    const lid = this.add.rectangle(cfg.x, cfg.y - 8, 24, 6, 0x8a6830);
+    lid.setStrokeStyle(1, 0xc0a040);
+    lid.setDepth(8);
+    // Lock clasp
+    const clasp = this.add.rectangle(cfg.x, cfg.y - 2, 6, 6, 0xc0a040);
+    clasp.setDepth(9);
+
+    this.spawnInteractable({
+      sprite: chest as any,
+      label: 'Open chest',
+      radius: 24,
+      action: () => {
+        const inv = useInventoryStore.getState();
+        const items: string[] = [];
+        for (const l of cfg.loot) {
+          inv.addItem(l.itemKey, l.qty ?? 1);
+          const name = getItem(l.itemKey).name;
+          items.push(l.qty && l.qty > 1 ? `${name} x${l.qty}` : name);
+        }
+        let msg = `Chest: ${items.join(', ')}`;
+        if (cfg.gold) {
+          const char = usePlayerStore.getState().character;
+          if (char) { char.addGold(cfg.gold); usePlayerStore.getState().notify(); }
+          msg += ` +${cfg.gold}g`;
+        }
+        window.dispatchEvent(new CustomEvent('gameMessage', { detail: msg }));
+        chest.destroy();
+        lid.destroy();
+        clasp.destroy();
+      },
+    });
+  }
+
   /** Spawn an enemy with patrol movement. Skips enemies killed this visit. */
   protected spawnEnemy(cfg: { monsterKey: string; x: number; y: number; color?: number }): void {
     const enemyId = `${this.scene.key}-${cfg.monsterKey}-${cfg.x}-${cfg.y}`;
@@ -623,6 +719,13 @@ export abstract class BaseWorldScene extends Phaser.Scene {
     if (this.cursors.right?.isDown || this.keyD.isDown) vx += 1;
     if (this.cursors.up?.isDown || this.keyW.isDown) vy -= 1;
     if (this.cursors.down?.isDown || this.keyS.isDown) vy += 1;
+    // Touch input (mobile joystick)
+    if (window.__touchInput) {
+      if (window.__touchInput.x < -0.3) vx -= 1;
+      if (window.__touchInput.x >  0.3) vx += 1;
+      if (window.__touchInput.y < -0.3) vy -= 1;
+      if (window.__touchInput.y >  0.3) vy += 1;
+    }
     if (vx !== 0 && vy !== 0) {
       const d = Math.SQRT1_2;
       vx *= d;
@@ -759,6 +862,25 @@ export abstract class BaseWorldScene extends Phaser.Scene {
 
       // Slight bobbing on Y axis
       enemy.sprite.y = enemy.baseY + Math.sin(Date.now() * 0.002 + enemy.baseX) * 2;
+    }
+  }
+
+  private checkTraps(): void {
+    const dt = this.game.loop.delta;
+    for (const trap of this.traps) {
+      trap.cooldown = Math.max(0, trap.cooldown - dt);
+      if (trap.cooldown > 0) continue;
+      const dist = Phaser.Math.Distance.Between(this.player.x, this.player.y, trap.x, trap.y);
+      if (dist < 18) {
+        trap.cooldown = 2000;
+        const char = usePlayerStore.getState().character;
+        if (char) {
+          char.takeDamage(trap.damage);
+          usePlayerStore.getState().notify();
+          window.dispatchEvent(new CustomEvent('gameMessage', { detail: `Spike trap! -${trap.damage} HP` }));
+          this.cameras.main.shake(100, 0.005);
+        }
+      }
     }
   }
 

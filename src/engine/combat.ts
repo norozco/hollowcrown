@@ -20,8 +20,10 @@ import { modifier } from './stats';
 import type { Character } from './character';
 import type { Monster } from './monster';
 import { useInventoryStore } from '../state/inventoryStore';
+import { usePlayerStore } from '../state/playerStore';
+import { COMPANIONS } from './companion';
 
-/** Compute total stat bonuses from all currently equipped items. */
+/** Compute total stat bonuses from all currently equipped items AND the active companion. */
 function getEquipmentBonuses(): { attack: number; damage: number; ac: number } {
   const eq = useInventoryStore.getState().equipment;
   let attack = 0, damage = 0, ac = 0;
@@ -30,6 +32,15 @@ function getEquipmentBonuses(): { attack: number; damage: number; ac: number } {
       attack += slot.statBonus.attack ?? 0;
       damage += slot.statBonus.damage ?? 0;
       ac     += slot.statBonus.ac     ?? 0;
+    }
+  }
+  // Companion passive bonuses
+  const companionKey = usePlayerStore.getState().companion;
+  if (companionKey) {
+    const companion = COMPANIONS[companionKey];
+    if (companion) {
+      damage += companion.effect.bonusDamage ?? 0;
+      ac     += companion.effect.bonusAc     ?? 0;
     }
   }
   return { attack, damage, ac };
@@ -326,6 +337,17 @@ export function playerAct(
     s.log.push({ text: `${monster.name} falls.`, type: 'system' });
     s.phase = 'victory';
     return s;
+  }
+
+  // Companion heal-per-turn (applied after the player's action, before enemy turn)
+  const companionKey = usePlayerStore.getState().companion;
+  if (companionKey) {
+    const companion = COMPANIONS[companionKey];
+    if (companion?.effect.healPerTurn) {
+      const heal = companion.effect.healPerTurn;
+      s.playerHp = Math.min(player.derived.maxHp, s.playerHp + heal);
+      s.log.push({ text: `${companion.name} patches your wounds. +${heal} HP.`, type: 'player_hit' });
+    }
   }
 
   // Next: enemy turn

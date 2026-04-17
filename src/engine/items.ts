@@ -199,6 +199,16 @@ const ITEMS: Record<string, Item> = {
     buyPrice: 190, description: 'Thin, precise, elegant. Words fail where this succeeds.',
     equipSlot: 'mainHand', statBonus: { attack: 2, damage: 3 },
   },
+  dungeon_key: {
+    key: 'dungeon_key', name: 'Rusty Key', type: 'quest', rarity: 'uncommon',
+    buyPrice: 0, description: 'Iron, corroded. Opens something below.',
+    stackable: true,
+  },
+  boss_key: {
+    key: 'boss_key', name: 'Warden Key', type: 'quest', rarity: 'rare',
+    buyPrice: 0, description: 'Heavy iron, warm to the touch. Opens the way to what waits.',
+    stackable: false,
+  },
 };
 
 export function getItem(key: string): Item {

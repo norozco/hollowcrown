@@ -34,6 +34,16 @@
 .combat__log--enemy_hit { color: #d06040; }
 .combat__log--enemy_miss { color: #808060; }
 
+/* Active companion indicator */
+.combat__companion {
+  padding: 0.25rem 1rem;
+  font-size: 0.8rem;
+  color: #a0b880;
+  font-style: italic;
+  border-top: 1px solid #3a2818;
+  background: rgba(10, 6, 4, 0.4);
+}
+
 /* Action bar — bottom row of buttons */
 .combat__actions {
   display: flex;

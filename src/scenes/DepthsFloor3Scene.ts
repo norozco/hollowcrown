@@ -176,6 +176,20 @@ export class DepthsFloor3Scene extends BaseWorldScene {
     this.spawnEnemy({ monsterKey: 'skeleton', x: 9 * TILE, y: 10 * TILE });
     this.spawnEnemy({ monsterKey: 'skeleton', x: 21 * TILE, y: 10 * TILE });
 
+    // ── Spike traps near the boss area ──
+    this.spawnTrap({ x: 13 * TILE, y: 12 * TILE, damage: 5 });
+    this.spawnTrap({ x: 17 * TILE, y: 12 * TILE, damage: 5 });
+
+    // ── Treasure chest near the throne (big reward) ──
+    this.spawnChest({
+      x: 18 * TILE + TILE / 2, y: 17 * TILE + TILE / 2,
+      loot: [
+        { itemKey: Math.random() > 0.5 ? 'steel_sword' : 'chainmail' },
+        { itemKey: 'health_potion', qty: 3 },
+      ],
+      gold: 50,
+    });
+
     // ── EXIT UP → Floor 2 (top-center, wide) ──
     this.addExit({
       x: 12 * TILE, y: 0, w: 6 * TILE, h: TILE,

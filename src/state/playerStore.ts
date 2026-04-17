@@ -16,6 +16,9 @@ interface PlayerState {
    *  mutable character fields should read this so Zustand notices. */
   version: number;
 
+  /** Currently active companion key, or null if travelling alone. */
+  companion: string | null;
+
   /** Build a Character from a CharacterInit and store it. Throws if the
    *  init is invalid (delegates to Character constructor's validation). */
   create: (init: CharacterInit) => void;
@@ -27,22 +30,37 @@ interface PlayerState {
 
   /** Award gold. No-op if no active character. */
   giveGold: (amount: number) => void;
+  /** Deduct gold (clamped at 0). No-op if no active character. */
+  spendGold: (amount: number) => void;
   /** Grant XP (may trigger auto-levels via Character.gainXp). */
   giveXp: (amount: number) => number;
+
+  /** Hire a companion by key. Replaces any existing companion. */
+  hireCompanion: (key: string) => void;
+  /** Dismiss the current companion. */
+  dismissCompanion: () => void;
 }
 
 export const usePlayerStore = create<PlayerState>((set, get) => ({
   character: null,
   version: 0,
+  companion: null,
 
   create: (init) => set({ character: new Character(init), version: 1 }),
   notify: () => set((s) => ({ version: s.version + 1 })),
-  clear: () => set({ character: null, version: 0 }),
+  clear: () => set({ character: null, version: 0, companion: null }),
 
   giveGold: (amount) => {
     const c = get().character;
     if (!c) return;
     c.addGold(amount);
+    set((s) => ({ version: s.version + 1 }));
+  },
+
+  spendGold: (amount) => {
+    const c = get().character;
+    if (!c) return;
+    c.loseGold(amount);
     set((s) => ({ version: s.version + 1 }));
   },
 
@@ -53,4 +71,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
     set((s) => ({ version: s.version + 1 }));
     return gained;
   },
+
+  hireCompanion: (key) => set({ companion: key }),
+  dismissCompanion: () => set({ companion: null }),
 }));

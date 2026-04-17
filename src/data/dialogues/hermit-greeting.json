@@ -1,0 +1,47 @@
+{
+  "id": "hermit-greeting",
+  "start": "enter",
+  "nodes": {
+    "enter": {
+      "id": "enter",
+      "speaker": "narrator",
+      "text": "The figure sits on a flat stone, motionless as the dead trees around him. His robes are the color of the water. Only his eyes move when you approach — sharp, unhurried, and far too awake for a place like this.",
+      "next": "hello"
+    },
+    "hello": {
+      "id": "hello",
+      "speaker": "hermit",
+      "text": "You came from the west. Through Ashenvale, past the king's corpse. I felt the crown break from here. The marsh shuddered. Everything did.",
+      "choices": [
+        { "text": "What is this place?", "next": "place" },
+        { "text": "What lies beyond the eastern mist?", "next": "east" },
+        { "text": "Why do you live here?", "next": "why" },
+        { "text": "[Leave quietly.]", "next": "leave" }
+      ]
+    },
+    "place": {
+      "id": "place",
+      "speaker": "hermit",
+      "text": "Ashenmere. Old name for old water. The bog swallowed a village once — you can still see the rooftops when the water is low and the light is wrong. Things live down there. Patient things.",
+      "next": "hello"
+    },
+    "east": {
+      "id": "east",
+      "speaker": "hermit",
+      "text": "Beyond the mist? Something older than the Hollow King. He was a symptom. The sickness runs deeper — into stone, into root. You will see, when the path opens. It is not ready for you yet. Or you for it.",
+      "next": "hello"
+    },
+    "why": {
+      "id": "why",
+      "speaker": "hermit",
+      "text": "Someone must watch the water. The things beneath it do not sleep, but they are slow, and a careful man can keep them slow. I have been careful for a very long time. It is not a life I would recommend.",
+      "next": "hello"
+    },
+    "leave": {
+      "id": "leave",
+      "speaker": "hermit",
+      "text": "Walk softly. The marsh remembers footsteps.",
+      "next": null
+    }
+  }
+}

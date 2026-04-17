@@ -34,6 +34,7 @@
           "next": "bone-ritual-offer",
           "requires": [{ "type": "quest-not-started", "questId": "bone-ritual" }]
         },
+        { "text": "Fight alongside me. (50g)", "next": "hire-orric" },
         { "text": "Have you seen an Elven scholar named Veyrin?", "next": "veyrin-seen" },
         { "text": "What is wrong with the woods?", "next": "woods" },
         { "text": "I'm just passing through.", "next": "passing" }
@@ -118,6 +119,24 @@
       "speaker": "orric",
       "expression": "neutral",
       "text": "No one passes through Greenhollow just passing through. You'll either find what you came for or what was waiting. Walk softly either way. I'll be on this porch if you come back.",
+      "next": null
+    },
+    "hire-orric": {
+      "id": "hire-orric",
+      "speaker": "orric",
+      "expression": "neutral",
+      "text": "Fifty gold. Fair enough for a man who knows these woods better than any wall-name guild does. I will not carry your pack. But I will keep you breathing.",
+      "next": "hire-orric-confirm",
+      "effects": [
+        { "type": "spend-gold", "amount": 50 },
+        { "type": "hire-companion", "companionKey": "orric" }
+      ]
+    },
+    "hire-orric-confirm": {
+      "id": "hire-orric-confirm",
+      "speaker": "orric",
+      "expression": "thoughtful",
+      "text": "Stay close when the fighting starts. These old arms still swing true.",
       "next": null
     }
   }

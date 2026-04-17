@@ -170,6 +170,12 @@ export class GreenhollowScene extends BaseWorldScene {
       label: '→ Mossbarrow',
     });
 
+    // ── Hidden treasure chest off the main path ──
+    this.spawnChest({
+      x: 6 * TILE, y: 12 * TILE,
+      loot: [{ itemKey: 'wolf_pelt', qty: 2 }, { itemKey: 'health_potion' }],
+    });
+
     // ── Random loot bags ──
     this.spawnLootBag({
       x: 14 * TILE, y: 16 * TILE,

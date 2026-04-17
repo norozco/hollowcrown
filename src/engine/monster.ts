@@ -99,6 +99,7 @@ const MONSTERS: Record<string, Monster> = {
       { itemKey: 'shadow_essence', chance: 0.2 },
       { itemKey: 'health_potion', chance: 0.15 },
       { itemKey: 'spider_silk', chance: 0.5 },
+      { itemKey: 'dungeon_key', chance: 0.15 },
     ],
   },
   wraith: {
@@ -118,6 +119,7 @@ const MONSTERS: Record<string, Monster> = {
       { itemKey: 'mana_potion', chance: 0.3 },
       { itemKey: 'moonpetal', chance: 0.2 },
       { itemKey: 'wraith_dust', chance: 0.35 },
+      { itemKey: 'boss_key', chance: 0.2 },
     ],
   },
   boar: {

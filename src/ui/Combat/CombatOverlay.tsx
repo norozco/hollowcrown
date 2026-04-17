@@ -3,6 +3,7 @@ import { useCombatStore } from '../../state/combatStore';
 import { usePlayerStore } from '../../state/playerStore';
 import { useInventoryStore } from '../../state/inventoryStore';
 import { CLASS_SKILLS, type StatusEffects } from '../../engine/combat';
+import { COMPANIONS, companionBonusLabel } from '../../engine/companion';
 import './CombatOverlay.css';
 
 /**
@@ -19,7 +20,9 @@ export function CombatOverlay() {
   const finish = useCombatStore((s) => s.finish);
   const useItem = useCombatStore((s) => s.useItem);
   const character = usePlayerStore((s) => s.character);
+  const companionKey = usePlayerStore((s) => s.companion);
   const invSlots = useInventoryStore((s) => s.slots);
+  const activeCompanion = companionKey ? COMPANIONS[companionKey] : null;
 
   const logEndRef = useRef<HTMLDivElement>(null);
   const continueReadyRef = useRef(false);
@@ -117,6 +120,12 @@ export function CombatOverlay() {
         <StatusSide status={state.playerStatus} />
         <StatusSide status={state.monsterStatus} enemy />
       </div>
+
+      {activeCompanion && (
+        <div className="combat__companion">
+          Companion: {activeCompanion.name} ({companionBonusLabel(activeCompanion)})
+        </div>
+      )}
 
       <div className="combat__actions">
         {isPlayerTurn && (
