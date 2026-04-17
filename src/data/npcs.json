@@ -54,5 +54,13 @@
       "sad": "portraits/orric/sad.png",
       "angry": "portraits/orric/angry.png"
     }
+  },
+  "kael": {
+    "key": "kael",
+    "name": "Kael",
+    "title": "Blacksmith",
+    "portraitColor": "#4a2a1a",
+    "accentColor": "#e08040",
+    "description": "Arms like oak roots. Speaks little, hammers much. The anvil answers for him."
   }
 }

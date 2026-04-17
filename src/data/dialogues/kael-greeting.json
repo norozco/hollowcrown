@@ -1,0 +1,40 @@
+{
+  "id": "kael-greeting",
+  "start": "enter",
+  "nodes": {
+    "enter": {
+      "id": "enter",
+      "speaker": "narrator",
+      "text": "Heat rolls from the forge in waves. The air tastes of iron and charcoal. A broad man stands at the anvil, hammer resting on his shoulder, watching you with the patience of someone who measures time in blade-lengths.",
+      "next": "hello"
+    },
+    "hello": {
+      "id": "hello",
+      "speaker": "kael",
+      "text": "You need something made, or you need something fixed. Either way, bring materials and coin. The anvil does the rest.",
+      "choices": [
+        { "text": "What can you make?", "next": "craft-info" },
+        { "text": "Where do I find materials?", "next": "materials" },
+        { "text": "[Leave.]", "next": "leave" }
+      ]
+    },
+    "craft-info": {
+      "id": "craft-info",
+      "speaker": "kael",
+      "text": "Blades, mail, potions if you bring the petals. Check the anvil — it knows what I can do better than I can explain it.",
+      "next": "hello"
+    },
+    "materials": {
+      "id": "materials",
+      "speaker": "kael",
+      "text": "Iron from the mines past Greenhollow. Pelts and bone from whatever is trying to kill you. Moonpetals grow where the forest thins. Bring them here. I do not go looking for trouble — I shape what trouble leaves behind.",
+      "next": "hello"
+    },
+    "leave": {
+      "id": "leave",
+      "speaker": "kael",
+      "text": "The forge stays hot. Come back when you have something worth hammering.",
+      "next": null
+    }
+  }
+}

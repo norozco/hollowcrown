@@ -10,8 +10,11 @@ import { QuestTracker } from './QuestTracker/QuestTracker';
 import { CombatOverlay } from './Combat/CombatOverlay';
 import { InventoryScreen } from './Inventory/InventoryScreen';
 import { ShopScreen } from './Inventory/ShopScreen';
+import { CraftingScreen } from './Crafting/CraftingScreen';
 import { LevelUpPopup } from './LevelUp/LevelUpPopup';
 import { QuestBoard } from './QuestBoard/QuestBoard';
+import { OptionsMenu } from './OptionsMenu/OptionsMenu';
+import { getCurrentRank } from '../engine/ranks';
 import { saveGame } from '../engine/saveLoad';
 import './InGameOverlay.css';
 
@@ -36,10 +39,15 @@ export function InGameOverlay() {
   const shopOpen = useInventoryStore((s) => s.isShopOpen);
   const toggleInventory = useInventoryStore((s) => s.toggle);
   const closeShop = useInventoryStore((s) => s.closeShop);
+  const craftingOpen = useInventoryStore((s) => s.isCraftingOpen);
+  const closeCrafting = useInventoryStore((s) => s.closeCrafting);
   const resetInventory = useInventoryStore((s) => s.reset);
+
+  const questActive = useQuestStore((s) => s.active);
 
   const [menuOpen, setMenuOpen] = useState(false);
   const [questBoardOpen, setQuestBoardOpen] = useState(false);
+  const [optionsOpen, setOptionsOpen] = useState(false);
   const [gameMsg, setGameMsg] = useState<string | null>(null);
 
   useEffect(() => {
@@ -102,6 +110,8 @@ export function InGameOverlay() {
   };
 
   const d = character.derived;
+  const questsCompleted = Object.values(questActive).filter((q) => q.turnedIn).length;
+  const rank = getCurrentRank(questsCompleted, character.level);
 
   return (
     <div className="ig">
@@ -111,6 +121,7 @@ export function InGameOverlay() {
           <span className="ig__sub">
             Lvl {character.level} {character.race.name} {character.characterClass.name}
             {character.difficulty === 'hardcore' && <span className="ig__hc"> · ⚠ HC</span>}
+            {' '}<span className="ig__rank" style={{ color: rank.color }}>[{rank.label}] {rank.name}</span>
           </span>
         </div>
         <div className="ig__hud-block ig__bars">
@@ -150,6 +161,9 @@ export function InGameOverlay() {
           <button type="button" className="cc__btn" onClick={() => { saveGame('slot2'); setMenuOpen(false); }}>
             Save (Slot 2)
           </button>
+          <button type="button" className="cc__btn" onClick={() => { setOptionsOpen(true); setMenuOpen(false); }}>
+            Options
+          </button>
           <button type="button" className="cc__btn" onClick={returnToMenu}>
             Return to main menu
           </button>
@@ -163,7 +177,9 @@ export function InGameOverlay() {
 
       {inventoryOpen && <InventoryScreen />}
       {shopOpen && <ShopScreen onClose={closeShop} />}
+      {craftingOpen && <CraftingScreen onClose={closeCrafting} />}
       {questBoardOpen && <QuestBoard onClose={() => setQuestBoardOpen(false)} />}
+      {optionsOpen && <OptionsMenu onClose={() => setOptionsOpen(false)} />}
       {dialogueActive && <DialogueScene />}
       {combatActive && <CombatOverlay />}
       <LevelUpPopup />

@@ -82,16 +82,17 @@ export class TownScene extends BaseWorldScene {
       visual: false,
     });
 
-    // Empty plot — collision box, label only.
-    const plot = { x: 10 * TILE, y: 14 * TILE, w: 5 * TILE, h: 3 * TILE };
-    this.add
-      .text(plot.x + plot.w / 2, plot.y + plot.h / 2, '[ Empty Plot ]', {
-        fontFamily: 'Courier New',
-        fontSize: '12px',
-        color: '#5a4828',
-      })
-      .setOrigin(0.5)
-      .setDepth(10);
+    // Smithy building (replaced the empty plot).
+    this.addBuilding({
+      xTile: 10,
+      yTile: 14,
+      wTile: 5,
+      hTile: 3,
+      color: 0x3a2820,
+      label: "Kael's Smithy",
+      doorSide: 'bottom',
+      visual: false,
+    });
 
     // Door exits → building interiors (NPCs are INSIDE now).
     this.addExit({
@@ -118,6 +119,14 @@ export class TownScene extends BaseWorldScene {
       targetScene: 'InteriorScene',
       targetSpawn: 'shop',
     });
+    this.addExit({
+      x: SMITHY.doorX1 * TILE,
+      y: SMITHY.y * TILE + (SMITHY.h - 1) * TILE,
+      w: 2 * TILE,
+      h: TILE,
+      targetScene: 'InteriorScene',
+      targetSpawn: 'smithy',
+    });
 
     // South-edge exit to Greenhollow Woods.
     this.addExit({
@@ -141,6 +150,8 @@ export class TownScene extends BaseWorldScene {
         return { x: (INN.doorX1 + 1) * TILE, y: (INN.y + INN.h + 1) * TILE };
       case 'fromShopInterior':
         return { x: (SHOP.doorX1 + 1) * TILE, y: (SHOP.y + SHOP.h + 1) * TILE };
+      case 'fromSmithyInterior':
+        return { x: (SMITHY.doorX1 + 1) * TILE, y: (SMITHY.y + SMITHY.h + 1) * TILE };
       case 'default':
       default:
         return { x: WORLD_W / 2, y: 16 * TILE };
@@ -194,7 +205,8 @@ interface Building {
 const GUILD: Building   = { x: 5,  y: 3, w: 6, h: 4, wallTile: S, floorTile: FS, doorX1: 7, doorX2: 8 };
 const INN: Building     = { x: 15, y: 3, w: 6, h: 4, wallTile: W, floorTile: FW, doorX1: 17, doorX2: 18 };
 const SHOP: Building    = { x: 27, y: 3, w: 5, h: 4, wallTile: W, floorTile: FW, doorX1: 29, doorX2: 30 };
-const BUILDINGS = [GUILD, INN, SHOP];
+const SMITHY: Building  = { x: 10, y: 14, w: 5, h: 3, wallTile: S, floorTile: FW, doorX1: 12, doorX2: 13 };
+const BUILDINGS = [GUILD, INN, SHOP, SMITHY];
 
 function tileAt(x: number, y: number): number {
   // ── Roof rows (row 2 — one tile above building tops) ──
@@ -256,12 +268,8 @@ function tileAt(x: number, y: number): number {
   // Path edges beside the southern path
   if ((x === 18 || x === 21) && y >= 11 && y <= 21) return PE;
 
-  // ── Empty plot (fenced off area) ──
-  if (inRect(x, y, 10, 14, 5, 3)) {
-    // Fence border
-    if (y === 14 || y === 16 || x === 10 || x === 14) return FN;
-    return g;
-  }
+  // ── Smithy building (was empty plot) ──
+  // Handled by BUILDINGS array — no special tile logic needed here.
 
   // ── Town well (decorative landmark in the center) ──
   if (x === 13 && y === 9) return WL;

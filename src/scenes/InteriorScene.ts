@@ -72,6 +72,9 @@ export class InteriorScene extends BaseWorldScene {
       if (ix.dialogueId === '__shop__') {
         this.spawnInteractable({ sprite, label: ix.label, radius: 24,
           action: () => { useInventoryStore.getState().openShop(); } });
+      } else if (ix.dialogueId === '__craft__') {
+        this.spawnInteractable({ sprite, label: ix.label, radius: 24,
+          action: () => { useInventoryStore.getState().openCrafting(); } });
       } else if (ix.dialogueId === '__questboard__') {
         this.spawnInteractable({ sprite, label: ix.label, radius: 24,
           action: () => { window.dispatchEvent(new Event('openQuestBoard')); } });
@@ -143,11 +146,12 @@ const SOLID: Set<number> = new Set([
 
 function getLayout(id: string): InteriorLayout {
   switch (id) {
-    case 'guild': return guildLayout();
-    case 'inn':   return innLayout();
-    case 'shop':  return shopLayout();
-    case 'orric': return orricLayout();
-    default:      return guildLayout();
+    case 'guild':  return guildLayout();
+    case 'inn':    return innLayout();
+    case 'shop':   return shopLayout();
+    case 'smithy': return smithyLayout();
+    case 'orric':  return orricLayout();
+    default:       return guildLayout();
   }
 }
 
@@ -257,6 +261,39 @@ function shopLayout(): InteriorLayout {
     npcs: [{ key: 'vira', dialogueId: 'vira-greeting', tileX: 8, tileY: 3 }],
     interactables: [{ tileX: 5, tileY: 3, label: 'Browse wares', dialogueId: '__shop__' }],
     exitScene: 'TownScene', exitSpawn: 'fromShopInterior',
+  };
+}
+
+// ─── SMITHY: Anvil and forge ──────────────────────────────────
+// Weapon racks, anvil (counter tile), fireplace for the forge,
+// crates of ore. A place to hammer metal into shape.
+
+function smithyLayout(): InteriorLayout {
+  const _ = FW;
+  // 16×14 with thick borders
+  const tiles: number[][] = [
+    [WC,WS,WS,WS,WS,WS,WS,WS,WS,WS,WS,WS,WS,WS,WS,WC],
+    [WI,WH,WR,WR,WH,FP,FP,FP,FP,WH,WR,WR,DI,DI,WH,WI],
+    [WI,BB,BB,BB,BB,BB,BB,BB,BB,BB,BB,BB,BB,BB,BB,WI],
+    [WI,_,_,CT,CT,CT,CT,CT,_,_,_,_,_,_,_,WI],
+    [WN,_,_,_,_,_,_,_,_,_,_,_,_,_,_,WN],
+    [WI,BA,_,_,_,_,_,_,_,_,TB,TB,_,CR,_,WI],
+    [WN,BA,_,_,_,_,_,_,_,_,CH,_,_,CR,_,WN],
+    [WI,CR,_,_,_,_,_,_,_,_,_,_,_,_,_,WI],
+    [WN,CR,_,_,_,RC,RC,RC,RC,_,_,_,_,_,_,WN],
+    [WI,_,_,_,_,RC,RC,RC,RC,_,_,_,_,_,_,WI],
+    [WI,_,_,_,_,RE,RE,RE,RE,_,_,_,_,_,_,WI],
+    [WI,PL,_,_,_,_,_,_,_,_,_,_,_,_,PL,WI],
+    [WC,WS,WS,WS,WS,WS,WS,D,D,WS,WS,WS,WS,WS,WS,WC],
+    [WC,WC,WC,WC,WC,WC,WC,WC,WC,WC,WC,WC,WC,WC,WC,WC],
+  ];
+
+  return {
+    name: "Kael's Smithy", roomW: 16, roomH: 14, tiles,
+    solidTiles: SOLID,
+    npcs: [{ key: 'kael', dialogueId: 'kael-greeting', tileX: 5, tileY: 3 }],
+    interactables: [{ tileX: 3, tileY: 3, label: 'Use the anvil (Craft)', dialogueId: '__craft__' }],
+    exitScene: 'TownScene', exitSpawn: 'fromSmithyInterior',
   };
 }
 

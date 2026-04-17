@@ -3,6 +3,7 @@ import tomasGreeting from '../data/dialogues/tomas-greeting.json';
 import viraGreeting from '../data/dialogues/vira-greeting.json';
 import orricGreeting from '../data/dialogues/orric-greeting.json';
 import mossbarrowCairn from '../data/dialogues/mossbarrow-cairn.json';
+import kaelGreeting from '../data/dialogues/kael-greeting.json';
 import type { Dialogue } from './dialogue';
 
 /**
@@ -16,6 +17,7 @@ const DIALOGUES: Record<string, Dialogue> = {
   'vira-greeting': viraGreeting as unknown as Dialogue,
   'orric-greeting': orricGreeting as unknown as Dialogue,
   'mossbarrow-cairn': mossbarrowCairn as unknown as Dialogue,
+  'kael-greeting': kaelGreeting as unknown as Dialogue,
 };
 
 export function getDialogue(id: string): Dialogue {

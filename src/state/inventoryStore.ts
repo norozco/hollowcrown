@@ -14,12 +14,16 @@ interface InventoryState {
   isOpen: boolean;
   /** Is the shop screen open? */
   isShopOpen: boolean;
+  /** Is the crafting screen open? */
+  isCraftingOpen: boolean;
 
   open: () => void;
   close: () => void;
   toggle: () => void;
   openShop: () => void;
   closeShop: () => void;
+  openCrafting: () => void;
+  closeCrafting: () => void;
 
   /** Add an item (by key) to the bag. Returns false if bag is full. */
   addItem: (itemKey: string, qty?: number) => boolean;
@@ -48,12 +52,15 @@ export const useInventoryStore = create<InventoryState>((set, get) => ({
   equipment: { ...EMPTY_EQUIPMENT },
   isOpen: false,
   isShopOpen: false,
+  isCraftingOpen: false,
 
   open: () => set({ isOpen: true }),
-  close: () => set({ isOpen: false, isShopOpen: false }),
-  toggle: () => set((s) => ({ isOpen: !s.isOpen, isShopOpen: false })),
-  openShop: () => set({ isShopOpen: true, isOpen: false }),
+  close: () => set({ isOpen: false, isShopOpen: false, isCraftingOpen: false }),
+  toggle: () => set((s) => ({ isOpen: !s.isOpen, isShopOpen: false, isCraftingOpen: false })),
+  openShop: () => set({ isShopOpen: true, isOpen: false, isCraftingOpen: false }),
   closeShop: () => set({ isShopOpen: false }),
+  openCrafting: () => set({ isCraftingOpen: true, isOpen: false, isShopOpen: false }),
+  closeCrafting: () => set({ isCraftingOpen: false }),
 
   addItem: (itemKey, qty = 1) => {
     const item = getItem(itemKey);
@@ -154,5 +161,5 @@ export const useInventoryStore = create<InventoryState>((set, get) => ({
     return !!slot && slot.quantity >= qty;
   },
 
-  reset: () => set({ slots: [], equipment: { ...EMPTY_EQUIPMENT }, isOpen: false, isShopOpen: false }),
+  reset: () => set({ slots: [], equipment: { ...EMPTY_EQUIPMENT }, isOpen: false, isShopOpen: false, isCraftingOpen: false }),
 }));

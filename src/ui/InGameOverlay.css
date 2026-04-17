@@ -59,6 +59,11 @@
   font-weight: bold;
 }
 
+.ig__rank {
+  font-weight: bold;
+  letter-spacing: 0.05rem;
+}
+
 .ig__weapon {
   color: #e4d4a0;
   cursor: help;

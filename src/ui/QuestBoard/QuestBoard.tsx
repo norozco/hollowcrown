@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { useQuestStore } from '../../state/questStore';
+import { usePlayerStore } from '../../state/playerStore';
 import { ALL_QUEST_IDS, getQuest } from '../../engine/quests';
+import { getCurrentRank, getNextRank } from '../../engine/ranks';
 import './QuestBoard.css';
 
 interface Props { onClose: () => void; }
@@ -8,7 +10,13 @@ interface Props { onClose: () => void; }
 export function QuestBoard({ onClose }: Props) {
   const active = useQuestStore((s) => s.active);
   const accept = useQuestStore((s) => s.accept);
+  const character = usePlayerStore((s) => s.character);
+  usePlayerStore((s) => s.version);
   const [flash, setFlash] = useState<string | null>(null);
+
+  const questsCompleted = Object.values(active).filter((q) => q.turnedIn).length;
+  const rank = getCurrentRank(questsCompleted, character?.level ?? 1);
+  const nextRank = getNextRank(rank);
 
   const quests = ALL_QUEST_IDS.map((id) => {
     const q = getQuest(id);
@@ -25,8 +33,16 @@ export function QuestBoard({ onClose }: Props) {
   return (
     <div className="qb" role="dialog" aria-label="Quest Board">
       <div className="qb__header">
-        <h2>Quest Board — F Rank</h2>
-        <button type="button" className="qb__close" onClick={onClose}>✕</button>
+        <h2>Quest Board</h2>
+        <span className="qb__rank" style={{ color: rank.color }}>
+          [{rank.label}] {rank.name}
+          {nextRank && (
+            <span className="qb__rank-progress" style={{ color: '#8a7a48' }}>
+              {' '}— Next: {nextRank.name} ({questsCompleted}/{nextRank.questsRequired} quests, Lvl {character?.level ?? 1}/{nextRank.levelRequired})
+            </span>
+          )}
+        </span>
+        <button type="button" className="qb__close" onClick={onClose}>&#10005;</button>
       </div>
       <ul className="qb__list">
         {quests.map(({ quest, state }) => {

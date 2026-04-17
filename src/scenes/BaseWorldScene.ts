@@ -530,8 +530,13 @@ export abstract class BaseWorldScene extends Phaser.Scene {
     else if (vx < 0) { this.playerFacing = 2; this.player.setFlipX(false); }
     else if (vx > 0) { this.playerFacing = 2; this.player.setFlipX(true); } // mirror left→right
 
-    const frame = moving ? this.playerFacing + 4 : this.playerFacing;
-    this.player.setFrame(frame);
+    if (moving) {
+      // 2-frame walk cycle: alternate idle↔walk every 180ms
+      const walkPhase = Math.floor(Date.now() / 180) % 2;
+      this.player.setFrame(walkPhase === 0 ? this.playerFacing : this.playerFacing + 4);
+    } else {
+      this.player.setFrame(this.playerFacing);
+    }
   }
 
   private updatePlayerLabel(): void {
