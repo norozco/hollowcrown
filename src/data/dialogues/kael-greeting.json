@@ -29,6 +29,9 @@
         { "text": "Fight alongside me. (75g)", "next": "hire-kael" },
         { "text": "What can you make?", "next": "craft-info" },
         { "text": "Where do I find materials?", "next": "materials" },
+        { "text": "How did you learn to smith?", "next": "kael-craft-lore" },
+        { "text": "Tell me about the weapons you've made.", "next": "kael-weapons-lore" },
+        { "text": "What do you need that's hard to come by?", "next": "kael-needs" },
         { "text": "[Leave.]", "next": "leave" }
       ]
     },
@@ -75,6 +78,42 @@
       "id": "materials",
       "speaker": "kael",
       "text": "Iron from the mines past Greenhollow. Pelts and bone from whatever is trying to kill you. Moonpetals grow where the forest thins. Bring them here. I do not go looking for trouble — I shape what trouble leaves behind.",
+      "next": "hello"
+    },
+    "kael-craft-lore": {
+      "id": "kael-craft-lore",
+      "speaker": "kael",
+      "text": "My father was a farrier. Shod horses, fixed axles, bent the odd hinge. I watched him work until I understood the iron, not just the shape he was pushing it into. There is a point in every piece where the metal tells you what it wants to be.",
+      "next": "kael-craft-lore-2"
+    },
+    "kael-craft-lore-2": {
+      "id": "kael-craft-lore-2",
+      "speaker": "kael",
+      "text": "Most smiths fight that. I stopped fighting it. My blades hold better for it. Ask anyone who has carried one long enough.",
+      "next": "hello"
+    },
+    "kael-weapons-lore": {
+      "id": "kael-weapons-lore",
+      "speaker": "kael",
+      "text": "Made a blade once for a woman who wanted her name in the crossguard — Elven characters, she said, for 'patience.' Took me three days to get the inlay right. She tested it on the anvil corner and walked out without a word.",
+      "next": "kael-weapons-lore-2"
+    },
+    "kael-weapons-lore-2": {
+      "id": "kael-weapons-lore-2",
+      "speaker": "kael",
+      "text": "She came back six months later with a nick in the edge and a pouch of silver. Said nothing about the nick, just 'fix it.' I did. Some clients you remember. She is one.",
+      "next": "hello"
+    },
+    "kael-needs": {
+      "id": "kael-needs",
+      "speaker": "kael",
+      "text": "Wraith dust. I know how that sounds. There is a process — pack it into the steel during folding, quench it at the right moment. The blade comes out darker, harder, holds an edge longer than anything I can make with iron alone.",
+      "next": "kael-needs-2"
+    },
+    "kael-needs-2": {
+      "id": "kael-needs-2",
+      "speaker": "kael",
+      "text": "I have not had a supply in months. If you find any in the depths, bring it here before you sell it to someone who does not know what to do with it.",
       "next": "hello"
     },
     "leave": {

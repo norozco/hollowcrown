@@ -28,6 +28,8 @@
           "requires": [{ "type": "quest-not-started", "questId": "silk-trader" }]
         },
         { "text": "What are you selling?", "next": "wares" },
+        { "text": "Where do you get your stock?", "next": "vira-supply" },
+        { "text": "What have travelers been saying?", "next": "vira-travelers" },
         { "text": "What happened to your regulars?", "next": "missing" },
         { "text": "Heard any rumors worth coin?", "next": "rumors" },
         { "text": "[Just browse and go.]", "next": "leave" }
@@ -96,6 +98,34 @@
       "speaker": "vira",
       "expression": "neutral",
       "text": "I don't sell old iron. I sell oil, and salt, and rope. Would you like oil, salt, or rope?",
+      "next": "hello"
+    },
+    "vira-supply": {
+      "id": "vira-supply",
+      "speaker": "vira",
+      "expression": "thoughtful",
+      "text": "Used to get most of it from the Caldenmere caravan. Salt, oil, dried stock, rope — they came through every fortnight. The last run was eleven weeks ago. Since then I work with what passes through the guild and what I can source locally. Which is not much.",
+      "next": "vira-supply-2"
+    },
+    "vira-supply-2": {
+      "id": "vira-supply-2",
+      "speaker": "vira",
+      "expression": "neutral",
+      "text": "If you find anything useful out there — pelts, cord, bottles, even scrap tin — bring it here before you sell it to someone else. I pay fair weight.",
+      "next": "hello"
+    },
+    "vira-travelers": {
+      "id": "vira-travelers",
+      "speaker": "vira",
+      "expression": "neutral",
+      "text": "A woman came through last month. Said she had walked from the eastern coast — alone. No pack animal, barely a bedroll. She bought three days' hard rations, a flint, and a good knife.",
+      "next": "vira-travelers-2"
+    },
+    "vira-travelers-2": {
+      "id": "vira-travelers-2",
+      "speaker": "vira",
+      "expression": "thoughtful",
+      "text": "She asked if the road to Ashenmere was passable. I told her I did not know. She nodded like she had expected that answer, paid, and walked east. I do not know what drives someone to walk into the unknown on an empty stomach. I am glad it is not me.",
       "next": "hello"
     },
     "leave": {

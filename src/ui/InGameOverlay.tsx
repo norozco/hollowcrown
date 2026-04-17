@@ -24,6 +24,8 @@ import { saveGame } from '../engine/saveLoad';
 import { COMPANIONS, companionBonusLabel } from '../engine/companion';
 import { TouchControls } from './TouchControls/TouchControls';
 import { Minimap } from './Minimap/Minimap';
+import { ItemDiscovery } from './ItemDiscovery/ItemDiscovery';
+import { WorldMap } from './WorldMap/WorldMap';
 import './InGameOverlay.css';
 
 /**
@@ -62,6 +64,7 @@ export function InGameOverlay() {
   const [questBoardOpen, setQuestBoardOpen] = useState(false);
   const [optionsOpen, setOptionsOpen] = useState(false);
   const [achievementsOpen, setAchievementsOpen] = useState(false);
+  const [worldMapOpen, setWorldMapOpen] = useState(false);
   const [gameMsg, setGameMsg] = useState<string | null>(null);
   const [toastKey, setToastKey] = useState<string | null>(null);
 
@@ -317,6 +320,9 @@ export function InGameOverlay() {
           <button type="button" className="cc__btn" onClick={() => { setAchievementsOpen(true); setMenuOpen(false); }}>
             Achievements
           </button>
+          <button type="button" className="cc__btn" onClick={() => { setWorldMapOpen(true); setMenuOpen(false); }}>
+            World Map
+          </button>
           <button type="button" className="cc__btn" onClick={returnToMenu}>
             Return to main menu
           </button>
@@ -334,9 +340,11 @@ export function InGameOverlay() {
       {questBoardOpen && <QuestBoard onClose={() => setQuestBoardOpen(false)} />}
       {optionsOpen && <OptionsMenu onClose={() => setOptionsOpen(false)} />}
       {achievementsOpen && <AchievementsScreen onClose={() => setAchievementsOpen(false)} />}
+      {worldMapOpen && <WorldMap onClose={() => setWorldMapOpen(false)} />}
       {dialogueActive && <DialogueScene />}
       {combatActive && <CombatOverlay />}
       <LevelUpPopup />
+      <ItemDiscovery />
       <Minimap />
       <TouchControls />
       <AchievementToast achievementKey={toastKey} onDone={() => setToastKey(null)} />

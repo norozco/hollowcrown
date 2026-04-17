@@ -30,6 +30,9 @@
         { "text": "Fight alongside me. (60g)", "next": "hire-tomas" },
         { "text": "How much for a bed?", "next": "bed" },
         { "text": "Who usually stays here?", "next": "regulars" },
+        { "text": "Tell me about yourself.", "next": "about-tomas" },
+        { "text": "What's the town been like lately?", "next": "town-lately" },
+        { "text": "Any rumors worth knowing?", "next": "tomas-rumor" },
         { "text": "I'm looking for a scholar. An Elven man, Veyrin.", "next": "veyrin" },
         { "text": "[Leave quietly.]", "next": "leave" }
       ]
@@ -97,6 +100,48 @@
       "speaker": "tomas",
       "expression": "neutral",
       "text": "If you find him — or find what is left of him — I would like to know. I keep the room either way. I would just like to stop setting out the tea.",
+      "next": "hello"
+    },
+    "about-tomas": {
+      "id": "about-tomas",
+      "speaker": "tomas",
+      "expression": "neutral",
+      "text": "Innkeeper. Before that, a courier on the Ashenmere road. Before that, young and careless, which is almost the same thing. I inherited this place from a woman who said I owed her something. She was right. I have been paying it off in firewood and warm soup ever since.",
+      "next": "about-tomas-2"
+    },
+    "about-tomas-2": {
+      "id": "about-tomas-2",
+      "speaker": "tomas",
+      "expression": "neutral",
+      "text": "I do not miss the road. I miss the people you met on it. There is a difference.",
+      "next": "hello"
+    },
+    "town-lately": {
+      "id": "town-lately",
+      "speaker": "tomas",
+      "expression": "sad",
+      "text": "Quiet, and not the peaceful kind. The market days stopped when the last merchant decided the coin was not worth the risk. Children who used to play past the well stay closer to their doors now. Even the dogs are nervous.",
+      "next": "town-lately-2"
+    },
+    "town-lately-2": {
+      "id": "town-lately-2",
+      "speaker": "tomas",
+      "expression": "neutral",
+      "text": "That is partly why I keep the fire going through the night. Some people just need a lit window to walk toward.",
+      "next": "hello"
+    },
+    "tomas-rumor": {
+      "id": "tomas-rumor",
+      "speaker": "tomas",
+      "expression": "thoughtful",
+      "text": "A pair of hunters came back from the Greenhollow road last week without their horses. Claimed something large had crossed the path just before dawn — too big for a wolf, wrong shape for a bear. They could not agree on what it was, but they agreed on one thing.",
+      "next": "tomas-rumor-2"
+    },
+    "tomas-rumor-2": {
+      "id": "tomas-rumor-2",
+      "speaker": "tomas",
+      "expression": "neutral",
+      "text": "They drank until they stopped shaking, paid their bill, and left at midday. Neither of them came back through. I keep a room aired, just in case.",
       "next": "hello"
     },
     "leave": {

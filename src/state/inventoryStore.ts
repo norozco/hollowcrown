@@ -111,6 +111,11 @@ export const useInventoryStore = create<InventoryState>((set, get) => ({
     if (slots.length >= MAX_SLOTS) return false;
     set({ slots: [...slots, { item, quantity: qty }] });
     checkCollectionQuests(get, itemKey);
+    if (['rare', 'epic', 'legendary'].includes(item.rarity)) {
+      window.dispatchEvent(new CustomEvent('rareItemFound', {
+        detail: { name: item.name, rarity: item.rarity, description: item.description },
+      }));
+    }
     return true;
   },
 
