@@ -65,8 +65,26 @@ export interface CharacterInit {
  * AT LEAST that level.
  */
 const XP_TABLE: readonly number[] = [
-  0, 300, 900, 2700, 6500, 14000, 23000, 34000, 48000, 64000, 85000, 100000,
-  120000, 140000, 165000, 195000, 225000, 265000, 305000, 355000,
+  0,      // Level 1:  start
+  50,     // Level 2:  2 wolves
+  150,    // Level 3:  a few more fights
+  350,    // Level 4:  explore Greenhollow
+  600,    // Level 5:  cleared some skeletons
+  1000,   // Level 6:  dungeon floor 1
+  1600,   // Level 7:  dungeon floor 2
+  2500,   // Level 8:  serious adventurer
+  4000,   // Level 9:  veteran
+  6000,   // Level 10: ready for the boss
+  9000,   // Level 11+: steep climb
+  13000,
+  18000,
+  24000,
+  32000,
+  42000,
+  55000,
+  70000,
+  90000,
+  120000,
 ];
 
 export const MAX_LEVEL = XP_TABLE.length; // 20

@@ -174,6 +174,31 @@ const ITEMS: Record<string, Item> = {
     buyPrice: 45, description: 'Green with age. Still hums faintly.',
     equipSlot: 'ring1', statBonus: { hp: 5 },
   },
+  hunting_bow: {
+    key: 'hunting_bow', name: 'Hunting Bow', type: 'weapon', rarity: 'uncommon',
+    buyPrice: 180, description: 'Yew and sinew. Sings when the string is drawn.',
+    equipSlot: 'mainHand', statBonus: { attack: 2, damage: 3 },
+  },
+  shadow_dagger: {
+    key: 'shadow_dagger', name: 'Shadow Dagger', type: 'weapon', rarity: 'uncommon',
+    buyPrice: 160, description: 'Dark iron, thin as a whisper. Finds the gap in any guard.',
+    equipSlot: 'mainHand', statBonus: { attack: 3, damage: 2 },
+  },
+  iron_mace: {
+    key: 'iron_mace', name: 'Iron Mace', type: 'weapon', rarity: 'uncommon',
+    buyPrice: 150, description: 'Blunt, honest, heavy. The faithful carry these.',
+    equipSlot: 'mainHand', statBonus: { attack: 1, damage: 4 },
+  },
+  runed_staff: {
+    key: 'runed_staff', name: 'Runed Staff', type: 'weapon', rarity: 'uncommon',
+    buyPrice: 200, description: 'Oak inlaid with moonstone. The runes hum when held.',
+    equipSlot: 'mainHand', statBonus: { attack: 2, mp: 8 },
+  },
+  silver_rapier: {
+    key: 'silver_rapier', name: 'Silver Rapier', type: 'weapon', rarity: 'uncommon',
+    buyPrice: 190, description: 'Thin, precise, elegant. Words fail where this succeeds.',
+    equipSlot: 'mainHand', statBonus: { attack: 2, damage: 3 },
+  },
 };
 
 export function getItem(key: string): Item {

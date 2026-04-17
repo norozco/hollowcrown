@@ -15,6 +15,7 @@ import { LevelUpPopup } from './LevelUp/LevelUpPopup';
 import { QuestBoard } from './QuestBoard/QuestBoard';
 import { OptionsMenu } from './OptionsMenu/OptionsMenu';
 import { getCurrentRank } from '../engine/ranks';
+import { xpForLevel, MAX_LEVEL } from '../engine/character';
 import { saveGame } from '../engine/saveLoad';
 import './InGameOverlay.css';
 
@@ -94,6 +95,10 @@ export function InGameOverlay() {
         e.preventDefault();
         toggleInventory();
       }
+      if (e.key === 'q' || e.key === 'Q') {
+        e.preventDefault();
+        setQuestBoardOpen((v) => !v);
+      }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
@@ -142,7 +147,16 @@ export function InGameOverlay() {
         <div className="ig__hud-block ig__bars">
           <span>HP {character.hp}/{d.maxHp}</span>
           {d.maxMp > 0 && <span>MP {character.mp}/{d.maxMp}</span>}
-          <span>XP {character.xp}</span>
+          {character.level >= MAX_LEVEL ? (
+            <span>XP MAX</span>
+          ) : (
+            <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px' }}>
+              <span>XP {character.xp - xpForLevel(character.level)}/{xpForLevel(character.level + 1) - xpForLevel(character.level)}</span>
+              <span className="ig__xp-bar">
+                <span className="ig__xp-fill" style={{ width: `${Math.min(100, ((character.xp - xpForLevel(character.level)) / (xpForLevel(character.level + 1) - xpForLevel(character.level))) * 100)}%` }} />
+              </span>
+            </span>
+          )}
           <span className="ig__gold" title="Gold">◆ {character.gold}g</span>
           <span className="ig__weapon" title={character.weapon.description}>
             ⚔ {character.weapon.name}
@@ -188,7 +202,7 @@ export function InGameOverlay() {
       <QuestTracker />
 
       {gameMsg && <div className="ig__game-msg">{gameMsg}</div>}
-      <p className="ig__controls-hint">WASD to move · E interact · I inventory · Esc menu</p>
+      <p className="ig__controls-hint">WASD to move · E interact · I inventory · Q quests · Esc menu</p>
 
       {inventoryOpen && <InventoryScreen />}
       {shopOpen && <ShopScreen onClose={closeShop} />}
