@@ -7,6 +7,7 @@ import {
   playerPalette,
   SPRITE_H,
 } from './sprites/generateSprites';
+import { generateMonsterSprite } from './sprites/generateMonsters';
 
 /**
  * Visual battle scene — player sprite on the left, enemy on the right,
@@ -23,12 +24,13 @@ export class CombatScene extends Phaser.Scene {
   private enemyHpBar!: Phaser.GameObjects.Graphics;
   private playerHpText!: Phaser.GameObjects.Text;
   private enemyHpText!: Phaser.GameObjects.Text;
-  private enemyNameRef!: Phaser.GameObjects.Text;
-  private playerNameRef!: Phaser.GameObjects.Text;
+  // Name refs stored but only used for positioning in create.
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   private lastLogLength = 0;
   private playerBaseX = 0;
   private enemyBaseX = 0;
   private combatEnded = false;
+  private savedReturnScene = 'TownScene';
 
   constructor() {
     super({ key: 'CombatScene' });
@@ -69,47 +71,33 @@ export class CombatScene extends Phaser.Scene {
     // Player shadow
     this.add.ellipse(this.playerBaseX, playerY + SPRITE_H * 1.2, 60, 16, 0x000000).setAlpha(0.2).setDepth(9);
 
-    // Enemy sprite (right side) — larger, procedural colored shape
+    // Enemy sprite (right side) — pixel art monster
     const monster = useCombatStore.getState().monster;
-    const enemyColor = monster ? parseInt(monster.color.replace('#', ''), 16) : 0xa04040;
     this.enemyBaseX = W * 0.72;
-    const enemyY = H * 0.45;
+    const enemyY = H * 0.48;
 
-    // Draw enemy as a bigger circle with detail (v0 — proper monster sprites later)
-    const enemyGfx = this.add.graphics();
-    enemyGfx.setDepth(10);
-    const eSize = monster?.key === 'hollow_knight' ? 60 : monster?.key === 'skeleton' ? 45 : 38;
-    // Body
-    enemyGfx.fillStyle(enemyColor, 1);
-    enemyGfx.fillCircle(this.enemyBaseX, enemyY, eSize);
-    // Darker lower half (shadow)
-    enemyGfx.fillStyle(0x000000, 0.2);
-    enemyGfx.fillCircle(this.enemyBaseX, enemyY + eSize * 0.3, eSize * 0.9);
-    // Eyes (two bright dots)
-    enemyGfx.fillStyle(0xff3030, 1);
-    enemyGfx.fillCircle(this.enemyBaseX - eSize * 0.25, enemyY - eSize * 0.15, 4);
-    enemyGfx.fillCircle(this.enemyBaseX + eSize * 0.25, enemyY - eSize * 0.15, 4);
-    // Eye glow
-    enemyGfx.fillStyle(0xff6060, 0.5);
-    enemyGfx.fillCircle(this.enemyBaseX - eSize * 0.25, enemyY - eSize * 0.15, 6);
-    enemyGfx.fillCircle(this.enemyBaseX + eSize * 0.25, enemyY - eSize * 0.15, 6);
-    // Outline
-    enemyGfx.lineStyle(2, 0x1a1008, 1);
-    enemyGfx.strokeCircle(this.enemyBaseX, enemyY, eSize);
+    const monsterKey = monster?.key ?? 'wolf';
+    const monsterSpriteKey = `monster-${monsterKey}`;
+    generateMonsterSprite(this, monsterSpriteKey, monsterKey);
 
-    // Store enemy sprite ref for animations (use a dummy container)
-    this.enemySprite = this.add.sprite(this.enemyBaseX, enemyY, '__DEFAULT').setVisible(false);
+    // Scale: wolves 3x, skeletons 3.5x, bosses 4x
+    const enemyScale = monsterKey === 'hollow_knight' ? 4 : monsterKey === 'skeleton' ? 3.5 : 3;
+
+    this.enemySprite = this.add.sprite(this.enemyBaseX, enemyY, monsterSpriteKey, 0);
+    this.enemySprite.setScale(enemyScale);
+    this.enemySprite.setDepth(10);
 
     // Enemy shadow
-    this.add.ellipse(this.enemyBaseX, enemyY + eSize + 10, eSize * 1.6, 16, 0x000000).setAlpha(0.2).setDepth(9);
+    const shadowW = 48 * enemyScale * 0.8;
+    this.add.ellipse(this.enemyBaseX, enemyY + 24 * enemyScale * 0.5, shadowW, 16, 0x000000).setAlpha(0.2).setDepth(9);
 
     // Names
-    this.playerNameRef = this.add.text(this.playerBaseX, playerY - SPRITE_H * 1.8, character?.name ?? 'Hero', {
+    this.add.text(this.playerBaseX, playerY - SPRITE_H * 1.8, character?.name ?? 'Hero', {
       fontFamily: 'Courier New', fontSize: '16px', color: '#f4d488',
       stroke: '#1a1008', strokeThickness: 3,
     }).setOrigin(0.5).setDepth(20);
 
-    this.enemyNameRef = this.add.text(this.enemyBaseX, enemyY - eSize - 30, monster?.name ?? 'Enemy', {
+    this.add.text(this.enemyBaseX, enemyY - 24 * enemyScale - 30, monster?.name ?? 'Enemy', {
       fontFamily: 'Courier New', fontSize: '16px', color: '#ff8888',
       stroke: '#1a1008', strokeThickness: 3,
     }).setOrigin(0.5).setDepth(20);
@@ -121,13 +109,15 @@ export class CombatScene extends Phaser.Scene {
       fontFamily: 'Courier New', fontSize: '13px', color: '#ffffff',
       stroke: '#000000', strokeThickness: 2,
     }).setOrigin(0.5).setDepth(21);
-    this.enemyHpText = this.add.text(this.enemyBaseX, enemyY - eSize - 12, '', {
+    this.enemyHpText = this.add.text(this.enemyBaseX, enemyY - 24 * enemyScale - 12, '', {
       fontFamily: 'Courier New', fontSize: '13px', color: '#ffffff',
       stroke: '#000000', strokeThickness: 2,
     }).setOrigin(0.5).setDepth(21);
 
     this.lastLogLength = useCombatStore.getState().state?.log.length ?? 0;
     this.combatEnded = false;
+    // Save return scene NOW before finish() clears it.
+    this.savedReturnScene = useCombatStore.getState().returnScene ?? 'TownScene';
 
     // Fade in
     this.cameras.main.fadeIn(300, 0, 0, 0);
@@ -141,12 +131,11 @@ export class CombatScene extends Phaser.Scene {
     // Combat finished — return to world scene.
     if (!state && this.combatEnded) return;
     if (!state && !this.combatEnded) {
-      // Combat store was cleared (finish() called) — go back.
       this.combatEnded = true;
-      const returnTo = store.returnScene ?? 'TownScene';
+      const returnTo = this.savedReturnScene;
       this.cameras.main.fadeOut(300, 0, 0, 0);
       this.cameras.main.once('camerafadeoutcomplete', () => {
-        this.scene.switch(returnTo);
+        this.scene.start(returnTo);
       });
       return;
     }
@@ -159,11 +148,12 @@ export class CombatScene extends Phaser.Scene {
     this.playerHpText.setPosition(this.playerBaseX, this.playerSprite.y - SPRITE_H * 1.5);
 
     const eY = this.enemySprite.y;
-    const eSize = monster.key === 'hollow_knight' ? 60 : monster.key === 'skeleton' ? 45 : 38;
-    this.drawHpBar(this.enemyHpBar, this.enemyBaseX - 40, eY - eSize - 22, 80,
+    const eScale = this.enemySprite.scale;
+    const eHalfH = 24 * eScale;
+    this.drawHpBar(this.enemyHpBar, this.enemyBaseX - 40, eY - eHalfH - 22, 80,
       state.monsterHp, monster.maxHp, 0xa04040);
     this.enemyHpText.setText(`${state.monsterHp}/${monster.maxHp}`);
-    this.enemyHpText.setPosition(this.enemyBaseX, eY - eSize - 12);
+    this.enemyHpText.setPosition(this.enemyBaseX, eY - eHalfH - 12);
 
     // Detect new log entries → trigger animations
     if (state.log.length > this.lastLogLength) {
@@ -173,7 +163,7 @@ export class CombatScene extends Phaser.Scene {
       for (const entry of newEntries) {
         if (entry.type === 'player_hit') {
           this.animateAttack(this.playerSprite, this.playerBaseX, this.enemyBaseX - 80, true);
-          this.showDamageNumber(this.enemyBaseX, eY - eSize, entry.text);
+          this.showDamageNumber(this.enemyBaseX, eY - eHalfH, entry.text);
         } else if (entry.type === 'player_miss') {
           this.animateAttack(this.playerSprite, this.playerBaseX, this.enemyBaseX - 100, false);
         } else if (entry.type === 'enemy_hit') {
