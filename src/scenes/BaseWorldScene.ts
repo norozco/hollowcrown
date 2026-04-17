@@ -332,7 +332,7 @@ export abstract class BaseWorldScene extends Phaser.Scene {
 
   /** Spawn an enemy with patrol movement. Skips enemies killed this visit. */
   protected spawnEnemy(cfg: { monsterKey: string; x: number; y: number; color?: number }): void {
-    const enemyId = `${this.scene.key}-${cfg.x}-${cfg.y}`;
+    const enemyId = `${this.scene.key}-${cfg.monsterKey}-${cfg.x}-${cfg.y}`;
 
     // If this enemy was killed during the current zone visit, don't respawn it.
     if (useCombatStore.getState().killedEnemies.has(enemyId)) return;
