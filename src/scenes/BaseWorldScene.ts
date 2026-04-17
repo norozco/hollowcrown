@@ -3,6 +3,7 @@ import { usePlayerStore } from '../state/playerStore';
 import { useDialogueStore } from '../state/dialogueStore';
 import { useCombatStore } from '../state/combatStore';
 import { useInventoryStore } from '../state/inventoryStore';
+import { useAchievementStore } from '../state/achievementStore';
 import { getDialogue } from '../engine/dialogues';
 import { getItem } from '../engine/items';
 import { getNPC } from '../engine/npcs';
@@ -179,6 +180,9 @@ export abstract class BaseWorldScene extends Phaser.Scene {
     this.cameras.main.setBounds(0, 0, WORLD_W, WORLD_H);
     this.physics.world.setBounds(0, 0, WORLD_W, WORLD_H);
     this.cameras.main.fadeIn(FADE_MS, 0, 0, 0);
+
+    // Record zone visit for achievements.
+    useAchievementStore.getState().recordZoneVisit(this.scene.key);
 
     // Zone name reveal (Souls-style)
     const zoneName = this.getZoneName();
@@ -536,6 +540,7 @@ export abstract class BaseWorldScene extends Phaser.Scene {
           msg += ` +${cfg.gold}g`;
         }
         window.dispatchEvent(new CustomEvent('gameMessage', { detail: msg }));
+        useAchievementStore.getState().recordChest();
         chest.destroy();
         lid.destroy();
         clasp.destroy();

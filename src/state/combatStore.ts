@@ -249,6 +249,14 @@ export const useCombatStore = create<CombatStoreState>((set, get) => ({
           qs.completeObjective('hollow-king-slayer', 'kill-hollow-king');
           msg('The Hollow Crown shatters. The curse lifts.');
         }
+
+        // Achievement tracking.
+        const achStore = useAchievementStore.getState();
+        achStore.recordKill();
+        const bossKeys = ['hollow_king', 'hollow_knight'];
+        if (bossKeys.includes(monster.key)) {
+          achStore.recordBossKill(monster.key);
+        }
       } else if (state.phase === 'defeat') {
         if (character.difficulty === 'hardcore') {
           character.hp = 0;

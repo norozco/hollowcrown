@@ -1,0 +1,59 @@
+.ach-toast {
+  position: absolute;
+  top: 5.5rem;
+  right: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: rgba(10, 6, 4, 0.97);
+  border: 2px solid #c0a040;
+  padding: 0.7rem 1rem;
+  min-width: 240px;
+  max-width: 320px;
+  z-index: 30;
+  pointer-events: none;
+  font-family: 'Courier New', monospace;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.7), inset 0 0 12px rgba(192, 160, 64, 0.06);
+
+  /* Start off-screen to the right */
+  transform: translateX(120%);
+  opacity: 0;
+  transition: transform 350ms cubic-bezier(0.22, 1, 0.36, 1), opacity 250ms ease;
+}
+
+.ach-toast--visible {
+  transform: translateX(0);
+  opacity: 1;
+}
+
+.ach-toast__icon {
+  font-size: 1.8rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.ach-toast__body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.ach-toast__title {
+  font-size: 0.72rem;
+  color: #c0a040;
+  text-transform: uppercase;
+  letter-spacing: 0.12rem;
+}
+
+.ach-toast__name {
+  font-size: 1rem;
+  font-weight: bold;
+  color: #f4d488;
+  letter-spacing: 0.05rem;
+}
+
+.ach-toast__desc {
+  font-size: 0.8rem;
+  color: #a09868;
+  font-style: italic;
+}

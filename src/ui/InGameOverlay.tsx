@@ -5,6 +5,7 @@ import { useDialogueStore } from '../state/dialogueStore';
 import { useQuestStore } from '../state/questStore';
 import { useCombatStore } from '../state/combatStore';
 import { useInventoryStore } from '../state/inventoryStore';
+import { useAchievementStore } from '../state/achievementStore';
 import { DialogueScene } from './Dialogue/DialogueScene';
 import { QuestTracker } from './QuestTracker/QuestTracker';
 import { CombatOverlay } from './Combat/CombatOverlay';
@@ -14,6 +15,8 @@ import { CraftingScreen } from './Crafting/CraftingScreen';
 import { LevelUpPopup } from './LevelUp/LevelUpPopup';
 import { QuestBoard } from './QuestBoard/QuestBoard';
 import { OptionsMenu } from './OptionsMenu/OptionsMenu';
+import { AchievementsScreen } from './Achievements/AchievementsScreen';
+import { AchievementToast } from './AchievementToast/AchievementToast';
 import { getCurrentRank } from '../engine/ranks';
 import { xpForLevel, MAX_LEVEL } from '../engine/character';
 import { saveGame } from '../engine/saveLoad';
@@ -49,10 +52,15 @@ export function InGameOverlay() {
 
   const questActive = useQuestStore((s) => s.active);
 
+  const checkAchievements = useAchievementStore((s) => s.checkAchievements);
+  const resetAchievements = useAchievementStore((s) => s.reset);
+
   const [menuOpen, setMenuOpen] = useState(false);
   const [questBoardOpen, setQuestBoardOpen] = useState(false);
   const [optionsOpen, setOptionsOpen] = useState(false);
+  const [achievementsOpen, setAchievementsOpen] = useState(false);
   const [gameMsg, setGameMsg] = useState<string | null>(null);
+  const [toastKey, setToastKey] = useState<string | null>(null);
 
   // Apply stored brightness on mount so it persists across reloads.
   useEffect(() => {
@@ -80,6 +88,15 @@ export function InGameOverlay() {
     window.addEventListener('gameMessage', msgHandler);
     return () => { window.removeEventListener('openQuestBoard', handler); window.removeEventListener('gameMessage', msgHandler); };
   }, []);
+
+  // Periodically check achievements every 5 seconds.
+  useEffect(() => {
+    const id = setInterval(() => {
+      const key = checkAchievements();
+      if (key) setToastKey(key);
+    }, 5000);
+    return () => clearInterval(id);
+  }, [checkAchievements]);
 
   // Esc opens/closes the corner menu (but not during dialogue — dialogue
   // owns Esc for its own exit).
@@ -128,6 +145,7 @@ export function InGameOverlay() {
     clearPlayer();
     resetQuests();
     resetInventory();
+    resetAchievements();
     setMenuOpen(false);
     setScreen('menu');
   };
@@ -228,6 +246,9 @@ export function InGameOverlay() {
           <button type="button" className="cc__btn" onClick={() => { setOptionsOpen(true); setMenuOpen(false); }}>
             Options
           </button>
+          <button type="button" className="cc__btn" onClick={() => { setAchievementsOpen(true); setMenuOpen(false); }}>
+            Achievements
+          </button>
           <button type="button" className="cc__btn" onClick={returnToMenu}>
             Return to main menu
           </button>
@@ -244,10 +265,12 @@ export function InGameOverlay() {
       {craftingOpen && <CraftingScreen onClose={closeCrafting} />}
       {questBoardOpen && <QuestBoard onClose={() => setQuestBoardOpen(false)} />}
       {optionsOpen && <OptionsMenu onClose={() => setOptionsOpen(false)} />}
+      {achievementsOpen && <AchievementsScreen onClose={() => setAchievementsOpen(false)} />}
       {dialogueActive && <DialogueScene />}
       {combatActive && <CombatOverlay />}
       <LevelUpPopup />
       <TouchControls />
+      <AchievementToast achievementKey={toastKey} onDone={() => setToastKey(null)} />
     </div>
   );
 }

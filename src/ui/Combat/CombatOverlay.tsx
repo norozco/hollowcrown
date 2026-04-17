@@ -89,6 +89,14 @@ export function CombatOverlay() {
 
   if (!state || !monster || !character) return null;
 
+  const ELEMENT_ICONS: Record<string, string> = {
+    fire: '🔥',
+    ice: '❄',
+    poison: '☠',
+    shadow: '🌑',
+    physical: '⚔',
+  };
+
   const STATUS_ICONS: Record<keyof StatusEffects, string> = {
     poison: '☠',
     burn: '🔥',
@@ -126,7 +134,14 @@ export function CombatOverlay() {
 
       <div className="combat__status">
         <StatusSide status={state.playerStatus} />
-        <StatusSide status={state.monsterStatus} enemy />
+        <div className="combat__status-enemy-col">
+          <StatusSide status={state.monsterStatus} enemy />
+          {monster.weakness && (
+            <span className="combat__weakness-hint">
+              Weak to: {ELEMENT_ICONS[monster.weakness] ?? monster.weakness}
+            </span>
+          )}
+        </div>
       </div>
 
       {activeCompanion && (

@@ -110,6 +110,37 @@ const POISON_DMG = 2;
 const BURN_DMG = 3;
 const BLEED_DMG = 2;
 
+/** Map class + action to an element for weakness/resistance checks. */
+function getAttackElement(classKey: string, action: CombatAction): string {
+  if (action === 'skill') {
+    if (classKey === 'wizard') return 'fire';
+    if (classKey === 'rogue') return 'shadow';
+    if (classKey === 'bard') return 'shadow';
+  }
+  return 'physical';
+}
+
+/**
+ * Apply elemental weakness or resistance to a damage value.
+ * Returns { finalDmg, log } — log is empty unless the element matters.
+ */
+function applyElement(
+  dmg: number,
+  element: string,
+  monster: Monster,
+  s: CombatState,
+): number {
+  if (monster.weakness === element) {
+    s.log.push({ text: 'Weakness exploited.', type: 'info' });
+    return Math.ceil(dmg * 1.5);
+  }
+  if (monster.resistance === element) {
+    s.log.push({ text: 'Resisted.', type: 'info' });
+    return Math.floor(dmg * 0.5);
+  }
+  return dmg;
+}
+
 /**
  * Tick status effects for one side. Returns true if the combatant is stunned
  * (and should skip their turn). Mutates `s` in place.
@@ -223,7 +254,8 @@ export function playerAct(
     if (roll === 20 || (roll !== 1 && total >= targetAc)) {
       // Hit!
       const dmgBase = modifier(player.stats[player.weapon.attackStat]) + 2 + equipBonus.damage; // weapon base + equipment
-      const dmg = Math.max(1, roll === 20 ? dmgBase * 2 : dmgBase);
+      const rawDmg = Math.max(1, roll === 20 ? dmgBase * 2 : dmgBase);
+      const dmg = applyElement(rawDmg, getAttackElement(player.characterClass.key, 'attack'), monster, s);
       s.monsterHp = Math.max(0, s.monsterHp - dmg);
       if (roll === 20) {
         s.log.push({ text: `A devastating strike. ${dmg} damage.`, type: 'player_hit' });
@@ -262,24 +294,27 @@ export function playerAct(
       player.spendMp(skill.mpCost);
 
       if (classKey === 'cleric') {
-        // Cure Wounds: heal self
+        // Cure Wounds: heal self — no damage element to check
         const healAmt = 8 + modifier(player.stats.wis) * 2;
         s.playerHp = Math.min(player.derived.maxHp, s.playerHp + healAmt);
         s.log.push({ text: `Divine light mends your wounds. +${healAmt} HP.`, type: 'player_hit' });
       } else if (classKey === 'wizard') {
-        // Fireball: guaranteed heavy damage
-        const dmg = 10 + modifier(player.stats.int) * 2;
+        // Fireball: guaranteed fire damage
+        const rawDmg = 10 + modifier(player.stats.int) * 2;
+        const dmg = applyElement(rawDmg, 'fire', monster, s);
         s.monsterHp = Math.max(0, s.monsterHp - dmg);
         s.log.push({ text: `Fireball erupts. ${dmg} fire damage.`, type: 'player_hit' });
       } else if (classKey === 'fighter') {
-        // Action Surge: two attacks in one turn
+        // Action Surge: two physical attacks in one turn
+        const elem = getAttackElement(classKey, 'skill');
         for (let strike = 0; strike < 2; strike++) {
           const r = dice.d(20);
           const b = modifier(player.stats.str);
           const t = r + b;
           const ac = monster.ac + (s.monsterDefending ? 2 : 0);
           if (r === 20 || (r !== 1 && t >= ac)) {
-            const d2 = Math.max(1, modifier(player.stats.str) + 3);
+            const rawD2 = Math.max(1, modifier(player.stats.str) + 3);
+            const d2 = applyElement(rawD2, elem, monster, s);
             s.monsterHp = Math.max(0, s.monsterHp - d2);
             s.log.push({ text: `Action Surge \u2014 strike connects. ${d2} damage.`, type: 'player_hit' });
           } else {
@@ -287,12 +322,13 @@ export function playerAct(
           }
         }
       } else if (classKey === 'rogue') {
-        // Sneak Attack: guaranteed hit + bonus damage
-        const dmg = 6 + modifier(player.stats.dex) * 2;
+        // Sneak Attack: shadow damage
+        const rawDmg = 6 + modifier(player.stats.dex) * 2;
+        const dmg = applyElement(rawDmg, 'shadow', monster, s);
         s.monsterHp = Math.max(0, s.monsterHp - dmg);
         s.log.push({ text: `You strike from the shadows. ${dmg} damage.`, type: 'player_hit' });
       } else if (classKey === 'ranger') {
-        // Hunter's Mark: attack with bonus damage + apply marked status
+        // Hunter's Mark: physical + apply marked status
         s.monsterStatus.marked = 3;
         const r = dice.d(20);
         const b = modifier(player.stats.dex);
@@ -300,15 +336,17 @@ export function playerAct(
         const ac = monster.ac;
         const bonusDmg = 4;
         if (r === 20 || (r !== 1 && t >= ac)) {
-          const d2 = Math.max(1, modifier(player.stats.dex) + 2 + bonusDmg);
+          const rawD2 = Math.max(1, modifier(player.stats.dex) + 2 + bonusDmg);
+          const d2 = applyElement(rawD2, 'physical', monster, s);
           s.monsterHp = Math.max(0, s.monsterHp - d2);
           s.log.push({ text: `Marked shot lands. ${d2} damage. Target marked.`, type: 'player_hit' });
         } else {
           s.log.push({ text: `Marked shot \u2014 missed. The mark holds.`, type: 'player_miss' });
         }
       } else if (classKey === 'bard') {
-        // Vicious Mockery: small damage + enemy debuff + 25% stun chance
-        const dmg = 3 + modifier(player.stats.cha);
+        // Vicious Mockery: shadow psychic damage + debuff + 25% stun
+        const rawDmg = 3 + modifier(player.stats.cha);
+        const dmg = applyElement(rawDmg, 'shadow', monster, s);
         s.monsterHp = Math.max(0, s.monsterHp - dmg);
         s.monsterDefending = false; // cancel any defend
         const stunRoll = dice.d(20);

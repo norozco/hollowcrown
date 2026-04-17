@@ -23,6 +23,12 @@ export interface Monster {
   color: string;
   /** Items dropped on defeat — { itemKey, dropChance (0-1) }. */
   loot: Array<{ itemKey: string; chance: number }>;
+  /** Monster's elemental affinity. */
+  element?: 'fire' | 'ice' | 'poison' | 'shadow' | 'physical';
+  /** Element the monster is weak to (takes 1.5x damage). */
+  weakness?: string;
+  /** Element the monster resists (takes 0.5x damage). */
+  resistance?: string;
 }
 
 const MONSTERS: Record<string, Monster> = {
@@ -38,6 +44,8 @@ const MONSTERS: Record<string, Monster> = {
     goldReward: 5,
     description: 'Grey fur, yellow eyes. It does not growl — it has already decided.',
     color: '#707070',
+    element: 'physical',
+    weakness: 'fire',
     loot: [
       { itemKey: 'wolf_pelt', chance: 0.7 },
       { itemKey: 'health_potion', chance: 0.2 },
@@ -56,6 +64,9 @@ const MONSTERS: Record<string, Monster> = {
     goldReward: 12,
     description: 'It assembles itself from the cairn floor, one joint at a time. It remembers how to hold a sword.',
     color: '#d0d0c0',
+    element: 'shadow',
+    weakness: 'fire',
+    resistance: 'poison',
     loot: [
       { itemKey: 'bone_shard', chance: 0.8 },
       { itemKey: 'mana_potion', chance: 0.25 },
@@ -75,6 +86,9 @@ const MONSTERS: Record<string, Monster> = {
     goldReward: 50,
     description: 'Rusted armor, no face behind the visor. It kneels, then stands, then does not kneel again.',
     color: '#506068',
+    element: 'shadow',
+    weakness: 'fire',
+    resistance: 'physical',
     loot: [
       { itemKey: 'iron_sword', chance: 0.4 },
       { itemKey: 'iron_helm', chance: 0.3 },
@@ -95,6 +109,8 @@ const MONSTERS: Record<string, Monster> = {
     goldReward: 6,
     description: 'Eight legs, each ending in a barb. It moves without sound.',
     color: '#3a3a2a',
+    element: 'poison',
+    weakness: 'fire',
     loot: [
       { itemKey: 'shadow_essence', chance: 0.2 },
       { itemKey: 'health_potion', chance: 0.15 },
@@ -114,6 +130,9 @@ const MONSTERS: Record<string, Monster> = {
     goldReward: 20,
     description: 'Cold light where eyes should be. It remembers being angry.',
     color: '#4060a0',
+    element: 'shadow',
+    weakness: 'fire',
+    resistance: 'physical',
     loot: [
       { itemKey: 'shadow_essence', chance: 0.4 },
       { itemKey: 'mana_potion', chance: 0.3 },
@@ -134,6 +153,8 @@ const MONSTERS: Record<string, Monster> = {
     goldReward: 8,
     description: 'Tusks low, eyes red. It charges without warning.',
     color: '#8a6040',
+    element: 'physical',
+    weakness: 'fire',
     loot: [
       { itemKey: 'health_potion', chance: 0.25 },
       { itemKey: 'wolf_pelt', chance: 0.3 },
@@ -152,6 +173,8 @@ const MONSTERS: Record<string, Monster> = {
     goldReward: 18,
     description: 'A mask, a blade, a grudge. They stopped asking questions long ago.',
     color: '#5a4a3a',
+    element: 'physical',
+    weakness: 'shadow',
     loot: [
       { itemKey: 'iron_ore', chance: 0.3 },
       { itemKey: 'health_potion', chance: 0.3 },
@@ -171,6 +194,9 @@ const MONSTERS: Record<string, Monster> = {
     goldReward: 200,
     description: 'A crown of tarnished iron. It kneels to something deeper — something that has not yet stirred.',
     color: '#282040',
+    element: 'shadow',
+    weakness: 'fire',
+    resistance: 'poison',
     loot: [
       { itemKey: 'shadow_essence', chance: 1.0 },
       { itemKey: 'troll_heart', chance: 0.8 },

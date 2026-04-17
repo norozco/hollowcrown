@@ -91,6 +91,18 @@
   gap: 0.4rem;
   align-items: center;
 }
+.combat__status-enemy-col {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.15rem;
+}
+.combat__weakness-hint {
+  font-size: 0.72rem;
+  color: #c08840;
+  font-style: italic;
+  letter-spacing: 0.03rem;
+}
 .combat__status-badge {
   font-size: 0.75rem;
   padding: 1px 6px;

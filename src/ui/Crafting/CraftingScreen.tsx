@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useInventoryStore } from '../../state/inventoryStore';
 import { usePlayerStore } from '../../state/playerStore';
 import { useQuestStore } from '../../state/questStore';
+import { useAchievementStore } from '../../state/achievementStore';
 import { RECIPES, type CraftingRecipe } from '../../engine/crafting';
 import { getCurrentRank, RANKS } from '../../engine/ranks';
 import { getItem } from '../../engine/items';
@@ -69,6 +70,8 @@ export function CraftingScreen({ onClose }: Props) {
     usePlayerStore.getState().notify();
     // Add result
     addItem(recipe.resultItemKey, recipe.resultQuantity);
+    // Record craft for achievements.
+    useAchievementStore.getState().recordCraft();
     // Flash
     const resultItem = getItem(recipe.resultItemKey);
     setFlash(`Crafted ${resultItem.name}!`);
