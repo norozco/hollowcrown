@@ -19,6 +19,21 @@ import { DiceRoller } from './dice';
 import { modifier } from './stats';
 import type { Character } from './character';
 import type { Monster } from './monster';
+import { useInventoryStore } from '../state/inventoryStore';
+
+/** Compute total stat bonuses from all currently equipped items. */
+function getEquipmentBonuses(): { attack: number; damage: number; ac: number } {
+  const eq = useInventoryStore.getState().equipment;
+  let attack = 0, damage = 0, ac = 0;
+  for (const slot of Object.values(eq)) {
+    if (slot?.statBonus) {
+      attack += slot.statBonus.attack ?? 0;
+      damage += slot.statBonus.damage ?? 0;
+      ac     += slot.statBonus.ac     ?? 0;
+    }
+  }
+  return { attack, damage, ac };
+}
 
 /** Class-specific combat skills with MP cost and special effects. */
 export interface CombatSkill {
@@ -128,12 +143,11 @@ export function initCombat(player: Character, monster: Monster): CombatState {
   const log: CombatLogEntry[] = [
     { text: monster.description, type: 'info' },
     { text: `${monster.name} appears!`, type: 'system' },
-    { text: `Initiative: You rolled ${playerInit}, ${monster.name} rolled ${monsterInit}.`, type: 'info' },
   ];
 
   const playerFirst = playerInit >= monsterInit;
   log.push({
-    text: playerFirst ? 'You act first.' : `${monster.name} acts first.`,
+    text: playerFirst ? 'You move first.' : `${monster.name} is quicker.`,
     type: 'system',
   });
 
@@ -186,14 +200,15 @@ export function playerAct(
   }
 
   if (action === 'attack') {
+    const equipBonus = getEquipmentBonuses();
     const roll = dice.d(20);
-    const bonus = modifier(player.stats[player.weapon.attackStat]);
+    const bonus = modifier(player.stats[player.weapon.attackStat]) + equipBonus.attack;
     const total = roll + bonus;
     const targetAc = monster.ac + (s.monsterDefending ? 2 : 0);
 
     if (roll === 20 || (roll !== 1 && total >= targetAc)) {
       // Hit!
-      const dmgBase = modifier(player.stats[player.weapon.attackStat]) + 2; // weapon base
+      const dmgBase = modifier(player.stats[player.weapon.attackStat]) + 2 + equipBonus.damage; // weapon base + equipment
       const dmg = Math.max(1, roll === 20 ? dmgBase * 2 : dmgBase);
       s.monsterHp = Math.max(0, s.monsterHp - dmg);
       s.log.push({
@@ -340,9 +355,10 @@ export function enemyAct(
     return s;
   }
 
+  const equipBonus = getEquipmentBonuses();
   const roll = dice.d(20);
   const total = roll + monster.attackBonus;
-  const playerAc = player.derived.ac + (s.playerDefending ? 2 : 0);
+  const playerAc = player.derived.ac + (s.playerDefending ? 2 : 0) + equipBonus.ac;
 
   let didHit = false;
   if (roll === 20 || (roll !== 1 && total >= playerAc)) {

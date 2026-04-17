@@ -121,3 +121,7 @@
 .inv__tt-stats { margin: 0.2rem 0; color: #60c060; font-size: 0.9rem; }
 .inv__tt-effect { margin: 0.1rem 0; color: #e0a040; font-size: 0.85rem; }
 .inv__tt-price { margin: 0.3rem 0 0 0; color: #c0a060; font-size: 0.8rem; }
+.inv__tt-compare { margin-top: 0.3rem; border-top: 1px solid #3a2818; padding-top: 0.3rem; }
+.inv__tt-better { color: #60c060; }
+.inv__tt-worse { color: #c04040; }
+.inv__tt-same { color: #808060; }

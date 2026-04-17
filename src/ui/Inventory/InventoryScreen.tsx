@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useInventoryStore } from '../../state/inventoryStore';
 import { usePlayerStore } from '../../state/playerStore';
-import type { EquipSlot, InventorySlot } from '../../engine/items';
+import type { EquipSlot, InventorySlot, Item } from '../../engine/items';
 import { getItemIcon } from './ItemIcons';
 import './InventoryScreen.css';
 
@@ -21,6 +21,47 @@ const RARITY_BORDER: Record<string, string> = {
   common: '#706858', uncommon: '#40a040', rare: '#4080e0',
   epic: '#a050d0', legendary: '#e0a020',
 };
+
+/** Render a stat-delta line with appropriate colour class. */
+function renderComparison(newItem: Item, currentItem: Item | null): JSX.Element {
+  const newB  = newItem.statBonus     ?? {};
+  const curB  = currentItem?.statBonus ?? {};
+
+  const stats: Array<{ key: keyof typeof newB; label: string }> = [
+    { key: 'attack', label: 'ATK' },
+    { key: 'damage', label: 'DMG' },
+    { key: 'ac',     label: 'AC'  },
+    { key: 'hp',     label: 'HP'  },
+    { key: 'mp',     label: 'MP'  },
+  ];
+
+  const lines = stats
+    .map(({ key, label }) => {
+      const diff = (newB[key] ?? 0) - (curB[key] ?? 0);
+      if (diff === 0) return null;
+      const cls  = diff > 0 ? 'inv__tt-better' : 'inv__tt-worse';
+      const sign = diff > 0 ? '+' : '';
+      return (
+        <span key={key} className={cls} style={{ marginRight: '0.4rem' }}>
+          {sign}{diff} {label}
+        </span>
+      );
+    })
+    .filter(Boolean);
+
+  return (
+    <>
+      <div style={{ color: '#8a7a48', fontSize: '0.78rem', marginBottom: '0.1rem' }}>
+        vs. {currentItem ? currentItem.name : 'empty slot'}
+      </div>
+      {lines.length > 0 ? (
+        <div style={{ fontSize: '0.85rem' }}>{lines}</div>
+      ) : (
+        <span className="inv__tt-same" style={{ fontSize: '0.85rem' }}>no stat difference</span>
+      )}
+    </>
+  );
+}
 
 export function InventoryScreen() {
   const { slots, equipment, close, useItem, equip, unequip, sell } = useInventoryStore();
@@ -130,6 +171,11 @@ export function InventoryScreen() {
           )}
           {tooltip.item.effect?.healHp && <p className="inv__tt-effect">Heals {tooltip.item.effect.healHp} HP</p>}
           {tooltip.item.effect?.healMp && <p className="inv__tt-effect">Restores {tooltip.item.effect.healMp} MP</p>}
+          {tooltip.item.equipSlot && (
+            <div className="inv__tt-compare">
+              {renderComparison(tooltip.item, equipment[tooltip.item.equipSlot])}
+            </div>
+          )}
           <p className="inv__tt-price">Sell: {Math.floor(tooltip.item.buyPrice * 0.5)}g</p>
         </div>
       )}
