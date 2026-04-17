@@ -1,7 +1,7 @@
 import * as Phaser from 'phaser';
 import { useCombatStore } from '../state/combatStore';
 import { usePlayerStore } from '../state/playerStore';
-import { StatusEffects } from '../engine/combat';
+import { type StatusEffects } from '../engine/combat';
 import { generateTileset, TILE_SIZE } from './tiles/generateTiles';
 import {
   generateCharacterSprite,

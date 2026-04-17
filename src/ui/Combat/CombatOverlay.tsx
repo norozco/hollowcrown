@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { useCombatStore } from '../../state/combatStore';
 import { usePlayerStore } from '../../state/playerStore';
-import { CLASS_SKILLS, StatusEffects } from '../../engine/combat';
+import { CLASS_SKILLS, type StatusEffects } from '../../engine/combat';
 import './CombatOverlay.css';
 
 /**
