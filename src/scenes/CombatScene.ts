@@ -8,6 +8,7 @@ import {
   SPRITE_H,
 } from './sprites/generateSprites';
 import { generateMonsterSprite } from './sprites/generateMonsters';
+import { usePlayerStore as _PS } from '../state/playerStore';
 
 /**
  * Visual battle scene — player sprite on the left, enemy on the right,
@@ -172,15 +173,16 @@ export class CombatScene extends Phaser.Scene {
 
       for (const entry of newEntries) {
         if (entry.type === 'player_hit') {
-          this.animateAttack(this.playerSprite, this.playerBaseX, this.enemyBaseX - 80, true);
+          this.animatePlayerAttack(true);
           this.showDamageNumber(this.enemyBaseX, eY - eHalfH, entry.text);
         } else if (entry.type === 'player_miss') {
-          this.animateAttack(this.playerSprite, this.playerBaseX, this.enemyBaseX - 100, false);
+          this.animatePlayerAttack(false);
         } else if (entry.type === 'enemy_hit') {
+          this.animateEnemyAttack();
           this.showDamageNumber(this.playerBaseX, this.playerSprite.y - SPRITE_H, entry.text);
           this.flashSprite(this.playerSprite);
         } else if (entry.type === 'enemy_miss') {
-          // Could add dodge animation
+          this.animateEnemyAttack();
         }
       }
     }
@@ -201,18 +203,108 @@ export class CombatScene extends Phaser.Scene {
     gfx.strokeRect(x - 1, y - 1, w + 2, 10);
   }
 
-  private animateAttack(sprite: Phaser.GameObjects.Sprite, _fromX: number, toX: number, hit: boolean): void {
+  /** Determine the player's weapon type for animation selection. */
+  private getWeaponType(): string {
+    const char = _PS.getState().character;
+    return char?.weapon?.attackStat === 'int' ? 'staff'
+      : char?.weapon?.range === 'ranged' ? 'bow'
+      : char?.weapon?.damageKind === 'bludgeoning' ? 'mace'
+      : char?.weapon?.key === 'dagger' ? 'dagger'
+      : char?.weapon?.key === 'axe' ? 'axe'
+      : 'sword';
+  }
+
+  /** Player attack — animation varies by weapon type. */
+  private animatePlayerAttack(hit: boolean): void {
+    const wep = this.getWeaponType();
+    const eX = this.enemyBaseX;
+    const eY = this.enemySprite.y;
+    const pX = this.playerBaseX;
+    const pY = this.playerSprite.y;
+
+    if (wep === 'bow') {
+      // RANGED: arrow projectile flies to enemy.
+      const arrow = this.add.rectangle(pX + 40, pY, 16, 3, 0xc0b090).setDepth(15);
+      const arrowHead = this.add.triangle(pX + 48, pY, 0, -4, 0, 4, 8, 0, 0xa0a098).setDepth(15);
+      this.tweens.add({
+        targets: [arrow, arrowHead], x: eX - 20, duration: 300, ease: 'Linear',
+        onComplete: () => {
+          arrow.destroy(); arrowHead.destroy();
+          if (hit) this.cameras.main.shake(80, 0.004);
+        },
+      });
+    } else if (wep === 'staff') {
+      // RANGED: magic bolt flies to enemy.
+      const bolt = this.add.circle(pX + 30, pY - 10, 8, 0x8060c0).setDepth(15);
+      const glow = this.add.circle(pX + 30, pY - 10, 12, 0xa080e0).setAlpha(0.4).setDepth(14);
+      this.tweens.add({
+        targets: [bolt, glow], x: eX - 20, duration: 400, ease: 'Sine.easeIn',
+        onComplete: () => {
+          // Impact flash
+          const flash = this.add.circle(eX - 20, eY, 20, 0xc0a0f0).setAlpha(0.7).setDepth(16);
+          this.tweens.add({ targets: flash, alpha: 0, scale: 2, duration: 300, onComplete: () => flash.destroy() });
+          bolt.destroy(); glow.destroy();
+          if (hit) this.cameras.main.shake(100, 0.006);
+        },
+      });
+    } else if (wep === 'dagger') {
+      // MELEE: quick short lunge + multi-stab effect.
+      this.tweens.add({
+        targets: this.playerSprite, x: eX - 60, duration: 120, ease: 'Power3', yoyo: true,
+        onYoyo: () => {
+          // Multiple slash lines
+          for (let i = 0; i < 3; i++) {
+            const slash = this.add.line(0, 0, eX - 40, eY - 10 + i * 12, eX - 10, eY - 20 + i * 12, 0xffffff)
+              .setLineWidth(2).setAlpha(0.8).setDepth(15);
+            this.tweens.add({ targets: slash, alpha: 0, duration: 200, delay: i * 50, onComplete: () => slash.destroy() });
+          }
+          if (hit) this.cameras.main.shake(60, 0.003);
+        },
+      });
+    } else if (wep === 'mace' || wep === 'axe') {
+      // MELEE: overhead smash with impact sparks.
+      this.tweens.add({
+        targets: this.playerSprite, x: eX - 70, duration: 250, ease: 'Power2', yoyo: true,
+        onYoyo: () => {
+          // Impact sparks (star pattern)
+          for (let a = 0; a < 6; a++) {
+            const angle = (a / 6) * Math.PI * 2;
+            const spark = this.add.circle(eX - 30 + Math.cos(angle) * 15, eY + Math.sin(angle) * 15, 3, 0xf0d040)
+              .setDepth(15);
+            this.tweens.add({
+              targets: spark,
+              x: spark.x + Math.cos(angle) * 20,
+              y: spark.y + Math.sin(angle) * 20,
+              alpha: 0, duration: 300, onComplete: () => spark.destroy(),
+            });
+          }
+          if (hit) this.cameras.main.shake(150, 0.008);
+        },
+      });
+    } else {
+      // MELEE: sword — standard lunge + slash arc.
+      this.tweens.add({
+        targets: this.playerSprite, x: eX - 70, duration: 200, ease: 'Power2', yoyo: true,
+        onYoyo: () => {
+          // Slash arc (curved white line)
+          const arc = this.add.arc(eX - 40, eY, 30, -60, 60, false, 0xffffff).setAlpha(0.7).setDepth(15);
+          arc.setStrokeStyle(3, 0xffffff);
+          arc.setFillStyle(0xffffff, 0);
+          this.tweens.add({ targets: arc, alpha: 0, scale: 1.5, duration: 250, onComplete: () => arc.destroy() });
+          if (hit) this.cameras.main.shake(100, 0.005);
+        },
+      });
+    }
+  }
+
+  /** Enemy attack — lunges toward player. */
+  private animateEnemyAttack(): void {
     this.tweens.add({
-      targets: sprite,
-      x: toX,
-      duration: 200,
+      targets: this.enemySprite,
+      x: this.playerBaseX + 80,
+      duration: 250,
       ease: 'Power2',
       yoyo: true,
-      onYoyo: () => {
-        if (hit) {
-          this.cameras.main.shake(100, 0.005);
-        }
-      },
     });
   }
 
