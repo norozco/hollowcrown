@@ -8,6 +8,7 @@ import { getDialogue } from '../engine/dialogues';
 import { getItem } from '../engine/items';
 import { getNPC } from '../engine/npcs';
 import { saveGame } from '../engine/saveLoad';
+import { useCommissionStore } from '../state/commissionStore';
 import {
   generateCharacterSprite,
   getNpcPalette,
@@ -1002,6 +1003,18 @@ export abstract class BaseWorldScene extends Phaser.Scene {
 
       if (inside) {
         this.transitionLock = true;
+
+        // Commission system — advance the zone-transition clock.
+        const commStore = useCommissionStore.getState();
+        commStore.tick();
+        const nowReady = commStore.getReady();
+        // Only notify when a commission became ready on THIS tick.
+        if (nowReady.some(c => c.readyAtTransition === commStore.transitionCount)) {
+          window.dispatchEvent(new CustomEvent('gameMessage', {
+            detail: `Kael has finished a commission. Visit the smithy.`,
+          }));
+        }
+
         // Leaving the zone — clear killed enemies so they respawn when
         // the player returns.
         useCombatStore.getState().killedEnemies.clear();

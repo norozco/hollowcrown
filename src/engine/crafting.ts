@@ -10,6 +10,20 @@ export interface CraftingRecipe {
   requiredRank?: string;
 }
 
+/** Maps base recipe keys to their commissioned (masterwork) result item keys
+ *  and the number of zone transitions required. */
+export const COMMISSION_MAP: Record<string, { resultItemKey: string; transitions: number }> = {
+  craft_iron_sword:    { resultItemKey: 'kael_iron_sword',    transitions: 3 },
+  craft_steel_sword:   { resultItemKey: 'kael_steel_sword',   transitions: 4 },
+  craft_hunting_bow:   { resultItemKey: 'kael_hunting_bow',   transitions: 3 },
+  craft_shadow_dagger: { resultItemKey: 'kael_shadow_dagger', transitions: 3 },
+  craft_iron_mace:     { resultItemKey: 'kael_iron_mace',     transitions: 3 },
+  craft_runed_staff:   { resultItemKey: 'kael_runed_staff',   transitions: 4 },
+  craft_silver_rapier: { resultItemKey: 'kael_silver_rapier', transitions: 3 },
+  craft_chainmail:     { resultItemKey: 'kael_chainmail',     transitions: 3 },
+  craft_leather_armor: { resultItemKey: 'kael_leather_armor', transitions: 2 },
+};
+
 export const RECIPES: CraftingRecipe[] = [
   {
     key: 'craft_health_potion',

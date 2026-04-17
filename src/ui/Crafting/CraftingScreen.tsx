@@ -3,7 +3,8 @@ import { useInventoryStore } from '../../state/inventoryStore';
 import { usePlayerStore } from '../../state/playerStore';
 import { useQuestStore } from '../../state/questStore';
 import { useAchievementStore } from '../../state/achievementStore';
-import { RECIPES, type CraftingRecipe } from '../../engine/crafting';
+import { useCommissionStore } from '../../state/commissionStore';
+import { RECIPES, COMMISSION_MAP, type CraftingRecipe } from '../../engine/crafting';
 import { getCurrentRank, RANKS } from '../../engine/ranks';
 import { getItem } from '../../engine/items';
 import './CraftingScreen.css';
@@ -30,6 +31,9 @@ export function CraftingScreen({ onClose }: Props) {
   const addItem = useInventoryStore((s) => s.addItem);
   const removeItem = useInventoryStore((s) => s.removeItem);
   const active = useQuestStore((s) => s.active);
+
+  const commissions = useCommissionStore((s) => s.commissions);
+  const transitionCount = useCommissionStore((s) => s.transitionCount);
 
   const [flash, setFlash] = useState<string | null>(null);
 
@@ -59,24 +63,72 @@ export function CraftingScreen({ onClose }: Props) {
     return true;
   }
 
+  function canCommission(recipe: CraftingRecipe): boolean {
+    if (!meetsRank(recipe)) return false;
+    const commCost = Math.floor(recipe.goldCost * 1.5);
+    if (character!.gold < commCost) return false;
+    for (const ing of recipe.ingredients) {
+      if (getOwned(ing.itemKey) < ing.quantity) return false;
+    }
+    return true;
+  }
+
   function doCraft(recipe: CraftingRecipe) {
     if (!canCraft(recipe)) return;
-    // Deduct ingredients
     for (const ing of recipe.ingredients) {
       removeItem(ing.itemKey, ing.quantity);
     }
-    // Deduct gold
     character!.loseGold(recipe.goldCost);
     usePlayerStore.getState().notify();
-    // Add result
     addItem(recipe.resultItemKey, recipe.resultQuantity);
-    // Record craft for achievements.
     useAchievementStore.getState().recordCraft();
-    // Flash
     const resultItem = getItem(recipe.resultItemKey);
     setFlash(`Crafted ${resultItem.name}!`);
     setTimeout(() => setFlash(null), 1500);
   }
+
+  function doCommission(recipe: CraftingRecipe) {
+    const mapping = COMMISSION_MAP[recipe.key];
+    if (!mapping || !canCommission(recipe)) return;
+    const commCost = Math.floor(recipe.goldCost * 1.5);
+    // Deduct materials
+    for (const ing of recipe.ingredients) {
+      removeItem(ing.itemKey, ing.quantity);
+    }
+    // Deduct gold (50% more)
+    character!.loseGold(commCost);
+    usePlayerStore.getState().notify();
+
+    const resultItem = getItem(mapping.resultItemKey);
+    const store = useCommissionStore.getState();
+    store.place({
+      recipeKey: recipe.key,
+      resultItemKey: mapping.resultItemKey,
+      resultName: resultItem.name,
+      readyAtTransition: store.transitionCount + mapping.transitions,
+    });
+
+    useAchievementStore.getState().recordCraft();
+    setFlash(`Commissioned ${resultItem.name}. Return in ${mapping.transitions} days.`);
+    setTimeout(() => setFlash(null), 2000);
+  }
+
+  function collectCommission(id: string) {
+    const commission = useCommissionStore.getState().collect(id);
+    if (commission) {
+      addItem(commission.resultItemKey);
+      setFlash(`Kael's work is done. ${commission.resultName} acquired.`);
+      setTimeout(() => setFlash(null), 2000);
+    }
+  }
+
+  const statLabels: Array<{ key: string; label: string }> = [
+    { key: 'attack', label: 'ATK' },
+    { key: 'damage', label: 'DMG' },
+    { key: 'ac', label: 'AC' },
+    { key: 'hp', label: 'HP' },
+    { key: 'mp', label: 'MP' },
+  ];
 
   return (
     <div className="craft" role="dialog" aria-label="Crafting">
@@ -91,16 +143,13 @@ export function CraftingScreen({ onClose }: Props) {
           const affordable = character.gold >= recipe.goldCost;
           const craftable = canCraft(recipe);
           const resultItem = getItem(recipe.resultItemKey);
-
-          const statLabels: Array<{ key: string; label: string }> = [
-            { key: 'attack', label: 'ATK' },
-            { key: 'damage', label: 'DMG' },
-            { key: 'ac', label: 'AC' },
-            { key: 'hp', label: 'HP' },
-            { key: 'mp', label: 'MP' },
-          ];
           const bonuses = resultItem.statBonus ?? {};
           const recommended = WEAPON_CLASS_MAP[recipe.resultItemKey]?.includes(character.characterClass.key);
+
+          const commMapping = COMMISSION_MAP[recipe.key];
+          const commCost = Math.floor(recipe.goldCost * 1.5);
+          const commAffordable = character.gold >= commCost;
+          const commCraftable = commMapping ? canCommission(recipe) : false;
 
           return (
             <li key={recipe.key} className={`craft__recipe${!rankOk ? ' is-locked' : ''}`}>
@@ -149,19 +198,72 @@ export function CraftingScreen({ onClose }: Props) {
                 <span className={`craft__cost${!affordable ? ' not-enough' : ''}`} style={{ color: affordable ? '#f4d488' : '#c04040' }}>
                   Cost: {recipe.goldCost}g
                 </span>
-                <button
-                  type="button"
-                  className="craft__btn"
-                  disabled={!craftable}
-                  onClick={() => doCraft(recipe)}
-                >
-                  Craft
-                </button>
+                <div className="craft__actions">
+                  <button
+                    type="button"
+                    className="craft__btn"
+                    disabled={!craftable}
+                    onClick={() => doCraft(recipe)}
+                  >
+                    Craft
+                  </button>
+                  {commMapping && (
+                    <button
+                      type="button"
+                      className="craft__btn craft__btn--commission"
+                      disabled={!commCraftable}
+                      onClick={() => doCommission(recipe)}
+                      title={`Superior result after ${commMapping.transitions} zone transitions. Costs ${commCost}g.`}
+                    >
+                      Commission ({commCost}g)
+                    </button>
+                  )}
+                </div>
               </div>
+              {commMapping && (
+                <div className="craft__commission-hint">
+                  <span className="craft__comm-label">Commission:</span>{' '}
+                  {getItem(commMapping.resultItemKey).name}
+                  {statLabels.map(({ key, label }) => {
+                    const commItem = getItem(commMapping.resultItemKey);
+                    const val = (commItem.statBonus as Record<string, number | undefined> ?? {})[key];
+                    return val ? (
+                      <span key={key} style={{ color: '#d4a968', marginLeft: '6px' }}>+{val} {label}</span>
+                    ) : null;
+                  })}
+                  <span style={{ color: '#8a7a48', marginLeft: '8px', fontStyle: 'italic' }}>
+                    ({commMapping.transitions} days)
+                  </span>
+                </div>
+              )}
             </li>
           );
         })}
       </ul>
+
+      {commissions.length > 0 && (
+        <div className="craft__commissions">
+          <h3>Kael's Workshop</h3>
+          {commissions.map(c => {
+            const elapsed = Math.min(
+              transitionCount - c.placedAtTransition,
+              c.readyAtTransition - c.placedAtTransition,
+            );
+            const total = c.readyAtTransition - c.placedAtTransition;
+            const ready = transitionCount >= c.readyAtTransition;
+            return (
+              <div key={c.id} className={`craft__commission${ready ? ' is-ready' : ''}`}>
+                <span className="craft__comm-name">{c.resultName}</span>
+                {ready ? (
+                  <button className="craft__btn" onClick={() => collectCommission(c.id)}>Collect</button>
+                ) : (
+                  <span className="craft__comm-progress">{elapsed}/{total} days</span>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
 
       {flash && <div className="craft__flash">{flash}</div>}
     </div>

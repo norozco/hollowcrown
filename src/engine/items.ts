@@ -199,6 +199,53 @@ const ITEMS: Record<string, Item> = {
     buyPrice: 190, description: 'Thin, precise, elegant. Words fail where this succeeds.',
     equipSlot: 'mainHand', statBonus: { attack: 2, damage: 3 },
   },
+  // ── Kael's Masterwork (commission results) ──
+  kael_iron_sword: {
+    key: 'kael_iron_sword', name: "Kael's Iron Sword", type: 'weapon', rarity: 'uncommon',
+    buyPrice: 120, description: 'Forged with patience. The edge holds longer, cuts deeper.',
+    equipSlot: 'mainHand', statBonus: { attack: 2, damage: 3 },
+  },
+  kael_steel_sword: {
+    key: 'kael_steel_sword', name: "Kael's Steel Sword", type: 'weapon', rarity: 'rare',
+    buyPrice: 380, description: 'Days at the anvil. The steel remembers every hammer stroke.',
+    equipSlot: 'mainHand', statBonus: { attack: 3, damage: 5 },
+  },
+  kael_hunting_bow: {
+    key: 'kael_hunting_bow', name: "Kael's Hunting Bow", type: 'weapon', rarity: 'rare',
+    buyPrice: 270, description: 'Yew aged in shadow. The string hums before the arrow flies.',
+    equipSlot: 'mainHand', statBonus: { attack: 3, damage: 4 },
+  },
+  kael_shadow_dagger: {
+    key: 'kael_shadow_dagger', name: "Kael's Shadow Dagger", type: 'weapon', rarity: 'rare',
+    buyPrice: 240, description: 'Folded dark iron. Finds the gap you did not know was there.',
+    equipSlot: 'mainHand', statBonus: { attack: 4, damage: 3 },
+  },
+  kael_iron_mace: {
+    key: 'kael_iron_mace', name: "Kael's Iron Mace", type: 'weapon', rarity: 'rare',
+    buyPrice: 230, description: 'Balanced for the faithful. Each blow carries conviction.',
+    equipSlot: 'mainHand', statBonus: { attack: 2, damage: 5 },
+  },
+  kael_runed_staff: {
+    key: 'kael_runed_staff', name: "Kael's Runed Staff", type: 'weapon', rarity: 'rare',
+    buyPrice: 300, description: 'The runes were carved over three nights. They do not flicker.',
+    equipSlot: 'mainHand', statBonus: { attack: 3, mp: 12 },
+  },
+  kael_silver_rapier: {
+    key: 'kael_silver_rapier', name: "Kael's Silver Rapier", type: 'weapon', rarity: 'rare',
+    buyPrice: 280, description: 'Perfect balance. It moves before you think to move it.',
+    equipSlot: 'mainHand', statBonus: { attack: 3, damage: 4 },
+  },
+  kael_chainmail: {
+    key: 'kael_chainmail', name: "Kael's Chainmail", type: 'armor', rarity: 'rare',
+    buyPrice: 300, description: 'Every link tested. It will hold when lesser mail would not.',
+    equipSlot: 'chest', statBonus: { ac: 5 },
+  },
+  kael_leather_armor: {
+    key: 'kael_leather_armor', name: "Kael's Leather Armor", type: 'armor', rarity: 'uncommon',
+    buyPrice: 90, description: 'Hardened and shaped to fit. Moves with you, not against.',
+    equipSlot: 'chest', statBonus: { ac: 3 },
+  },
+  // ── Quest items ──
   dungeon_key: {
     key: 'dungeon_key', name: 'Rusty Key', type: 'quest', rarity: 'uncommon',
     buyPrice: 0, description: 'Iron, corroded. Opens something below.',

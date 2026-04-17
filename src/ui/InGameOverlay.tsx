@@ -7,6 +7,7 @@ import { useCombatStore } from '../state/combatStore';
 import { useInventoryStore } from '../state/inventoryStore';
 import { useAchievementStore } from '../state/achievementStore';
 import { useLoreStore } from '../state/loreStore';
+import { useCommissionStore } from '../state/commissionStore';
 import { DialogueScene } from './Dialogue/DialogueScene';
 import { QuestTracker } from './QuestTracker/QuestTracker';
 import { CombatOverlay } from './Combat/CombatOverlay';
@@ -224,6 +225,7 @@ export function InGameOverlay() {
     resetInventory();
     resetAchievements();
     resetLore();
+    useCommissionStore.getState().reset();
     setMenuOpen(false);
     setScreen('menu');
   };
