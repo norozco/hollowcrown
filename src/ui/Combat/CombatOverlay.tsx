@@ -4,10 +4,11 @@ import { usePlayerStore } from '../../state/playerStore';
 import './CombatOverlay.css';
 
 /**
- * Full-screen combat overlay. Shows the battle log, HP bars for both
- * sides, and action buttons during the player's turn.
+ * Combat action bar — slim panel at the bottom of the screen.
+ * The Phaser CombatScene renders the visual battlefield above.
+ * This overlay handles: combat log + action buttons.
  *
- * Keyboard: 1=Attack, 2=Defend, 3=Flee, Enter=End (after victory/defeat).
+ * Keys: 1=Attack, 2=Defend, 3=Flee, Enter/Space=Continue after end.
  */
 export function CombatOverlay() {
   const state = useCombatStore((s) => s.state);
@@ -15,16 +16,13 @@ export function CombatOverlay() {
   const act = useCombatStore((s) => s.act);
   const finish = useCombatStore((s) => s.finish);
   const character = usePlayerStore((s) => s.character);
-  usePlayerStore((s) => s.version);
 
   const logEndRef = useRef<HTMLDivElement>(null);
 
-  // Auto-scroll combat log.
   useEffect(() => {
     logEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [state?.log.length]);
 
-  // Keyboard controls.
   useEffect(() => {
     if (!state) return;
     const onKey = (e: KeyboardEvent) => {
@@ -44,35 +42,9 @@ export function CombatOverlay() {
 
   const isOver = state.phase === 'victory' || state.phase === 'defeat' || state.phase === 'fled';
   const isPlayerTurn = state.phase === 'player_turn';
-  const monsterHpPct = Math.max(0, state.monsterHp / monster.maxHp * 100);
-  const playerHpPct = Math.max(0, state.playerHp / character.derived.maxHp * 100);
 
   return (
-    <div className="combat" role="dialog" aria-label="Combat">
-      {/* Enemy info */}
-      <div className="combat__enemy">
-        <div className="combat__enemy-sprite" style={{ background: monster.color }} />
-        <div className="combat__enemy-info">
-          <h3>{monster.name}</h3>
-          <div className="combat__hp-bar">
-            <div className="combat__hp-fill combat__hp-fill--enemy" style={{ width: `${monsterHpPct}%` }} />
-            <span>{state.monsterHp}/{monster.maxHp}</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Player info */}
-      <div className="combat__player">
-        <div className="combat__player-info">
-          <h3>{character.name}</h3>
-          <div className="combat__hp-bar">
-            <div className="combat__hp-fill combat__hp-fill--player" style={{ width: `${playerHpPct}%` }} />
-            <span>{state.playerHp}/{character.derived.maxHp}</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Combat log */}
+    <div className="combat">
       <div className="combat__log">
         {state.log.map((entry, i) => (
           <p key={i} className={`combat__log-entry combat__log--${entry.type}`}>
@@ -82,7 +54,6 @@ export function CombatOverlay() {
         <div ref={logEndRef} />
       </div>
 
-      {/* Actions */}
       <div className="combat__actions">
         {isPlayerTurn && (
           <>
@@ -103,18 +74,14 @@ export function CombatOverlay() {
         {isOver && (
           <div className="combat__result">
             {state.phase === 'victory' && (
-              <p className="combat__victory">
-                Victory! +{monster.xpReward} XP, +{monster.goldReward}g
-              </p>
+              <p className="combat__victory">Victory! +{monster.xpReward} XP, +{monster.goldReward}g</p>
             )}
             {state.phase === 'defeat' && (
               <p className="combat__defeat">
                 {character.difficulty === 'hardcore' ? 'Death is final.' : 'You fall. Lost 10% gold.'}
               </p>
             )}
-            {state.phase === 'fled' && (
-              <p className="combat__fled">You escaped.</p>
-            )}
+            {state.phase === 'fled' && <p className="combat__fled">You escaped.</p>}
             <button type="button" className="combat__btn combat__btn--end" onClick={finish}>
               Continue
             </button>

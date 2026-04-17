@@ -591,10 +591,12 @@ export abstract class BaseWorldScene extends Phaser.Scene {
         enemy.sprite.x, enemy.sprite.y,
       );
       if (dist < 28) {
-        // Remove enemy from the world and start combat.
+        // Remove enemy from the world, start combat, switch to battle scene.
         enemy.sprite.destroy();
         this.enemies.splice(i, 1);
-        useCombatStore.getState().start(enemy.monsterKey);
+        const currentSceneKey = this.scene.key;
+        useCombatStore.getState().start(enemy.monsterKey, currentSceneKey);
+        this.scene.switch('CombatScene');
         return;
       }
     }

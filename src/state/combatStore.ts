@@ -17,9 +17,11 @@ import { usePlayerStore } from './playerStore';
 interface CombatStoreState {
   state: CombatState | null;
   monster: Monster | null;
+  /** Which Phaser scene to return to after combat. */
+  returnScene: string | null;
 
   /** Start combat against a monster key. */
-  start: (monsterKey: string) => void;
+  start: (monsterKey: string, returnScene?: string) => void;
   /** Player takes an action. If it's then the enemy's turn, auto-acts. */
   act: (action: CombatAction) => void;
   /** End combat — apply rewards or penalties and clean up. */
@@ -29,13 +31,14 @@ interface CombatStoreState {
 export const useCombatStore = create<CombatStoreState>((set, get) => ({
   state: null,
   monster: null,
+  returnScene: null,
 
-  start: (monsterKey) => {
+  start: (monsterKey, returnScene) => {
     const character = usePlayerStore.getState().character;
     if (!character) return;
     const monster = getMonster(monsterKey);
     const state = initCombat(character, monster);
-    set({ state, monster });
+    set({ state, monster, returnScene: returnScene ?? null });
 
     // If enemy goes first, auto-act after a brief pause.
     if (state.phase === 'enemy_turn') {
@@ -106,6 +109,6 @@ export const useCombatStore = create<CombatStoreState>((set, get) => ({
       }
     }
 
-    set({ state: null, monster: null });
+    set({ state: null, monster: null, returnScene: null });
   },
 }));

@@ -5,6 +5,7 @@ import { TownScene } from '../scenes/TownScene';
 import { GreenhollowScene } from '../scenes/GreenhollowScene';
 import { MossbarrowScene } from '../scenes/MossbarrowScene';
 import { InteriorScene } from '../scenes/InteriorScene';
+import { CombatScene } from '../scenes/CombatScene';
 
 /**
  * Authoritative Phaser game config. Kept separate from the React mount
@@ -31,5 +32,5 @@ export const gameConfig: Phaser.Types.Core.GameConfig = {
       debug: false,
     },
   },
-  scene: [BootScene, PlaceholderScene, TownScene, GreenhollowScene, MossbarrowScene, InteriorScene],
+  scene: [BootScene, PlaceholderScene, TownScene, GreenhollowScene, MossbarrowScene, InteriorScene, CombatScene],
 };
