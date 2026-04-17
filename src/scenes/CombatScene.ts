@@ -31,6 +31,8 @@ export class CombatScene extends Phaser.Scene {
   private enemyBaseX = 0;
   private combatEnded = false;
   private savedReturnScene = 'TownScene';
+  private savedReturnX = 0;
+  private savedReturnY = 0;
 
   constructor() {
     super({ key: 'CombatScene' });
@@ -116,8 +118,11 @@ export class CombatScene extends Phaser.Scene {
 
     this.lastLogLength = useCombatStore.getState().state?.log.length ?? 0;
     this.combatEnded = false;
-    // Save return scene NOW before finish() clears it.
-    this.savedReturnScene = useCombatStore.getState().returnScene ?? 'TownScene';
+    // Save return info NOW before finish() clears it.
+    const combatState = useCombatStore.getState();
+    this.savedReturnScene = combatState.returnScene ?? 'TownScene';
+    this.savedReturnX = combatState.returnX;
+    this.savedReturnY = combatState.returnY;
 
     // Fade in
     this.cameras.main.fadeIn(300, 0, 0, 0);
@@ -133,9 +138,11 @@ export class CombatScene extends Phaser.Scene {
     if (!state && !this.combatEnded) {
       this.combatEnded = true;
       const returnTo = this.savedReturnScene;
+      const rx = this.savedReturnX;
+      const ry = this.savedReturnY;
       this.cameras.main.fadeOut(300, 0, 0, 0);
       this.cameras.main.once('camerafadeoutcomplete', () => {
-        this.scene.start(returnTo);
+        this.scene.start(returnTo, { spawnPoint: 'combat_return', combatReturnX: rx, combatReturnY: ry });
       });
       return;
     }

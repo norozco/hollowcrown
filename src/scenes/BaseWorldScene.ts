@@ -13,6 +13,7 @@ import {
   SPRITE_W,
   SPRITE_H,
 } from './sprites/generateSprites';
+import { generateMonsterSprite } from './sprites/generateMonsters';
 
 /**
  * Shared world-scene infrastructure. Handles player creation & movement,
@@ -85,7 +86,7 @@ export abstract class BaseWorldScene extends Phaser.Scene {
   protected walls!: Phaser.Physics.Arcade.StaticGroup;
   protected npcs: NpcSprite[] = [];
   protected interactables: Interactable[] = [];
-  protected enemies: Array<{ sprite: Phaser.GameObjects.Arc; monsterKey: string }> = [];
+  protected enemies: Array<{ sprite: Phaser.GameObjects.Arc | Phaser.GameObjects.Sprite; monsterKey: string; id: string }> = [];
   protected exits: Exit[] = [];
   protected prompt!: Phaser.GameObjects.Text;
   protected nearbyTarget: NearbyTarget | null = null;
@@ -107,7 +108,7 @@ export abstract class BaseWorldScene extends Phaser.Scene {
   // Phaser lifecycle
   // ──────────────────────────────────────────────────────────────
 
-  create(data?: WorldSceneInit): void {
+  create(data?: WorldSceneInit & { combatReturnX?: number; combatReturnY?: number }): void {
     this.npcs = [];
     this.interactables = [];
     this.enemies = [];
@@ -119,7 +120,13 @@ export abstract class BaseWorldScene extends Phaser.Scene {
     this.createWorldBounds();
     this.layout();
 
-    const spawn = this.spawnAt(data?.spawnPoint ?? 'default');
+    // If returning from combat, use the saved position instead of a named spawn.
+    let spawn: { x: number; y: number };
+    if (data?.spawnPoint === 'combat_return' && data.combatReturnX && data.combatReturnY) {
+      spawn = { x: data.combatReturnX, y: data.combatReturnY };
+    } else {
+      spawn = this.spawnAt(data?.spawnPoint ?? 'default');
+    }
     this.createPlayer(spawn.x, spawn.y);
 
     this.setupInput();
@@ -313,14 +320,20 @@ export abstract class BaseWorldScene extends Phaser.Scene {
     });
   }
 
-  /** Spawn an enemy that triggers combat on contact. */
+  /** Spawn an enemy that triggers combat on contact. Skips if already killed. */
   protected spawnEnemy(cfg: { monsterKey: string; x: number; y: number; color?: number }): void {
-    const color = cfg.color ?? 0xa04040;
-    const enemy = this.add.circle(cfg.x, cfg.y, 12, color);
-    enemy.setStrokeStyle(2, 0x300808);
+    // Check if this enemy was already killed this session.
+    const enemyId = `${this.scene.key}-${cfg.x}-${cfg.y}`;
+    if (useCombatStore.getState().killedEnemies.has(enemyId)) return;
+
+    // Use the monster sprite instead of a colored circle.
+    const spriteKey = `world-${cfg.monsterKey}-${cfg.x}-${cfg.y}`;
+    generateMonsterSprite(this, spriteKey, cfg.monsterKey);
+
+    const enemy = this.add.sprite(cfg.x, cfg.y, spriteKey, 0);
+    enemy.setScale(0.8); // smaller in the overworld than in combat
     enemy.setDepth(10);
-    this.physics.add.existing(enemy, true);
-    this.enemies.push({ sprite: enemy, monsterKey: cfg.monsterKey });
+    this.enemies.push({ sprite: enemy, monsterKey: cfg.monsterKey, id: enemyId });
   }
 
   /** Spawn an NPC sprite at tile coords, with name floating above. */
@@ -591,11 +604,19 @@ export abstract class BaseWorldScene extends Phaser.Scene {
         enemy.sprite.x, enemy.sprite.y,
       );
       if (dist < 28) {
-        // Remove enemy from the world, start combat, switch to battle scene.
+        // Save player position + enemy ID, start combat, switch to battle.
+        const px = this.player.x;
+        const py = this.player.y;
+        const enemyId = enemy.id;
         enemy.sprite.destroy();
         this.enemies.splice(i, 1);
         const currentSceneKey = this.scene.key;
-        useCombatStore.getState().start(enemy.monsterKey, currentSceneKey);
+
+        // Mark this enemy as killed (will be checked on victory in finish()).
+        const store = useCombatStore.getState();
+        store.killedEnemies.add(enemyId);
+
+        store.start(enemy.monsterKey, currentSceneKey, px, py);
         this.scene.switch('CombatScene');
         return;
       }

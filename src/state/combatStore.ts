@@ -19,9 +19,14 @@ interface CombatStoreState {
   monster: Monster | null;
   /** Which Phaser scene to return to after combat. */
   returnScene: string | null;
+  /** Player's position before combat — restore after. */
+  returnX: number;
+  returnY: number;
+  /** Enemies killed this session (sceneKey-x-y). Persists across scene restarts. */
+  killedEnemies: Set<string>;
 
   /** Start combat against a monster key. */
-  start: (monsterKey: string, returnScene?: string) => void;
+  start: (monsterKey: string, returnScene?: string, playerX?: number, playerY?: number) => void;
   /** Player takes an action. If it's then the enemy's turn, auto-acts. */
   act: (action: CombatAction) => void;
   /** End combat — apply rewards or penalties and clean up. */
@@ -32,13 +37,16 @@ export const useCombatStore = create<CombatStoreState>((set, get) => ({
   state: null,
   monster: null,
   returnScene: null,
+  returnX: 0,
+  returnY: 0,
+  killedEnemies: new Set<string>(),
 
-  start: (monsterKey, returnScene) => {
+  start: (monsterKey, returnScene, playerX, playerY) => {
     const character = usePlayerStore.getState().character;
     if (!character) return;
     const monster = getMonster(monsterKey);
     const state = initCombat(character, monster);
-    set({ state, monster, returnScene: returnScene ?? null });
+    set({ state, monster, returnScene: returnScene ?? null, returnX: playerX ?? 0, returnY: playerY ?? 0 });
 
     // If enemy goes first, auto-act after a brief pause.
     if (state.phase === 'enemy_turn') {
@@ -109,6 +117,6 @@ export const useCombatStore = create<CombatStoreState>((set, get) => ({
       }
     }
 
-    set({ state: null, monster: null, returnScene: null });
+    set((s) => ({ state: null, monster: null, returnScene: null, killedEnemies: s.killedEnemies }));
   },
 }));
