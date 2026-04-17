@@ -131,9 +131,14 @@ export function playerAct(
     const classKey = player.characterClass.key;
     const skill = CLASS_SKILLS[classKey];
     if (!skill) {
-      s.log.push({ text: 'No skill available.', type: 'info' });
+      // No skill available — don't waste the turn, return original state.
+      return state;
     } else if (player.mp < skill.mpCost) {
+      // Not enough MP — don't waste the turn. Add log but return new state
+      // with phase still on player_turn so they can pick another action.
       s.log.push({ text: `Not enough MP for ${skill.name} (need ${skill.mpCost}).`, type: 'info' });
+      s.phase = 'player_turn';
+      return s;
     } else {
       player.spendMp(skill.mpCost);
 

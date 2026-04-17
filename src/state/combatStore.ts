@@ -60,7 +60,7 @@ export const useCombatStore = create<CombatStoreState>((set, get) => ({
       set({ _enemyActing: true });
       setTimeout(() => {
         const s = get();
-        if (s.state && s.monster && s.state.phase === 'enemy_turn') {
+        if (s._enemyActing && s.state && s.monster && s.state.phase === 'enemy_turn') {
           const character2 = usePlayerStore.getState().character;
           if (character2) {
             set({ state: enemyAct(s.state, character2, s.monster), _enemyActing: false });
@@ -78,15 +78,22 @@ export const useCombatStore = create<CombatStoreState>((set, get) => ({
     if (state.phase !== 'player_turn' || _enemyActing) return;
 
     // Player acts.
-    let next = playerAct(state, action, character, monster);
+    const next = playerAct(state, action, character, monster);
+
+    // Guard: if playerAct returned the exact same object, the action was
+    // a no-op (wrong phase). Do NOT re-set state or schedule enemy turn.
+    if (next === state) return;
+
     set({ state: next });
 
     // If combat continues and it's the enemy's turn, auto-act after delay.
+    // Set _enemyActing BEFORE the timeout to block further player actions.
     if (next.phase === 'enemy_turn') {
       set({ _enemyActing: true });
       setTimeout(() => {
         const s = get();
-        if (s.state && s.monster && s.state.phase === 'enemy_turn') {
+        // Double-check: only act if still in enemy_turn and flag is still set.
+        if (s._enemyActing && s.state && s.monster && s.state.phase === 'enemy_turn') {
           const char = usePlayerStore.getState().character;
           if (char) {
             set({ state: enemyAct(s.state, char, s.monster), _enemyActing: false });

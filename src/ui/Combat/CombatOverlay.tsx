@@ -27,12 +27,16 @@ export function CombatOverlay() {
   useEffect(() => {
     if (!state) return;
     const onKey = (e: KeyboardEvent) => {
-      if (state.phase === 'player_turn') {
+      // Read the CURRENT phase from the store to avoid acting on stale
+      // closure state which caused duplicate enemy-turn scheduling.
+      const current = useCombatStore.getState().state;
+      if (!current) return;
+      if (current.phase === 'player_turn') {
         if (e.key === '1') { e.preventDefault(); act('attack'); }
         else if (e.key === '2') { e.preventDefault(); act('skill'); }
         else if (e.key === '3') { e.preventDefault(); act('defend'); }
         else if (e.key === '4') { e.preventDefault(); act('flee'); }
-      } else if (state.phase === 'victory' || state.phase === 'defeat' || state.phase === 'fled') {
+      } else if (current.phase === 'victory' || current.phase === 'defeat' || current.phase === 'fled') {
         if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); finish(); }
       }
     };
