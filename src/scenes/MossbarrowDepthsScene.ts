@@ -2,13 +2,16 @@ import { BaseWorldScene, TILE, WORLD_W, WORLD_H } from './BaseWorldScene';
 import { generateTileset, TILE as T, TILE_SIZE } from './tiles/generateTiles';
 
 /**
- * Mossbarrow Depths — Floor 1. Entry level beneath the cairn.
- * Spiders patrol. Straightforward layout: enter at top, stairs
- * down at the bottom-center so the path is obvious.
+ * Mossbarrow Depths — Floor 1. Spider cavern with acid pools,
+ * cobwebs, and mossy damp corners. Enter at top, stairs down
+ * at the bottom-center.
  */
 
 const MAP_W = 30;
 const MAP_H = 22;
+
+/** Tiles the player cannot walk through */
+const SOLID_TILES = new Set([T.WALL_STONE, T.COBWEB, T.ACID]);
 
 export class MossbarrowDepthsScene extends BaseWorldScene {
   constructor() {
@@ -26,8 +29,8 @@ export class MossbarrowDepthsScene extends BaseWorldScene {
     const tileset = map.addTilesetImage('tileset')!;
     map.createLayer(0, tileset)!;
 
-    // Wall collision
-    for (const [tx, ty] of getWallPositions()) {
+    // Wall + hazard collision (walls, cobweb-walls, acid)
+    for (const [tx, ty] of getSolidPositions()) {
       const wall = this.add.rectangle(tx * TILE + TILE / 2, ty * TILE + TILE / 2, TILE, TILE, 0x000000, 0);
       this.physics.add.existing(wall, true);
       this.walls.add(wall);
@@ -35,15 +38,60 @@ export class MossbarrowDepthsScene extends BaseWorldScene {
 
     // Zone label
     this.add.text(WORLD_W / 2, 2 * TILE, 'DEPTHS — FLOOR 1', {
-      fontFamily: 'Courier New', fontSize: '12px', color: '#505060',
+      fontFamily: 'Courier New', fontSize: '12px', color: '#405040',
     }).setOrigin(0.5).setAlpha(0.5).setDepth(15);
 
-    // Torches along the main path
-    for (const [tx, ty] of [[6, 2], [10, 2], [6, 7], [10, 7], [6, 12], [10, 12], [6, 17], [10, 17]] as [number, number][]) {
-      this.add.rectangle(tx * TILE + TILE / 2, ty * TILE + TILE / 2, 20, 20, 0xff8800, 0.12).setDepth(4);
+    // ── Greenish torches (spider cavern atmosphere) ──
+    for (const [tx, ty] of [[5, 2], [12, 2], [5, 7], [12, 7], [5, 12], [12, 12], [5, 17], [12, 17]] as [number, number][]) {
+      this.add.rectangle(tx * TILE + TILE / 2, ty * TILE + TILE / 2, 24, 24, 0x40c060, 0.14).setDepth(4);
     }
 
-    // Enemies — spiders along the corridor
+    // ── Hanging web strands (semi-transparent white lines) ──
+    for (const [wx, wy, wh] of [
+      [6, 1, 3], [11, 1, 4], [8, 4, 2], [10, 9, 3],
+      [7, 13, 2], [12, 16, 3], [6, 18, 2],
+    ] as [number, number, number][]) {
+      this.add.rectangle(wx * TILE + TILE / 2, wy * TILE + wh * TILE / 2, 2, wh * TILE, 0xffffff, 0.15).setDepth(6);
+    }
+
+    // ── Egg sac clusters in alcoves ──
+    // East alcove egg sacs
+    for (const [ex, ey] of [[14, 6], [15, 7], [16, 6]] as [number, number][]) {
+      this.add.circle(ex * TILE + TILE / 2, ey * TILE + TILE / 2, 6, 0xe8e0c8, 0.7).setDepth(5);
+      this.add.circle(ex * TILE + TILE / 2 + 4, ey * TILE + TILE / 2 - 3, 4, 0xd8d0b8, 0.5).setDepth(5);
+    }
+    // West alcove egg sacs
+    for (const [ex, ey] of [[2, 13], [3, 14]] as [number, number][]) {
+      this.add.circle(ex * TILE + TILE / 2, ey * TILE + TILE / 2, 7, 0xe8e0c8, 0.65).setDepth(5);
+      this.add.circle(ex * TILE + TILE / 2 - 5, ey * TILE + TILE / 2 + 4, 4, 0xd8d0b8, 0.5).setDepth(5);
+    }
+
+    // ── Dripping acid particles near acid pools ──
+    // East alcove acid drips
+    for (const [dx, dy] of [[15, 5], [16, 5]] as [number, number][]) {
+      const drip = this.add.circle(dx * TILE + TILE / 2, dy * TILE, 2, 0x40c040, 0.8).setDepth(6);
+      this.tweens.add({
+        targets: drip, y: dy * TILE + TILE, alpha: 0, duration: 1200,
+        repeat: -1, delay: Math.random() * 800,
+      });
+    }
+    // West alcove acid drips
+    for (const [dx, dy] of [[2, 12], [3, 12]] as [number, number][]) {
+      const drip = this.add.circle(dx * TILE + TILE / 2, dy * TILE, 2, 0x40c040, 0.8).setDepth(6);
+      this.tweens.add({
+        targets: drip, y: dy * TILE + TILE, alpha: 0, duration: 1400,
+        repeat: -1, delay: Math.random() * 1000,
+      });
+    }
+
+    // ── Bone piles near spider nests ──
+    // East alcove bone pile
+    this.add.rectangle(14 * TILE + TILE / 2, 8 * TILE + TILE / 2, 20, 8, 0xd0c8b0, 0.6).setDepth(5);
+    this.add.rectangle(14 * TILE + TILE / 2 + 6, 8 * TILE + TILE / 2 - 2, 12, 6, 0xc8c0a8, 0.5).setDepth(5);
+    // West alcove bone pile
+    this.add.rectangle(2 * TILE + TILE / 2, 15 * TILE + TILE / 2, 18, 8, 0xd0c8b0, 0.6).setDepth(5);
+
+    // Enemies — spiders along the corridor (positions unchanged, on walkable tiles)
     this.spawnEnemy({ monsterKey: 'spider', x: 8 * TILE, y: 5 * TILE });
     this.spawnEnemy({ monsterKey: 'spider', x: 9 * TILE, y: 10 * TILE });
     this.spawnEnemy({ monsterKey: 'spider', x: 7 * TILE, y: 15 * TILE });
@@ -65,7 +113,6 @@ export class MossbarrowDepthsScene extends BaseWorldScene {
       targetScene: 'DepthsFloor2Scene', targetSpawn: 'fromFloor1',
       label: '▼ Floor 2',
     });
-    // Big stairwell visual
     const stairX = 8.5 * TILE;
     const stairY = 19 * TILE;
     this.add.rectangle(stairX, stairY, 140, 52, 0x10101a).setStrokeStyle(2, 0x302848).setDepth(3);
@@ -91,14 +138,17 @@ export class MossbarrowDepthsScene extends BaseWorldScene {
 
 // ─── Map data ──────────────────────────────────────────────────────
 
-const FS = T.FLOOR_STONE;
 const WS = T.WALL_STONE;
+const FC = T.FLOOR_CRACKED;
+const MS = T.MOSS_STONE;
+const CW = T.COBWEB;
+const AC = T.ACID;
 
-function getWallPositions(): [number, number][] {
+function getSolidPositions(): [number, number][] {
   const positions: [number, number][] = [];
   for (let y = 0; y < MAP_H; y++) {
     for (let x = 0; x < MAP_W; x++) {
-      if (tileAt(x, y) === WS) positions.push([x, y]);
+      if (SOLID_TILES.has(tileAt(x, y))) positions.push([x, y]);
     }
   }
   return positions;
@@ -115,25 +165,53 @@ function buildMapData(): number[][] {
 }
 
 /**
- * Floor 1: Vertical corridor from top to bottom.
- *   Main hall: cols 5-12, rows 1-21 (wide vertical passage)
- *   Stair up opening: cols 6-10, row 0
- *   Stair down opening: cols 6-10, row 21
- *   Side alcoves for variety at rows 5-7 and 12-14
+ * Floor 1: Spider Cavern — vertical corridor with acid alcoves.
+ *   Main hall: cols 5-12, rows 1-20 (cracked stone + moss)
+ *   Stair up: cols 6-10, row 0
+ *   Stair down: cols 6-10, row 21
+ *   East alcove (cols 13-17, rows 5-8): acid pool + cobwebs
+ *   West alcove (cols 1-4, rows 12-15): acid pool + cobwebs
+ *   Cobweb-walls on certain wall edges
  */
 function tileAt(x: number, y: number): number {
-  // Main vertical hall
-  if (inRect(x, y, 5, 1, 8, 20)) return FS;
+  // Stair openings (plain cracked floor)
+  if (inRect(x, y, 6, 0, 5, 1)) return FC;
+  if (inRect(x, y, 6, 21, 5, 1)) return FC;
 
-  // Stair openings
-  if (inRect(x, y, 6, 0, 5, 1)) return FS;  // up
-  if (inRect(x, y, 6, 21, 5, 1)) return FS;  // down
+  // ── East alcove (cols 13-17, rows 5-8) ──
+  // Acid pool in the back (15-16, 5-6)
+  if (inRect(x, y, 15, 5, 2, 2)) return AC;
+  // Cobwebs on alcove walls (top/bottom edges)
+  if (x === 13 && y === 5) return CW;
+  if (x === 17 && y === 5) return CW;
+  // Rest of east alcove is walkable floor
+  if (inRect(x, y, 13, 5, 5, 4)) return FC;
 
-  // East alcove (cols 13-17, rows 5-8)
-  if (inRect(x, y, 13, 5, 5, 4)) return FS;
+  // ── West alcove (cols 1-4, rows 12-15) ──
+  // Acid pool (2-3, 12-13)
+  if (inRect(x, y, 2, 12, 2, 2)) return AC;
+  // Cobwebs on alcove walls
+  if (x === 1 && y === 12) return CW;
+  if (x === 4 && y === 12) return CW;
+  // Rest of west alcove
+  if (inRect(x, y, 1, 12, 4, 4)) return FC;
 
-  // West alcove (cols 1-4, rows 12-15)
-  if (inRect(x, y, 1, 12, 4, 4)) return FS;
+  // ── Main vertical hall ──
+  if (inRect(x, y, 5, 1, 8, 20)) {
+    // Cobweb-walls on the hall edges (decorative, still solid since they're wall-adjacent)
+    // These are on the WALL side, so they don't block the hall itself.
+
+    // Mossy damp corners
+    if ((x === 5 || x === 12) && (y <= 3 || y >= 18)) return MS;
+    if (x === 5 && y === 10) return MS;
+    if (x === 12 && y === 14) return MS;
+
+    // Main walkway is cracked stone
+    return FC;
+  }
+
+  // Cobweb-decorated wall tiles along hall boundary
+  if ((x === 4 || x === 13) && (y === 1 || y === 4 || y === 9 || y === 14 || y === 20)) return CW;
 
   return WS;
 }

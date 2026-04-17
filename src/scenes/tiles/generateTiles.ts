@@ -22,10 +22,13 @@ export const TILE = {
   WEAPON_RACK: 28, WINDOW: 29, TORCH: 30, DISPLAY: 31,
   // Interior architecture (ALTTP-style thick borders)
   WALL_INNER: 32, WALL_CORNER: 33, WALL_SHELF: 34, BASEBOARD: 35,
+  // Dungeon hazard & atmosphere tiles
+  LAVA: 36, ACID: 37, FLOOR_CRACKED: 38, BONES: 39,
+  COBWEB: 40, CHAINS: 41, MOSS_STONE: 42, BLOOD_STONE: 43,
 } as const;
 
 export const TILE_SIZE = 32;
-const TILE_COUNT = 36;
+const TILE_COUNT = 44;
 const S = TILE_SIZE;
 
 export function generateTileset(scene: Phaser.Scene): void {
@@ -53,6 +56,11 @@ export function generateTileset(scene: Phaser.Scene): void {
   // Interior architecture tiles
   drawWallInner(ctx, 32); drawWallCorner(ctx, 33);
   drawWallShelf(ctx, 34); drawBaseboard(ctx, 35);
+
+  // Dungeon hazard & atmosphere tiles
+  drawLava(ctx, 36); drawAcid(ctx, 37); drawFloorCracked(ctx, 38);
+  drawBones(ctx, 39); drawCobweb(ctx, 40); drawChains(ctx, 41);
+  drawMossStone(ctx, 42); drawBloodStone(ctx, 43);
 
   const tex = scene.textures.addCanvas('tileset', canvas);
   if (tex) { for (let i = 0; i < TILE_COUNT; i++) tex.add(i, 0, i * S, 0, S, S); }
@@ -641,4 +649,284 @@ function drawBaseboard(c: Ctx, i: number) {
     blk(c,i,bx+7,22,1,3,'#706040');
   }
   blk(c,i,0,25,S,1,'#706040');
+}
+
+// ═══════════════════════════════════════════════════════════════
+// DUNGEON HAZARD & ATMOSPHERE TILES (36-43)
+// ═══════════════════════════════════════════════════════════════
+
+function drawLava(c: Ctx, i: number) {
+  // Bubbling lava pool — deep red/orange base, bright yellow hotspots, dark crust
+  fill(c, i, '#a02008');
+  // Dark crust patches
+  blk(c,i,0,0,8,6,'#601808'); blk(c,i,20,2,10,5,'#581408');
+  blk(c,i,4,18,7,6,'#501008'); blk(c,i,24,22,8,8,'#581408');
+  // Mid orange flow
+  blk(c,i,8,4,14,8,'#c03810'); blk(c,i,6,14,20,6,'#b83010');
+  blk(c,i,10,22,12,6,'#c03810');
+  // Bright orange channels
+  blk(c,i,10,6,10,4,'#e06020'); blk(c,i,8,16,16,3,'#e06020');
+  blk(c,i,14,26,6,4,'#e06020');
+  // Yellow hotspots (bubbles)
+  blk(c,i,12,7,4,2,'#f0a030'); blk(c,i,13,7,2,1,'#f8d040');
+  blk(c,i,20,14,3,2,'#f0a030'); blk(c,i,21,14,1,1,'#f8d040');
+  blk(c,i,8,22,3,2,'#f0a030'); blk(c,i,9,22,1,1,'#ffe860');
+  blk(c,i,16,28,2,2,'#f0a030'); px(c,i,17,28,'#ffe860');
+  // Ripple lines
+  for (let x = 6; x < 26; x += 3) { px(c,i,x,10,'#d85818'); px(c,i,x+1,19,'#d85818'); }
+  // Bright bubble highlights
+  px(c,i,14,8,'#fff880'); px(c,i,22,15,'#fff880'); px(c,i,10,23,'#fff880');
+  // Dark crust edges
+  blk(c,i,0,0,S,1,'#401008'); blk(c,i,0,S-1,S,1,'#401008');
+  blk(c,i,0,0,1,S,'#401008'); blk(c,i,S-1,0,1,S,'#401008');
+}
+
+function drawAcid(c: Ctx, i: number) {
+  // Toxic green pool — bright lime with darker currents, bubbles
+  fill(c, i, '#30a020');
+  // Darker current streaks
+  blk(c,i,2,4,8,3,'#208818'); blk(c,i,18,8,10,3,'#208818');
+  blk(c,i,6,16,12,3,'#208818'); blk(c,i,22,24,8,4,'#208818');
+  // Bright lime highlights
+  blk(c,i,10,2,12,4,'#50c838'); blk(c,i,4,10,14,4,'#50c838');
+  blk(c,i,14,20,10,4,'#50c838');
+  // Bubbles (white/yellow circles)
+  blk(c,i,12,3,3,2,'#80e060'); px(c,i,13,3,'#c0f0a0'); px(c,i,13,2,'#e0ffc0');
+  blk(c,i,22,10,3,2,'#80e060'); px(c,i,23,10,'#c0f0a0');
+  blk(c,i,7,12,2,2,'#80e060'); px(c,i,8,12,'#e0ffc0');
+  blk(c,i,16,22,3,2,'#80e060'); px(c,i,17,22,'#f0ffb0');
+  blk(c,i,4,26,2,2,'#80e060'); px(c,i,5,26,'#c0f0a0');
+  // Surface ripple lines
+  for (let x = 3; x < 28; x += 4) { px(c,i,x,7,'#60d048'); px(c,i,x+2,15,'#60d048'); px(c,i,x+1,23,'#60d048'); }
+  // Darker edges
+  blk(c,i,0,0,S,1,'#187010'); blk(c,i,0,S-1,S,1,'#187010');
+  blk(c,i,0,0,1,S,'#187010'); blk(c,i,S-1,0,1,S,'#187010');
+  // Deep dark spots
+  px(c,i,6,6,'#106008'); px(c,i,24,18,'#106008'); px(c,i,14,28,'#106008');
+}
+
+function drawFloorCracked(c: Ctx, i: number) {
+  // Cracked stone floor — same base as FLOOR_STONE with crack lines
+  fill(c, i, '#888880');
+  // Stone brick pattern (matching FLOOR_STONE)
+  for (let row = 0; row < 8; row++) {
+    const by = row * 4;
+    const off = row % 2 === 0 ? 0 : 5;
+    blk(c,i,0,by+3,S,1,'#585850');
+    for (let col = -1; col < 5; col++) {
+      const bx = off + col * 10;
+      if (bx >= S) break;
+      const cx = Math.max(0, bx);
+      const cw = Math.min(10, S - cx);
+      if (cw <= 0) continue;
+      const shade = ['#909088','#888880','#808078','#989890'][(row+col)&3];
+      blk(c,i,cx,by,cw,3,shade);
+      blk(c,i,cx,by,cw,1,'#a0a098');
+      if (bx > 0 && bx < S) blk(c,i,bx,by,1,3,'#585850');
+    }
+  }
+  // Major crack: diagonal from top-left to bottom-right
+  for (let d = 0; d < 28; d++) {
+    const cx = 2 + d; const cy = 3 + Math.floor(d * 0.9);
+    if (cx < S && cy < S) { px(c,i,cx,cy,'#303028'); px(c,i,cx+1,cy,'#404038'); }
+  }
+  // Secondary crack: branches off the first
+  for (let d = 0; d < 12; d++) {
+    const cx = 14 + d; const cy = 14 - Math.floor(d * 0.6);
+    if (cx < S && cy >= 0) { px(c,i,cx,cy,'#303028'); }
+  }
+  // Small crack near bottom-left
+  for (let d = 0; d < 8; d++) {
+    const cx = 4 + Math.floor(d * 0.5); const cy = 24 + d;
+    if (cy < S) px(c,i,cx,cy,'#383830');
+  }
+  // Missing tile chunk (dark void)
+  blk(c,i,22,8,4,3,'#202018'); blk(c,i,23,9,2,1,'#181810');
+  // Rubble pixels near cracks
+  px(c,i,10,12,'#686860'); px(c,i,16,16,'#686860'); px(c,i,24,6,'#686860');
+}
+
+function drawBones(c: Ctx, i: number) {
+  // Bone-scattered stone floor — stone base with skulls, femurs, rib fragments
+  fill(c, i, '#888880');
+  // Stone base (simplified)
+  for (let row = 0; row < 8; row++) {
+    const by = row * 4;
+    blk(c,i,0,by+3,S,1,'#585850');
+    const shade = ['#909088','#848480','#808078','#8c8c88'][row&3];
+    blk(c,i,0,by,S,3,shade);
+  }
+  // Skull 1 (top-left area)
+  blk(c,i,4,4,6,5,'#e0d8c8'); blk(c,i,5,3,4,1,'#d8d0c0');
+  blk(c,i,5,9,4,1,'#c8c0b0'); // jaw
+  px(c,i,5,5,'#302820'); px(c,i,8,5,'#302820'); // eye sockets
+  px(c,i,6,7,'#403830'); px(c,i,7,7,'#403830'); // nose
+  // Skull 2 (smaller, bottom-right)
+  blk(c,i,22,20,5,4,'#d8d0c0'); blk(c,i,23,19,3,1,'#d0c8b8');
+  px(c,i,23,21,'#302820'); px(c,i,25,21,'#302820'); // eyes
+  // Femur bone (horizontal, center)
+  blk(c,i,10,14,12,2,'#e0d8c8');
+  blk(c,i,9,13,3,3,'#d8d0c0'); blk(c,i,21,13,3,3,'#d8d0c0'); // knobs
+  blk(c,i,10,14,12,1,'#f0e8d8'); // highlight
+  // Rib fragments (scattered)
+  blk(c,i,16,4,1,4,'#d0c8b8'); blk(c,i,17,5,1,3,'#c8c0b0');
+  blk(c,i,2,22,1,5,'#d0c8b8'); blk(c,i,3,23,1,3,'#c8c0b0');
+  // Small bone fragments
+  blk(c,i,26,10,3,1,'#d8d0c0'); blk(c,i,14,26,4,1,'#d0c8b8');
+  px(c,i,28,8,'#c8c0b0'); px(c,i,8,28,'#c8c0b0');
+}
+
+function drawCobweb(c: Ctx, i: number) {
+  // Stone wall with cobwebs radiating from top-right corner
+  // Stone wall base (matching WALL_STONE)
+  fill(c, i, '#888880');
+  for (let r = 0; r < 4; r++) {
+    const by = r * 8; const off = r%2===0?0:7;
+    blk(c,i,0,by+7,S,1,'#585850');
+    for (let col = -1; col < 4; col++) {
+      const bx = off+col*16; const cx2 = Math.max(0,bx);
+      const cw = Math.min(14,S-cx2); if (cw<=0) continue;
+      const sh = ['#909088','#888880','#808078','#989890'][(r+col)&3];
+      blk(c,i,cx2,by,cw,7,sh);
+      blk(c,i,cx2,by,cw,1,'#a8a8a0');
+      blk(c,i,cx2,by+6,cw,1,'#686860');
+    }
+  }
+  // Web strands from top-right corner (white, gossamer)
+  // Main diagonal strand
+  for (let d = 0; d < 28; d++) {
+    const wx = S-2-d; const wy = Math.floor(d*0.9);
+    if (wx >= 0 && wy < S) px(c,i,wx,wy,'#c0c0c0');
+  }
+  // Upper horizontal strand
+  for (let x = 8; x < S; x++) { px(c,i,x,Math.floor((S-x)*0.15),'#b0b0b0'); }
+  // Side vertical strand
+  for (let y = 0; y < 24; y++) { px(c,i,S-2-Math.floor(y*0.15),y,'#b0b0b0'); }
+  // Cross strands (curved arcs)
+  for (let d = 0; d < 20; d++) {
+    const a = d * 0.07;
+    const cx3 = S - 2 - Math.floor(Math.cos(a) * d * 0.9);
+    const cy3 = Math.floor(Math.sin(a) * d * 0.9);
+    if (cx3 >= 0 && cx3 < S && cy3 >= 0 && cy3 < S) px(c,i,cx3,cy3,'#a8a8a8');
+  }
+  for (let d = 0; d < 16; d++) {
+    const a = d * 0.09;
+    const cx4 = S - 2 - Math.floor(Math.cos(a) * d * 1.1);
+    const cy4 = Math.floor(Math.sin(a) * d * 1.1);
+    if (cx4 >= 0 && cx4 < S && cy4 >= 0 && cy4 < S) px(c,i,cx4,cy4,'#a8a8a8');
+  }
+  // Spider silhouette (tiny, near center of web)
+  blk(c,i,22,8,3,2,'#282028'); px(c,i,23,7,'#282028'); px(c,i,23,10,'#282028');
+  px(c,i,21,7,'#282028'); px(c,i,25,7,'#282028'); // legs
+  px(c,i,21,10,'#282028'); px(c,i,25,10,'#282028');
+}
+
+function drawChains(c: Ctx, i: number) {
+  // Stone wall with hanging chains and manacles
+  // Stone wall base
+  fill(c, i, '#888880');
+  for (let r = 0; r < 4; r++) {
+    const by = r * 8; const off = r%2===0?0:7;
+    blk(c,i,0,by+7,S,1,'#585850');
+    for (let col = -1; col < 4; col++) {
+      const bx = off+col*16; const cx2 = Math.max(0,bx);
+      const cw = Math.min(14,S-cx2); if (cw<=0) continue;
+      const sh = ['#909088','#888880','#808078','#989890'][(r+col)&3];
+      blk(c,i,cx2,by,cw,7,sh);
+      blk(c,i,cx2,by,cw,1,'#a8a8a0');
+      blk(c,i,cx2,by+6,cw,1,'#686860');
+    }
+  }
+  // Anchor bolt (top)
+  blk(c,i,9,2,4,3,'#505058'); blk(c,i,10,1,2,1,'#606068');
+  blk(c,i,21,2,4,3,'#505058'); blk(c,i,22,1,2,1,'#606068');
+  // Chain links (left chain)
+  for (let ly = 5; ly < 28; ly += 4) {
+    blk(c,i,10,ly,2,3,'#707880'); // vertical link
+    blk(c,i,9,ly+1,4,1,'#808890'); // horizontal highlight
+    px(c,i,10,ly,'#909ca0'); // link top shine
+  }
+  // Chain links (right chain)
+  for (let ly = 7; ly < 30; ly += 4) {
+    blk(c,i,22,ly,2,3,'#707880');
+    blk(c,i,21,ly+1,4,1,'#808890');
+    px(c,i,22,ly,'#909ca0');
+  }
+  // Manacle on left chain (ring at bottom)
+  blk(c,i,7,26,8,3,'#606870'); blk(c,i,8,25,6,1,'#707880');
+  blk(c,i,9,29,4,2,'#606870'); blk(c,i,8,27,2,2,'#505860'); blk(c,i,12,27,2,2,'#505860');
+  // Manacle on right chain (open shackle)
+  blk(c,i,19,28,8,3,'#606870'); blk(c,i,20,27,6,1,'#707880');
+  blk(c,i,19,28,2,2,'#505860'); blk(c,i,25,28,2,2,'#505860');
+}
+
+function drawMossStone(c: Ctx, i: number) {
+  // Mossy stone floor — stone base with green moss patches
+  fill(c, i, '#888880');
+  // Stone brick pattern
+  for (let row = 0; row < 8; row++) {
+    const by = row * 4;
+    const off = row % 2 === 0 ? 0 : 5;
+    blk(c,i,0,by+3,S,1,'#585850');
+    for (let col = -1; col < 5; col++) {
+      const bx = off + col * 10;
+      if (bx >= S) break;
+      const cx = Math.max(0, bx);
+      const cw = Math.min(10, S - cx);
+      if (cw <= 0) continue;
+      const shade = ['#909088','#888880','#808078','#989890'][(row+col)&3];
+      blk(c,i,cx,by,cw,3,shade);
+      blk(c,i,cx,by,cw,1,'#a0a098');
+      if (bx > 0 && bx < S) blk(c,i,bx,by,1,3,'#585850');
+    }
+  }
+  // Large moss patch (bottom-left)
+  blk(c,i,2,20,8,6,'#487838'); blk(c,i,3,21,6,4,'#588848');
+  blk(c,i,4,22,4,2,'#68a058'); // lighter center
+  // Moss in cracks (along mortar lines)
+  for (let x = 8; x < 16; x++) { px(c,i,x,3,'#507840'); px(c,i,x,7,'#487038'); }
+  for (let x = 18; x < 26; x++) { px(c,i,x,15,'#507840'); }
+  // Top-right moss cluster
+  blk(c,i,22,2,6,4,'#487838'); blk(c,i,23,3,4,2,'#588848');
+  // Scattered moss pixels
+  px(c,i,14,10,'#507840'); px(c,i,16,18,'#507840'); px(c,i,6,14,'#487038');
+  px(c,i,28,12,'#487038'); px(c,i,10,26,'#507840');
+  // Moisture highlights (wet spots)
+  px(c,i,4,23,'#90b888'); px(c,i,24,4,'#90b888'); px(c,i,12,8,'#80a078');
+}
+
+function drawBloodStone(c: Ctx, i: number) {
+  // Blood-stained stone floor — stone base with dark red stains
+  fill(c, i, '#888880');
+  // Stone brick pattern
+  for (let row = 0; row < 8; row++) {
+    const by = row * 4;
+    const off = row % 2 === 0 ? 0 : 5;
+    blk(c,i,0,by+3,S,1,'#585850');
+    for (let col = -1; col < 5; col++) {
+      const bx = off + col * 10;
+      if (bx >= S) break;
+      const cx = Math.max(0, bx);
+      const cw = Math.min(10, S - cx);
+      if (cw <= 0) continue;
+      const shade = ['#909088','#888880','#808078','#989890'][(row+col)&3];
+      blk(c,i,cx,by,cw,3,shade);
+      blk(c,i,cx,by,cw,1,'#a0a098');
+      if (bx > 0 && bx < S) blk(c,i,bx,by,1,3,'#585850');
+    }
+  }
+  // Large blood pool (center)
+  blk(c,i,8,8,14,10,'#6a2020'); blk(c,i,10,10,10,6,'#802828');
+  blk(c,i,12,12,6,2,'#903030'); // wet center (brighter)
+  // Splatter marks (radiating outward)
+  blk(c,i,4,6,3,2,'#702020'); blk(c,i,24,10,4,2,'#702020');
+  blk(c,i,6,20,3,3,'#682020'); blk(c,i,20,18,5,2,'#702020');
+  // Dried blood in crevices (darker, in mortar lines)
+  for (let x = 6; x < 22; x += 2) { px(c,i,x,11,'#501818'); px(c,i,x,15,'#501818'); }
+  for (let x = 10; x < 18; x++) { px(c,i,x,7,'#581818'); }
+  // Small droplet trail
+  px(c,i,26,4,'#702020'); px(c,i,27,6,'#682020'); px(c,i,28,8,'#601818');
+  px(c,i,2,24,'#702020'); px(c,i,4,26,'#682020');
+  // Dark stain edges
+  blk(c,i,8,8,14,1,'#501818'); blk(c,i,8,17,14,1,'#501818');
 }
