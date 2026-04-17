@@ -11,6 +11,7 @@ import { getItem } from '../engine/items';
 import { usePlayerStore } from './playerStore';
 import { useInventoryStore } from './inventoryStore';
 import { useQuestStore } from './questStore';
+import { useAchievementStore } from './achievementStore';
 
 /**
  * Combat store — manages the active battle. Null when not in combat.
@@ -30,6 +31,8 @@ interface CombatStoreState {
   killedEnemies: Set<string>;
   /** ID of the enemy currently being fought — marked killed only on victory. */
   _pendingEnemyId: string;
+  /** Items dropped in the last victory — read by CombatOverlay for the results screen. */
+  lastLoot: string[];
 
   /** Start combat against a monster key. */
   start: (monsterKey: string, returnScene?: string, playerX?: number, playerY?: number) => void;
@@ -50,6 +53,7 @@ export const useCombatStore = create<CombatStoreState>((set, get) => ({
   returnY: 0,
   killedEnemies: new Set<string>(),
   _pendingEnemyId: '',
+  lastLoot: [],
 
   start: (monsterKey, returnScene, playerX, playerY) => {
     const character = usePlayerStore.getState().character;
@@ -87,6 +91,16 @@ export const useCombatStore = create<CombatStoreState>((set, get) => ({
     // a no-op (wrong phase). Do NOT re-set state or schedule enemy turn.
     if (next === state) return;
 
+    // Pre-roll loot when victory is decided so the results screen can show it.
+    if (next.phase === 'victory') {
+      const rolled: string[] = [];
+      for (const drop of monster.loot) {
+        if (Math.random() < drop.chance) rolled.push(drop.itemKey);
+      }
+      set({ state: next, lastLoot: rolled });
+      return;
+    }
+
     set({ state: next });
 
     // If combat continues and it's the enemy's turn, auto-act after delay.
@@ -99,7 +113,16 @@ export const useCombatStore = create<CombatStoreState>((set, get) => ({
         if (s._enemyActing && s.state && s.monster && s.state.phase === 'enemy_turn') {
           const char = usePlayerStore.getState().character;
           if (char) {
-            set({ state: enemyAct(s.state, char, s.monster), _enemyActing: false });
+            const after = enemyAct(s.state, char, s.monster);
+            if (after.phase === 'victory') {
+              const rolled: string[] = [];
+              for (const drop of s.monster.loot) {
+                if (Math.random() < drop.chance) rolled.push(drop.itemKey);
+              }
+              set({ state: after, lastLoot: rolled, _enemyActing: false });
+            } else {
+              set({ state: after, _enemyActing: false });
+            }
           } else { set({ _enemyActing: false }); }
         } else { set({ _enemyActing: false }); }
       }, 600);
@@ -159,7 +182,16 @@ export const useCombatStore = create<CombatStoreState>((set, get) => ({
       if (cur._enemyActing && cur.state && cur.monster && cur.state.phase === 'enemy_turn') {
         const char = usePlayerStore.getState().character;
         if (char) {
-          set({ state: enemyAct(cur.state, char, cur.monster), _enemyActing: false });
+          const after = enemyAct(cur.state, char, cur.monster);
+          if (after.phase === 'victory') {
+            const rolled: string[] = [];
+            for (const drop of cur.monster.loot) {
+              if (Math.random() < drop.chance) rolled.push(drop.itemKey);
+            }
+            set({ state: after, lastLoot: rolled, _enemyActing: false });
+          } else {
+            set({ state: after, _enemyActing: false });
+          }
         } else { set({ _enemyActing: false }); }
       } else { set({ _enemyActing: false }); }
     }, 600);
@@ -176,12 +208,10 @@ export const useCombatStore = create<CombatStoreState>((set, get) => ({
         character.gainXp(monster.xpReward);
         character.hp = state.playerHp;
         player.notify();
-        // Drop loot
+        // Add pre-rolled loot (rolled when victory phase was first set).
         const inv = useInventoryStore.getState();
-        for (const drop of monster.loot) {
-          if (Math.random() < drop.chance) {
-            inv.addItem(drop.itemKey);
-          }
+        for (const itemKey of get().lastLoot) {
+          inv.addItem(itemKey);
         }
         // Mark the enemy as killed so it doesn't respawn.
         const enemyId = get()._pendingEnemyId;
@@ -241,6 +271,6 @@ export const useCombatStore = create<CombatStoreState>((set, get) => ({
       }
     }
 
-    set((s) => ({ state: null, monster: null, _enemyActing: false, killedEnemies: s.killedEnemies, _pendingEnemyId: '' }));
+    set((s) => ({ state: null, monster: null, _enemyActing: false, killedEnemies: s.killedEnemies, _pendingEnemyId: '', lastLoot: [] }));
   },
 }));

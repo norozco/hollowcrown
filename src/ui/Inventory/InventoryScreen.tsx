@@ -64,7 +64,7 @@ function renderComparison(newItem: Item, currentItem: Item | null): JSX.Element 
 }
 
 export function InventoryScreen() {
-  const { slots, equipment, close, useItem, equip, unequip, sell } = useInventoryStore();
+  const { slots, equipment, close, useItem, equip, unequip, sell, sortBy } = useInventoryStore();
   const character = usePlayerStore((s) => s.character);
   usePlayerStore((s) => s.version);
   const [tooltip, setTooltip] = useState<InventorySlot | null>(null);
@@ -121,12 +121,20 @@ export function InventoryScreen() {
 
         {/* Bag grid */}
         <div className="inv__bag-panel">
-          <h3>Bag ({slots.length}/30)</h3>
+          <div className="inv__bag-header">
+            <h3>Bag ({slots.length}/30)</h3>
+            <div className="inv__sort-bar">
+              <span className="inv__sort-label">Sort:</span>
+              <button type="button" className="inv__sort-btn" onClick={() => sortBy('type')}>Type</button>
+              <button type="button" className="inv__sort-btn" onClick={() => sortBy('rarity')}>Rarity</button>
+              <button type="button" className="inv__sort-btn" onClick={() => sortBy('name')}>Name</button>
+            </div>
+          </div>
           <div className="inv__bag-grid">
             {slots.map((s, i) => (
               <div
                 key={`${s.item.key}-${i}`}
-                className="inv__bag-cell"
+                className={`inv__bag-cell${s.item.equipSlot ? ' inv__bag-cell--equippable' : ''}`}
                 style={{ borderColor: RARITY_BORDER[s.item.rarity] }}
                 onMouseEnter={() => setTooltip(s)}
                 onMouseLeave={() => setTooltip(null)}

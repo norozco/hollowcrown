@@ -42,6 +42,8 @@ interface InventoryState {
   sell: (itemKey: string) => boolean;
   /** Has at least qty of this item? */
   hasItem: (itemKey: string, qty?: number) => boolean;
+  /** Sort the bag by a given criteria. */
+  sortBy: (criteria: 'type' | 'rarity' | 'name') => void;
   /** Reset for new game. */
   reset: () => void;
 }
@@ -190,6 +192,31 @@ export const useInventoryStore = create<InventoryState>((set, get) => ({
   hasItem: (itemKey, qty = 1) => {
     const slot = get().slots.find((s) => s.item.key === itemKey);
     return !!slot && slot.quantity >= qty;
+  },
+
+  sortBy: (criteria) => {
+    const TYPE_ORDER: Record<string, number> = {
+      weapon: 0, armor: 1, consumable: 2, material: 3, quest: 4,
+    };
+    const RARITY_ORDER: Record<string, number> = {
+      legendary: 0, epic: 1, rare: 2, uncommon: 3, common: 4,
+    };
+    set((s) => ({
+      slots: [...s.slots].sort((a, b) => {
+        if (criteria === 'type') {
+          const ta = TYPE_ORDER[a.item.type] ?? 99;
+          const tb = TYPE_ORDER[b.item.type] ?? 99;
+          return ta !== tb ? ta - tb : a.item.name.localeCompare(b.item.name);
+        }
+        if (criteria === 'rarity') {
+          const ra = RARITY_ORDER[a.item.rarity] ?? 99;
+          const rb = RARITY_ORDER[b.item.rarity] ?? 99;
+          return ra !== rb ? ra - rb : a.item.name.localeCompare(b.item.name);
+        }
+        // name
+        return a.item.name.localeCompare(b.item.name);
+      }),
+    }));
   },
 
   reset: () => set({ slots: [], equipment: { ...EMPTY_EQUIPMENT }, isOpen: false, isShopOpen: false, isCraftingOpen: false }),

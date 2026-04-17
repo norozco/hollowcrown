@@ -152,3 +152,40 @@
 .combat__victory { color: #60c060; font-weight: bold; margin: 0; }
 .combat__defeat { color: #d04040; font-weight: bold; margin: 0; }
 .combat__fled { color: #a0a060; font-style: italic; margin: 0; }
+
+/* Victory results panel */
+.combat__results { display: flex; flex-direction: column; gap: 0.3rem; flex: 1; }
+.combat__results-title { margin: 0; color: #d4a968; font-size: 1.2rem; letter-spacing: 0.15em; }
+.combat__results-xp { display: flex; flex-direction: column; gap: 0.15rem; color: #a0a0e0; }
+.combat__xp-bar-track {
+  position: relative;
+  width: 200px; height: 6px;
+  background: rgba(30,20,40,0.8);
+  border: 1px solid #3a2840;
+  overflow: hidden;
+}
+.combat__xp-bar-fill {
+  position: absolute; top: 0; left: 0; height: 100%;
+  background: #6050c0;
+  transition: width 0.4s ease;
+}
+.combat__xp-bar-gain {
+  position: absolute; top: 0; height: 100%;
+  background: #a090ff;
+  animation: xpGainPulse 0.8s ease-out forwards;
+  animation-delay: 0.3s;
+  opacity: 0;
+}
+@keyframes xpGainPulse {
+  0%   { opacity: 0; }
+  20%  { opacity: 1; }
+  100% { opacity: 0.7; }
+}
+.combat__xp-label { font-size: 0.75rem; color: #7070a8; }
+.combat__results-gold { color: #f4d488; }
+.combat__results-loot { display: flex; flex-wrap: wrap; gap: 0.3rem; align-items: center; }
+.combat__results-loot-label { color: #8a7a48; font-size: 0.8rem; }
+.combat__results-loot-item {
+  background: rgba(90,58,26,0.4); border: 1px solid #3a2818;
+  padding: 1px 6px; font-size: 0.75rem; color: #c0b080;
+}

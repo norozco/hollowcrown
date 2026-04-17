@@ -4,6 +4,8 @@ import { usePlayerStore } from '../../state/playerStore';
 import { useInventoryStore } from '../../state/inventoryStore';
 import { CLASS_SKILLS, type StatusEffects } from '../../engine/combat';
 import { COMPANIONS, companionBonusLabel } from '../../engine/companion';
+import { getItem } from '../../engine/items';
+import { xpForLevel } from '../../engine/character';
 import './CombatOverlay.css';
 
 /**
@@ -16,10 +18,12 @@ import './CombatOverlay.css';
 export function CombatOverlay() {
   const state = useCombatStore((s) => s.state);
   const monster = useCombatStore((s) => s.monster);
+  const lastLoot = useCombatStore((s) => s.lastLoot);
   const act = useCombatStore((s) => s.act);
   const finish = useCombatStore((s) => s.finish);
   const useItem = useCombatStore((s) => s.useItem);
   const character = usePlayerStore((s) => s.character);
+  usePlayerStore((s) => s.version); // re-render on XP/level changes
   const companionKey = usePlayerStore((s) => s.companion);
   const invSlots = useInventoryStore((s) => s.slots);
   const activeCompanion = companionKey ? COMPANIONS[companionKey] : null;
@@ -36,14 +40,18 @@ export function CombatOverlay() {
     logEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [state?.log.length]);
 
-  // Delay the Continue button on defeat by 2.5s (to let death screen play)
+  // Delay the Continue button: 2.5s on defeat, 1s on victory (let loot screen breathe)
   useEffect(() => {
     if (!state) { setContinueReady(false); return; }
     if (state.phase === 'defeat') {
       setContinueReady(false);
       const t = setTimeout(() => setContinueReady(true), 2500);
       return () => clearTimeout(t);
-    } else if (state.phase === 'victory' || state.phase === 'fled') {
+    } else if (state.phase === 'victory') {
+      setContinueReady(false);
+      const t = setTimeout(() => setContinueReady(true), 1000);
+      return () => clearTimeout(t);
+    } else if (state.phase === 'fled') {
       setContinueReady(true);
     } else {
       setContinueReady(false);
@@ -193,16 +201,48 @@ export function CombatOverlay() {
         )}
         {isOver && (
           <div className="combat__result">
-            {state.phase === 'victory' && (
-              <p className="combat__victory">Victory! +{monster.xpReward} XP, +{monster.goldReward}g</p>
-            )}
+            {state.phase === 'victory' && (() => {
+              const curXp = character.xp;
+              const curLevel = character.level;
+              const xpFloor = xpForLevel(curLevel);
+              const xpCeil = xpForLevel(curLevel + 1);
+              const xpInLevel = curXp - xpFloor;
+              const xpRange = xpCeil === Infinity ? 1 : xpCeil - xpFloor;
+              const barFill = xpCeil === Infinity ? 100 : Math.min(100, Math.round((xpInLevel / xpRange) * 100));
+              const gainedFill = xpCeil === Infinity ? 0 : Math.min(100 - barFill, Math.round((monster.xpReward / xpRange) * 100));
+              return (
+                <div className="combat__results">
+                  <h3 className="combat__results-title">VICTORY</h3>
+                  <div className="combat__results-xp">
+                    <span>+{monster.xpReward} XP</span>
+                    <div className="combat__xp-bar-track">
+                      <div className="combat__xp-bar-fill" style={{ width: `${barFill}%` }} />
+                      <div className="combat__xp-bar-gain" style={{ left: `${barFill}%`, width: `${gainedFill}%` }} />
+                    </div>
+                    <span className="combat__xp-label">Lv {curLevel} — {curXp}/{xpCeil === Infinity ? 'MAX' : xpCeil} XP</span>
+                  </div>
+                  <div className="combat__results-gold">&#9670; +{monster.goldReward}g</div>
+                  {lastLoot.length > 0 && (
+                    <div className="combat__results-loot">
+                      <span className="combat__results-loot-label">Loot:</span>
+                      {lastLoot.map((key, i) => (
+                        <span key={i} className="combat__results-loot-item">{getItem(key).name}</span>
+                      ))}
+                    </div>
+                  )}
+                  {continueReady && (
+                    <button type="button" className="combat__btn combat__btn--end" onClick={finish}>Continue</button>
+                  )}
+                </div>
+              );
+            })()}
             {state.phase === 'defeat' && (
               <p className="combat__defeat">
                 {character.difficulty === 'hardcore' ? 'Death is final.' : 'Lost 10% gold. You wake in town.'}
               </p>
             )}
             {state.phase === 'fled' && <p className="combat__fled">You escaped.</p>}
-            {(state.phase !== 'defeat' || continueReady) && (
+            {(state.phase === 'defeat' || state.phase === 'fled') && (state.phase !== 'defeat' || continueReady) && (
               <button type="button" className="combat__btn combat__btn--end" onClick={finish}>
                 Continue
               </button>
