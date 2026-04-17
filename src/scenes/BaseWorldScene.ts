@@ -102,6 +102,8 @@ export abstract class BaseWorldScene extends Phaser.Scene {
 
   /** Guards against re-entering checkExits during a transition. */
   private transitionLock = false;
+  /** Brief immunity after returning from combat — prevents instant re-engage on flee. */
+  private combatImmunity = 0;
 
   // ──────────────────────────────────────────────────────────────
   // Subclass hooks
@@ -124,6 +126,7 @@ export abstract class BaseWorldScene extends Phaser.Scene {
     this.exits = [];
     this.nearbyTarget = null;
     this.transitionLock = false;
+    this.combatImmunity = 0;
 
     this.walls = this.physics.add.staticGroup();
     this.createWorldBounds();
@@ -133,6 +136,9 @@ export abstract class BaseWorldScene extends Phaser.Scene {
     let spawn: { x: number; y: number };
     if (data?.spawnPoint === 'combat_return' && data.combatReturnX && data.combatReturnY) {
       spawn = { x: data.combatReturnX, y: data.combatReturnY };
+      // Grant brief immunity so the player isn't instantly re-engaged
+      // (especially after fleeing — enemy respawns at the same spot).
+      this.combatImmunity = 1200; // ms
     } else {
       spawn = this.spawnAt(data?.spawnPoint ?? 'default');
     }
@@ -160,12 +166,17 @@ export abstract class BaseWorldScene extends Phaser.Scene {
       return;
     }
 
+    // Tick down combat immunity (prevents instant re-engage after flee).
+    if (this.combatImmunity > 0) {
+      this.combatImmunity -= this.game.loop.delta;
+    }
+
     this.handleMovement();
     this.updatePlayerLabel();
     this.updateProximityPrompt();
     this.handleInteraction();
     this.updateEnemyPatrol();
-    this.checkEnemyContact();
+    if (this.combatImmunity <= 0) this.checkEnemyContact();
     this.checkExits();
   }
 
