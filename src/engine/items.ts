@@ -153,6 +153,21 @@ const ITEMS: Record<string, Item> = {
     buyPrice: 35, description: 'Still beating, faintly. Do not eat it.',
     stackable: true,
   },
+  spider_silk: {
+    key: 'spider_silk', name: 'Spider Silk', type: 'material', rarity: 'uncommon',
+    buyPrice: 20, description: 'Gossamer threads, stronger than they look. The smithy has ideas.',
+    stackable: true,
+  },
+  wraith_dust: {
+    key: 'wraith_dust', name: 'Wraith Dust', type: 'material', rarity: 'rare',
+    buyPrice: 45, description: 'Cold residue. Glows faintly when no one is looking.',
+    stackable: true,
+  },
+  kings_crown: {
+    key: 'kings_crown', name: "King's Crown", type: 'armor', rarity: 'legendary',
+    buyPrice: 0, description: 'Tarnished iron, heavier than it should be. It remembers.',
+    equipSlot: 'head', statBonus: { ac: 4, hp: 15, mp: 10 },
+  },
   // Ring
   copper_ring: {
     key: 'copper_ring', name: 'Copper Ring', type: 'armor', rarity: 'common',

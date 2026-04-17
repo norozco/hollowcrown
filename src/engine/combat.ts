@@ -44,6 +44,17 @@ export interface CombatLogEntry {
   type: 'info' | 'player_hit' | 'player_miss' | 'enemy_hit' | 'enemy_miss' | 'system';
 }
 
+/** Active status effects on a combatant. */
+export interface StatusEffects {
+  poison: number;      // damage per turn, 0 = none
+  burn: number;        // damage per turn
+  stun: number;        // turns remaining (can't act)
+  bleed: number;       // damage per turn
+  marked: number;      // bonus damage taken, turns remaining
+}
+
+const EMPTY_STATUS: StatusEffects = { poison: 0, burn: 0, stun: 0, bleed: 0, marked: 0 };
+
 export interface CombatState {
   phase: CombatPhase;
   /** Monster's current HP (max is in the Monster definition). */
@@ -53,6 +64,10 @@ export interface CombatState {
   /** Temporary AC bonus from Defend action. */
   playerDefending: boolean;
   monsterDefending: boolean;
+  /** Status effects on the player. */
+  playerStatus: StatusEffects;
+  /** Status effects on the monster. */
+  monsterStatus: StatusEffects;
   /** Who acts first (true = player). */
   playerFirst: boolean;
   /** Turn counter. */
@@ -62,6 +77,48 @@ export interface CombatState {
 }
 
 const dice = new DiceRoller();
+
+const POISON_DMG = 2;
+const BURN_DMG = 3;
+const BLEED_DMG = 2;
+
+/**
+ * Tick status effects for one side. Returns true if the combatant is stunned
+ * (and should skip their turn). Mutates `s` in place.
+ */
+function tickStatus(
+  s: CombatState,
+  side: 'player' | 'monster',
+  name: string,
+): boolean {
+  const status = side === 'player' ? s.playerStatus : s.monsterStatus;
+  const hpKey = side === 'player' ? 'playerHp' : 'monsterHp';
+
+  if (status.poison > 0) {
+    (s as any)[hpKey] = Math.max(0, (s as any)[hpKey] - POISON_DMG);
+    s.log.push({ text: `Poison burns for ${POISON_DMG} damage`, type: 'system' });
+    status.poison--;
+  }
+  if (status.burn > 0) {
+    (s as any)[hpKey] = Math.max(0, (s as any)[hpKey] - BURN_DMG);
+    s.log.push({ text: `Fire sears for ${BURN_DMG} damage`, type: 'system' });
+    status.burn--;
+  }
+  if (status.bleed > 0) {
+    (s as any)[hpKey] = Math.max(0, (s as any)[hpKey] - BLEED_DMG);
+    s.log.push({ text: `Wound bleeds for ${BLEED_DMG} damage`, type: 'system' });
+    status.bleed--;
+  }
+  if (status.marked > 0) {
+    status.marked--;
+  }
+  if (status.stun > 0) {
+    s.log.push({ text: `${name} — Stunned — cannot act`, type: 'system' });
+    status.stun--;
+    return true;
+  }
+  return false;
+}
 
 /** Initialize combat — roll initiative and set up state. */
 export function initCombat(player: Character, monster: Monster): CombatState {
@@ -86,6 +143,8 @@ export function initCombat(player: Character, monster: Monster): CombatState {
     playerHp: player.hp,
     playerDefending: false,
     monsterDefending: false,
+    playerStatus: { ...EMPTY_STATUS },
+    monsterStatus: { ...EMPTY_STATUS },
     playerFirst,
     turn: 1,
     log,
@@ -101,7 +160,30 @@ export function playerAct(
 ): CombatState {
   if (state.phase !== 'player_turn') return state;
 
-  const s = { ...state, log: [...state.log], playerDefending: false };
+  const s = {
+    ...state,
+    log: [...state.log],
+    playerDefending: false,
+    playerStatus: { ...state.playerStatus },
+    monsterStatus: { ...state.monsterStatus },
+  };
+
+  // Tick player status effects at the start of their turn
+  const playerStunned = tickStatus(s, 'player', 'You');
+
+  // If player died from status damage, defeat
+  if (s.playerHp <= 0) {
+    s.log.push({ text: 'You fall.', type: 'system' });
+    s.phase = 'defeat';
+    return s;
+  }
+
+  // If stunned, skip action and go to enemy turn
+  if (playerStunned) {
+    s.phase = 'enemy_turn';
+    s.monsterDefending = false;
+    return s;
+  }
 
   if (action === 'attack') {
     const roll = dice.d(20);
@@ -173,7 +255,8 @@ export function playerAct(
         s.monsterHp = Math.max(0, s.monsterHp - dmg);
         s.log.push({ text: `${skill.name}! ${dmg} damage from the shadows!`, type: 'player_hit' });
       } else if (classKey === 'ranger') {
-        // Hunter's Mark: attack with bonus damage
+        // Hunter's Mark: attack with bonus damage + apply marked status
+        s.monsterStatus.marked = 3;
         const r = dice.d(20);
         const b = modifier(player.stats.dex);
         const t = r + b;
@@ -182,16 +265,22 @@ export function playerAct(
         if (r === 20 || (r !== 1 && t >= ac)) {
           const d2 = Math.max(1, modifier(player.stats.dex) + 2 + bonusDmg);
           s.monsterHp = Math.max(0, s.monsterHp - d2);
-          s.log.push({ text: `${skill.name}! Marked shot for ${d2} damage!`, type: 'player_hit' });
+          s.log.push({ text: `${skill.name}! Marked shot for ${d2} damage! Target marked for 3 turns.`, type: 'player_hit' });
         } else {
-          s.log.push({ text: `${skill.name}! (${r}+${b}=${t}) — Missed!`, type: 'player_miss' });
+          s.log.push({ text: `${skill.name}! (${r}+${b}=${t}) — Missed! But the mark holds for 3 turns.`, type: 'player_miss' });
         }
       } else if (classKey === 'bard') {
-        // Vicious Mockery: small damage + enemy debuff (reduced next attack)
+        // Vicious Mockery: small damage + enemy debuff + 25% stun chance
         const dmg = 3 + modifier(player.stats.cha);
         s.monsterHp = Math.max(0, s.monsterHp - dmg);
         s.monsterDefending = false; // cancel any defend
-        s.log.push({ text: `${skill.name}! "${monster.name} couldn't pour water from a boot with instructions on the heel." ${dmg} psychic damage!`, type: 'player_hit' });
+        const stunRoll = dice.d(20);
+        if (stunRoll >= 16) {
+          s.monsterStatus.stun = 1;
+          s.log.push({ text: `${skill.name}! "${monster.name} couldn't pour water from a boot with instructions on the heel." ${dmg} psychic damage! ${monster.name} is stunned!`, type: 'player_hit' });
+        } else {
+          s.log.push({ text: `${skill.name}! "${monster.name} couldn't pour water from a boot with instructions on the heel." ${dmg} psychic damage!`, type: 'player_hit' });
+        }
       }
     }
   } else if (action === 'flee') {
@@ -227,13 +316,37 @@ export function enemyAct(
 ): CombatState {
   if (state.phase !== 'enemy_turn') return state;
 
-  const s = { ...state, log: [...state.log] };
+  const s = {
+    ...state,
+    log: [...state.log],
+    playerStatus: { ...state.playerStatus },
+    monsterStatus: { ...state.monsterStatus },
+  };
+
+  // Tick monster status effects at the start of their turn
+  const monsterStunned = tickStatus(s, 'monster', monster.name);
+
+  // If monster died from status damage, victory
+  if (s.monsterHp <= 0) {
+    s.log.push({ text: `${monster.name} falls.`, type: 'system' });
+    s.phase = 'victory';
+    return s;
+  }
+
+  // If stunned, skip turn
+  if (monsterStunned) {
+    s.turn++;
+    s.phase = 'player_turn';
+    return s;
+  }
 
   const roll = dice.d(20);
   const total = roll + monster.attackBonus;
   const playerAc = player.derived.ac + (s.playerDefending ? 2 : 0);
 
+  let didHit = false;
   if (roll === 20 || (roll !== 1 && total >= playerAc)) {
+    didHit = true;
     const dmg = Math.max(1, roll === 20 ? monster.baseDamage * 2 : monster.baseDamage);
     s.playerHp = Math.max(0, s.playerHp - dmg);
     s.log.push({
@@ -245,6 +358,39 @@ export function enemyAct(
       text: `${monster.name} attacks! (${roll}+${monster.attackBonus}=${total} vs AC ${playerAc}) — Miss.`,
       type: 'enemy_miss',
     });
+  }
+
+  // Apply monster-specific status effects on hit
+  if (didHit) {
+    const statusRoll = dice.d(100);
+    if (monster.key === 'wolf' && statusRoll <= 30) {
+      s.playerStatus.bleed = 2;
+      s.log.push({ text: "The wolf's fangs tear flesh — you bleed.", type: 'system' });
+    } else if (monster.key === 'skeleton' && statusRoll <= 25) {
+      s.playerStatus.poison = 2;
+      s.log.push({ text: 'Cursed bone scrapes you — poison seeps in.', type: 'system' });
+    } else if (monster.key === 'hollow_knight' && statusRoll <= 20) {
+      s.playerStatus.stun = 1;
+      s.log.push({ text: 'A crushing blow staggers you.', type: 'system' });
+    } else if (monster.key === 'spider' && statusRoll <= 40) {
+      s.playerStatus.poison = 3;
+      s.log.push({ text: 'Venom courses through your veins.', type: 'system' });
+    } else if (monster.key === 'wraith' && statusRoll <= 35) {
+      s.playerStatus.burn = 2;
+      s.log.push({ text: 'Spectral fire clings to your skin.', type: 'system' });
+    } else if (monster.key === 'hollow_king') {
+      // Boss has multiple possible effects
+      if (statusRoll <= 15) {
+        s.playerStatus.stun = 1;
+        s.log.push({ text: 'The Hollow King strikes with royal fury — you stagger.', type: 'system' });
+      } else if (statusRoll <= 30) {
+        s.playerStatus.burn = 3;
+        s.log.push({ text: 'Dark flames erupt from the crown — you burn.', type: 'system' });
+      } else if (statusRoll <= 45) {
+        s.playerStatus.bleed = 3;
+        s.log.push({ text: "The king's blade leaves a wound that won't close.", type: 'system' });
+      }
+    }
   }
 
   // Check defeat
