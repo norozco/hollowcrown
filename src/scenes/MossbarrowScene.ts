@@ -96,6 +96,7 @@ export class MossbarrowScene extends BaseWorldScene {
     this.spawnInteractable({
       sprite: ironOre as any, label: 'Pick up iron ore', radius: 20,
       action: () => {
+        this.spawnPickupParticles(ironOre.x, ironOre.y, 0x60c060);
         useInventoryStore.getState().addItem('iron_ore');
         window.dispatchEvent(new CustomEvent('gameMessage', { detail: 'Found iron ore!' }));
         ironOre.destroy();
@@ -109,6 +110,7 @@ export class MossbarrowScene extends BaseWorldScene {
     this.spawnInteractable({
       sprite: boneShard as any, label: 'Pick up bone shard', radius: 20,
       action: () => {
+        this.spawnPickupParticles(boneShard.x, boneShard.y, 0x60c060);
         useInventoryStore.getState().addItem('bone_shard');
         window.dispatchEvent(new CustomEvent('gameMessage', { detail: 'Found bone shard!' }));
         boneShard.destroy();

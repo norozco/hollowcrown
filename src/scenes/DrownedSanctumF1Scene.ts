@@ -151,6 +151,7 @@ export class DrownedSanctumF1Scene extends BaseWorldScene {
     this.spawnInteractable({
       sprite: shadowEssence as any, label: 'Collect shadow essence', radius: 20,
       action: () => {
+        this.spawnPickupParticles(shadowEssence.x, shadowEssence.y, 0x60c060);
         useInventoryStore.getState().addItem('shadow_essence');
         window.dispatchEvent(new CustomEvent('gameMessage', { detail: 'Found shadow essence.' }));
         shadowEssence.destroy();
@@ -164,6 +165,7 @@ export class DrownedSanctumF1Scene extends BaseWorldScene {
     this.spawnInteractable({
       sprite: wraithDust as any, label: 'Collect wraith dust', radius: 20,
       action: () => {
+        this.spawnPickupParticles(wraithDust.x, wraithDust.y, 0x60c060);
         useInventoryStore.getState().addItem('wraith_dust');
         window.dispatchEvent(new CustomEvent('gameMessage', { detail: 'Found wraith dust.' }));
         wraithDust.destroy();

@@ -129,6 +129,7 @@ export class GreenhollowScene extends BaseWorldScene {
     this.spawnInteractable({
       sprite: herbSprite as any, label: 'Gather moonpetal', radius: 20,
       action: () => {
+        this.spawnPickupParticles(herbSprite.x, herbSprite.y, 0x60c060);
         useInventoryStore.getState().addItem('moonpetal');
         window.dispatchEvent(new CustomEvent('gameMessage', { detail: 'Found moonpetal!' }));
         herbSprite.destroy();
@@ -143,6 +144,7 @@ export class GreenhollowScene extends BaseWorldScene {
     this.spawnInteractable({
       sprite: moonpetal1 as any, label: 'Gather moonpetal', radius: 20,
       action: () => {
+        this.spawnPickupParticles(moonpetal1.x, moonpetal1.y, 0x60c060);
         useInventoryStore.getState().addItem('moonpetal');
         window.dispatchEvent(new CustomEvent('gameMessage', { detail: 'Found moonpetal!' }));
         moonpetal1.destroy();
@@ -156,6 +158,7 @@ export class GreenhollowScene extends BaseWorldScene {
     this.spawnInteractable({
       sprite: moonpetal2 as any, label: 'Gather moonpetal', radius: 20,
       action: () => {
+        this.spawnPickupParticles(moonpetal2.x, moonpetal2.y, 0x60c060);
         useInventoryStore.getState().addItem('moonpetal');
         window.dispatchEvent(new CustomEvent('gameMessage', { detail: 'Found moonpetal!' }));
         moonpetal2.destroy();
@@ -169,6 +172,7 @@ export class GreenhollowScene extends BaseWorldScene {
     this.spawnInteractable({
       sprite: ironOre1 as any, label: 'Pick up iron ore', radius: 20,
       action: () => {
+        this.spawnPickupParticles(ironOre1.x, ironOre1.y, 0x60c060);
         useInventoryStore.getState().addItem('iron_ore');
         window.dispatchEvent(new CustomEvent('gameMessage', { detail: 'Found iron ore!' }));
         ironOre1.destroy();

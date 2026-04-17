@@ -169,6 +169,7 @@ export class AshenmereScene extends BaseWorldScene {
     this.spawnInteractable({
       sprite: moonpetal as any, label: 'Gather moonpetal', radius: 20,
       action: () => {
+        this.spawnPickupParticles(moonpetal.x, moonpetal.y, 0x60c060);
         useInventoryStore.getState().addItem('moonpetal');
         window.dispatchEvent(new CustomEvent('gameMessage', { detail: 'Found moonpetal!' }));
         moonpetal.destroy();
@@ -182,6 +183,7 @@ export class AshenmereScene extends BaseWorldScene {
     this.spawnInteractable({
       sprite: ironOre as any, label: 'Pick up iron ore', radius: 20,
       action: () => {
+        this.spawnPickupParticles(ironOre.x, ironOre.y, 0x60c060);
         useInventoryStore.getState().addItem('iron_ore');
         window.dispatchEvent(new CustomEvent('gameMessage', { detail: 'Found iron ore!' }));
         ironOre.destroy();

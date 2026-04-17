@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { usePlayerStore } from '../state/playerStore';
 import { useUIStore } from '../state/uiStore';
 import { useDialogueStore } from '../state/dialogueStore';
@@ -65,6 +65,15 @@ export function InGameOverlay() {
   const [gameMsg, setGameMsg] = useState<string | null>(null);
   const [toastKey, setToastKey] = useState<string | null>(null);
 
+  // Damage flash: track previous HP to detect decreases.
+  const prevHpRef = useRef<number | null>(null);
+  const [isHit, setIsHit] = useState(false);
+
+  // Gold gain indicator: track previous gold to detect increases.
+  const prevGoldRef = useRef<number | null>(null);
+  const [goldGain, setGoldGain] = useState(0);
+  const [goldGainKey, setGoldGainKey] = useState(0);
+
   // Apply stored brightness on mount so it persists across reloads.
   useEffect(() => {
     const stored = localStorage.getItem('hc_brightness');
@@ -100,6 +109,30 @@ export function InGameOverlay() {
     }, 5000);
     return () => clearInterval(id);
   }, [checkAchievements]);
+
+  // Detect HP decrease → trigger damage flash.
+  useEffect(() => {
+    if (!character) return;
+    const prevHp = prevHpRef.current;
+    prevHpRef.current = character.hp;
+    if (prevHp !== null && character.hp < prevHp) {
+      setIsHit(true);
+      // Remove class so re-animation can fire on the next hit.
+      const id = setTimeout(() => setIsHit(false), 420);
+      return () => clearTimeout(id);
+    }
+  }, [character?.hp]);
+
+  useEffect(() => {
+    if (!character) return;
+    const prevGold = prevGoldRef.current;
+    if (prevGold !== null && character.gold > prevGold) {
+      const gained = character.gold - prevGold;
+      setGoldGain(gained);
+      setGoldGainKey((k) => k + 1);
+    }
+    prevGoldRef.current = character.gold;
+  }, [character?.gold]);
 
   // Esc opens/closes the corner menu (but not during dialogue — dialogue
   // owns Esc for its own exit).
@@ -198,8 +231,33 @@ export function InGameOverlay() {
           </div>
         </div>
         <div className="ig__hud-block ig__bars">
-          <span>HP {character.hp}/{effectiveMaxHp}</span>
-          {effectiveMaxMp > 0 && <span>MP {character.mp}/{effectiveMaxMp}</span>}
+          <div className="ig__hp-bar-wrap">
+            <span className={`ig__hp-text${isHit ? ' is-hit' : ''}`}>HP {character.hp}/{effectiveMaxHp}</span>
+            <div className="ig__hp-bar">
+              <div
+                className="ig__hp-fill"
+                style={{
+                  width: `${Math.max(0, (character.hp / effectiveMaxHp) * 100)}%`,
+                  background: character.hp / effectiveMaxHp > 0.5
+                    ? '#40a060'
+                    : character.hp / effectiveMaxHp > 0.25
+                      ? '#c0a040'
+                      : '#c04040',
+                }}
+              />
+            </div>
+          </div>
+          {effectiveMaxMp > 0 && (
+            <div className="ig__hp-bar-wrap">
+              <span className="ig__hp-text">MP {character.mp}/{effectiveMaxMp}</span>
+              <div className="ig__hp-bar">
+                <div
+                  className="ig__mp-fill"
+                  style={{ width: `${Math.max(0, (character.mp / effectiveMaxMp) * 100)}%` }}
+                />
+              </div>
+            </div>
+          )}
           {character.level >= MAX_LEVEL ? (
             <span>XP MAX</span>
           ) : (
@@ -210,7 +268,12 @@ export function InGameOverlay() {
               </span>
             </span>
           )}
-          <span className="ig__gold" title="Gold">◆ {character.gold}g</span>
+          <span className="ig__gold" title="Gold" style={{ position: 'relative' }}>
+            ◆ {character.gold}g
+            {goldGain > 0 && (
+              <span className="ig__gold-gain" key={goldGainKey}>+{goldGain}g</span>
+            )}
+          </span>
           <span className="ig__weapon" title={character.weapon.description}>
             ⚔ {character.weapon.name}
           </span>

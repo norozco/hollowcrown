@@ -148,6 +148,7 @@ export class DrownedSanctumF2Scene extends BaseWorldScene {
     this.spawnInteractable({
       sprite: shadowEssence as any, label: 'Collect shadow essence', radius: 20,
       action: () => {
+        this.spawnPickupParticles(shadowEssence.x, shadowEssence.y, 0x60c060);
         useInventoryStore.getState().addItem('shadow_essence');
         window.dispatchEvent(new CustomEvent('gameMessage', { detail: 'Found shadow essence.' }));
         shadowEssence.destroy();

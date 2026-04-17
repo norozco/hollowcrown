@@ -464,11 +464,31 @@ export abstract class BaseWorldScene extends Phaser.Scene {
           }
           msg += ` +${cfg.gold}g`;
         }
+        this.spawnPickupParticles(cfg.x, cfg.y, 0xf4d488);
         window.dispatchEvent(new CustomEvent('gameMessage', { detail: msg }));
         bag.destroy();
         tie.destroy();
       },
     });
+  }
+
+  /**
+   * Spawn a small radial particle burst at (x, y) — used for item pickups.
+   * color: 0xf4d488 = gold, 0x60c060 = materials, 0xffffff = items/chests.
+   */
+  protected spawnPickupParticles(x: number, y: number, color: number = 0xf4d488): void {
+    for (let i = 0; i < 6; i++) {
+      const angle = (i / 6) * Math.PI * 2;
+      const p = this.add.circle(x, y, 2, color).setDepth(30);
+      this.tweens.add({
+        targets: p,
+        x: x + Math.cos(angle) * 20,
+        y: y + Math.sin(angle) * 20 - 10,
+        alpha: 0,
+        duration: 400 + i * 50,
+        onComplete: () => p.destroy(),
+      });
+    }
   }
 
   /** Spawn a spike trap that damages the player on contact. */
@@ -556,6 +576,7 @@ export abstract class BaseWorldScene extends Phaser.Scene {
           if (char) { char.addGold(cfg.gold); usePlayerStore.getState().notify(); }
           msg += ` +${cfg.gold}g`;
         }
+        this.spawnPickupParticles(cfg.x, cfg.y, 0xffffff);
         window.dispatchEvent(new CustomEvent('gameMessage', { detail: msg }));
         useAchievementStore.getState().recordChest();
         chest.destroy();
@@ -980,6 +1001,18 @@ export abstract class BaseWorldScene extends Phaser.Scene {
         // the player returns.
         useCombatStore.getState().killedEnemies.clear();
         saveGame('autosave', this.scene.key);
+
+        // Show destination zone name briefly during the fade-out.
+        const destText = this.add.text(
+          WORLD_W / 2, WORLD_H / 2,
+          exit.targetScene.replace('Scene', ''),
+          {
+            fontFamily: 'Courier New', fontSize: '18px', color: '#d4a968',
+            stroke: '#000000', strokeThickness: 3,
+          },
+        ).setOrigin(0.5).setDepth(300).setAlpha(0);
+        this.tweens.add({ targets: destText, alpha: 0.7, duration: 200 });
+
         this.cameras.main.fadeOut(FADE_MS, 0, 0, 0);
         this.cameras.main.once('camerafadeoutcomplete', () => {
           this.scene.start(exit.targetScene, { spawnPoint: exit.targetSpawn });
