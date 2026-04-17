@@ -9,6 +9,8 @@ import { DepthsFloor2Scene } from '../scenes/DepthsFloor2Scene';
 import { DepthsFloor3Scene } from '../scenes/DepthsFloor3Scene';
 import { InteriorScene } from '../scenes/InteriorScene';
 import { AshenmereScene } from '../scenes/AshenmereScene';
+import { DrownedSanctumF1Scene } from '../scenes/DrownedSanctumF1Scene';
+import { DrownedSanctumF2Scene } from '../scenes/DrownedSanctumF2Scene';
 import { CombatScene } from '../scenes/CombatScene';
 
 /**
@@ -36,5 +38,5 @@ export const gameConfig: Phaser.Types.Core.GameConfig = {
       debug: false,
     },
   },
-  scene: [BootScene, PlaceholderScene, TownScene, GreenhollowScene, MossbarrowScene, MossbarrowDepthsScene, DepthsFloor2Scene, DepthsFloor3Scene, AshenmereScene, InteriorScene, CombatScene],
+  scene: [BootScene, PlaceholderScene, TownScene, GreenhollowScene, MossbarrowScene, MossbarrowDepthsScene, DepthsFloor2Scene, DepthsFloor3Scene, AshenmereScene, DrownedSanctumF1Scene, DrownedSanctumF2Scene, InteriorScene, CombatScene],
 };

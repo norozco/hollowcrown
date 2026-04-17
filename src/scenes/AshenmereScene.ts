@@ -1,4 +1,5 @@
 import { useInventoryStore } from '../state/inventoryStore';
+import { useQuestStore } from '../state/questStore';
 import { BaseWorldScene, TILE, WORLD_W, WORLD_H } from './BaseWorldScene';
 import { generateTileset, TILE as T, TILE_SIZE } from './tiles/generateTiles';
 
@@ -167,6 +168,58 @@ export class AshenmereScene extends BaseWorldScene {
       },
     });
 
+    // ── Torn Journal Page (on the south-east island, walkable at 28,16) ──
+    // Only visible if the scholars-trail quest is active and journal not yet found.
+    const questState = useQuestStore.getState().active['scholars-trail'];
+    const journalFound = questState?.completedObjectiveIds.includes('find-journal');
+    if (questState && !journalFound) {
+      const journalSprite = this.add.rectangle(28 * TILE, 16 * TILE, 14, 10, 0xd8d0b0);
+      journalSprite.setStrokeStyle(1, 0xa09868);
+      journalSprite.setDepth(8);
+      // Ink marks on the page
+      this.add.rectangle(28 * TILE - 3, 16 * TILE - 2, 6, 1, 0x404040, 0.5).setDepth(8);
+      this.add.rectangle(28 * TILE - 1, 16 * TILE, 8, 1, 0x404040, 0.4).setDepth(8);
+      this.add.rectangle(28 * TILE - 2, 16 * TILE + 2, 5, 1, 0x404040, 0.3).setDepth(8);
+      this.spawnInteractable({
+        sprite: journalSprite as any, label: 'Pick up torn journal page', radius: 24,
+        action: () => {
+          useInventoryStore.getState().addItem('torn_journal');
+          useQuestStore.getState().completeObjective('scholars-trail', 'find-journal');
+          window.dispatchEvent(new CustomEvent('gameMessage', {
+            detail: 'Found a torn journal page. The handwriting is Elven.',
+          }));
+          journalSprite.destroy();
+        },
+      });
+    }
+
+    // ── Drowned Sanctum entrance (submerged stairway on the south-west island, at 15,17) ──
+    const sanctumEntranceX = 15 * TILE;
+    const sanctumEntranceY = 17 * TILE;
+    // Visual: submerged steps (dark rectangle with water sheen)
+    const stepsVisual = this.add.rectangle(sanctumEntranceX, sanctumEntranceY, TILE * 1.5, TILE * 1.2, 0x304040);
+    stepsVisual.setStrokeStyle(2, 0x205050);
+    stepsVisual.setDepth(3);
+    // Step lines
+    this.add.rectangle(sanctumEntranceX, sanctumEntranceY - 6, TILE, 2, 0x406060, 0.5).setDepth(4);
+    this.add.rectangle(sanctumEntranceX, sanctumEntranceY, TILE, 2, 0x385858, 0.5).setDepth(4);
+    this.add.rectangle(sanctumEntranceX, sanctumEntranceY + 6, TILE, 2, 0x304848, 0.4).setDepth(4);
+    // Label
+    this.add.text(sanctumEntranceX, sanctumEntranceY - 22, 'Submerged Stairway', {
+      fontFamily: 'Courier New', fontSize: '10px', color: '#508888',
+    }).setOrigin(0.5).setAlpha(0.6).setDepth(15);
+
+    // Exit zone that transitions to the sanctum
+    this.addExit({
+      x: sanctumEntranceX - TILE * 0.75,
+      y: sanctumEntranceY - TILE * 0.6,
+      w: TILE * 1.5,
+      h: TILE * 1.2,
+      targetScene: 'DrownedSanctumF1Scene',
+      targetSpawn: 'fromAshenmere',
+      label: '',
+    });
+
     // ── Exits ──
     // West edge → back to Town
     this.addExit({
@@ -211,6 +264,8 @@ export class AshenmereScene extends BaseWorldScene {
 
   protected spawnAt(name: string): { x: number; y: number } {
     switch (name) {
+      case 'fromSanctum':
+        return { x: 15 * TILE, y: 16 * TILE };
       case 'fromTown':
       case 'default':
         return { x: 3 * TILE, y: 11 * TILE };

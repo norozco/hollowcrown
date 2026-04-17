@@ -209,6 +209,16 @@ const ITEMS: Record<string, Item> = {
     buyPrice: 0, description: 'Heavy iron, warm to the touch. Opens the way to what waits.',
     stackable: false,
   },
+  torn_journal: {
+    key: 'torn_journal', name: 'Torn Journal Page', type: 'quest', rarity: 'uncommon',
+    buyPrice: 0, description: 'Water-stained parchment. The handwriting is precise, Elven. Some words are still legible.',
+    stackable: false,
+  },
+  sanctum_key: {
+    key: 'sanctum_key', name: 'Sanctum Key', type: 'quest', rarity: 'rare',
+    buyPrice: 0, description: 'Green-black iron, cold as the water it sat in. Shaped for a lock that does not want to be opened.',
+    stackable: false,
+  },
 };
 
 export function getItem(key: string): Item {

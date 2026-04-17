@@ -70,5 +70,13 @@
     "portraitColor": "#3a4830",
     "accentColor": "#8a9868",
     "description": "Thin as a reed and twice as patient. Lives where no one else would choose to."
+  },
+  "veyrin": {
+    "key": "veyrin",
+    "name": "Veyrin",
+    "title": "Elven Scholar",
+    "portraitColor": "#2a3048",
+    "accentColor": "#a0b8d0",
+    "description": "Pale, thin, steady-handed. His eyes have the look of someone who has read too much and slept too little."
   }
 }

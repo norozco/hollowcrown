@@ -1,0 +1,99 @@
+{
+  "id": "veyrin-sanctum",
+  "start": "enter",
+  "nodes": {
+    "enter": {
+      "id": "enter",
+      "speaker": "narrator",
+      "text": "The figure crouches beside the altar, one hand flat against the stone. He does not turn when you approach. His robes are damp and torn at the hem, and his hair hangs lank and pale. When he finally speaks, his voice is steady — the voice of someone who stopped being afraid a long time ago.",
+      "next": "veyrin-speaks"
+    },
+    "veyrin-speaks": {
+      "id": "veyrin-speaks",
+      "speaker": "veyrin",
+      "text": "You should not have come here. But I suppose Brenna sent you, or the token did. It amounts to the same thing.",
+      "choices": [
+        { "text": "The Hermit told me you were down here.", "next": "hermit-sent" },
+        { "text": "Veyrin? The scholar?", "next": "confirm-identity" },
+        { "text": "What is this place?", "next": "about-altar" }
+      ]
+    },
+    "hermit-sent": {
+      "id": "hermit-sent",
+      "speaker": "veyrin",
+      "text": "The old man. Yes. He would know. He has watched the water long enough to feel when something passes beneath it.",
+      "next": "about-altar"
+    },
+    "confirm-identity": {
+      "id": "confirm-identity",
+      "speaker": "veyrin",
+      "text": "Scholar. Fool. Keeper, now. The titles accumulate. None of them help.",
+      "next": "about-altar"
+    },
+    "about-altar": {
+      "id": "about-altar",
+      "speaker": "veyrin",
+      "text": "This is a seal. The altar is the lock and I am learning to be the key. Something is imprisoned beneath it — old, patient, and aware. The walls down here are not walls. They are a cage.",
+      "choices": [
+        { "text": "What is imprisoned here?", "next": "the-prisoner" },
+        { "text": "The Hollow King — was he part of this?", "next": "hollow-king" },
+        { "text": "Can you leave?", "next": "cannot-leave" }
+      ]
+    },
+    "the-prisoner": {
+      "id": "the-prisoner",
+      "speaker": "veyrin",
+      "expression": "thoughtful",
+      "text": "I do not know its name. The inscriptions call it the Sleeper, or the Root, or simply It. What I do know: if the seal breaks, Ashenvale will be the first thing it touches. And it will not stop there.",
+      "next": "hollow-king"
+    },
+    "hollow-king": {
+      "id": "hollow-king",
+      "speaker": "veyrin",
+      "expression": "sad",
+      "text": "The Hollow King was a warden. One of the last. His mind broke under the weight of what he was keeping down. He forgot why he stood guard and became part of the problem. You did what had to be done.",
+      "next": "cannot-leave"
+    },
+    "cannot-leave": {
+      "id": "cannot-leave",
+      "speaker": "veyrin",
+      "text": "No. The altar needs a keeper — a mind pressed against the seal at all times. If I leave, the stone cracks. Slowly at first, then not slowly at all.",
+      "choices": [
+        { "text": "There must be another way.", "next": "no-other-way" },
+        { "text": "I will tell Brenna.", "next": "message" }
+      ]
+    },
+    "no-other-way": {
+      "id": "no-other-way",
+      "speaker": "veyrin",
+      "expression": "sad",
+      "text": "There may be. I have not found it yet. The inscriptions speak of a deeper seal — something that could hold without a keeper. But I cannot search for it and hold the altar at the same time. That is a problem for another day, and another pair of hands.",
+      "next": "message"
+    },
+    "message": {
+      "id": "message",
+      "speaker": "veyrin",
+      "text": "Tell Brenna this: the seal holds. For now. She will understand. She always understood more than she let on.",
+      "next": "message-2",
+      "effects": [
+        { "type": "complete-objective", "questId": "drowned-sanctum", "objectiveId": "find-veyrin" },
+        { "type": "turn-in-quest", "questId": "drowned-sanctum" },
+        { "type": "give-gold", "amount": 150 },
+        { "type": "give-xp", "amount": 400 },
+        { "type": "accept-quest", "questId": "what-remains" }
+      ]
+    },
+    "message-2": {
+      "id": "message-2",
+      "speaker": "narrator",
+      "text": "Veyrin turns back to the altar. His hand finds the stone again, and his eyes close. The chamber hums — a low, steady vibration you feel more than hear. It sounds like something breathing in its sleep.",
+      "next": "farewell"
+    },
+    "farewell": {
+      "id": "farewell",
+      "speaker": "veyrin",
+      "text": "Go. The way up is still open. Do not linger — the things down here grow curious when they sense warmth.",
+      "next": null
+    }
+  }
+}

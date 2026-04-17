@@ -1,0 +1,20 @@
+{
+  "id": "drowned-sanctum",
+  "category": "main",
+  "title": "The Drowned Sanctum",
+  "summary": "Veyrin descended into ruins beneath Ashenmere — a place the Hermit calls the Drowned Sanctum. Whatever the scholar found down there, he has not come back.",
+  "objectives": [
+    {
+      "id": "enter-sanctum",
+      "description": "Enter the Drowned Sanctum."
+    },
+    {
+      "id": "find-veyrin",
+      "description": "Find Veyrin."
+    }
+  ],
+  "reward": {
+    "gold": 150,
+    "xp": 400
+  }
+}

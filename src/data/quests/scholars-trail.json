@@ -1,0 +1,16 @@
+{
+  "id": "scholars-trail",
+  "category": "main",
+  "title": "The Scholar's Trail",
+  "summary": "The Hermit of Ashenmere recognized the iron token. An Elven scholar named Veyrin passed through the marsh weeks ago, heading deeper. Find his trail.",
+  "objectives": [
+    {
+      "id": "find-journal",
+      "description": "Find traces of Veyrin in the marsh, then bring them to the Hermit."
+    }
+  ],
+  "reward": {
+    "gold": 120,
+    "xp": 300
+  }
+}

@@ -9,6 +9,9 @@ import depthsExplorer from '../data/quests/depths-explorer.json';
 import hollowKingSlayer from '../data/quests/hollow-king-slayer.json';
 import silkTrader from '../data/quests/silk-trader.json';
 import boneRitual from '../data/quests/bone-ritual.json';
+import scholarsTrail from '../data/quests/scholars-trail.json';
+import drownedSanctum from '../data/quests/drowned-sanctum.json';
+import whatRemains from '../data/quests/what-remains.json';
 import type { Quest } from './quest';
 
 /**
@@ -28,6 +31,9 @@ const QUESTS: Record<string, Quest> = {
   'hollow-king-slayer': hollowKingSlayer as unknown as Quest,
   'silk-trader': silkTrader as unknown as Quest,
   'bone-ritual': boneRitual as unknown as Quest,
+  'scholars-trail': scholarsTrail as unknown as Quest,
+  'drowned-sanctum': drownedSanctum as unknown as Quest,
+  'what-remains': whatRemains as unknown as Quest,
 };
 
 export function getQuest(id: string): Quest {

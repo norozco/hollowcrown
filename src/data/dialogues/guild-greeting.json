@@ -30,6 +30,14 @@
           ]
         },
         {
+          "text": "I found Veyrin. He has a message for you.",
+          "next": "what-remains-turnin",
+          "requires": [
+            { "type": "quest-active", "questId": "what-remains" },
+            { "type": "quest-not-turned-in", "questId": "what-remains" }
+          ]
+        },
+        {
           "text": "The Hollow King is dead.",
           "next": "hollow-king-turnin",
           "requires": [
@@ -344,6 +352,67 @@
       "speaker": "brenna",
       "expression": "neutral",
       "text": "Go rest. You have earned it. But when you are ready — there is something beneath where the throne stood. A passage. Sealed, for now. We will need to open it eventually. And it will be you.",
+      "next": null
+    },
+
+    "what-remains-turnin": {
+      "id": "what-remains-turnin",
+      "speaker": "narrator",
+      "text": "Brenna sets her quill down. She does not ask you to sit. She does not reach for the ledger. She waits — and in the waiting, you see something you have not seen in her before. Fear.",
+      "next": "what-remains-2"
+    },
+    "what-remains-2": {
+      "id": "what-remains-2",
+      "speaker": "brenna",
+      "expression": "sad",
+      "text": "You found him. Alive. Tell me everything — no. Tell me the end first. What did he say?",
+      "next": "what-remains-3"
+    },
+    "what-remains-3": {
+      "id": "what-remains-3",
+      "speaker": "narrator",
+      "text": "You repeat the words as Veyrin gave them. The seal holds. For now.",
+      "next": "what-remains-4"
+    },
+    "what-remains-4": {
+      "id": "what-remains-4",
+      "speaker": "brenna",
+      "expression": "thoughtful",
+      "text": "For now. Yes. That sounds like him. Always precise, even when the precision is a kindness.",
+      "next": "what-remains-5"
+    },
+    "what-remains-5": {
+      "id": "what-remains-5",
+      "speaker": "brenna",
+      "expression": "neutral",
+      "text": "Two hundred gold. Five hundred experience. And something I do not give lightly — the truth. Veyrin and I were partners, once. Before the guild. Before Ashenvale. I sent you to find him because no one else could be trusted with what he knows.",
+      "effects": [
+        { "type": "complete-objective", "questId": "what-remains", "objectiveId": "return-to-brenna" },
+        { "type": "turn-in-quest", "questId": "what-remains" },
+        { "type": "give-gold", "amount": 200 },
+        { "type": "give-xp", "amount": 500 }
+      ],
+      "next": "what-remains-6"
+    },
+    "what-remains-6": {
+      "id": "what-remains-6",
+      "speaker": "brenna",
+      "expression": "sad",
+      "text": "He cannot leave. That means the seal is weaker than it should be. That means whatever is beneath it is waking up. Slowly — but it is waking.",
+      "next": "what-remains-7"
+    },
+    "what-remains-7": {
+      "id": "what-remains-7",
+      "speaker": "brenna",
+      "expression": "thoughtful",
+      "text": "There will be more work. Harder work. The kind that does not go on the board. When it comes, I will not ask — I will tell you. Because you are the one who came back. You are always the one who comes back.",
+      "next": "what-remains-close"
+    },
+    "what-remains-close": {
+      "id": "what-remains-close",
+      "speaker": "brenna",
+      "expression": "neutral",
+      "text": "Rest. Sharpen what needs sharpening. The next gate will not open itself.",
       "next": null
     },
 

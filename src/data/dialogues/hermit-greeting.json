@@ -13,6 +13,21 @@
       "speaker": "hermit",
       "text": "You came from the west. Through Ashenvale, past the king's corpse. I felt the crown break from here. The marsh shuddered. Everything did.",
       "choices": [
+        {
+          "text": "I found this page in the marsh. Can you read it?",
+          "next": "journal-turnin",
+          "requires": [
+            { "type": "quest-complete", "questId": "scholars-trail" },
+            { "type": "quest-not-turned-in", "questId": "scholars-trail" }
+          ]
+        },
+        {
+          "text": "I carry an iron token. It reacts to this place.",
+          "next": "token-react",
+          "requires": [
+            { "type": "quest-not-started", "questId": "scholars-trail" }
+          ]
+        },
         { "text": "What is this place?", "next": "place" },
         { "text": "What lies beyond the eastern mist?", "next": "east" },
         { "text": "Why do you live here?", "next": "why" },
@@ -41,6 +56,73 @@
       "id": "leave",
       "speaker": "hermit",
       "text": "Walk softly. The marsh remembers footsteps.",
+      "next": null
+    },
+
+    "token-react": {
+      "id": "token-react",
+      "speaker": "narrator",
+      "text": "The Hermit's eyes drop to the iron in your hand. Something shifts in his expression — not surprise, but recognition. The kind that comes with a long wait ending.",
+      "next": "token-react-2"
+    },
+    "token-react-2": {
+      "id": "token-react-2",
+      "speaker": "hermit",
+      "text": "That mark. I have seen it once before — on a page in a scholar's hand. An Elf. He came through here weeks ago, asking about the water and what lay beneath it. I told him what I tell everyone: leave it alone.",
+      "next": "token-react-3"
+    },
+    "token-react-3": {
+      "id": "token-react-3",
+      "speaker": "hermit",
+      "text": "He did not listen. They never do. He walked east, past the dead trees, toward the dry islands. If he left a trace, it will be there. The marsh takes most things, but paper floats for a while.",
+      "next": "token-react-accept",
+      "effects": [
+        { "type": "accept-quest", "questId": "scholars-trail" }
+      ]
+    },
+    "token-react-accept": {
+      "id": "token-react-accept",
+      "speaker": "hermit",
+      "text": "Find what he left behind. Bring it here. I can read Elvish, after a fashion. If the scholar wrote down what he found, we will both wish he had not.",
+      "next": null
+    },
+
+    "journal-turnin": {
+      "id": "journal-turnin",
+      "speaker": "narrator",
+      "text": "You hand the torn page to the Hermit. He holds it at arm's length, tilting it toward the grey light. His lips move as he reads. When he finishes, he folds the page carefully and does not give it back.",
+      "next": "journal-read"
+    },
+    "journal-read": {
+      "id": "journal-read",
+      "speaker": "hermit",
+      "text": "He found the entrance. Of course he did. The scholar writes that the water receded near the southern island — steps carved into the stone, going down. He calls it the Drowned Sanctum. Old name. Older than the marsh.",
+      "next": "journal-read-2",
+      "effects": [
+        { "type": "turn-in-quest", "questId": "scholars-trail" },
+        { "type": "give-gold", "amount": 120 },
+        { "type": "give-xp", "amount": 300 }
+      ]
+    },
+    "journal-read-2": {
+      "id": "journal-read-2",
+      "speaker": "hermit",
+      "text": "The last line is unfinished. He stopped writing mid-word. That tells you how quickly things change down there.",
+      "next": "sanctum-offer"
+    },
+    "sanctum-offer": {
+      "id": "sanctum-offer",
+      "speaker": "hermit",
+      "text": "If you mean to follow him — and I see that you do — look for the submerged stairway on the far island. The water is low enough now. It was not before. Something opened the way.",
+      "next": "sanctum-accept",
+      "effects": [
+        { "type": "accept-quest", "questId": "drowned-sanctum" }
+      ]
+    },
+    "sanctum-accept": {
+      "id": "sanctum-accept",
+      "speaker": "hermit",
+      "text": "Whatever you find below, do not touch the altar. Do not read the inscriptions aloud. And if something speaks to you from the dark — do not answer.",
       "next": null
     }
   }

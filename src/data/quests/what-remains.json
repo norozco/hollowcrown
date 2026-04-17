@@ -1,0 +1,16 @@
+{
+  "id": "what-remains",
+  "category": "main",
+  "title": "What Remains",
+  "summary": "Veyrin is alive, but he cannot leave. The altar beneath the marsh is a seal — and it needs a keeper. He has given you a message for Brenna. Deliver it.",
+  "objectives": [
+    {
+      "id": "return-to-brenna",
+      "description": "Return to Brenna with Veyrin's message."
+    }
+  ],
+  "reward": {
+    "gold": 200,
+    "xp": 500
+  }
+}
