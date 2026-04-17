@@ -1,4 +1,5 @@
 import { useInventoryStore } from '../state/inventoryStore';
+import { useLoreStore } from '../state/loreStore';
 import { BaseWorldScene, TILE, WORLD_W, WORLD_H } from './BaseWorldScene';
 import { generateTileset, TILE as T, TILE_SIZE } from './tiles/generateTiles';
 
@@ -122,6 +123,27 @@ export class GreenhollowScene extends BaseWorldScene {
     this.spawnEnemy({ monsterKey: 'bandit', x: 20 * TILE, y: 6 * TILE });
     this.spawnEnemy({ monsterKey: 'bandit', x: 28 * TILE, y: 12 * TILE });
 
+    // ── Waypoint stone (crossroads area) ──
+    const wpX = 20 * TILE;
+    const wpY = 12 * TILE;
+    const wpStone = this.add.rectangle(wpX, wpY, 28, 28, 0x6080b0);
+    wpStone.setStrokeStyle(2, 0x4060a0);
+    wpStone.setDepth(7);
+    const wpGlow = this.add.circle(wpX, wpY, 20, 0x80a0e0, 0.15);
+    wpGlow.setDepth(6);
+    this.tweens.add({ targets: wpGlow, scale: 1.3, alpha: 0.05, duration: 2000, yoyo: true, repeat: -1 });
+    this.add.text(wpX, wpY - 22, 'Waypoint', {
+      fontFamily: 'Courier New', fontSize: '9px', color: '#80a0e0',
+    }).setOrigin(0.5).setDepth(8);
+    this.spawnInteractable({
+      sprite: wpStone as any,
+      label: 'Use waypoint',
+      radius: 24,
+      action: () => {
+        window.dispatchEvent(new CustomEvent('openFastTravel', { detail: { currentScene: this.scene.key } }));
+      },
+    });
+
     // Moonpetal herb patch (near the north path).
     const herbSprite = this.add.circle(14 * TILE, 6 * TILE, 7, 0x40a848);
     herbSprite.setStrokeStyle(2, 0x8040c0);
@@ -190,6 +212,12 @@ export class GreenhollowScene extends BaseWorldScene {
       label: 'Examine grave marker',
       radius: 20,
       action: () => {
+        useLoreStore.getState().discover({
+          key: 'grave-marker-greenhollow',
+          title: "Maren's Grave",
+          text: "Here lies Maren. She went looking for something. She found it.",
+          location: 'Greenhollow Woods',
+        });
         window.dispatchEvent(new CustomEvent('gameMessage', {
           detail: "Here lies Maren. She went looking for something. She found it.",
         }));
@@ -205,6 +233,12 @@ export class GreenhollowScene extends BaseWorldScene {
       label: 'Examine overturned cart',
       radius: 22,
       action: () => {
+        useLoreStore.getState().discover({
+          key: 'overturned-cart-greenhollow',
+          title: 'Overturned Cart',
+          text: 'An overturned cart. Whatever it carried is long gone. Claw marks on the wood.',
+          location: 'Greenhollow Woods',
+        });
         window.dispatchEvent(new CustomEvent('gameMessage', {
           detail: 'An overturned cart. Whatever it carried is long gone. Claw marks on the wood.',
         }));
@@ -219,6 +253,12 @@ export class GreenhollowScene extends BaseWorldScene {
       label: 'Examine carved tree',
       radius: 20,
       action: () => {
+        useLoreStore.getState().discover({
+          key: 'carved-tree-greenhollow',
+          title: 'Carved Tree',
+          text: 'Someone carved initials into the bark. The tree has grown around them, half-swallowed.',
+          location: 'Greenhollow Woods',
+        });
         window.dispatchEvent(new CustomEvent('gameMessage', {
           detail: 'Someone carved initials into the bark. The tree has grown around them, half-swallowed.',
         }));

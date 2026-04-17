@@ -1,5 +1,6 @@
 import { useInventoryStore } from '../state/inventoryStore';
 import { useQuestStore } from '../state/questStore';
+import { useLoreStore } from '../state/loreStore';
 import { BaseWorldScene, TILE, WORLD_W, WORLD_H } from './BaseWorldScene';
 import { generateTileset, TILE as T, TILE_SIZE } from './tiles/generateTiles';
 
@@ -122,6 +123,27 @@ export class AshenmereScene extends BaseWorldScene {
       });
     }
 
+    // ── Waypoint stone (first dry island near west entrance) ──
+    const wpX = 5 * TILE;
+    const wpY = 11 * TILE;
+    const wpStone = this.add.rectangle(wpX, wpY, 28, 28, 0x6080b0);
+    wpStone.setStrokeStyle(2, 0x4060a0);
+    wpStone.setDepth(7);
+    const wpGlow = this.add.circle(wpX, wpY, 20, 0x80a0e0, 0.15);
+    wpGlow.setDepth(6);
+    this.tweens.add({ targets: wpGlow, scale: 1.3, alpha: 0.05, duration: 2000, yoyo: true, repeat: -1 });
+    this.add.text(wpX, wpY - 22, 'Waypoint', {
+      fontFamily: 'Courier New', fontSize: '9px', color: '#80a0e0',
+    }).setOrigin(0.5).setDepth(8);
+    this.spawnInteractable({
+      sprite: wpStone as any,
+      label: 'Use waypoint',
+      radius: 24,
+      action: () => {
+        window.dispatchEvent(new CustomEvent('openFastTravel', { detail: { currentScene: this.scene.key } }));
+      },
+    });
+
     // ── NPC: The Hermit (on the large central island) ──
     this.spawnNpc({
       key: 'hermit',
@@ -200,6 +222,12 @@ export class AshenmereScene extends BaseWorldScene {
       label: 'Examine submerged structure',
       radius: 20,
       action: () => {
+        useLoreStore.getState().discover({
+          key: 'submerged-structure-ashenmere',
+          title: 'Submerged Dwelling',
+          text: 'Stone tiles just beneath the water. A chimney, half-collapsed. Someone lived here once.',
+          location: 'Ashenmere Marshes',
+        });
         window.dispatchEvent(new CustomEvent('gameMessage', {
           detail: 'Stone tiles just beneath the water. A chimney, half-collapsed. Someone lived here once.',
         }));
@@ -217,6 +245,12 @@ export class AshenmereScene extends BaseWorldScene {
       label: 'Examine warning post',
       radius: 20,
       action: () => {
+        useLoreStore.getState().discover({
+          key: 'warning-post-ashenmere',
+          title: 'Warning Post',
+          text: 'A post driven into the mud. Cloth wrapped around it, faded. It might have been red once.',
+          location: 'Ashenmere Marshes',
+        });
         window.dispatchEvent(new CustomEvent('gameMessage', {
           detail: 'A post driven into the mud. Cloth wrapped around it, faded. It might have been red once.',
         }));
@@ -302,6 +336,12 @@ export class AshenmereScene extends BaseWorldScene {
       label: 'Peer into the mist',
       radius: 36,
       action: () => {
+        useLoreStore.getState().discover({
+          key: 'eastern-mist-ashenmere',
+          title: 'The Eastern Mist',
+          text: 'The marsh stretches on. Whatever waits beyond is not yet ready to be found.',
+          location: 'Ashenmere Marshes',
+        });
         window.dispatchEvent(new CustomEvent('gameMessage', {
           detail: 'The marsh stretches on. Whatever waits beyond is not yet ready to be found.',
         }));

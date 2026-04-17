@@ -6,6 +6,7 @@ import { useQuestStore } from '../state/questStore';
 import { useCombatStore } from '../state/combatStore';
 import { useInventoryStore } from '../state/inventoryStore';
 import { useAchievementStore } from '../state/achievementStore';
+import { useLoreStore } from '../state/loreStore';
 import { DialogueScene } from './Dialogue/DialogueScene';
 import { QuestTracker } from './QuestTracker/QuestTracker';
 import { CombatOverlay } from './Combat/CombatOverlay';
@@ -19,6 +20,7 @@ import { OptionsMenu } from './OptionsMenu/OptionsMenu';
 import { AchievementsScreen } from './Achievements/AchievementsScreen';
 import { AchievementToast } from './AchievementToast/AchievementToast';
 import { Bestiary } from './Bestiary/Bestiary';
+import { Journal } from './Journal/Journal';
 import { StatScreen } from './StatScreen/StatScreen';
 import { getCurrentRank } from '../engine/ranks';
 import { xpForLevel, MAX_LEVEL } from '../engine/character';
@@ -28,6 +30,7 @@ import { TouchControls } from './TouchControls/TouchControls';
 import { Minimap } from './Minimap/Minimap';
 import { ItemDiscovery } from './ItemDiscovery/ItemDiscovery';
 import { WorldMap } from './WorldMap/WorldMap';
+import { FastTravel } from './FastTravel/FastTravel';
 import './InGameOverlay.css';
 
 /**
@@ -61,6 +64,7 @@ export function InGameOverlay() {
 
   const checkAchievements = useAchievementStore((s) => s.checkAchievements);
   const resetAchievements = useAchievementStore((s) => s.reset);
+  const resetLore = useLoreStore((s) => s.reset);
 
   const [menuOpen, setMenuOpen] = useState(false);
   const [questBoardOpen, setQuestBoardOpen] = useState(false);
@@ -68,7 +72,9 @@ export function InGameOverlay() {
   const [achievementsOpen, setAchievementsOpen] = useState(false);
   const [worldMapOpen, setWorldMapOpen] = useState(false);
   const [bestiaryOpen, setBestiaryOpen] = useState(false);
+  const [journalOpen, setJournalOpen] = useState(false);
   const [statScreenOpen, setStatScreenOpen] = useState(false);
+  const [fastTravelOpen, setFastTravelOpen] = useState(false);
   const [gameMsg, setGameMsg] = useState<string | null>(null);
   const [toastKey, setToastKey] = useState<string | null>(null);
 
@@ -105,7 +111,35 @@ export function InGameOverlay() {
       setTimeout(() => setGameMsg(null), 3000);
     };
     window.addEventListener('gameMessage', msgHandler);
-    return () => { window.removeEventListener('openQuestBoard', handler); window.removeEventListener('gameMessage', msgHandler); };
+
+    // Fast travel: open modal when a waypoint stone is used.
+    const ftOpenHandler = () => setFastTravelOpen(true);
+    window.addEventListener('openFastTravel', ftOpenHandler);
+
+    // Fast travel: perform the scene transition when a destination is chosen.
+    const ftTravelHandler = (e: Event) => {
+      const detail = (e as CustomEvent).detail as { sceneKey: string; spawn: string };
+      const game = (window as any).__phaserGame as any;
+      if (game) {
+        const worldScenes = [
+          'TownScene', 'GreenhollowScene', 'MossbarrowScene', 'MossbarrowDepthsScene',
+          'DepthsFloor2Scene', 'DepthsFloor3Scene', 'AshenmereScene',
+          'DrownedSanctumF1Scene', 'DrownedSanctumF2Scene', 'InteriorScene',
+        ];
+        for (const k of worldScenes) {
+          if (game.scene.isActive(k)) game.scene.stop(k);
+        }
+        game.scene.start(detail.sceneKey, { spawnPoint: detail.spawn });
+      }
+    };
+    window.addEventListener('fastTravel', ftTravelHandler);
+
+    return () => {
+      window.removeEventListener('openQuestBoard', handler);
+      window.removeEventListener('gameMessage', msgHandler);
+      window.removeEventListener('openFastTravel', ftOpenHandler);
+      window.removeEventListener('fastTravel', ftTravelHandler);
+    };
   }, []);
 
   // Periodically check achievements every 5 seconds.
@@ -189,6 +223,7 @@ export function InGameOverlay() {
     resetQuests();
     resetInventory();
     resetAchievements();
+    resetLore();
     setMenuOpen(false);
     setScreen('menu');
   };
@@ -330,6 +365,9 @@ export function InGameOverlay() {
           <button type="button" className="cc__btn" onClick={() => { setBestiaryOpen(true); setMenuOpen(false); }}>
             Bestiary
           </button>
+          <button type="button" className="cc__btn" onClick={() => { setJournalOpen(true); setMenuOpen(false); }}>
+            Codex
+          </button>
           <button type="button" className="cc__btn" onClick={() => { setStatScreenOpen(true); setMenuOpen(false); }}>
             Stats
           </button>
@@ -352,7 +390,9 @@ export function InGameOverlay() {
       {achievementsOpen && <AchievementsScreen onClose={() => setAchievementsOpen(false)} />}
       {worldMapOpen && <WorldMap onClose={() => setWorldMapOpen(false)} />}
       {bestiaryOpen && <Bestiary onClose={() => setBestiaryOpen(false)} />}
+      {journalOpen && <Journal onClose={() => setJournalOpen(false)} />}
       {statScreenOpen && <StatScreen onClose={() => setStatScreenOpen(false)} />}
+      {fastTravelOpen && <FastTravel onClose={() => setFastTravelOpen(false)} />}
       {dialogueActive && <DialogueScene />}
       {combatActive && <CombatOverlay />}
       <LevelUpPopup />

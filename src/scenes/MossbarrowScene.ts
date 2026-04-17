@@ -1,6 +1,7 @@
 import { useDialogueStore } from '../state/dialogueStore';
 import { getDialogue } from '../engine/dialogues';
 import { useInventoryStore } from '../state/inventoryStore';
+import { useLoreStore } from '../state/loreStore';
 import { BaseWorldScene, TILE, WORLD_H } from './BaseWorldScene';
 import { generateTileset, TILE as T, TILE_SIZE } from './tiles/generateTiles';
 
@@ -82,6 +83,27 @@ export class MossbarrowScene extends BaseWorldScene {
     this.physics.add.existing(oakRect, true);
     this.walls.add(oakRect);
 
+    // ── Waypoint stone (near the entrance path) ──
+    const wpX = 6 * TILE;
+    const wpY = 11 * TILE;
+    const wpStone = this.add.rectangle(wpX, wpY, 28, 28, 0x6080b0);
+    wpStone.setStrokeStyle(2, 0x4060a0);
+    wpStone.setDepth(7);
+    const wpGlow = this.add.circle(wpX, wpY, 20, 0x80a0e0, 0.15);
+    wpGlow.setDepth(6);
+    this.tweens.add({ targets: wpGlow, scale: 1.3, alpha: 0.05, duration: 2000, yoyo: true, repeat: -1 });
+    this.add.text(wpX, wpY - 22, 'Waypoint', {
+      fontFamily: 'Courier New', fontSize: '9px', color: '#80a0e0',
+    }).setOrigin(0.5).setDepth(8);
+    this.spawnInteractable({
+      sprite: wpStone as any,
+      label: 'Use waypoint',
+      radius: 24,
+      action: () => {
+        window.dispatchEvent(new CustomEvent('openFastTravel', { detail: { currentScene: this.scene.key } }));
+      },
+    });
+
     // Enemies — risen bones guarding the cairn.
     this.spawnEnemy({ monsterKey: 'skeleton', x: 16 * TILE, y: 10 * TILE });
     this.spawnEnemy({ monsterKey: 'skeleton', x: 28 * TILE, y: 12 * TILE });
@@ -128,6 +150,12 @@ export class MossbarrowScene extends BaseWorldScene {
       label: 'Examine stone tablet',
       radius: 20,
       action: () => {
+        useLoreStore.getState().discover({
+          key: 'stone-tablet-mossbarrow',
+          title: 'Crumbling Tablet',
+          text: "The old script is worn. One word is still legible: 'BENEATH.'",
+          location: 'Mossbarrow Cairn',
+        });
         window.dispatchEvent(new CustomEvent('gameMessage', {
           detail: "The old script is worn. One word is still legible: 'BENEATH.'",
         }));
@@ -142,6 +170,12 @@ export class MossbarrowScene extends BaseWorldScene {
       label: 'Examine discarded shield',
       radius: 20,
       action: () => {
+        useLoreStore.getState().discover({
+          key: 'discarded-shield-mossbarrow',
+          title: 'Discarded Shield',
+          text: 'A shield, face-down. The arm strap is broken. The owner did not drop it gently.',
+          location: 'Mossbarrow Cairn',
+        });
         window.dispatchEvent(new CustomEvent('gameMessage', {
           detail: 'A shield, face-down. The arm strap is broken. The owner did not drop it gently.',
         }));

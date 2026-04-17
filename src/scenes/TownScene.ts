@@ -1,4 +1,6 @@
+import Phaser from 'phaser';
 import { useQuestStore } from '../state/questStore';
+import { useLoreStore } from '../state/loreStore';
 import { BaseWorldScene, TILE, WORLD_W, WORLD_H } from './BaseWorldScene';
 import { generateTileset, TILE as T, TILE_SIZE } from './tiles/generateTiles';
 
@@ -227,6 +229,27 @@ export class TownScene extends BaseWorldScene {
       }, 3000);
     }
 
+    // ── Waypoint stone ──
+    const wpX = 13 * TILE;
+    const wpY = 12 * TILE;
+    const wpStone = this.add.rectangle(wpX, wpY, 28, 28, 0x6080b0);
+    wpStone.setStrokeStyle(2, 0x4060a0);
+    wpStone.setDepth(7);
+    const wpGlow = this.add.circle(wpX, wpY, 20, 0x80a0e0, 0.15);
+    wpGlow.setDepth(6);
+    this.tweens.add({ targets: wpGlow, scale: 1.3, alpha: 0.05, duration: 2000, yoyo: true, repeat: -1 });
+    this.add.text(wpX, wpY - 22, 'Waypoint', {
+      fontFamily: 'Courier New', fontSize: '9px', color: '#80a0e0',
+    }).setOrigin(0.5).setDepth(8);
+    this.spawnInteractable({
+      sprite: wpStone as any,
+      label: 'Use waypoint',
+      radius: 24,
+      action: () => {
+        window.dispatchEvent(new CustomEvent('openFastTravel', { detail: { currentScene: this.scene.key } }));
+      },
+    });
+
     // ── Lore interactables ──
 
     // Memorial wall near the Guild
@@ -240,6 +263,12 @@ export class TownScene extends BaseWorldScene {
       label: 'Examine memorial wall',
       radius: 20,
       action: () => {
+        useLoreStore.getState().discover({
+          key: 'memorial-wall',
+          title: 'The Memorial Wall',
+          text: 'Names are carved here. Some recent. The stone is never full.',
+          location: 'Ashenvale',
+        });
         window.dispatchEvent(new CustomEvent('gameMessage', {
           detail: 'Names are carved here. Some recent. The stone is never full.',
         }));
@@ -260,9 +289,99 @@ export class TownScene extends BaseWorldScene {
       label: 'Read notice board',
       radius: 24,
       action: () => {
+        useLoreStore.getState().discover({
+          key: 'notice-board-ashenvale',
+          title: 'Notice Board',
+          text: 'Warning: Greenhollow Woods — wolves reported. Guild escort recommended.',
+          location: 'Ashenvale',
+        });
         window.dispatchEvent(new CustomEvent('gameMessage', {
           detail: 'Warning: Greenhollow Woods — wolves reported. Guild escort recommended.',
         }));
+      },
+    });
+
+    // ── Ambient townspeople ──
+    const addTownsperson = (startX: number, startY: number, color: number, path: Array<{x: number; y: number}>) => {
+      const person = this.add.circle(startX, startY, 5, color);
+      person.setDepth(9);
+      // Shadow
+      this.add.ellipse(startX, startY + 4, 8, 3, 0x000000, 0.2).setDepth(8);
+
+      // Walk along path
+      this.tweens.chain({
+        targets: person,
+        tweens: path.map(p => ({
+          x: p.x, y: p.y, duration: 2000 + Math.random() * 1000, ease: 'Linear',
+        })),
+        repeat: -1,
+      });
+    };
+
+    // Townsperson 1: walks along the main path (east-west)
+    addTownsperson(6 * TILE, 9 * TILE, 0xa08060, [
+      { x: 15 * TILE, y: 9 * TILE },
+      { x: 24 * TILE, y: 9 * TILE },
+      { x: 15 * TILE, y: 9 * TILE },
+      { x: 6 * TILE, y: 9 * TILE },
+    ]);
+
+    // Townsperson 2: walks from inn area to shop
+    addTownsperson(18 * TILE, 10 * TILE, 0x7080a0, [
+      { x: 28 * TILE, y: 10 * TILE },
+      { x: 28 * TILE, y: 8 * TILE },
+      { x: 18 * TILE, y: 8 * TILE },
+      { x: 18 * TILE, y: 10 * TILE },
+    ]);
+
+    // Townsperson 3: lingers near the well
+    addTownsperson(14 * TILE, 8 * TILE, 0x906840, [
+      { x: 12 * TILE, y: 10 * TILE },
+      { x: 14 * TILE, y: 10 * TILE },
+      { x: 14 * TILE, y: 8 * TILE },
+      { x: 12 * TILE, y: 8 * TILE },
+    ]);
+
+    // ── Ambient animals ──
+    // A cat near the inn
+    const cat = this.add.circle(16 * TILE, 12 * TILE, 3, 0x404040);
+    cat.setDepth(9);
+    this.tweens.add({
+      targets: cat, x: 20 * TILE, y: 14 * TILE,
+      duration: 8000, yoyo: true, repeat: -1, ease: 'Sine.easeInOut',
+    });
+
+    // Birds that occasionally fly across
+    this.time.addEvent({
+      delay: 15000 + Math.random() * 20000,
+      loop: true,
+      callback: () => {
+        const birdY = 2 * TILE + Math.random() * 4 * TILE;
+        const bird = this.add.triangle(0, birdY, 0, 0, 4, -3, 8, 0, 0x303030);
+        bird.setDepth(20);
+        this.tweens.add({
+          targets: bird, x: WORLD_W + 20, duration: 6000, ease: 'Linear',
+          onComplete: () => bird.destroy(),
+        });
+      },
+    });
+
+    // ── Environmental ambience ──
+    // Smoke from the inn chimney
+    this.time.addEvent({
+      delay: 3000,
+      loop: true,
+      callback: () => {
+        const smokeX = (INN.x + INN.w / 2) * TILE;
+        const smokeY = (INN.y - 1) * TILE;
+        const smoke = this.add.circle(smokeX, smokeY, 3, 0xaaaaaa, 0.3);
+        smoke.setDepth(15);
+        this.tweens.add({
+          targets: smoke,
+          y: smokeY - 40, x: smokeX + Phaser.Math.Between(-10, 10),
+          alpha: 0, scale: 2, duration: 3000,
+          onComplete: () => smoke.destroy(),
+        });
       },
     });
 

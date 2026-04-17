@@ -1,4 +1,5 @@
 import { useInventoryStore } from '../state/inventoryStore';
+import { useLoreStore } from '../state/loreStore';
 import { BaseWorldScene, TILE, WORLD_W, WORLD_H } from './BaseWorldScene';
 import { generateTileset, TILE as T, TILE_SIZE } from './tiles/generateTiles';
 
@@ -146,6 +147,12 @@ export class MossbarrowDepthsScene extends BaseWorldScene {
       label: 'Read scratched message',
       radius: 20,
       action: () => {
+        useLoreStore.getState().discover({
+          key: 'scratched-message-depths',
+          title: 'Scratched Message',
+          text: "Scratched into the stone: 'The spiders came from below. Do not sleep.'",
+          location: 'Mossbarrow Depths',
+        });
         window.dispatchEvent(new CustomEvent('gameMessage', {
           detail: "Scratched into the stone: 'The spiders came from below. Do not sleep.'",
         }));

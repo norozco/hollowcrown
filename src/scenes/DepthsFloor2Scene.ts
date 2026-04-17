@@ -1,5 +1,6 @@
 import * as Phaser from 'phaser';
 import { useInventoryStore } from '../state/inventoryStore';
+import { useLoreStore } from '../state/loreStore';
 import { BaseWorldScene, TILE, WORLD_W, WORLD_H } from './BaseWorldScene';
 import { generateTileset, TILE as T, TILE_SIZE } from './tiles/generateTiles';
 
@@ -184,6 +185,12 @@ export class DepthsFloor2Scene extends BaseWorldScene {
       label: 'Examine sarcophagus',
       radius: 20,
       action: () => {
+        useLoreStore.getState().discover({
+          key: 'sarcophagus-depths-f2',
+          title: 'Empty Sarcophagus',
+          text: 'The lid is pushed aside. Whatever was inside left on its own.',
+          location: 'Mossbarrow Depths — Floor 2',
+        });
         window.dispatchEvent(new CustomEvent('gameMessage', {
           detail: 'The lid is pushed aside. Whatever was inside left on its own.',
         }));

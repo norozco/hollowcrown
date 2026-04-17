@@ -1,6 +1,7 @@
 import { useInventoryStore } from '../state/inventoryStore';
 import { useQuestStore } from '../state/questStore';
 import { useCombatStore } from '../state/combatStore';
+import { useLoreStore } from '../state/loreStore';
 import { BaseWorldScene, TILE, WORLD_W, WORLD_H } from './BaseWorldScene';
 import { generateTileset, TILE as T, TILE_SIZE } from './tiles/generateTiles';
 
@@ -181,6 +182,12 @@ export class DepthsFloor3Scene extends BaseWorldScene {
       label: 'Examine weapon pile',
       radius: 20,
       action: () => {
+        useLoreStore.getState().discover({
+          key: 'weapon-pile-hollow-throne',
+          title: 'The Weapon Pile',
+          text: 'Swords, axes, a staff. All broken. All pointed at the throne. None reached it.',
+          location: 'Mossbarrow Depths — Floor 3',
+        });
         window.dispatchEvent(new CustomEvent('gameMessage', {
           detail: 'Swords, axes, a staff. All broken. All pointed at the throne. None reached it.',
         }));
