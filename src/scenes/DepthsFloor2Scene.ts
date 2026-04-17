@@ -126,6 +126,7 @@ export class DepthsFloor2Scene extends BaseWorldScene {
     this.spawnInteractable({
       sprite: moonpetal1 as any, label: 'Gather moonpetal', radius: 20,
       action: () => {
+        this.spawnPickupParticles(moonpetal1.x, moonpetal1.y, 0x60c060);
         useInventoryStore.getState().addItem('moonpetal');
         window.dispatchEvent(new CustomEvent('gameMessage', { detail: 'Found moonpetal!' }));
         moonpetal1.destroy();
@@ -139,6 +140,7 @@ export class DepthsFloor2Scene extends BaseWorldScene {
     this.spawnInteractable({
       sprite: moonpetal2 as any, label: 'Gather moonpetal', radius: 20,
       action: () => {
+        this.spawnPickupParticles(moonpetal2.x, moonpetal2.y, 0x60c060);
         useInventoryStore.getState().addItem('moonpetal');
         window.dispatchEvent(new CustomEvent('gameMessage', { detail: 'Found moonpetal!' }));
         moonpetal2.destroy();
@@ -152,6 +154,7 @@ export class DepthsFloor2Scene extends BaseWorldScene {
     this.spawnInteractable({
       sprite: shadowEssence as any, label: 'Collect shadow essence', radius: 20,
       action: () => {
+        this.spawnPickupParticles(shadowEssence.x, shadowEssence.y, 0x60c060);
         useInventoryStore.getState().addItem('shadow_essence');
         window.dispatchEvent(new CustomEvent('gameMessage', { detail: 'Found shadow essence!' }));
         shadowEssence.destroy();
@@ -165,6 +168,7 @@ export class DepthsFloor2Scene extends BaseWorldScene {
     this.spawnInteractable({
       sprite: boneShard as any, label: 'Pick up bone shard', radius: 20,
       action: () => {
+        this.spawnPickupParticles(boneShard.x, boneShard.y, 0x60c060);
         useInventoryStore.getState().addItem('bone_shard');
         window.dispatchEvent(new CustomEvent('gameMessage', { detail: 'Found bone shard!' }));
         boneShard.destroy();
@@ -208,6 +212,20 @@ export class DepthsFloor2Scene extends BaseWorldScene {
     this.spawnTrap({ x: 9 * TILE + TILE / 2, y: 9 * TILE, damage: 4 });
     this.spawnTrap({ x: 11 * TILE, y: 10 * TILE, damage: 4 });
     this.spawnTrap({ x: 10 * TILE, y: 11 * TILE + TILE / 2, damage: 4 });
+
+    // ── Guaranteed boss key — hidden near the sealed gate.
+    //    Ensures the player is never softlocked if wraiths drop nothing.
+    const keyPickup2 = this.add.rectangle(6 * TILE + TILE / 2, 17 * TILE + TILE / 2, 10, 10, 0x8040c0);
+    keyPickup2.setStrokeStyle(1, 0x602090);
+    keyPickup2.setDepth(6);
+    this.spawnInteractable({
+      sprite: keyPickup2 as any, label: 'Warden key', radius: 20,
+      action: () => {
+        useInventoryStore.getState().addItem('boss_key');
+        window.dispatchEvent(new CustomEvent('gameMessage', { detail: 'Found the warden key!' }));
+        keyPickup2.destroy();
+      },
+    });
 
     // ── Locked door before stairs to Floor 3 (requires Warden Key from wraiths) ──
     this.spawnLockedDoor({

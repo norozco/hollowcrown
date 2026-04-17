@@ -102,6 +102,7 @@ export class MossbarrowDepthsScene extends BaseWorldScene {
     this.spawnInteractable({
       sprite: ironOre1 as any, label: 'Pick up iron ore', radius: 20,
       action: () => {
+        this.spawnPickupParticles(ironOre1.x, ironOre1.y, 0x60c060);
         useInventoryStore.getState().addItem('iron_ore');
         window.dispatchEvent(new CustomEvent('gameMessage', { detail: 'Found iron ore!' }));
         ironOre1.destroy();
@@ -115,6 +116,7 @@ export class MossbarrowDepthsScene extends BaseWorldScene {
     this.spawnInteractable({
       sprite: ironOre2 as any, label: 'Pick up iron ore', radius: 20,
       action: () => {
+        this.spawnPickupParticles(ironOre2.x, ironOre2.y, 0x60c060);
         useInventoryStore.getState().addItem('iron_ore');
         window.dispatchEvent(new CustomEvent('gameMessage', { detail: 'Found iron ore!' }));
         ironOre2.destroy();
@@ -128,6 +130,7 @@ export class MossbarrowDepthsScene extends BaseWorldScene {
     this.spawnInteractable({
       sprite: spiderSilk as any, label: 'Pick up spider silk', radius: 20,
       action: () => {
+        this.spawnPickupParticles(spiderSilk.x, spiderSilk.y, 0x60c060);
         useInventoryStore.getState().addItem('spider_silk');
         window.dispatchEvent(new CustomEvent('gameMessage', { detail: 'Found spider silk!' }));
         spiderSilk.destroy();
@@ -168,6 +171,20 @@ export class MossbarrowDepthsScene extends BaseWorldScene {
     // ── Spike traps in the main hall ──
     this.spawnTrap({ x: 8 * TILE, y: 8 * TILE, damage: 3 });
     this.spawnTrap({ x: 10 * TILE, y: 13 * TILE, damage: 3 });
+
+    // ── Guaranteed dungeon key — hidden near the locked gate.
+    //    Ensures the player is never softlocked if spiders drop nothing.
+    const keyPickup1 = this.add.rectangle(5 * TILE + TILE / 2, 17 * TILE + TILE / 2, 10, 10, 0xc0a040);
+    keyPickup1.setStrokeStyle(1, 0x906020);
+    keyPickup1.setDepth(6);
+    this.spawnInteractable({
+      sprite: keyPickup1 as any, label: 'Rusted key', radius: 20,
+      action: () => {
+        useInventoryStore.getState().addItem('dungeon_key');
+        window.dispatchEvent(new CustomEvent('gameMessage', { detail: 'Found a rusted key!' }));
+        keyPickup1.destroy();
+      },
+    });
 
     // ── Locked door before stairs down (requires Rusty Key from spiders) ──
     this.spawnLockedDoor({

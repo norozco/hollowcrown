@@ -208,7 +208,11 @@ export const useCombatStore = create<CombatStoreState>((set, get) => ({
       if (state.phase === 'victory') {
         character.addGold(monster.goldReward);
         const levelsGained = character.gainXp(monster.xpReward);
-        character.hp = state.playerHp;
+        if (levelsGained === 0) {
+          // No level-up — preserve the combat HP (player may have taken damage).
+          character.hp = state.playerHp;
+        }
+        // If levelsGained > 0, gainXp already set HP/MP to full — don't overwrite.
         if (levelsGained > 0) {
           usePlayerStore.setState({ pendingPerkChoices: rollPerkChoices() });
         }

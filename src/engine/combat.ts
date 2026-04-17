@@ -107,6 +107,8 @@ export interface CombatState {
   log: CombatLogEntry[];
   /** Whether the Hollow King has entered phase 2 (HP <= 50%). */
   bossPhase2: boolean;
+  /** Scaled monster base damage for this fight. */
+  monsterBaseDamage: number;
 }
 
 const dice = new DiceRoller();
@@ -114,6 +116,20 @@ const dice = new DiceRoller();
 const POISON_DMG = 2;
 const BURN_DMG = 3;
 const BLEED_DMG = 2;
+
+/** Maximum stack value for each status effect. */
+const STATUS_CAPS: Record<keyof StatusEffects, number> = {
+  poison: 5,
+  burn: 5,
+  bleed: 5,
+  stun: 2,
+  marked: 5,
+};
+
+/** Apply a status effect to a StatusEffects object, respecting caps. */
+function applyStatus(status: StatusEffects, effect: keyof StatusEffects, value: number): void {
+  status[effect] = Math.min(STATUS_CAPS[effect], status[effect] + value) as never;
+}
 
 /** Map class + action to an element for weakness/resistance checks. */
 function getAttackElement(classKey: string, action: CombatAction): string {
@@ -200,9 +216,16 @@ export function initCombat(player: Character, monster: Monster): CombatState {
     type: 'system',
   });
 
+  // Scale monster HP and damage based on player level so fights stay
+  // relevant as the player grows. Scaling starts above level 3 for HP
+  // and level 5 for damage to keep early game accessible.
+  const levelScale = 1 + Math.max(0, player.level - 3) * 0.08; // +8% per level above 3
+  const scaledHp = Math.round(monster.maxHp * levelScale);
+  const scaledDamage = Math.round(monster.baseDamage * (1 + Math.max(0, player.level - 5) * 0.05));
+
   return {
     phase: playerFirst ? 'player_turn' : 'enemy_turn',
-    monsterHp: monster.maxHp,
+    monsterHp: scaledHp,
     playerHp: player.hp,
     playerDefending: false,
     monsterDefending: false,
@@ -212,6 +235,7 @@ export function initCombat(player: Character, monster: Monster): CombatState {
     turn: 1,
     log,
     bossPhase2: false,
+    monsterBaseDamage: scaledDamage,
   };
 }
 
@@ -335,7 +359,7 @@ export function playerAct(
         s.log.push({ text: `You strike from the shadows. ${dmg} damage.`, type: 'player_hit' });
       } else if (classKey === 'ranger') {
         // Hunter's Mark: physical + apply marked status
-        s.monsterStatus.marked = 3;
+        applyStatus(s.monsterStatus, 'marked', 3);
         const r = dice.d(20);
         const b = modifier(player.stats.dex);
         const t = r + b;
@@ -357,7 +381,7 @@ export function playerAct(
         s.monsterDefending = false; // cancel any defend
         const stunRoll = dice.d(20);
         if (stunRoll >= 16) {
-          s.monsterStatus.stun = 1;
+          applyStatus(s.monsterStatus, 'stun', 1);
           s.log.push({ text: `Vicious Mockery! "${monster.name} couldn't pour water from a boot with instructions on the heel." ${dmg} psychic damage. ${monster.name} is stunned!`, type: 'player_hit' });
         } else {
           s.log.push({ text: `Vicious Mockery! "${monster.name} couldn't pour water from a boot with instructions on the heel." ${dmg} psychic damage.`, type: 'player_hit' });
@@ -447,13 +471,13 @@ export function enemyAct(
   // ── Check for special ability ──
   if (monster.special && Math.random() < monster.special.chance) {
     const sp = monster.special;
-    const dmg = Math.max(1, Math.round(monster.baseDamage * (sp.damageMult ?? 1)));
+    const dmg = Math.max(1, Math.round(s.monsterBaseDamage * (sp.damageMult ?? 1)));
     s.playerHp = Math.max(0, s.playerHp - dmg);
     const logText = sp.text.replace('{name}', monster.name);
     s.log.push({ text: `${logText} ${dmg} damage.`, type: 'enemy_hit' });
 
     if (sp.applyStatus) {
-      s.playerStatus = { ...s.playerStatus, [sp.applyStatus.effect]: sp.applyStatus.value };
+      applyStatus(s.playerStatus, sp.applyStatus.effect, sp.applyStatus.value);
       s.log.push({ text: `${sp.applyStatus.effect.charAt(0).toUpperCase() + sp.applyStatus.effect.slice(1)} applied.`, type: 'system' });
     }
     if (sp.selfHeal && sp.selfHeal > 0) {
@@ -476,7 +500,7 @@ export function enemyAct(
     const total = roll + monster.attackBonus;
     if (roll === 20 || (roll !== 1 && total >= playerAc)) {
       didHit = true;
-      const dmg = Math.max(1, roll === 20 ? monster.baseDamage * 2 : monster.baseDamage);
+      const dmg = Math.max(1, roll === 20 ? s.monsterBaseDamage * 2 : s.monsterBaseDamage);
       s.playerHp = Math.max(0, s.playerHp - dmg);
       const enemyHitLines = [
         `${monster.name} strikes \u2014 ${dmg} damage.`,
@@ -496,25 +520,25 @@ export function enemyAct(
   if (didHit) {
     const statusRoll = dice.d(100);
     if (monster.key === 'wolf' && statusRoll <= 30) {
-      s.playerStatus.bleed = 2;
+      applyStatus(s.playerStatus, 'bleed', 2);
       s.log.push({ text: "The wolf's fangs tear flesh — you bleed.", type: 'system' });
     } else if (monster.key === 'skeleton' && statusRoll <= 25) {
-      s.playerStatus.poison = 2;
+      applyStatus(s.playerStatus, 'poison', 2);
       s.log.push({ text: 'Cursed bone scrapes you — poison seeps in.', type: 'system' });
     } else if (monster.key === 'hollow_knight' && statusRoll <= 20) {
-      s.playerStatus.stun = 1;
+      applyStatus(s.playerStatus, 'stun', 1);
       s.log.push({ text: 'A crushing blow staggers you.', type: 'system' });
     } else if (monster.key === 'spider' && statusRoll <= 40) {
-      s.playerStatus.poison = 3;
+      applyStatus(s.playerStatus, 'poison', 3);
       s.log.push({ text: 'Venom courses through your veins.', type: 'system' });
     } else if (monster.key === 'wraith' && statusRoll <= 35) {
-      s.playerStatus.burn = 2;
+      applyStatus(s.playerStatus, 'burn', 2);
       s.log.push({ text: 'Spectral fire clings to your skin.', type: 'system' });
     } else if (monster.key === 'boar' && statusRoll <= 25) {
-      s.playerStatus.stun = 1;
+      applyStatus(s.playerStatus, 'stun', 1);
       s.log.push({ text: "The boar's charge staggers you.", type: 'system' });
     } else if (monster.key === 'bandit' && statusRoll <= 20) {
-      s.playerStatus.bleed = 2;
+      applyStatus(s.playerStatus, 'bleed', 2);
       s.log.push({ text: "The bandit's blade cuts deep.", type: 'system' });
     } else if (monster.key === 'hollow_king') {
       // Boss has multiple possible effects — enhanced in phase 2
@@ -522,13 +546,13 @@ export function enemyAct(
       const burnThresh = s.bossPhase2 ? 55 : 30;
       const bleedThresh = s.bossPhase2 ? 80 : 45;
       if (statusRoll <= stunThresh) {
-        s.playerStatus.stun = 1;
+        applyStatus(s.playerStatus, 'stun', 1);
         s.log.push({ text: 'The Hollow King strikes with royal fury \u2014 you stagger.', type: 'system' });
       } else if (statusRoll <= burnThresh) {
-        s.playerStatus.burn = 3;
+        applyStatus(s.playerStatus, 'burn', 3);
         s.log.push({ text: 'Dark flames erupt from the crown \u2014 you burn.', type: 'system' });
       } else if (statusRoll <= bleedThresh) {
-        s.playerStatus.bleed = 3;
+        applyStatus(s.playerStatus, 'bleed', 3);
         s.log.push({ text: "The king's blade leaves a wound that won't close.", type: 'system' });
       }
     }
