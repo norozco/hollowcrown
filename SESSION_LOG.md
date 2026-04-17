@@ -191,17 +191,62 @@ Everything built in this project from start to current state. Use this to resume
 - [x] Options menu (FPS, brightness with persistence, text speed)
 - [x] Level up fanfare (gold glow animation + sparkle particles)
 - [x] Controls hint strip (WASD, E, I, Q, Esc)
+- [x] Combat victory results screen (XP bar fill animation, loot drops listed)
+- [x] Inventory sorting (by type, rarity, name) + rarity-colored borders
+- [x] Equippable item gold pulse indicator
+- [x] Minimap overlay (canvas in top-right, shows player/enemies/exits)
+- [x] Character portrait badge in HUD (race initial, race-colored)
+- [x] Load Game slot browser in main menu (shows name/level/class/date)
+- [x] Mobile touch controls (virtual joystick + E/I/Q buttons)
+- [x] Achievement toast notifications (slide-in on unlock)
+- [x] Achievements screen (accessible from pause menu)
+
+### Content (Post-initial batch)
+- [x] Tutorial intro (first-time arrow pointing at Guild + controls hint)
+- [x] Dungeon traps (spike traps on all 3 floors, scaling damage)
+- [x] Locked doors with keys (Rusty Key for F1→F2, Warden Key for F2→F3)
+- [x] Treasure chests across all zones (6 total with guaranteed loot)
+- [x] Ashenmere Marshes — new post-boss region (marsh, fog, fireflies, hermit NPC)
+- [x] NPC companion system (hire Orric/Kael/Tomas for combat bonuses)
+- [x] Better combat animations (enemy death, Fireball, Cure Wounds, Sneak Attack, level-up)
+- [x] Environmental lore objects (13 gravestones, notes, ruins across all zones)
+- [x] Random world events (merchant encounters, ambushes, flavor text per zone)
+- [x] Achievement system (12 achievements tracking kills, crafts, exploration, bosses)
+- [x] Elemental weakness/resistance system (fire/ice/poison/shadow/physical)
+
+### Act 2 Main Quest
+- [x] "The Scholar's Trail" — find Veyrin's journal in Ashenmere
+- [x] "The Drowned Sanctum" — new 2-floor dungeon beneath Ashenmere
+- [x] "What Remains" — find Veyrin at the altar, return his message to Brenna
+- [x] Drowned Sanctum Floor 1 — flooded ruins with wraiths, spiders, locked door
+- [x] Drowned Sanctum Floor 2 — sanctum heart with Veyrin NPC and altar
+- [x] Veyrin NPC with full dialogue (explains the seal, the wardens, the deeper threat)
+- [x] Brenna's Act 2 turn-in dialogue (hints at Act 3)
+
+### Combat Depth
+- [x] Enemy special abilities (8 unique: Lunge, Gore, Cheap Shot, Bone Throw, Web Spit, Soul Drain, Shield Bash, Dark Command)
+- [x] Boss phase 2 (Hollow King heals, clears debuffs, double attacks at 50% HP)
+- [x] Elemental weakness display in combat UI ("Weak to: fire")
+- [x] Combat item use (potions mid-fight via Item button)
+- [x] Equipment stat bonuses wired into combat calculations
+- [x] Companion combat bonuses (+DMG, +AC, or heal/turn)
+
+### Progression
+- [x] Perk system on level up (choose 1 of 3 random perks: stats, HP, MP, ATK, DMG)
+- [x] Perks saved/loaded with save files
+- [x] Perk bonuses wired into combat and HUD
 
 ---
 
 ## Known Issues / Future Work
 
 - Sound/music not yet implemented (user deferred)
-- HP/MP equipment bonuses (rings, staffs) not yet reflected in derived stats
-- No minimap (zone indicator is the current solution)
-- Post-boss: victory dialogue exists but no credits/new area unlock
-- No tutorial/intro sequence
 - NPC portraits use Pollinations.ai — may need local fallbacks
+- Act 3 content not yet built (Brenna's dialogue hints at it)
+- Eastern Ashenmere exit is a "coming soon" teaser
+- Class-specific perk enhancements not yet designed
+- AC perk not in the perk list (could be added)
+- `gainXp` HP/MP refill gets overwritten by `character.hp = state.playerHp` in combat finish
 
 ---
 
