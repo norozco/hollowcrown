@@ -330,9 +330,12 @@ export abstract class BaseWorldScene extends Phaser.Scene {
     });
   }
 
-  /** Spawn an enemy with patrol movement. Respawns every time you enter a zone. */
+  /** Spawn an enemy with patrol movement. Skips enemies killed this visit. */
   protected spawnEnemy(cfg: { monsterKey: string; x: number; y: number; color?: number }): void {
     const enemyId = `${this.scene.key}-${cfg.x}-${cfg.y}`;
+
+    // If this enemy was killed during the current zone visit, don't respawn it.
+    if (useCombatStore.getState().killedEnemies.has(enemyId)) return;
 
     const spriteKey = `world-${cfg.monsterKey}`;
     generateMonsterSprite(this, spriteKey, cfg.monsterKey);
@@ -653,8 +656,11 @@ export abstract class BaseWorldScene extends Phaser.Scene {
         const store = useCombatStore.getState();
         store._pendingEnemyId = enemy.id;
         store.start(enemy.monsterKey, currentSceneKey, px, py);
-        // Enemies respawn on zone re-entry — don't persist kills.
-        this.scene.switch('CombatScene');
+        // Use scene.stop + scene.start so CombatScene.create() runs fresh
+        // every fight.  scene.switch only resumes the scene without calling
+        // create(), which left stale sprites/state from the previous fight.
+        this.scene.stop(this.scene.key);
+        this.scene.start('CombatScene');
         return;
       }
     }
@@ -670,6 +676,9 @@ export abstract class BaseWorldScene extends Phaser.Scene {
         this.player.y <= exit.y + exit.h
       ) {
         this.transitionLock = true;
+        // Leaving the zone — clear killed enemies so they respawn when
+        // the player returns.
+        useCombatStore.getState().killedEnemies.clear();
         this.cameras.main.fadeOut(FADE_MS, 0, 0, 0);
         this.cameras.main.once('camerafadeoutcomplete', () => {
           this.scene.start(exit.targetScene, { spawnPoint: exit.targetSpawn });

@@ -42,6 +42,13 @@ export class CombatScene extends Phaser.Scene {
   create(): void {
     const W = 1280, H = 720;
 
+    // Remove combat-specific textures so they regenerate fresh each fight.
+    // This prevents stale sprites from fight N appearing in fight N+1.
+    if (this.textures.exists('combat-player')) this.textures.remove('combat-player');
+    const monsterKey = useCombatStore.getState().monster?.key ?? 'wolf';
+    const monsterSpriteKey = `monster-${monsterKey}`;
+    if (this.textures.exists(monsterSpriteKey)) this.textures.remove(monsterSpriteKey);
+
     // Background — grassy battlefield
     generateTileset(this);
     // Simple grass fill
@@ -79,8 +86,7 @@ export class CombatScene extends Phaser.Scene {
     this.enemyBaseX = W * 0.72;
     const enemyY = H * 0.48;
 
-    const monsterKey = monster?.key ?? 'wolf';
-    const monsterSpriteKey = `monster-${monsterKey}`;
+    // monsterKey and monsterSpriteKey already declared above (texture cleanup).
     generateMonsterSprite(this, monsterSpriteKey, monsterKey);
 
     // Scale: wolves 3x, skeletons 3.5x, bosses 4x

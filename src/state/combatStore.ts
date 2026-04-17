@@ -53,7 +53,7 @@ export const useCombatStore = create<CombatStoreState>((set, get) => ({
     if (!character) return;
     const monster = getMonster(monsterKey);
     const state = initCombat(character, monster);
-    set({ state, monster, returnScene: returnScene ?? null, returnX: playerX ?? 0, returnY: playerY ?? 0 });
+    set({ state, monster, _enemyActing: false, returnScene: returnScene ?? null, returnX: playerX ?? 0, returnY: playerY ?? 0 });
 
     // If enemy goes first, auto-act after a brief pause.
     if (state.phase === 'enemy_turn') {
