@@ -2,10 +2,9 @@ import { BaseWorldScene, TILE, WORLD_W, WORLD_H } from './BaseWorldScene';
 import { generateTileset, TILE as T, TILE_SIZE } from './tiles/generateTiles';
 
 /**
- * Mossbarrow Depths — Floor 2. Wraith-haunted catacombs. Wider
- * chambers, more enemies. Stairs down lead to Floor 3 (the boss).
- *
- * Layout: Two large chambers connected by a winding passage.
+ * Mossbarrow Depths — Floor 2. Wraith-haunted catacombs.
+ * Stairs up at top, stairs down at bottom. Wide rooms with
+ * a connecting corridor so navigation is clear.
  */
 
 const MAP_W = 30;
@@ -28,61 +27,69 @@ export class DepthsFloor2Scene extends BaseWorldScene {
     map.createLayer(0, tileset)!;
 
     // Wall collision
-    const walls = getWallPositions();
-    for (const [tx, ty] of walls) {
+    for (const [tx, ty] of getWallPositions()) {
       const w = this.add.rectangle(tx * TILE + TILE / 2, ty * TILE + TILE / 2, TILE, TILE, 0x000000, 0);
       this.physics.add.existing(w, true);
       this.walls.add(w);
     }
 
     // Zone label
-    this.add.text(3 * TILE, 2 * TILE, 'DEPTHS — FLOOR 2', {
-      fontFamily: 'Courier New', fontSize: '11px', color: '#404060',
-    }).setAlpha(0.45).setDepth(15);
+    this.add.text(WORLD_W / 2, 2 * TILE, 'DEPTHS — FLOOR 2', {
+      fontFamily: 'Courier New', fontSize: '12px', color: '#404060',
+    }).setOrigin(0.5).setAlpha(0.5).setDepth(15);
 
-    // Torches — blue-tinted (wraith floor)
-    for (const [tx, ty] of [[3, 2], [8, 2], [3, 8], [8, 8], [15, 6], [15, 12], [22, 4], [26, 4], [22, 10], [26, 10]] as [number, number][]) {
+    // Blue torches (wraith floor)
+    for (const [tx, ty] of [
+      [5, 2], [14, 2], [5, 6], [14, 6],
+      [9, 10], [11, 10],
+      [5, 14], [14, 14], [5, 18], [14, 18],
+    ] as [number, number][]) {
       this.add.rectangle(tx * TILE + TILE / 2, ty * TILE + TILE / 2, 20, 20, 0x4060ff, 0.15).setDepth(4);
     }
 
-    // Enemies
-    this.spawnEnemy({ monsterKey: 'spider', x: 6 * TILE, y: 5 * TILE });
-    this.spawnEnemy({ monsterKey: 'wraith', x: 5 * TILE, y: 7 * TILE });
-    this.spawnEnemy({ monsterKey: 'spider', x: 14 * TILE, y: 9 * TILE });
-    this.spawnEnemy({ monsterKey: 'wraith', x: 23 * TILE, y: 6 * TILE });
-    this.spawnEnemy({ monsterKey: 'wraith', x: 25 * TILE, y: 9 * TILE });
+    // Enemies — wraiths and spiders
+    this.spawnEnemy({ monsterKey: 'spider', x: 8 * TILE, y: 4 * TILE });
+    this.spawnEnemy({ monsterKey: 'wraith', x: 11 * TILE, y: 5 * TILE });
+    this.spawnEnemy({ monsterKey: 'spider', x: 10 * TILE, y: 10 * TILE });
+    this.spawnEnemy({ monsterKey: 'wraith', x: 7 * TILE, y: 16 * TILE });
+    this.spawnEnemy({ monsterKey: 'wraith', x: 12 * TILE, y: 17 * TILE });
 
-    // Exit UP → Floor 1
+    // ── EXIT UP → Floor 1 (top-center) ──
     this.addExit({
-      x: 3 * TILE, y: 0, w: 4 * TILE, h: TILE,
+      x: 7 * TILE, y: 0, w: 5 * TILE, h: TILE,
       targetScene: 'MossbarrowDepthsScene', targetSpawn: 'fromFloor2',
       label: '↑ Floor 1',
     });
-    this.add.rectangle(5 * TILE, TILE, 96, 40, 0x202028).setStrokeStyle(2, 0x404050).setDepth(3);
-    this.add.text(5 * TILE, TILE, '▲ Floor 1', {
-      fontFamily: 'Courier New', fontSize: '10px', color: '#8888aa',
+    this.add.rectangle(9.5 * TILE, 1.2 * TILE, 120, 36, 0x202028).setStrokeStyle(2, 0x404050).setDepth(3);
+    this.add.text(9.5 * TILE, 1.2 * TILE, '▲ Floor 1', {
+      fontFamily: 'Courier New', fontSize: '11px', color: '#8888aa',
     }).setOrigin(0.5).setDepth(4);
 
-    // Exit DOWN → Floor 3 (boss)
+    // ── EXIT DOWN → Floor 3 (bottom-center, wide) ──
     this.addExit({
-      x: 22 * TILE, y: 12 * TILE, w: 3 * TILE, h: TILE,
+      x: 7 * TILE, y: 19 * TILE, w: 5 * TILE, h: 2 * TILE,
       targetScene: 'DepthsFloor3Scene', targetSpawn: 'fromFloor2',
-      label: '▼ Stairs Down',
+      label: '▼ Floor 3',
     });
-    this.add.rectangle(23.5 * TILE, 11.5 * TILE, 80, 40, 0x181020).setStrokeStyle(2, 0x402040).setDepth(3);
-    this.add.text(23.5 * TILE, 11.5 * TILE, '▼ Floor 3', {
-      fontFamily: 'Courier New', fontSize: '10px', color: '#a04080',
+    const stairX = 9.5 * TILE;
+    const stairY = 19.5 * TILE;
+    this.add.rectangle(stairX, stairY, 140, 52, 0x10101a).setStrokeStyle(2, 0x402040).setDepth(3);
+    this.add.text(stairX, stairY - 8, '▼ Stairs Down', {
+      fontFamily: 'Courier New', fontSize: '12px', color: '#a04080',
+    }).setOrigin(0.5).setDepth(4);
+    this.add.text(stairX, stairY + 10, 'Boss Floor', {
+      fontFamily: 'Courier New', fontSize: '10px', color: '#803060',
     }).setOrigin(0.5).setDepth(4);
   }
 
   protected spawnAt(name: string): { x: number; y: number } {
     switch (name) {
       case 'fromFloor3':
-        return { x: 23 * TILE, y: 10 * TILE };
+        return { x: 9.5 * TILE, y: 17 * TILE };
       case 'fromFloor1':
       case 'default':
       default:
-        return { x: 5 * TILE, y: 3 * TILE };
+        return { x: 9.5 * TILE, y: 3 * TILE };
     }
   }
 }
@@ -113,25 +120,22 @@ function buildMapData(): number[][] {
 }
 
 /**
- * Floor 2 layout:
- *   West chamber: cols 2-10, rows 1-10 (stair up at cols 3-6, row 0)
- *   Winding passage: cols 10-16, rows 5-13
- *   East chamber: cols 16-27, rows 3-13 (stair down at cols 22-24, row 12)
+ * Floor 2 layout — top-to-bottom flow:
+ *   North chamber: cols 4-15, rows 1-7 (stair up at cols 7-11, row 0)
+ *   Corridor: cols 8-12, rows 7-12
+ *   South chamber: cols 4-15, rows 12-20 (stair down at cols 7-11, rows 20-21)
  */
 function tileAt(x: number, y: number): number {
-  // West chamber
-  if (inRect(x, y, 2, 1, 9, 10)) return FS;
-  if (inRect(x, y, 3, 0, 4, 1)) return FS; // stair opening
+  // North chamber
+  if (inRect(x, y, 4, 1, 12, 7)) return FS;
+  if (inRect(x, y, 7, 0, 5, 1)) return FS;  // stair up opening
 
-  // Winding passage — widens and narrows
-  if (inRect(x, y, 10, 5, 7, 4)) return FS;   // upper section
-  if (inRect(x, y, 12, 9, 5, 5)) return FS;    // jog south
+  // Connecting corridor (narrower, adds tension)
+  if (inRect(x, y, 8, 8, 5, 4)) return FS;
 
-  // East chamber
-  if (inRect(x, y, 16, 3, 12, 11)) return FS;
-
-  // Stairs-down alcove
-  if (inRect(x, y, 21, 12, 4, 2)) return FS;
+  // South chamber
+  if (inRect(x, y, 4, 12, 12, 9)) return FS;
+  if (inRect(x, y, 7, 21, 5, 1)) return FS;  // stair down opening
 
   return WS;
 }

@@ -94,33 +94,33 @@ export class MossbarrowScene extends BaseWorldScene {
     // Stairway entrance — south of the center stone, leads to Mossbarrow Depths.
     const stairCx = cairnCx;
     const stairCy = cairnCy + 3 * TILE;
-    // Visual: dark rectangle to suggest a pit/descent
-    const stairRect = this.add.rectangle(stairCx, stairCy, 64, 40, 0x101018);
+    // Visual: large dark rectangle to clearly suggest descent
+    const stairRect = this.add.rectangle(stairCx, stairCy, 128, 64, 0x101018);
     stairRect.setStrokeStyle(2, 0x303040);
     stairRect.setDepth(4);
     this.add
-      .text(stairCx, stairCy - 2, 'Stairs Down', {
+      .text(stairCx, stairCy - 8, '▼ Stairs Down', {
         fontFamily: 'Courier New',
-        fontSize: '10px',
+        fontSize: '12px',
         color: '#6060a0',
       })
       .setOrigin(0.5, 0.5)
       .setDepth(5);
     this.add
-      .text(stairCx, stairCy + 12, '▼', {
+      .text(stairCx, stairCy + 10, 'Mossbarrow Depths', {
         fontFamily: 'Courier New',
-        fontSize: '14px',
+        fontSize: '10px',
         color: '#4040a8',
       })
       .setOrigin(0.5, 0.5)
       .setDepth(5);
 
-    // Exit trigger — slightly wider than the visual so it's easy to enter
+    // Exit trigger — generous size so the player walks right in
     this.addExit({
-      x: stairCx - 32,
-      y: stairCy - 20,
-      w: 64,
-      h: 40,
+      x: stairCx - 2 * TILE,
+      y: stairCy - TILE,
+      w: 4 * TILE,
+      h: 2.5 * TILE,
       targetScene: 'MossbarrowDepthsScene',
       targetSpawn: 'fromMossbarrow',
     });

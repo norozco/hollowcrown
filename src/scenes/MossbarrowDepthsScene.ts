@@ -2,11 +2,9 @@ import { BaseWorldScene, TILE, WORLD_W, WORLD_H } from './BaseWorldScene';
 import { generateTileset, TILE as T, TILE_SIZE } from './tiles/generateTiles';
 
 /**
- * Mossbarrow Depths — Floor 1. Entry level of the dungeon beneath the
- * Mossbarrow Cairn. Spiders patrol narrow corridors. Stairs down lead
- * to Floor 2.
- *
- * Layout: L-shaped corridor with a central hub room.
+ * Mossbarrow Depths — Floor 1. Entry level beneath the cairn.
+ * Spiders patrol. Straightforward layout: enter at top, stairs
+ * down at the bottom-center so the path is obvious.
  */
 
 const MAP_W = 30;
@@ -28,66 +26,65 @@ export class MossbarrowDepthsScene extends BaseWorldScene {
     const tileset = map.addTilesetImage('tileset')!;
     map.createLayer(0, tileset)!;
 
-    // Wall collision bodies
-    const wallPositions = getWallPositions();
-    for (const [tx, ty] of wallPositions) {
-      const cx = tx * TILE + TILE / 2;
-      const cy = ty * TILE + TILE / 2;
-      const wall = this.add.rectangle(cx, cy, TILE, TILE, 0x000000, 0);
+    // Wall collision
+    for (const [tx, ty] of getWallPositions()) {
+      const wall = this.add.rectangle(tx * TILE + TILE / 2, ty * TILE + TILE / 2, TILE, TILE, 0x000000, 0);
       this.physics.add.existing(wall, true);
       this.walls.add(wall);
     }
 
     // Zone label
-    this.add.text(3 * TILE, 2 * TILE, 'DEPTHS — FLOOR 1', {
-      fontFamily: 'Courier New', fontSize: '11px', color: '#505060',
-    }).setAlpha(0.45).setDepth(15);
+    this.add.text(WORLD_W / 2, 2 * TILE, 'DEPTHS — FLOOR 1', {
+      fontFamily: 'Courier New', fontSize: '12px', color: '#505060',
+    }).setOrigin(0.5).setAlpha(0.5).setDepth(15);
 
-    // Torches
-    for (const [tx, ty] of [[4, 2], [9, 2], [4, 7], [14, 4], [14, 9], [20, 7], [24, 10], [24, 15]] as [number, number][]) {
+    // Torches along the main path
+    for (const [tx, ty] of [[6, 2], [10, 2], [6, 7], [10, 7], [6, 12], [10, 12], [6, 17], [10, 17]] as [number, number][]) {
       this.add.rectangle(tx * TILE + TILE / 2, ty * TILE + TILE / 2, 20, 20, 0xff8800, 0.12).setDepth(4);
     }
 
-    // Enemies — 3 spiders
+    // Enemies — spiders along the corridor
     this.spawnEnemy({ monsterKey: 'spider', x: 8 * TILE, y: 5 * TILE });
-    this.spawnEnemy({ monsterKey: 'spider', x: 14 * TILE, y: 7 * TILE });
-    this.spawnEnemy({ monsterKey: 'spider', x: 22 * TILE, y: 12 * TILE });
+    this.spawnEnemy({ monsterKey: 'spider', x: 9 * TILE, y: 10 * TILE });
+    this.spawnEnemy({ monsterKey: 'spider', x: 7 * TILE, y: 15 * TILE });
 
-    // Exit UP → surface
+    // ── EXIT UP → Surface (top-center) ──
     this.addExit({
-      x: 4 * TILE, y: 0, w: 4 * TILE, h: TILE,
+      x: 6 * TILE, y: 0, w: 5 * TILE, h: TILE,
       targetScene: 'MossbarrowScene', targetSpawn: 'fromDepths',
       label: '↑ Surface',
     });
-
-    // Stairs Up visual
-    this.add.rectangle(6 * TILE, TILE, 96, 40, 0x202028).setStrokeStyle(2, 0x404050).setDepth(3);
-    this.add.text(6 * TILE, TILE, '▲ Stairs Up', {
-      fontFamily: 'Courier New', fontSize: '10px', color: '#8888aa',
+    this.add.rectangle(8.5 * TILE, 1.2 * TILE, 120, 36, 0x202028).setStrokeStyle(2, 0x404050).setDepth(3);
+    this.add.text(8.5 * TILE, 1.2 * TILE, '▲ Stairs Up', {
+      fontFamily: 'Courier New', fontSize: '11px', color: '#8888aa',
     }).setOrigin(0.5).setDepth(4);
 
-    // Exit DOWN → Floor 2 (bottom-right of the map)
+    // ── EXIT DOWN → Floor 2 (bottom-center, wide and obvious) ──
     this.addExit({
-      x: 22 * TILE, y: 16 * TILE, w: 3 * TILE, h: TILE,
+      x: 6 * TILE, y: 19 * TILE, w: 5 * TILE, h: 2 * TILE,
       targetScene: 'DepthsFloor2Scene', targetSpawn: 'fromFloor1',
-      label: '▼ Stairs Down',
+      label: '▼ Floor 2',
     });
-
-    // Stairs Down visual
-    this.add.rectangle(23.5 * TILE, 15.5 * TILE, 80, 40, 0x181420).setStrokeStyle(2, 0x302848).setDepth(3);
-    this.add.text(23.5 * TILE, 15.5 * TILE, '▼ Floor 2', {
-      fontFamily: 'Courier New', fontSize: '10px', color: '#7060a0',
+    // Big stairwell visual
+    const stairX = 8.5 * TILE;
+    const stairY = 19 * TILE;
+    this.add.rectangle(stairX, stairY, 140, 52, 0x10101a).setStrokeStyle(2, 0x302848).setDepth(3);
+    this.add.text(stairX, stairY - 8, '▼ Stairs Down', {
+      fontFamily: 'Courier New', fontSize: '12px', color: '#8060c0',
+    }).setOrigin(0.5).setDepth(4);
+    this.add.text(stairX, stairY + 10, 'Floor 2', {
+      fontFamily: 'Courier New', fontSize: '10px', color: '#6050a0',
     }).setOrigin(0.5).setDepth(4);
   }
 
   protected spawnAt(name: string): { x: number; y: number } {
     switch (name) {
       case 'fromFloor2':
-        return { x: 23 * TILE, y: 14 * TILE };
+        return { x: 8.5 * TILE, y: 17 * TILE };
       case 'fromMossbarrow':
       case 'default':
       default:
-        return { x: 6 * TILE, y: 3 * TILE };
+        return { x: 8.5 * TILE, y: 3 * TILE };
     }
   }
 }
@@ -118,25 +115,25 @@ function buildMapData(): number[][] {
 }
 
 /**
- * Floor 1 layout:
- *   Entry room: cols 3-10, rows 1-8 (stair opening at cols 4-7, row 0)
- *   Corridor east: cols 10-16, rows 4-8
- *   Hub room: cols 14-26, rows 4-16
- *   Alcove south: cols 21-25, rows 14-17 (stairs down area)
+ * Floor 1: Vertical corridor from top to bottom.
+ *   Main hall: cols 5-12, rows 1-21 (wide vertical passage)
+ *   Stair up opening: cols 6-10, row 0
+ *   Stair down opening: cols 6-10, row 21
+ *   Side alcoves for variety at rows 5-7 and 12-14
  */
 function tileAt(x: number, y: number): number {
-  // Entry room
-  if (inRect(x, y, 3, 1, 8, 8)) return FS;
-  if (inRect(x, y, 4, 0, 4, 1)) return FS; // stair opening
+  // Main vertical hall
+  if (inRect(x, y, 5, 1, 8, 20)) return FS;
 
-  // East corridor
-  if (inRect(x, y, 10, 4, 7, 5)) return FS;
+  // Stair openings
+  if (inRect(x, y, 6, 0, 5, 1)) return FS;  // up
+  if (inRect(x, y, 6, 21, 5, 1)) return FS;  // down
 
-  // Hub room
-  if (inRect(x, y, 14, 4, 13, 13)) return FS;
+  // East alcove (cols 13-17, rows 5-8)
+  if (inRect(x, y, 13, 5, 5, 4)) return FS;
 
-  // Stairs-down alcove
-  if (inRect(x, y, 21, 14, 5, 4)) return FS;
+  // West alcove (cols 1-4, rows 12-15)
+  if (inRect(x, y, 1, 12, 4, 4)) return FS;
 
   return WS;
 }
