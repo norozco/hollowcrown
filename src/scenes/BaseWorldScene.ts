@@ -184,6 +184,11 @@ export abstract class BaseWorldScene extends Phaser.Scene {
     // Record zone visit for achievements.
     useAchievementStore.getState().recordZoneVisit(this.scene.key);
 
+    // Dungeon checkpoint — auto-save the floor as a respawn point on death.
+    if (isDungeonScene(this.scene.key)) {
+      useCombatStore.getState().dungeonCheckpoint = { sceneKey: this.scene.key, spawn: 'default' };
+    }
+
     // Expose map data for the React minimap overlay.
     (window as any).__currentMap = {
       zoneName: this.getZoneName(),
@@ -1000,6 +1005,11 @@ export abstract class BaseWorldScene extends Phaser.Scene {
         // Leaving the zone — clear killed enemies so they respawn when
         // the player returns.
         useCombatStore.getState().killedEnemies.clear();
+
+        // Clear dungeon checkpoint when leaving a dungeon to a non-dungeon zone.
+        if (isDungeonScene(this.scene.key) && !isDungeonScene(exit.targetScene)) {
+          useCombatStore.getState().dungeonCheckpoint = null;
+        }
         saveGame('autosave', this.scene.key);
 
         // Show destination zone name briefly during the fade-out.
@@ -1021,4 +1031,9 @@ export abstract class BaseWorldScene extends Phaser.Scene {
       }
     }
   }
+}
+
+/** Returns true for dungeon floor scene keys (Depths, Sanctum). */
+function isDungeonScene(key: string): boolean {
+  return key.includes('Depths') || key.includes('Floor') || key.includes('Sanctum');
 }

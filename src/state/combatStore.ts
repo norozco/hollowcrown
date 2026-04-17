@@ -34,6 +34,8 @@ interface CombatStoreState {
   _pendingEnemyId: string;
   /** Items dropped in the last victory — read by CombatOverlay for the results screen. */
   lastLoot: string[];
+  /** Dungeon checkpoint — respawn here on death instead of town. */
+  dungeonCheckpoint: { sceneKey: string; spawn: string } | null;
 
   /** Start combat against a monster key. */
   start: (monsterKey: string, returnScene?: string, playerX?: number, playerY?: number) => void;
@@ -55,6 +57,7 @@ export const useCombatStore = create<CombatStoreState>((set, get) => ({
   killedEnemies: new Set<string>(),
   _pendingEnemyId: '',
   lastLoot: [],
+  dungeonCheckpoint: null,
 
   start: (monsterKey, returnScene, playerX, playerY) => {
     const character = usePlayerStore.getState().character;
@@ -285,8 +288,13 @@ export const useCombatStore = create<CombatStoreState>((set, get) => ({
           player.notify();
         }
         // Enemy NOT marked as killed — it survives if player dies.
-        // Override return to send player to town instead of battle site.
-        set({ returnScene: 'TownScene', returnX: 0, returnY: 0 });
+        // If the player has a dungeon checkpoint, respawn there instead of town.
+        const checkpoint = get().dungeonCheckpoint;
+        if (checkpoint) {
+          set({ returnScene: checkpoint.sceneKey, returnX: 0, returnY: 0 });
+        } else {
+          set({ returnScene: 'TownScene', returnX: 0, returnY: 0 });
+        }
       } else if (state.phase === 'fled') {
         character.hp = state.playerHp;
         player.notify();

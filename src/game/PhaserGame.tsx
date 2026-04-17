@@ -31,9 +31,13 @@ export function PhaserGame() {
       parent: containerRef.current,
     });
 
+    // Expose game instance for cross-layer communication (e.g. fast travel).
+    (window as any).__phaserGame = gameRef.current;
+
     return () => {
       gameRef.current?.destroy(true);
       gameRef.current = null;
+      (window as any).__phaserGame = null;
     };
   }, []);
 
