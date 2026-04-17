@@ -24,6 +24,8 @@ interface CombatStoreState {
   returnY: number;
   /** Enemies killed this session (sceneKey-x-y). Persists across scene restarts. */
   killedEnemies: Set<string>;
+  /** ID of the enemy currently being fought — marked killed only on victory. */
+  _pendingEnemyId: string;
 
   /** Start combat against a monster key. */
   start: (monsterKey: string, returnScene?: string, playerX?: number, playerY?: number) => void;
@@ -40,6 +42,7 @@ export const useCombatStore = create<CombatStoreState>((set, get) => ({
   returnX: 0,
   returnY: 0,
   killedEnemies: new Set<string>(),
+  _pendingEnemyId: '',
 
   start: (monsterKey, returnScene, playerX, playerY) => {
     const character = usePlayerStore.getState().character;
@@ -92,31 +95,34 @@ export const useCombatStore = create<CombatStoreState>((set, get) => ({
 
     if (state && monster && character) {
       if (state.phase === 'victory') {
-        // Apply rewards.
         character.addGold(monster.goldReward);
         character.gainXp(monster.xpReward);
-        // Restore HP to combat result (could be damaged).
         character.hp = state.playerHp;
         player.notify();
+        // Mark the enemy as killed so it doesn't respawn.
+        const enemyId = get()._pendingEnemyId;
+        if (enemyId) get().killedEnemies.add(enemyId);
       } else if (state.phase === 'defeat') {
         if (character.difficulty === 'hardcore') {
-          // Hardcore: permanent death.
           character.hp = 0;
           player.notify();
         } else {
-          // Normal: lose 10% gold, respawn with 1 HP.
+          // Normal: lose 10% gold, respawn at town with some HP.
           const lost = Math.floor(character.gold * 0.1);
           character.loseGold(lost);
-          character.hp = 1;
+          character.hp = Math.max(1, Math.floor(character.derived.maxHp * 0.25));
           player.notify();
         }
+        // Enemy NOT marked as killed — it survives if player dies.
+        // Override return to send player to town instead of battle site.
+        set({ returnScene: 'TownScene', returnX: 0, returnY: 0 });
       } else if (state.phase === 'fled') {
-        // Fled: keep current HP (from before combat).
         character.hp = state.playerHp;
         player.notify();
+        // Enemy NOT killed — it survives if player flees.
       }
     }
 
-    set((s) => ({ state: null, monster: null, returnScene: null, killedEnemies: s.killedEnemies }));
+    set((s) => ({ state: null, monster: null, killedEnemies: s.killedEnemies, _pendingEnemyId: '' }));
   },
 }));

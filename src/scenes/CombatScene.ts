@@ -137,12 +137,15 @@ export class CombatScene extends Phaser.Scene {
     if (!state && this.combatEnded) return;
     if (!state && !this.combatEnded) {
       this.combatEnded = true;
-      const returnTo = this.savedReturnScene;
-      const rx = this.savedReturnX;
-      const ry = this.savedReturnY;
+      // Re-read return info — finish() may have overridden it (e.g. death → TownScene).
+      const finalReturn = store.returnScene ?? this.savedReturnScene;
+      const rx = store.returnX || this.savedReturnX;
+      const ry = store.returnY || this.savedReturnY;
+      // If returning to default (death respawn), use default spawn, not combat_return.
+      const spawnPoint = (rx === 0 && ry === 0) ? 'default' : 'combat_return';
       this.cameras.main.fadeOut(300, 0, 0, 0);
       this.cameras.main.once('camerafadeoutcomplete', () => {
-        this.scene.start(returnTo, { spawnPoint: 'combat_return', combatReturnX: rx, combatReturnY: ry });
+        this.scene.start(finalReturn, { spawnPoint, combatReturnX: rx, combatReturnY: ry });
       });
       return;
     }

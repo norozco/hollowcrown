@@ -604,18 +604,15 @@ export abstract class BaseWorldScene extends Phaser.Scene {
         enemy.sprite.x, enemy.sprite.y,
       );
       if (dist < 28) {
-        // Save player position + enemy ID, start combat, switch to battle.
         const px = this.player.x;
         const py = this.player.y;
-        const enemyId = enemy.id;
         enemy.sprite.destroy();
         this.enemies.splice(i, 1);
         const currentSceneKey = this.scene.key;
 
-        // Mark this enemy as killed (will be checked on victory in finish()).
         const store = useCombatStore.getState();
-        store.killedEnemies.add(enemyId);
-
+        // Store the enemy ID — only marked killed on victory in finish().
+        store._pendingEnemyId = enemy.id;
         store.start(enemy.monsterKey, currentSceneKey, px, py);
         this.scene.switch('CombatScene');
         return;
