@@ -86,7 +86,15 @@ export abstract class BaseWorldScene extends Phaser.Scene {
   protected walls!: Phaser.Physics.Arcade.StaticGroup;
   protected npcs: NpcSprite[] = [];
   protected interactables: Interactable[] = [];
-  protected enemies: Array<{ sprite: Phaser.GameObjects.Arc | Phaser.GameObjects.Sprite; monsterKey: string; id: string }> = [];
+  protected enemies: Array<{
+    sprite: Phaser.GameObjects.Arc | Phaser.GameObjects.Sprite;
+    monsterKey: string;
+    id: string;
+    baseX: number;
+    baseY: number;
+    patrolDir: number;
+    patrolTimer: number;
+  }> = [];
   protected exits: Exit[] = [];
   protected prompt!: Phaser.GameObjects.Text;
   protected nearbyTarget: NearbyTarget | null = null;
@@ -155,6 +163,7 @@ export abstract class BaseWorldScene extends Phaser.Scene {
     this.updatePlayerLabel();
     this.updateProximityPrompt();
     this.handleInteraction();
+    this.updateEnemyPatrol();
     this.checkEnemyContact();
     this.checkExits();
   }
@@ -320,20 +329,23 @@ export abstract class BaseWorldScene extends Phaser.Scene {
     });
   }
 
-  /** Spawn an enemy that triggers combat on contact. Skips if already killed. */
+  /** Spawn an enemy with patrol movement. Respawns every time you enter a zone. */
   protected spawnEnemy(cfg: { monsterKey: string; x: number; y: number; color?: number }): void {
-    // Check if this enemy was already killed this session.
     const enemyId = `${this.scene.key}-${cfg.x}-${cfg.y}`;
-    if (useCombatStore.getState().killedEnemies.has(enemyId)) return;
 
-    // Use the monster sprite instead of a colored circle.
-    const spriteKey = `world-${cfg.monsterKey}-${cfg.x}-${cfg.y}`;
+    const spriteKey = `world-${cfg.monsterKey}`;
     generateMonsterSprite(this, spriteKey, cfg.monsterKey);
 
     const enemy = this.add.sprite(cfg.x, cfg.y, spriteKey, 0);
-    enemy.setScale(0.8); // smaller in the overworld than in combat
+    enemy.setScale(0.8);
     enemy.setDepth(10);
-    this.enemies.push({ sprite: enemy, monsterKey: cfg.monsterKey, id: enemyId });
+
+    this.enemies.push({
+      sprite: enemy, monsterKey: cfg.monsterKey, id: enemyId,
+      baseX: cfg.x, baseY: cfg.y,
+      patrolDir: Math.random() > 0.5 ? 1 : -1,
+      patrolTimer: Math.random() * 3000,
+    });
   }
 
   /** Spawn an NPC sprite at tile coords, with name floating above. */
@@ -596,6 +608,32 @@ export abstract class BaseWorldScene extends Phaser.Scene {
     }
   }
 
+  /** Patrol movement — enemies wander side-to-side near their spawn point. */
+  private updateEnemyPatrol(): void {
+    const dt = this.game.loop.delta;
+    const PATROL_RANGE = 32; // pixels from spawn
+    const PATROL_SPEED = 0.3; // pixels per ms
+
+    for (const enemy of this.enemies) {
+      enemy.patrolTimer -= dt;
+      if (enemy.patrolTimer <= 0) {
+        enemy.patrolDir *= -1;
+        enemy.patrolTimer = 1500 + Math.random() * 2000;
+      }
+
+      const newX = enemy.sprite.x + enemy.patrolDir * PATROL_SPEED * (dt / 16);
+      // Clamp to patrol range
+      if (Math.abs(newX - enemy.baseX) < PATROL_RANGE) {
+        enemy.sprite.x = newX;
+      } else {
+        enemy.patrolDir *= -1;
+      }
+
+      // Slight bobbing on Y axis
+      enemy.sprite.y = enemy.baseY + Math.sin(Date.now() * 0.002 + enemy.baseX) * 2;
+    }
+  }
+
   private checkEnemyContact(): void {
     for (let i = this.enemies.length - 1; i >= 0; i--) {
       const enemy = this.enemies[i];
@@ -611,9 +649,9 @@ export abstract class BaseWorldScene extends Phaser.Scene {
         const currentSceneKey = this.scene.key;
 
         const store = useCombatStore.getState();
-        // Store the enemy ID — only marked killed on victory in finish().
         store._pendingEnemyId = enemy.id;
         store.start(enemy.monsterKey, currentSceneKey, px, py);
+        // Enemies respawn on zone re-entry — don't persist kills.
         this.scene.switch('CombatScene');
         return;
       }
