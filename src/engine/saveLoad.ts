@@ -7,8 +7,15 @@ import { usePlayerStore } from '../state/playerStore';
 import { useQuestStore } from '../state/questStore';
 import { useInventoryStore } from '../state/inventoryStore';
 import { useCombatStore } from '../state/combatStore';
+import { useAchievementStore } from '../state/achievementStore';
+import { useBountyStore } from '../state/bountyStore';
+import { useCommissionStore } from '../state/commissionStore';
+import { useLoreStore } from '../state/loreStore';
+import { useDungeonItemStore } from '../state/dungeonItemStore';
 import type { CharacterInit, Gender } from './character';
 import type { QuestState } from './quest';
+import type { LoreEntry } from '../state/loreStore';
+import type { Commission } from '../state/commissionStore';
 import { ALL_PERKS } from './perks';
 // Item types used in SaveData shape (inlined below).
 
@@ -23,6 +30,41 @@ interface SaveData {
   currentScene: string;
   /** Perk keys chosen across level-ups (added post-v1, optional for compat). */
   perks?: string[];
+  /** Heart piece data (added post-v1, optional for compat). */
+  heartPieces?: number;
+  heartPiecesCollected?: string[];
+  /** Ancient coins collected (added post-v1, optional for compat). */
+  ancientCoins?: string[];
+  /** Active companion key (added post-v1, optional for compat). */
+  companion?: string | null;
+  /** Achievement tracking (added post-v1, optional for compat). */
+  achievements?: {
+    unlocked: string[];
+    totalKills: number;
+    totalDeaths: number;
+    itemsCrafted: number;
+    chestsOpened: number;
+    bossesKilled: string[];
+    zonesVisited: string[];
+    monstersEncountered: Record<string, { kills: number; encountered: boolean }>;
+  };
+  /** Dungeon items found (added post-v1, optional for compat). */
+  dungeonItems?: string[];
+  /** Lore entries discovered (added post-v1, optional for compat). */
+  lore?: LoreEntry[];
+  /** Commission state (added post-v1, optional for compat). */
+  commissions?: {
+    commissions: Commission[];
+    transitionCount: number;
+  };
+  /** Bounty state (added post-v1, optional for compat). */
+  bounty?: {
+    active: any;
+    killProgress: number;
+    totalCompleted: number;
+  } | null;
+  /** New Game+ flag (added post-v1, optional for compat). */
+  newGamePlus?: boolean;
 }
 
 const SAVE_PREFIX = 'hollowcrown_save_';
@@ -30,6 +72,13 @@ const SAVE_PREFIX = 'hollowcrown_save_';
 export function saveGame(slot: string, currentScene = 'TownScene'): boolean {
   const char = usePlayerStore.getState().character;
   if (!char) return false;
+
+  const playerState = usePlayerStore.getState();
+  const achievementState = useAchievementStore.getState();
+  const bountyState = useBountyStore.getState();
+  const commissionState = useCommissionStore.getState();
+  const loreState = useLoreStore.getState();
+  const dungeonItemState = useDungeonItemStore.getState();
 
   const data: SaveData = {
     version: 1,
@@ -58,7 +107,33 @@ export function saveGame(slot: string, currentScene = 'TownScene'): boolean {
     },
     killedEnemies: Array.from(useCombatStore.getState().killedEnemies),
     currentScene,
-    perks: usePlayerStore.getState().perks,
+    perks: playerState.perks,
+    heartPieces: playerState.heartPieces,
+    heartPiecesCollected: Array.from(playerState.heartPiecesCollected),
+    ancientCoins: Array.from(playerState.ancientCoins),
+    companion: playerState.companion,
+    achievements: {
+      unlocked: Array.from(achievementState.unlocked),
+      totalKills: achievementState.totalKills,
+      totalDeaths: achievementState.totalDeaths,
+      itemsCrafted: achievementState.itemsCrafted,
+      chestsOpened: achievementState.chestsOpened,
+      bossesKilled: achievementState.bossesKilled,
+      zonesVisited: Array.from(achievementState.zonesVisited),
+      monstersEncountered: achievementState.monstersEncountered,
+    },
+    dungeonItems: Array.from(dungeonItemState.found),
+    lore: loreState.entries,
+    commissions: {
+      commissions: commissionState.commissions,
+      transitionCount: commissionState.transitionCount,
+    },
+    bounty: bountyState.active ? {
+      active: bountyState.active,
+      killProgress: bountyState.killProgress,
+      totalCompleted: bountyState.totalCompleted,
+    } : null,
+    newGamePlus: playerState.newGamePlus ?? false,
   };
 
   try {
@@ -133,6 +208,70 @@ export function loadGame(slot: string): boolean {
       combat.killedEnemies.add(id);
     }
 
+    // Restore heart pieces
+    if (data.heartPieces != null) {
+      usePlayerStore.setState({
+        heartPieces: data.heartPieces,
+        heartPiecesCollected: new Set(data.heartPiecesCollected ?? []),
+      });
+    }
+
+    // Restore ancient coins
+    if (data.ancientCoins) {
+      usePlayerStore.setState({ ancientCoins: new Set(data.ancientCoins) });
+    }
+
+    // Restore companion
+    if (data.companion !== undefined) {
+      usePlayerStore.setState({ companion: data.companion });
+    }
+
+    // Restore achievements
+    if (data.achievements) {
+      useAchievementStore.setState({
+        unlocked: new Set(data.achievements.unlocked),
+        totalKills: data.achievements.totalKills,
+        totalDeaths: data.achievements.totalDeaths,
+        itemsCrafted: data.achievements.itemsCrafted,
+        chestsOpened: data.achievements.chestsOpened,
+        bossesKilled: data.achievements.bossesKilled,
+        zonesVisited: new Set(data.achievements.zonesVisited),
+        monstersEncountered: data.achievements.monstersEncountered,
+      });
+    }
+
+    // Restore dungeon items
+    if (data.dungeonItems) {
+      useDungeonItemStore.setState({ found: new Set(data.dungeonItems) });
+    }
+
+    // Restore lore
+    if (data.lore) {
+      useLoreStore.setState({ entries: data.lore });
+    }
+
+    // Restore commissions
+    if (data.commissions) {
+      useCommissionStore.setState({
+        commissions: data.commissions.commissions,
+        transitionCount: data.commissions.transitionCount,
+      });
+    }
+
+    // Restore bounty
+    if (data.bounty) {
+      useBountyStore.setState({
+        active: data.bounty.active,
+        killProgress: data.bounty.killProgress,
+        totalCompleted: data.bounty.totalCompleted,
+      });
+    }
+
+    // Restore New Game+ flag
+    if (data.newGamePlus) {
+      usePlayerStore.setState({ newGamePlus: true });
+    }
+
     return true;
   } catch {
     return false;
@@ -147,6 +286,8 @@ export interface SaveSlotInfo {
   level: number | null;
   className: string | null;
   raceName: string | null;
+  questCount: number | null;
+  newGamePlus: boolean;
 }
 
 export function getSaveSlots(): SaveSlotInfo[] {
@@ -155,11 +296,12 @@ export function getSaveSlots(): SaveSlotInfo[] {
     const label = slot === 'autosave' ? 'Autosave' : `Slot ${slot.slice(-1)}`;
     try {
       const raw = localStorage.getItem(SAVE_PREFIX + slot);
-      if (!raw) return { slot, label, timestamp: null, characterName: null, level: null, className: null, raceName: null };
+      if (!raw) return { slot, label, timestamp: null, characterName: null, level: null, className: null, raceName: null, questCount: null, newGamePlus: false };
       const data: SaveData = JSON.parse(raw);
       // Derive human-readable class/race names from keys (capitalize first letter of each word)
       const toTitle = (key: string) =>
         key.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+      const questCount = Object.values(data.quests).filter((q) => q.turnedIn).length;
       return {
         slot,
         label,
@@ -168,9 +310,11 @@ export function getSaveSlots(): SaveSlotInfo[] {
         level: data.characterInit.level,
         className: toTitle(data.characterInit.classKey),
         raceName: toTitle(data.characterInit.raceKey),
+        questCount,
+        newGamePlus: data.newGamePlus ?? false,
       };
     } catch {
-      return { slot, label, timestamp: null, characterName: null, level: null, className: null, raceName: null };
+      return { slot, label, timestamp: null, characterName: null, level: null, className: null, raceName: null, questCount: null, newGamePlus: false };
     }
   });
 }

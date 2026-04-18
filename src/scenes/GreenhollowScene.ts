@@ -326,6 +326,12 @@ export class GreenhollowScene extends BaseWorldScene {
     // Heart piece #9 beyond the shallow water
     this.spawnHeartPiece(37 * TILE, 16 * TILE);
 
+    // ── Ancient Coin #2 — inside a bush cluster off the main path ──
+    this.spawnAncientCoin({
+      x: 8 * TILE, y: 8 * TILE,
+      coinId: 'coin_2', inscription: 'The second was minted in blood.',
+    });
+
     // South edge → Duskmere Village
     this.addExit({
       x: 8 * TILE,

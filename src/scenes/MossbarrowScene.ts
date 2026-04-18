@@ -309,6 +309,12 @@ export class MossbarrowScene extends BaseWorldScene {
       gold: 12, spawnChance: 0.15,
     });
 
+    // ── Ancient Coin #3 — behind the hollow oak ──
+    this.spawnAncientCoin({
+      x: 9 * TILE, y: 6 * TILE,
+      coinId: 'coin_3', inscription: 'Three for the gate that would not open.',
+    });
+
     // ── Shallow water crossing (Water Charm gate) — south-east pool ──
     // Blocks a hidden lore object behind a water barrier.
     this.spawnShallowWater({ x: 34 * TILE, y: 16 * TILE, w: 3 * TILE, h: 2 * TILE });

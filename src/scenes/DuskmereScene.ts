@@ -296,6 +296,12 @@ export class DuskmereScene extends BaseWorldScene {
       },
     });
 
+    // ── Ancient Coin #5 — under the longest dock, at the very end ──
+    this.spawnAncientCoin({
+      x: 32 * TILE, y: 14 * TILE,
+      coinId: 'coin_5', inscription: 'Five cast into water. It returned.',
+    });
+
     // ── Heart piece on the end of the long dock ──
     this.spawnHeartPiece(30 * TILE, 13 * TILE);
 

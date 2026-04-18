@@ -790,6 +790,60 @@ export abstract class BaseWorldScene extends Phaser.Scene {
   }
 
   /**
+   * Spawn an ancient coin pickup. Golden shimmer, one-time per save.
+   * Collecting all 12 unlocks the Crownless Blade.
+   */
+  protected spawnAncientCoin(cfg: { x: number; y: number; coinId: string; inscription: string }): void {
+    if (usePlayerStore.getState().ancientCoins.has(cfg.coinId)) return;
+
+    const coin = this.add.circle(cfg.x, cfg.y, 5, 0xc0a040);
+    coin.setStrokeStyle(1, 0xe0c060);
+    coin.setDepth(8);
+    // Golden shimmer
+    this.tweens.add({ targets: coin, alpha: 0.5, duration: 1200, yoyo: true, repeat: -1 });
+
+    this.spawnInteractable({
+      sprite: coin as any, label: 'Ancient Coin', radius: 18,
+      action: () => {
+        usePlayerStore.getState().collectCoin(cfg.coinId);
+        window.dispatchEvent(new CustomEvent('gameMessage', { detail: cfg.inscription }));
+        coin.destroy();
+        this.spawnPickupParticles(cfg.x, cfg.y, 0xe0c060);
+      },
+    });
+  }
+
+  /**
+   * Spawn an ice wall that requires the Flame Amulet dungeon item to melt.
+   * On melt, the wall is destroyed and an optional callback fires.
+   */
+  protected spawnIceWall(cfg: { x: number; y: number; w: number; h: number; onMelt?: () => void }): void {
+    const wall = this.add.rectangle(cfg.x + cfg.w / 2, cfg.y + cfg.h / 2, cfg.w, cfg.h, 0x80b0d0);
+    wall.setStrokeStyle(1, 0xa0d0f0);
+    wall.setDepth(5);
+    this.physics.add.existing(wall, true);
+    this.walls.add(wall);
+
+    const interactZone = this.add.rectangle(cfg.x + cfg.w / 2, cfg.y + cfg.h / 2, cfg.w + 20, cfg.h + 20, 0x000000, 0);
+    this.spawnInteractable({
+      sprite: interactZone as any, label: 'Ice wall', radius: 28,
+      action: () => {
+        if (!useDungeonItemStore.getState().has('flame_amulet')) {
+          window.dispatchEvent(new CustomEvent('gameMessage', { detail: 'Solid ice. Something warm might melt it.' }));
+          return;
+        }
+        wall.destroy();
+        const body = wall.body as Phaser.Physics.Arcade.StaticBody;
+        if (body) body.destroy();
+        this.cameras.main.shake(150, 0.006);
+        window.dispatchEvent(new CustomEvent('gameMessage', { detail: 'The ice melts away.' }));
+        this.spawnPickupParticles(cfg.x + cfg.w / 2, cfg.y + cfg.h / 2, 0x80c0e0);
+        cfg.onMelt?.();
+      },
+    });
+  }
+
+  /**
    * Spawn a heart piece pickup. Distinctive red circle with a pulse glow.
    * One-time per save (tracked by a unique id in playerStore).
    */

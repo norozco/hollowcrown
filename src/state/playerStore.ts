@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { Character, type CharacterInit } from '../engine/character';
 import { type Perk, rollPerkChoices } from '../engine/perks';
+import { useInventoryStore } from './inventoryStore';
 
 /**
  * Holds the active player Character (or null if the player is in the
@@ -52,6 +53,10 @@ interface PlayerState {
   heartPieces: number;
   heartPiecesCollected: Set<string>;
   collectHeartPiece: (id: string) => void;
+
+  /** Ancient coin tracking. Collecting all 12 unlocks the Crownless Blade. */
+  ancientCoins: Set<string>;
+  collectCoin: (coinId: string) => void;
 }
 
 export const usePlayerStore = create<PlayerState>((set, get) => ({
@@ -62,6 +67,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   pendingPerkChoices: null,
   heartPieces: 0,
   heartPiecesCollected: new Set<string>(),
+  ancientCoins: new Set<string>(),
 
   choosePerk: (perkKey) => {
     const { pendingPerkChoices, character, perks } = get();
@@ -77,9 +83,9 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
     });
   },
 
-  create: (init) => set({ character: new Character(init), version: 1, perks: [], pendingPerkChoices: null, heartPieces: 0, heartPiecesCollected: new Set<string>() }),
+  create: (init) => set({ character: new Character(init), version: 1, perks: [], pendingPerkChoices: null, heartPieces: 0, heartPiecesCollected: new Set<string>(), ancientCoins: new Set<string>() }),
   notify: () => set((s) => ({ version: s.version + 1 })),
-  clear: () => set({ character: null, version: 0, companion: null, perks: [], pendingPerkChoices: null, heartPieces: 0, heartPiecesCollected: new Set<string>() }),
+  clear: () => set({ character: null, version: 0, companion: null, perks: [], pendingPerkChoices: null, heartPieces: 0, heartPiecesCollected: new Set<string>(), ancientCoins: new Set<string>() }),
 
   giveGold: (amount) => {
     const c = get().character;
@@ -121,6 +127,25 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
       window.dispatchEvent(new CustomEvent('gameMessage', { detail: 'Max HP increased by 5!' }));
     }
     set({ heartPieces: nextCount, heartPiecesCollected: nextCollected, version: get().version + 1 });
+  },
+
+  collectCoin: (coinId) => {
+    const { ancientCoins } = get();
+    if (ancientCoins.has(coinId)) return;
+    const next = new Set(ancientCoins);
+    next.add(coinId);
+    const count = next.size;
+    window.dispatchEvent(new CustomEvent('gameMessage', { detail: `Ancient Coin: ${count}/12` }));
+    if (count >= 12) {
+      // All coins collected — forge the Crownless Blade
+      useInventoryStore.getState().addItem('crownless_blade');
+      setTimeout(() => {
+        window.dispatchEvent(new CustomEvent('gameMessage', {
+          detail: 'Twelve coins. The circle is complete. The Crownless Blade forms in your hands.',
+        }));
+      }, 1500);
+    }
+    set({ ancientCoins: next, version: get().version + 1 });
   },
 }));
 

@@ -80,6 +80,8 @@ export function MainMenu() {
                     <span className="main-menu__load-slot-name">{s.characterName}</span>
                     <span className="main-menu__load-slot-detail">
                       Lvl {s.level} · {s.raceName} {s.className}
+                      {s.questCount != null && s.questCount > 0 ? ` · ${s.questCount} quests` : ''}
+                      {s.newGamePlus ? ' · NG+' : ''}
                     </span>
                     <span className="main-menu__load-slot-date">{formatDate(s.timestamp)}</span>
                   </span>

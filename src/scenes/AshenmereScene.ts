@@ -361,6 +361,12 @@ export class AshenmereScene extends BaseWorldScene {
     // ── Fairy Fountain (on a small island in the marsh, south-east) ──
     this.spawnFairyFountain({ x: 29 * TILE, y: 16 * TILE });
 
+    // ── Ancient Coin #6 — on a tiny island surrounded by water (needs Water Charm) ──
+    this.spawnAncientCoin({
+      x: 31 * TILE, y: 17 * TILE,
+      coinId: 'coin_6', inscription: 'Six swallowed by the marsh.',
+    });
+
     // ── Heart piece #4 — on the south-east island, hard to reach ──
     this.spawnHeartPiece(27 * TILE, 17 * TILE);
 

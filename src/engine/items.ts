@@ -168,6 +168,11 @@ const ITEMS: Record<string, Item> = {
     buyPrice: 0, description: 'Tarnished iron, heavier than it should be. It remembers.',
     equipSlot: 'head', statBonus: { ac: 4, hp: 15, mp: 10 },
   },
+  crownless_blade: {
+    key: 'crownless_blade', name: 'The Crownless Blade', type: 'weapon', rarity: 'legendary',
+    buyPrice: 0, description: 'Forged from twelve ancient coins melted and recast. It remembers every hand that held the pieces. It will not be broken again.',
+    equipSlot: 'mainHand', statBonus: { attack: 5, damage: 8 },
+  },
   // Ring
   copper_ring: {
     key: 'copper_ring', name: 'Copper Ring', type: 'armor', rarity: 'common',

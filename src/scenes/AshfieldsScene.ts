@@ -241,6 +241,12 @@ export class AshfieldsScene extends BaseWorldScene {
     // ── Fairy Fountain (hidden behind rocks, east side) ──
     this.spawnFairyFountain({ x: 37 * TILE, y: 18 * TILE });
 
+    // ── Ancient Coin #7 — near a lava pool edge (dangerous spot) ──
+    this.spawnAncientCoin({
+      x: 14 * TILE, y: 16 * TILE,
+      coinId: 'coin_7', inscription: 'Seven burned. The fire could not unmake it.',
+    });
+
     // ── Heart piece (hidden behind rocks, east dead end) ──
     this.spawnHeartPiece(38 * TILE, 19 * TILE);
 

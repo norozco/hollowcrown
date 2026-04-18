@@ -348,6 +348,12 @@ export class IronveilScene extends BaseWorldScene {
         this.spawnHeartPiece(30 * TILE, 17 * TILE);
       },
     });
+
+    // ── Ancient Coin #4 — in the collapsed passage dead-end ──
+    this.spawnAncientCoin({
+      x: 4 * TILE, y: 18 * TILE,
+      coinId: 'coin_4', inscription: 'Four buried in iron, waiting.',
+    });
   }
 
   protected spawnAt(name: string): { x: number; y: number } {

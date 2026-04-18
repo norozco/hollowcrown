@@ -388,6 +388,12 @@ export class TownScene extends BaseWorldScene {
     // ── Heart piece #6 — near the well, reward for exploration ──
     this.spawnHeartPiece(14 * TILE, 10 * TILE);
 
+    // ── Ancient Coin #1 — behind the smithy building, in a corner ──
+    this.spawnAncientCoin({
+      x: (SMITHY.x + SMITHY.w) * TILE + 8, y: (SMITHY.y + SMITHY.h) * TILE - 8,
+      coinId: 'coin_1', inscription: 'A kingdom begins with a single coin.',
+    });
+
   }
 
   protected spawnAt(name: string): { x: number; y: number } {
