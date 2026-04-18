@@ -53,20 +53,74 @@ export class CombatScene extends Phaser.Scene {
     const monsterSpriteKey = `monster-${monsterKey}`;
     if (this.textures.exists(monsterSpriteKey)) this.textures.remove(monsterSpriteKey);
 
-    // Background — grassy battlefield
+    // Background — ALTTP-style battlefield with sky, ground layers, and details
     generateTileset(this);
-    // Simple grass fill
-    this.add.rectangle(W / 2, H / 2, W, H, 0x48a020);
-    // Some grass variation
-    for (let y = 0; y < H; y += TILE_SIZE) {
-      for (let x = 0; x < W; x += TILE_SIZE) {
-        if ((x + y) % 96 === 0) {
-          this.add.rectangle(x + 16, y + 16, TILE_SIZE, TILE_SIZE, 0x58b028).setAlpha(0.4);
-        }
-      }
+
+    // Sky gradient (upper 40%)
+    this.add.rectangle(W / 2, H * 0.1, W, H * 0.2, 0x304868);
+    this.add.rectangle(W / 2, H * 0.2, W, H * 0.2, 0x405880);
+    this.add.rectangle(W / 2, H * 0.35, W, H * 0.1, 0x506890);
+
+    // Horizon line
+    this.add.rectangle(W / 2, H * 0.4, W, 4, 0x88a850).setAlpha(0.5);
+
+    // Ground layers (multiple shades for depth)
+    this.add.rectangle(W / 2, H * 0.45, W, H * 0.1, 0x58b028);
+    this.add.rectangle(W / 2, H * 0.55, W, H * 0.2, 0x48a020);
+    this.add.rectangle(W / 2, H * 0.7, W, H * 0.2, 0x389018);
+    this.add.rectangle(W / 2, H * 0.85, W, H * 0.3, 0x306818);
+
+    // Distant trees/bushes on the horizon
+    for (let ti = 0; ti < 8; ti++) {
+      const tx = 60 + ti * 160 + Phaser.Math.Between(-30, 30);
+      const ty = H * 0.38 + Phaser.Math.Between(-5, 5);
+      this.add.circle(tx, ty, Phaser.Math.Between(12, 20), 0x2a6818).setAlpha(0.5).setDepth(1);
+      this.add.circle(tx + 8, ty - 4, Phaser.Math.Between(8, 14), 0x3a7828).setAlpha(0.4).setDepth(1);
     }
-    // Ground shadow for depth
-    this.add.rectangle(W / 2, H * 0.7, W, 4, 0x306018).setAlpha(0.3);
+
+    // Grass tufts scattered on the ground
+    for (let gi = 0; gi < 20; gi++) {
+      const gx = Phaser.Math.Between(20, W - 20);
+      const gy = Phaser.Math.Between(Math.floor(H * 0.5), H - 10);
+      const shade = [0x68c838, 0x58b828, 0x48a818][gi % 3];
+      this.add.triangle(gx, gy, 0, 4, 2, -4, 4, 4, shade).setAlpha(0.6).setDepth(1);
+    }
+
+    // Rocks on the ground
+    for (let ri = 0; ri < 5; ri++) {
+      const rx = Phaser.Math.Between(50, W - 50);
+      const ry = Phaser.Math.Between(Math.floor(H * 0.65), H - 30);
+      const rs = Phaser.Math.Between(4, 10);
+      this.add.circle(rx, ry, rs, 0x606058).setAlpha(0.4).setDepth(1);
+    }
+
+    // Vignette overlay (dark edges for arena feel)
+    const vignette = this.add.graphics().setDepth(50);
+    vignette.fillStyle(0x000000, 0.3);
+    vignette.fillRect(0, 0, W, 40);
+    vignette.fillRect(0, H - 30, W, 30);
+    for (let vi = 0; vi < 20; vi++) {
+      vignette.fillStyle(0x000000, 0.01 * (20 - vi));
+      vignette.fillRect(0, 40 + vi * 2, W, 2);
+      vignette.fillRect(0, H - 30 - vi * 2, W, 2);
+    }
+
+    // Floating dust particles
+    for (let di = 0; di < 8; di++) {
+      const dust = this.add.circle(
+        Phaser.Math.Between(50, W - 50),
+        Phaser.Math.Between(50, H - 50),
+        Phaser.Math.Between(1, 2),
+        0xffffff, 0.15,
+      ).setDepth(2);
+      this.tweens.add({
+        targets: dust,
+        x: dust.x + Phaser.Math.Between(-40, 40),
+        y: dust.y + Phaser.Math.Between(-30, 10),
+        duration: 4000 + Math.random() * 3000,
+        yoyo: true, repeat: -1, ease: 'Sine.easeInOut',
+      });
+    }
 
     // Player sprite (left side, facing right)
     const character = usePlayerStore.getState().character;
@@ -347,16 +401,22 @@ export class CombatScene extends Phaser.Scene {
   private drawHpBar(gfx: Phaser.GameObjects.Graphics, x: number, y: number, w: number,
     current: number, max: number, color: number): void {
     gfx.clear();
-    // Background
-    gfx.fillStyle(0x1a1210, 0.8);
-    gfx.fillRect(x - 1, y - 1, w + 2, 10);
-    // Fill
-    const pct = Math.max(0, current / max);
-    gfx.fillStyle(color, 1);
-    gfx.fillRect(x, y, w * pct, 8);
+    // Background with rounded rect
+    gfx.fillStyle(0x0a0808, 0.9);
+    gfx.fillRoundedRect(x - 2, y - 2, w + 4, 14, 4);
     // Border
     gfx.lineStyle(1, 0x3a2818, 1);
-    gfx.strokeRect(x - 1, y - 1, w + 2, 10);
+    gfx.strokeRoundedRect(x - 2, y - 2, w + 4, 14, 4);
+    // Fill bar
+    const pct = Math.max(0, current / max);
+    const fillW = Math.round(w * pct);
+    if (fillW > 0) {
+      gfx.fillStyle(color, 1);
+      gfx.fillRoundedRect(x, y, fillW, 10, 3);
+      // Bevel highlight on top half (lighter)
+      gfx.fillStyle(0xffffff, 0.15);
+      gfx.fillRect(x + 1, y + 1, fillW - 2, 4);
+    }
   }
 
   /** Determine the player's weapon type for animation selection. */
