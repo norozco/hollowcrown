@@ -274,13 +274,20 @@ export const useCombatStore = create<CombatStoreState>((set, get) => ({
           msg('The Warden sinks. The water stills.');
         }
 
+        // The Crownless One: final boss.
+        if (monster.key === 'crownless_one') {
+          qs.completeObjective('the-crownless-one', 'defeat-crownless-one');
+          msg('The Crownless One falls. The throne is empty. It always was.');
+          window.dispatchEvent(new CustomEvent('gameEnding'));
+        }
+
         // Bounty kill tracking.
         useBountyStore.getState().recordKill(monster.key);
 
         // Achievement tracking.
         const achStore = useAchievementStore.getState();
         achStore.recordKill(monster.key);
-        const bossKeys = ['hollow_king', 'hollow_knight', 'drowned_warden'];
+        const bossKeys = ['hollow_king', 'hollow_knight', 'drowned_warden', 'crownless_one'];
         if (bossKeys.includes(monster.key)) {
           achStore.recordBossKill(monster.key);
         }

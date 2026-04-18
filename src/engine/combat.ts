@@ -457,6 +457,14 @@ export function enemyAct(
     return s;
   }
 
+  // ── Crownless One phase 2 transition ──
+  if (monster.key === 'crownless_one' && !s.bossPhase2 && s.monsterHp <= monster.maxHp * 0.5) {
+    s.bossPhase2 = true;
+    s.log.push({ text: 'The Crownless One\'s form fractures. Shards of darkness orbit him. "I WILL NOT BE FORGOTTEN."', type: 'system' });
+    s.monsterHp = Math.min(monster.maxHp, s.monsterHp + 30);
+    s.monsterStatus = { ...EMPTY_STATUS };
+  }
+
   // ── Drowned Warden phase 2 transition ──
   if (monster.key === 'drowned_warden' && !s.bossPhase2 && s.monsterHp <= monster.maxHp * 0.4) {
     s.bossPhase2 = true;
@@ -498,9 +506,12 @@ export function enemyAct(
   // Determine number of attacks — boss phase 2 has 50% double attack
   const isKingPhase2 = monster.key === 'hollow_king' && s.bossPhase2;
   const isWardenPhase2 = monster.key === 'drowned_warden' && s.bossPhase2;
-  const attackCount = (isKingPhase2 || isWardenPhase2) && dice.d(100) <= 50 ? 2 : 1;
+  const isCrownlessPhase2 = monster.key === 'crownless_one' && s.bossPhase2;
+  const attackCount = (isKingPhase2 || isWardenPhase2 || isCrownlessPhase2) && dice.d(100) <= 50 ? 2 : 1;
   if (attackCount === 2) {
-    if (isWardenPhase2) {
+    if (isCrownlessPhase2) {
+      s.log.push({ text: 'The Crownless One strikes twice — fractured and furious.', type: 'system' });
+    } else if (isWardenPhase2) {
       s.log.push({ text: 'The Warden swings twice — faster now.', type: 'system' });
     } else {
       s.log.push({ text: 'The Hollow King strikes twice!', type: 'system' });
@@ -589,6 +600,33 @@ export function enemyAct(
     } else if (monster.key === 'ember_knight' && statusRoll <= 25) {
       applyStatus(s.playerStatus, 'burn', 2);
       s.log.push({ text: 'The heated blade scorches where it strikes.', type: 'system' });
+    } else if (monster.key === 'frost_wolf' && statusRoll <= 30) {
+      applyStatus(s.playerStatus, 'stun', 1);
+      s.log.push({ text: 'The cold seeps into your bones. You stagger.', type: 'system' });
+    } else if (monster.key === 'ice_golem' && statusRoll <= 20) {
+      applyStatus(s.playerStatus, 'stun', 1);
+      s.log.push({ text: 'The impact shakes frost loose from the ceiling.', type: 'system' });
+    } else if (monster.key === 'blizzard_wraith' && statusRoll <= 25) {
+      applyStatus(s.playerStatus, 'stun', 1);
+      s.log.push({ text: 'The blizzard closes in. You cannot see.', type: 'system' });
+    } else if (monster.key === 'frost_warden' && statusRoll <= 25) {
+      applyStatus(s.playerStatus, 'bleed', 3);
+      s.log.push({ text: 'The frozen blade leaves a wound that weeps ice.', type: 'system' });
+    } else if (monster.key === 'crownless_one') {
+      // Final boss — multi-effect status procs, enhanced in phase 2
+      const stunThresh = s.bossPhase2 ? 30 : 15;
+      const burnThresh = s.bossPhase2 ? 55 : 30;
+      const bleedThresh = s.bossPhase2 ? 80 : 45;
+      if (statusRoll <= stunThresh) {
+        applyStatus(s.playerStatus, 'stun', 1);
+        s.log.push({ text: 'The Crownless One\'s word lands like a blow. You cannot move.', type: 'system' });
+      } else if (statusRoll <= burnThresh) {
+        applyStatus(s.playerStatus, 'burn', 3);
+        s.log.push({ text: 'Shadow fire erupts from the void above his head.', type: 'system' });
+      } else if (statusRoll <= bleedThresh) {
+        applyStatus(s.playerStatus, 'bleed', 3);
+        s.log.push({ text: 'Dark energy tears through you. The wound seeps shadow.', type: 'system' });
+      }
     } else if (monster.key === 'hollow_king') {
       // Boss has multiple possible effects — enhanced in phase 2
       const stunThresh = s.bossPhase2 ? 30 : 15;

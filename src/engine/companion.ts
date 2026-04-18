@@ -41,13 +41,21 @@ export const COMPANIONS: Record<string, Companion> = {
     hireCost: 0,
     effect: { bonusDamage: 3 },
   },
+  brenna: {
+    key: 'brenna',
+    name: 'Brenna the Guildmaster',
+    description: 'She put down the ledger. She picked up her blade. It remembered her.',
+    hireCost: 0,
+    effect: { bonusAc: 3, bonusDamage: 2 },
+  },
 };
 
 /** Friendly summary of a companion's combat contribution for the HUD/overlay. */
 export function companionBonusLabel(companion: Companion): string {
   const { bonusDamage, healPerTurn, bonusAc } = companion.effect;
-  if (bonusDamage) return `+${bonusDamage} DMG`;
-  if (healPerTurn) return `+${healPerTurn} HP/turn`;
-  if (bonusAc) return `+${bonusAc} AC`;
-  return '';
+  const parts: string[] = [];
+  if (bonusAc) parts.push(`+${bonusAc} AC`);
+  if (bonusDamage) parts.push(`+${bonusDamage} DMG`);
+  if (healPerTurn) parts.push(`+${healPerTurn} HP/turn`);
+  return parts.join(', ') || '';
 }

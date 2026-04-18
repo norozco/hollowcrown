@@ -48,7 +48,7 @@ export function PhaserGame() {
     const mgr = game.scene;
 
     const shouldShowTown = character !== null && screen === 'game';
-    const worldScenes = ['TownScene', 'GreenhollowScene', 'MossbarrowScene', 'MossbarrowDepthsScene', 'DepthsFloor2Scene', 'DepthsFloor3Scene', 'AshenmereScene', 'IronveilScene', 'DrownedSanctumF1Scene', 'DrownedSanctumF2Scene', 'BogDungeonF1Scene', 'BogDungeonF2Scene', 'BogDungeonF3Scene', 'DuskmereScene', 'AshfieldsScene', 'AshenTowerF1Scene', 'AshenTowerF2Scene', 'AshenTowerF3Scene', 'InteriorScene', 'CombatScene'];
+    const worldScenes = ['TownScene', 'GreenhollowScene', 'MossbarrowScene', 'MossbarrowDepthsScene', 'DepthsFloor2Scene', 'DepthsFloor3Scene', 'AshenmereScene', 'IronveilScene', 'DrownedSanctumF1Scene', 'DrownedSanctumF2Scene', 'BogDungeonF1Scene', 'BogDungeonF2Scene', 'BogDungeonF3Scene', 'DuskmereScene', 'AshfieldsScene', 'AshenTowerF1Scene', 'AshenTowerF2Scene', 'AshenTowerF3Scene', 'FrosthollowScene', 'FrozenHollowF1Scene', 'FrozenHollowF2Scene', 'FrozenHollowF3Scene', 'ShatteredCoastScene', 'ThroneBeneathF1Scene', 'ThroneBeneathF2Scene', 'ThroneBeneathF3Scene', 'InteriorScene', 'CombatScene'];
 
     if (shouldShowTown) {
       if (mgr.isActive('PlaceholderScene')) mgr.stop('PlaceholderScene');

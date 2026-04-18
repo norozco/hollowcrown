@@ -276,6 +276,11 @@ const ITEMS: Record<string, Item> = {
     buyPrice: 0, description: 'Black iron, still warm. Opens doors that fire has sealed.',
     stackable: false,
   },
+  frost_key: {
+    key: 'frost_key', name: 'Frost Key', type: 'quest', rarity: 'uncommon',
+    buyPrice: 0, description: 'Blue-white iron, cold enough to burn. It fits a lock sealed by winter itself.',
+    stackable: false,
+  },
   // ── Duskmere fish consumables ──
   grilled_pike: {
     key: 'grilled_pike', name: 'Grilled Pike', type: 'consumable', rarity: 'common',

@@ -1,5 +1,6 @@
 import { useInventoryStore } from '../state/inventoryStore';
 import { useLoreStore } from '../state/loreStore';
+import { useDungeonItemStore } from '../state/dungeonItemStore';
 import { BaseWorldScene, TILE, WORLD_W, WORLD_H } from './BaseWorldScene';
 import { generateTileset, TILE as T, TILE_SIZE } from './tiles/generateTiles';
 
@@ -276,6 +277,38 @@ export class AshfieldsScene extends BaseWorldScene {
       label: '\u2190 Ashenmere Marshes',
     });
 
+    // East edge → The Shattered Coast (gated on mirror_shard + flame_amulet)
+    const hasMirror = useDungeonItemStore.getState().has('mirror_shard');
+    const hasFlame = useDungeonItemStore.getState().has('flame_amulet');
+    if (hasMirror && hasFlame) {
+      this.addExit({
+        x: MAP_W * TILE - TILE,
+        y: 3 * TILE,
+        w: TILE,
+        h: 4 * TILE,
+        targetScene: 'ShatteredCoastScene',
+        targetSpawn: 'fromAshfields',
+        label: '\u2192 The Shattered Coast',
+      });
+    } else {
+      // Blocked path marker
+      const blockX = MAP_W * TILE - 2 * TILE;
+      const blockY = 5 * TILE;
+      const blockSign = this.add.rectangle(blockX, blockY, 24, 24, 0x484048, 0.5);
+      blockSign.setStrokeStyle(1, 0x606060);
+      blockSign.setDepth(6);
+      this.spawnInteractable({
+        sprite: blockSign as any,
+        label: 'Examine blocked path',
+        radius: 24,
+        action: () => {
+          window.dispatchEvent(new CustomEvent('gameMessage', {
+            detail: 'The path ahead resists you. You are not ready.',
+          }));
+        },
+      });
+    }
+
     // Zone marker
     this.add
       .text(WORLD_W / 2, WORLD_H - TILE * 2, 'THE ASHFIELDS', {
@@ -288,6 +321,8 @@ export class AshfieldsScene extends BaseWorldScene {
     switch (name) {
       case 'fromTower':
         return { x: 20 * TILE, y: 13 * TILE };
+      case 'fromCoast':
+        return { x: (MAP_W - 3) * TILE, y: 5 * TILE };
       case 'fromAshenmere':
       case 'default':
         return { x: 3 * TILE, y: 11 * TILE };

@@ -40,6 +40,11 @@ export function generateMonsterSprite(scene: Phaser.Scene, key: string, monsterK
     case 'lava_drake': drawLavaDrake(ctx); break;
     case 'ash_wraith': drawAshWraith(ctx); break;
     case 'ember_knight': drawEmberKnight(ctx); break;
+    case 'frost_wolf': drawFrostWolf(ctx); break;
+    case 'ice_golem': drawIceGolem(ctx); break;
+    case 'blizzard_wraith': drawBlizzardWraith(ctx); break;
+    case 'frost_warden': drawFrostWarden(ctx); break;
+    case 'crownless_one': drawCrownlessOne(ctx); break;
     default: drawWolf(ctx); break;
   }
 
@@ -2194,6 +2199,320 @@ function drawEmberKnight(c: Ctx) {
   px(c, 6, 18, heatHi); px(c, 38, 24, heatHi);
   px(c, 16, 2, heatHi); px(c, 28, 2, heatHi);
   px(c, 10, 12, heatHi); px(c, 36, 14, heatHi);
+}
+
+// ─── CROWNLESS ONE ───────────────────────────────────────────
+// The final boss — tall spectral king, no crown (crown-shaped void above head),
+// flowing dark robes, purple/black energy, skeletal hands, glowing purple eyes.
+// Fills the full 48x48 canvas. Dark purples, blacks, bright purple energy.
+
+function drawCrownlessOne(c: Ctx) {
+  const voidDk = '#0a0810';
+  const robeDk = '#120818';
+  const robeMd = '#1a1028';
+  const robeLt = '#281840';
+  const robeHi = '#382058';
+  const skinBone = '#483858';
+  const skinDk = '#302040';
+  const energy = '#8040e0';
+  const energyHi = '#b060ff';
+  const energyBright = '#d0a0ff';
+  const eyeGlow = '#c060ff';
+  const eyeCore = '#ffffff';
+  const voidPurple = '#200830';
+
+  // Ground shadow
+  bk(c, 6, 44, 36, 4, 'rgba(20,0,40,0.3)');
+
+  // ── Flowing robes (wide, sweeping, fills bottom half) ──
+  // Robe base — wide sweep
+  bk(c, 4, 32, 40, 14, robeDk);
+  bk(c, 6, 34, 36, 10, robeMd);
+  bk(c, 8, 36, 32, 8, robeLt);
+  // Robe folds
+  bk(c, 10, 38, 4, 6, robeDk);
+  bk(c, 20, 36, 3, 8, robeDk);
+  bk(c, 30, 37, 4, 7, robeDk);
+  // Robe highlights
+  bk(c, 14, 34, 3, 6, robeHi);
+  bk(c, 26, 35, 3, 5, robeHi);
+  // Trailing edges
+  bk(c, 2, 40, 4, 6, robeDk);
+  bk(c, 42, 40, 4, 6, robeDk);
+  px(c, 1, 42, robeMd); px(c, 46, 42, robeMd);
+  // Energy wisps on robe
+  px(c, 8, 38, energy); px(c, 36, 40, energy);
+  px(c, 16, 42, energyHi); px(c, 28, 44, energyHi);
+  px(c, 12, 44, energy); px(c, 34, 42, energy);
+
+  // ── Upper body / torso ──
+  bk(c, 14, 18, 20, 16, robeDk);
+  bk(c, 16, 20, 16, 12, robeMd);
+  bk(c, 18, 22, 12, 8, robeLt);
+  // Chest details
+  bk(c, 20, 24, 8, 4, voidPurple);
+  px(c, 22, 25, energy); px(c, 25, 25, energy);
+  // Collar
+  bk(c, 16, 18, 16, 3, robeHi);
+  bk(c, 18, 18, 12, 2, robeLt);
+
+  // ── Skeletal hands (reaching forward) ──
+  // Left hand
+  bk(c, 6, 24, 8, 3, skinDk);
+  bk(c, 7, 25, 6, 2, skinBone);
+  // Fingers
+  px(c, 4, 24, skinBone); px(c, 4, 25, skinDk);
+  px(c, 5, 23, skinBone); px(c, 5, 26, skinDk);
+  px(c, 3, 24, skinDk);
+  // Energy on fingers
+  px(c, 3, 25, energy); px(c, 5, 22, energyHi);
+
+  // Right hand
+  bk(c, 34, 24, 8, 3, skinDk);
+  bk(c, 35, 25, 6, 2, skinBone);
+  px(c, 42, 24, skinBone); px(c, 43, 25, skinDk);
+  px(c, 42, 23, skinBone); px(c, 43, 26, skinDk);
+  px(c, 44, 24, skinDk);
+  px(c, 44, 25, energy); px(c, 42, 22, energyHi);
+
+  // ── Head (gaunt, spectral) ──
+  bk(c, 18, 6, 12, 14, skinDk);
+  bk(c, 19, 7, 10, 12, skinBone);
+  bk(c, 20, 8, 8, 10, voidPurple);
+  // Cheekbones
+  bk(c, 18, 12, 2, 3, skinDk);
+  bk(c, 28, 12, 2, 3, skinDk);
+  // Jaw
+  bk(c, 20, 16, 8, 2, skinDk);
+  bk(c, 21, 17, 6, 1, voidDk);
+
+  // ── Eyes (glowing purple) ──
+  bk(c, 21, 10, 3, 2, eyeGlow);
+  px(c, 22, 10, eyeCore);
+  bk(c, 26, 10, 3, 2, eyeGlow);
+  px(c, 27, 10, eyeCore);
+  // Eye glow aura
+  px(c, 20, 10, energy); px(c, 29, 10, energy);
+  px(c, 21, 9, energyHi); px(c, 27, 9, energyHi);
+
+  // ── Crown-shaped void (above head — absence of crown) ──
+  // Dark void where a crown should be — jagged empty space
+  bk(c, 17, 2, 14, 5, voidDk);
+  // Crown void spikes (negative space, slightly lighter outline)
+  px(c, 18, 1, voidPurple); px(c, 22, 0, voidPurple);
+  px(c, 26, 1, voidPurple); px(c, 30, 2, voidPurple);
+  px(c, 20, 0, energy); px(c, 24, 0, energy);
+  px(c, 28, 0, energy);
+  // Void energy crackling
+  px(c, 19, 3, energyHi); px(c, 25, 2, energyHi);
+  px(c, 29, 3, energyBright); px(c, 17, 4, energyBright);
+
+  // ── Orbiting dark energy shards ──
+  px(c, 2, 14, energyHi); px(c, 3, 13, energy);
+  px(c, 45, 16, energyHi); px(c, 44, 15, energy);
+  px(c, 10, 4, energy); px(c, 38, 6, energy);
+  px(c, 6, 30, energyBright); px(c, 42, 28, energyBright);
+  px(c, 14, 2, energyHi); px(c, 34, 4, energyHi);
+
+  // ── Shoulder pauldrons (spectral armor remnants) ──
+  bk(c, 12, 18, 4, 6, skinDk);
+  bk(c, 13, 19, 2, 4, skinBone);
+  bk(c, 32, 18, 4, 6, skinDk);
+  bk(c, 33, 19, 2, 4, skinBone);
+  px(c, 12, 18, energy); px(c, 35, 18, energy);
+}
+
+// ─── FROST WOLF ───────────────────────────────────────────────
+// White/blue wolf profile facing left: ice-blue palette, frost particles.
+
+function drawFrostWolf(c: Ctx) {
+  const dk   = '#607888'; const mid  = '#90a8c0';
+  const lite = '#b0c8e0'; const hi   = '#d0e0f0';
+  const belly = '#e0e8f0'; const eye  = '#40a0f0';
+  const eyeHi = '#80c8ff'; const pupil = '#102030';
+  const nose = '#304050'; const teeth = '#f0f0f8';
+  const pawDk = '#506878'; const frost = '#c0e0ff';
+
+  bk(c, 8, 44, 32, 4, 'rgba(100,140,180,0.15)');
+  // Tail
+  bk(c, 37, 18, 4, 3, dk); bk(c, 38, 16, 4, 4, mid);
+  bk(c, 39, 14, 4, 5, lite); bk(c, 40, 12, 3, 4, mid);
+  px(c, 42, 11, hi); px(c, 43, 13, frost); px(c, 42, 15, frost);
+  bk(c, 38, 20, 4, 2, dk);
+  // Hind legs
+  bk(c, 34, 34, 3, 9, dk); bk(c, 35, 35, 2, 7, mid);
+  bk(c, 33, 42, 5, 3, dk); bk(c, 34, 42, 3, 2, mid);
+  bk(c, 29, 33, 4, 10, mid); bk(c, 30, 34, 2, 8, lite);
+  bk(c, 28, 30, 6, 5, mid);
+  bk(c, 28, 42, 6, 3, dk); bk(c, 29, 42, 4, 2, mid);
+  // Body
+  bk(c, 9, 22, 30, 14, dk); bk(c, 10, 23, 28, 12, mid);
+  bk(c, 12, 24, 24, 9, lite); bk(c, 10, 22, 16, 2, hi);
+  bk(c, 9, 22, 30, 2, dk); bk(c, 14, 33, 18, 3, belly);
+  for (let fx = 13; fx < 36; fx += 3) { px(c, fx, 24, frost); px(c, fx + 1, 25, hi); }
+  // Front legs
+  bk(c, 17, 33, 3, 10, dk); bk(c, 18, 34, 2, 8, mid);
+  bk(c, 16, 42, 5, 3, dk); bk(c, 17, 42, 3, 2, mid);
+  bk(c, 10, 32, 4, 11, mid); bk(c, 11, 33, 2, 9, lite);
+  bk(c, 9, 42, 6, 3, dk); bk(c, 10, 42, 4, 2, mid);
+  px(c, 9, 44, pawDk); px(c, 11, 44, pawDk);
+  // Neck
+  bk(c, 5, 20, 9, 10, mid); bk(c, 6, 21, 7, 8, lite);
+  bk(c, 5, 20, 9, 2, dk); bk(c, 5, 20, 2, 4, hi);
+  bk(c, 6, 18, 8, 4, dk); bk(c, 7, 19, 6, 2, mid);
+  // Head
+  bk(c, 2, 16, 10, 10, mid); bk(c, 3, 17, 8, 8, lite);
+  bk(c, 2, 16, 10, 2, hi); bk(c, 2, 16, 2, 6, hi);
+  bk(c, 4, 15, 6, 2, mid);
+  // Snout + nose
+  bk(c, 0, 20, 5, 5, mid); bk(c, 0, 21, 4, 3, lite);
+  bk(c, 0, 20, 3, 1, hi); bk(c, 2, 19, 4, 2, mid);
+  bk(c, 0, 20, 2, 2, nose);
+  // Mouth
+  bk(c, 0, 24, 7, 2, dk);
+  px(c, 1, 24, teeth); px(c, 3, 24, teeth); px(c, 5, 24, teeth);
+  bk(c, 2, 25, 5, 1, dk);
+  // Eyes
+  bk(c, 3, 17, 5, 3, dk); bk(c, 4, 17, 3, 2, eye);
+  px(c, 5, 17, eyeHi); px(c, 5, 18, pupil); px(c, 4, 17, '#80d0ff');
+  // Ears
+  bk(c, 3, 10, 4, 6, dk); bk(c, 4, 10, 2, 5, mid); px(c, 4, 10, hi);
+  bk(c, 8, 11, 3, 5, dk); bk(c, 9, 11, 2, 4, mid);
+  // Frost particles
+  px(c, 6, 14, frost); px(c, 14, 20, frost); px(c, 22, 18, frost);
+  px(c, 30, 22, frost); px(c, 36, 26, frost); px(c, 2, 26, frost);
+  px(c, 40, 16, frost); px(c, 18, 30, frost);
+}
+
+// ─── ICE GOLEM ─────────────────────────────────────────────────
+// Massive blue-grey blocky humanoid with ice crystal shoulders.
+
+function drawIceGolem(c: Ctx) {
+  const dk = '#405060'; const mid = '#607888';
+  const lite = '#80a0b8'; const hi = '#a0c0d0';
+  const cryst = '#b0d8f0'; const crystHi = '#d0f0ff';
+  const crystDk = '#406878';
+  const eye = '#40c0f0'; const eyeHi = '#80e0ff';
+
+  bk(c, 6, 44, 36, 4, 'rgba(60,100,140,0.2)');
+  // Legs
+  bk(c, 12, 32, 7, 14, dk); bk(c, 13, 33, 5, 12, mid);
+  bk(c, 14, 34, 3, 10, lite); bk(c, 11, 44, 9, 3, dk); bk(c, 12, 44, 7, 2, mid);
+  bk(c, 29, 32, 7, 14, dk); bk(c, 30, 33, 5, 12, mid);
+  bk(c, 31, 34, 3, 10, lite); bk(c, 28, 44, 9, 3, dk); bk(c, 29, 44, 7, 2, mid);
+  // Torso
+  bk(c, 8, 14, 32, 20, dk); bk(c, 10, 15, 28, 18, mid);
+  bk(c, 12, 16, 24, 14, lite);
+  bk(c, 10, 14, 14, 2, hi); bk(c, 8, 16, 3, 8, hi); bk(c, 36, 18, 3, 14, dk);
+  // Arms
+  bk(c, 2, 16, 7, 18, dk); bk(c, 3, 17, 5, 16, mid); bk(c, 4, 18, 3, 14, lite);
+  bk(c, 2, 32, 7, 5, dk); bk(c, 3, 32, 5, 4, mid);
+  bk(c, 39, 16, 7, 18, dk); bk(c, 40, 17, 5, 16, mid); bk(c, 41, 18, 3, 14, lite);
+  bk(c, 39, 32, 7, 5, dk); bk(c, 40, 32, 5, 4, mid);
+  // Crystal shoulders
+  bk(c, 4, 8, 6, 10, crystDk); bk(c, 5, 6, 4, 10, cryst);
+  bk(c, 6, 4, 2, 8, crystHi); px(c, 6, 4, '#e0f8ff');
+  bk(c, 2, 10, 3, 6, cryst); px(c, 2, 10, crystHi);
+  bk(c, 38, 8, 6, 10, crystDk); bk(c, 39, 6, 4, 10, cryst);
+  bk(c, 40, 4, 2, 8, crystHi); px(c, 40, 4, '#e0f8ff');
+  bk(c, 43, 10, 3, 6, cryst); px(c, 44, 10, crystHi);
+  // Head
+  bk(c, 16, 2, 16, 14, dk); bk(c, 18, 3, 12, 12, mid);
+  bk(c, 20, 4, 8, 10, lite);
+  bk(c, 16, 2, 12, 2, hi); bk(c, 16, 2, 2, 6, hi); bk(c, 18, 14, 12, 2, dk);
+  // Eyes
+  bk(c, 19, 7, 4, 3, '#102030'); bk(c, 20, 7, 2, 2, eye); px(c, 20, 7, eyeHi);
+  bk(c, 27, 7, 4, 3, '#102030'); bk(c, 28, 7, 2, 2, eye); px(c, 28, 7, eyeHi);
+  // Ice texture + frost
+  px(c, 14, 20, cryst); px(c, 18, 24, cryst); px(c, 26, 18, cryst);
+  px(c, 30, 22, cryst); px(c, 22, 28, cryst); px(c, 34, 20, cryst);
+  px(c, 8, 12, crystHi); px(c, 44, 8, crystHi); px(c, 16, 0, crystHi); px(c, 32, 0, crystHi);
+}
+
+// ─── BLIZZARD WRAITH ──────────────────────────────────────────
+// White swirling spectral form, wisps of snow, glowing eyes.
+
+function drawBlizzardWraith(c: Ctx) {
+  const dk = '#708898'; const mid = '#a0b8c8';
+  const lite = '#c0d8e8'; const hi = '#e0f0f8';
+  const eye = '#40a0ff'; const eyeHi = '#90d0ff'; const swirl = '#d0e8f8';
+
+  // Central body
+  bk(c, 16, 8, 16, 30, dk); bk(c, 18, 10, 12, 26, mid); bk(c, 20, 12, 8, 22, lite);
+  c.fillStyle = 'rgba(192,216,240,0.6)'; c.fillRect(14, 36, 20, 6);
+  c.fillStyle = 'rgba(224,240,248,0.4)'; c.fillRect(12, 40, 24, 6);
+  bk(c, 10, 42, 4, 5, dk); bk(c, 18, 44, 3, 4, mid);
+  bk(c, 28, 42, 4, 5, dk); bk(c, 34, 44, 3, 4, mid);
+  // Arms (left)
+  bk(c, 6, 14, 12, 6, dk); bk(c, 4, 16, 10, 4, mid);
+  bk(c, 2, 18, 8, 3, lite); px(c, 2, 18, hi);
+  px(c, 0, 20, swirl); px(c, 1, 17, swirl); px(c, 4, 14, swirl);
+  // Arms (right)
+  bk(c, 30, 14, 12, 6, dk); bk(c, 34, 16, 10, 4, mid);
+  bk(c, 38, 18, 8, 3, lite); px(c, 44, 18, hi);
+  px(c, 46, 20, swirl); px(c, 45, 17, swirl); px(c, 42, 14, swirl);
+  // Hood/head
+  bk(c, 18, 2, 12, 12, dk); bk(c, 20, 3, 8, 10, mid); bk(c, 22, 4, 4, 8, lite);
+  bk(c, 22, 0, 4, 4, dk); bk(c, 23, 0, 2, 3, mid); px(c, 23, 0, hi);
+  // Eyes
+  bk(c, 20, 7, 3, 3, '#081828'); bk(c, 21, 7, 2, 2, eye); px(c, 21, 7, eyeHi);
+  bk(c, 27, 7, 3, 3, '#081828'); bk(c, 28, 7, 2, 2, eye); px(c, 28, 7, eyeHi);
+  // Snow particles
+  px(c, 8, 10, hi); px(c, 36, 6, hi); px(c, 12, 28, hi);
+  px(c, 38, 24, hi); px(c, 6, 36, hi); px(c, 40, 32, hi);
+  px(c, 14, 4, swirl); px(c, 34, 8, swirl); px(c, 10, 22, swirl);
+  px(c, 42, 28, swirl); px(c, 24, 0, hi); px(c, 16, 38, swirl);
+}
+
+// ─── FROST WARDEN ─────────────────────────────────────────────
+// Ice-encrusted knight with frozen sword, blue-ice armor.
+
+function drawFrostWarden(c: Ctx) {
+  const armDk = '#304858'; const armMd = '#486878';
+  const armLt = '#688898'; const armHi = '#88a8b8';
+  const ice = '#80b8d0'; const iceHi = '#b0d8f0'; const iceDk = '#406878';
+  const capeDk = '#182838'; const capeMd = '#283848';
+  const visor = '#081018';
+  const swd = '#90c0d8'; const swdHi = '#b0e0f0'; const swdDk = '#406878';
+  const eye = '#40a0f0'; const eyeHi = '#80d0ff'; const frost = '#c0e0ff';
+
+  bk(c, 8, 42, 32, 6, 'rgba(100,160,200,0.12)');
+  // Cape
+  bk(c, 16, 20, 18, 26, capeDk); bk(c, 18, 22, 14, 22, capeMd);
+  for (let cx = 16; cx < 34; cx += 3) { bk(c, cx, 46 - (2 + (cx % 4)), 2, 2 + (cx % 4), capeDk); }
+  // Legs
+  bk(c, 16, 34, 5, 10, armDk); bk(c, 17, 35, 3, 8, armMd);
+  bk(c, 15, 43, 7, 3, armDk); bk(c, 16, 43, 5, 2, armMd);
+  bk(c, 25, 34, 5, 10, armDk); bk(c, 26, 35, 3, 8, armMd);
+  bk(c, 24, 43, 7, 3, armDk); bk(c, 25, 43, 5, 2, armMd);
+  // Torso
+  bk(c, 14, 18, 18, 18, armDk); bk(c, 16, 19, 14, 14, armMd); bk(c, 18, 20, 10, 10, armLt);
+  bk(c, 16, 18, 8, 2, armHi); bk(c, 14, 20, 2, 6, armHi);
+  px(c, 13, 20, ice); px(c, 13, 24, ice); px(c, 32, 22, ice); px(c, 32, 26, ice);
+  px(c, 20, 18, iceHi); px(c, 26, 18, iceHi);
+  // Arms
+  bk(c, 8, 16, 6, 14, armDk); bk(c, 9, 17, 4, 12, armMd); bk(c, 10, 18, 2, 10, armLt);
+  bk(c, 8, 14, 6, 4, armMd); bk(c, 9, 14, 4, 3, armLt);
+  bk(c, 32, 20, 6, 12, armDk); bk(c, 33, 21, 4, 10, armMd); bk(c, 34, 22, 2, 8, armLt);
+  bk(c, 32, 30, 6, 4, armDk); bk(c, 33, 30, 4, 3, armMd);
+  // Helmet
+  bk(c, 16, 4, 14, 16, armDk); bk(c, 18, 5, 10, 14, armMd); bk(c, 20, 6, 6, 12, armLt);
+  bk(c, 14, 2, 3, 6, iceDk); bk(c, 15, 0, 2, 4, ice); px(c, 15, 0, iceHi);
+  bk(c, 31, 2, 3, 6, iceDk); bk(c, 31, 0, 2, 4, ice); px(c, 31, 0, iceHi);
+  bk(c, 18, 10, 10, 3, visor);
+  bk(c, 19, 10, 3, 2, eye); bk(c, 25, 10, 3, 2, eye);
+  px(c, 20, 10, eyeHi); px(c, 26, 10, eyeHi);
+  bk(c, 16, 4, 10, 2, armHi); bk(c, 16, 4, 2, 8, armHi);
+  // Frozen Sword
+  bk(c, 9, -4, 3, 20, swd); bk(c, 9, -4, 3, 4, swdHi);
+  px(c, 8, -2, swdHi); bk(c, 12, 2, 1, 12, swdDk);
+  px(c, 8, 0, frost); px(c, 12, -2, frost);
+  px(c, 7, 4, iceHi); px(c, 13, 2, iceHi);
+  px(c, 8, 8, frost); px(c, 12, 6, frost);
+  bk(c, 6, 14, 10, 3, armMd); bk(c, 7, 14, 8, 2, armLt);
+  // Frost particles
+  px(c, 12, 16, frost); px(c, 34, 18, frost); px(c, 14, 34, frost);
+  px(c, 30, 36, frost); px(c, 6, 18, frost); px(c, 38, 24, frost);
 }
 
 // ─── OUTLINE ──────────────────────────────────────────────────

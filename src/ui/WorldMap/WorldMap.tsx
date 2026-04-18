@@ -23,6 +23,15 @@ const ZONES: Zone[] = [
   { key: 'AshenmereScene',         name: 'Ashenmere',      x: 560, y: 120 },
   { key: 'DrownedSanctumF1Scene',  name: 'Sanctum F1',     x: 560, y: 210 },
   { key: 'DrownedSanctumF2Scene',  name: 'Sanctum Heart',  x: 560, y: 280 },
+  { key: 'DuskmereScene',          name: 'Duskmere',       x: 250, y: 230 },
+  { key: 'AshfieldsScene',         name: 'Ashfields',      x: 700, y: 120 },
+  { key: 'AshenTowerF1Scene',      name: 'Ashen Tower F1', x: 700, y: 210 },
+  { key: 'AshenTowerF2Scene',      name: 'Ashen Tower F2', x: 700, y: 280 },
+  { key: 'AshenTowerF3Scene',      name: 'Mirror Chamber', x: 700, y: 350 },
+  { key: 'ShatteredCoastScene',    name: 'Shattered Coast',x: 840, y: 120 },
+  { key: 'ThroneBeneathF1Scene',   name: 'The Descent',    x: 840, y: 210 },
+  { key: 'ThroneBeneathF2Scene',   name: 'Hall of Names',  x: 840, y: 280 },
+  { key: 'ThroneBeneathF3Scene',   name: 'Forgotten Throne',x: 840, y: 350 },
 ];
 
 const CONNECTIONS: Connection[] = [
@@ -34,10 +43,19 @@ const CONNECTIONS: Connection[] = [
   { from: 'MossbarrowScene',       to: 'AshenmereScene' },
   { from: 'AshenmereScene',        to: 'DrownedSanctumF1Scene' },
   { from: 'DrownedSanctumF1Scene', to: 'DrownedSanctumF2Scene' },
+  { from: 'TownScene',             to: 'DuskmereScene' },
+  { from: 'AshenmereScene',        to: 'AshfieldsScene' },
+  { from: 'AshfieldsScene',        to: 'AshenTowerF1Scene' },
+  { from: 'AshenTowerF1Scene',     to: 'AshenTowerF2Scene' },
+  { from: 'AshenTowerF2Scene',     to: 'AshenTowerF3Scene' },
+  { from: 'AshfieldsScene',        to: 'ShatteredCoastScene' },
+  { from: 'ShatteredCoastScene',   to: 'ThroneBeneathF1Scene' },
+  { from: 'ThroneBeneathF1Scene',  to: 'ThroneBeneathF2Scene' },
+  { from: 'ThroneBeneathF2Scene',  to: 'ThroneBeneathF3Scene' },
 ];
 
 // SVG canvas dimensions
-const W = 680;
+const W = 920;
 const H = 420;
 
 interface Props {

@@ -595,6 +595,13 @@ export abstract class BaseWorldScene extends Phaser.Scene {
       'AshenTowerF1Scene': 'Fire cleanses. That is what they told themselves. They were wrong.',
       'AshenTowerF2Scene': 'The forge made weapons for a war that never ended.',
       'AshenTowerF3Scene': 'I stood before this mirror once. It showed me what I was. I did not look away. I should have.',
+      'FrosthollowScene': 'The mountain does not hate you. It simply does not care.',
+      'FrozenHollowF1Scene': 'The cold preserves. What it keeps is not always worth keeping.',
+      'FrozenHollowF2Scene': 'I came for the amulet. The cold came for me.',
+      'FrozenHollowF3Scene': 'Fire against ice. The oldest war. You carry the answer now.',
+      'ThroneBeneathF1Scene': 'The stairs go down. They always go down. That is the nature of thrones — they are built on what lies beneath.',
+      'ThroneBeneathF2Scene': 'Every name on these walls had a reason to descend. None of them had a reason good enough.',
+      'ThroneBeneathF3Scene': 'I was the last hero. I failed. You did not. Remember my name: it was written here once. It does not matter now. Yours does.',
     };
 
     const line = WATCHER_LINES[this.scene.key];
@@ -1292,5 +1299,5 @@ export abstract class BaseWorldScene extends Phaser.Scene {
 
 /** Returns true for dungeon floor scene keys (Depths, Sanctum, BogDungeon). */
 function isDungeonScene(key: string): boolean {
-  return key.includes('Depths') || key.includes('Floor') || key.includes('Sanctum') || key.includes('BogDungeon');
+  return key.includes('Depths') || key.includes('Floor') || key.includes('Sanctum') || key.includes('BogDungeon') || key.includes('ThroneBeneath') || key.includes('FrozenHollow');
 }

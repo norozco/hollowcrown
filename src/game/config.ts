@@ -20,6 +20,14 @@ import { AshfieldsScene } from '../scenes/AshfieldsScene';
 import { AshenTowerF1Scene } from '../scenes/AshenTowerF1Scene';
 import { AshenTowerF2Scene } from '../scenes/AshenTowerF2Scene';
 import { AshenTowerF3Scene } from '../scenes/AshenTowerF3Scene';
+import { FrosthollowScene } from '../scenes/FrosthollowScene';
+import { FrozenHollowF1Scene } from '../scenes/FrozenHollowF1Scene';
+import { FrozenHollowF2Scene } from '../scenes/FrozenHollowF2Scene';
+import { FrozenHollowF3Scene } from '../scenes/FrozenHollowF3Scene';
+import { ShatteredCoastScene } from '../scenes/ShatteredCoastScene';
+import { ThroneBeneathF1Scene } from '../scenes/ThroneBeneathF1Scene';
+import { ThroneBeneathF2Scene } from '../scenes/ThroneBeneathF2Scene';
+import { ThroneBeneathF3Scene } from '../scenes/ThroneBeneathF3Scene';
 import { CombatScene } from '../scenes/CombatScene';
 
 /**
@@ -47,5 +55,5 @@ export const gameConfig: Phaser.Types.Core.GameConfig = {
       debug: false,
     },
   },
-  scene: [BootScene, PlaceholderScene, TownScene, GreenhollowScene, MossbarrowScene, MossbarrowDepthsScene, DepthsFloor2Scene, DepthsFloor3Scene, AshenmereScene, IronveilScene, DrownedSanctumF1Scene, DrownedSanctumF2Scene, BogDungeonF1Scene, BogDungeonF2Scene, BogDungeonF3Scene, DuskmereScene, AshfieldsScene, AshenTowerF1Scene, AshenTowerF2Scene, AshenTowerF3Scene, InteriorScene, CombatScene],
+  scene: [BootScene, PlaceholderScene, TownScene, GreenhollowScene, MossbarrowScene, MossbarrowDepthsScene, DepthsFloor2Scene, DepthsFloor3Scene, AshenmereScene, IronveilScene, DrownedSanctumF1Scene, DrownedSanctumF2Scene, BogDungeonF1Scene, BogDungeonF2Scene, BogDungeonF3Scene, DuskmereScene, AshfieldsScene, AshenTowerF1Scene, AshenTowerF2Scene, AshenTowerF3Scene, FrosthollowScene, FrozenHollowF1Scene, FrozenHollowF2Scene, FrozenHollowF3Scene, ShatteredCoastScene, ThroneBeneathF1Scene, ThroneBeneathF2Scene, ThroneBeneathF3Scene, InteriorScene, CombatScene],
 };

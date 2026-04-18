@@ -16,6 +16,9 @@ import bogExplorer from '../data/quests/bog-explorer.json';
 import wardenSlayer from '../data/quests/warden-slayer.json';
 import ashfieldExplorer from '../data/quests/ashfield-explorer.json';
 import deepHook from '../data/quests/deep-hook.json';
+import frosthollowExplorer from '../data/quests/frosthollow-explorer.json';
+import theFinalGate from '../data/quests/the-final-gate.json';
+import theCrownlessOne from '../data/quests/the-crownless-one.json';
 import type { Quest } from './quest';
 
 /**
@@ -42,6 +45,9 @@ const QUESTS: Record<string, Quest> = {
   'warden-slayer': wardenSlayer as unknown as Quest,
   'ashfield-explorer': ashfieldExplorer as unknown as Quest,
   'deep-hook': deepHook as unknown as Quest,
+  'frosthollow-explorer': frosthollowExplorer as unknown as Quest,
+  'the-final-gate': theFinalGate as unknown as Quest,
+  'the-crownless-one': theCrownlessOne as unknown as Quest,
 };
 
 export function getQuest(id: string): Quest {

@@ -1,0 +1,10 @@
+{
+  "id": "the-final-gate",
+  "category": "main",
+  "title": "The Final Gate",
+  "summary": "The Hollow King, the Drowned Warden — all fragments of something greater. It reforms at The Shattered Coast. Brenna knows the way.",
+  "objectives": [
+    { "id": "travel-to-coast", "description": "Travel to The Shattered Coast." }
+  ],
+  "reward": { "gold": 200, "xp": 300 }
+}

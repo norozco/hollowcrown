@@ -296,8 +296,19 @@ export class IronveilScene extends BaseWorldScene {
       h: WORLD_H,
       targetScene: 'MossbarrowScene',
       targetSpawn: 'fromIronveil',
-      label: '← Mossbarrow Cairn',
+      label: '\u2190 Mossbarrow Cairn',
     });
+
+    // ── North exit → Frosthollow Peaks ──
+    this.addExit({
+      x: 14 * TILE, y: 0, w: 6 * TILE, h: TILE,
+      targetScene: 'FrosthollowScene', targetSpawn: 'fromIronveil',
+      label: '\u2191 Frosthollow Peaks [Lv 12-15]',
+    });
+    this.add.rectangle(17 * TILE, 1.2 * TILE, 180, 36, 0x10181e).setStrokeStyle(2, 0x405868).setDepth(3);
+    this.add.text(17 * TILE, 1.2 * TILE, '\u25B2 Frosthollow Peaks', {
+      fontFamily: 'Courier New', fontSize: '11px', color: '#80a0c0',
+    }).setOrigin(0.5).setDepth(4);
 
     // ── Random loot bag ──
     this.spawnLootBag({
@@ -341,6 +352,8 @@ export class IronveilScene extends BaseWorldScene {
 
   protected spawnAt(name: string): { x: number; y: number } {
     switch (name) {
+      case 'fromFrosthollow':
+        return { x: 17 * TILE, y: 3 * TILE };
       case 'fromMossbarrow':
       case 'default':
       default:

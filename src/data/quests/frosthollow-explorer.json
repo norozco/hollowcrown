@@ -1,0 +1,10 @@
+{
+  "id": "frosthollow-explorer",
+  "category": "side",
+  "title": "The Heart of Winter",
+  "summary": "The Frozen Hollow hides something that burns. Reach its deepest chamber.",
+  "objectives": [
+    { "id": "reach-heart", "description": "Reach the Heart of Winter." }
+  ],
+  "reward": { "gold": 120, "xp": 300 }
+}

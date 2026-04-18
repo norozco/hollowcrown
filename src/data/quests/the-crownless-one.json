@@ -1,0 +1,12 @@
+{
+  "id": "the-crownless-one",
+  "category": "main",
+  "title": "The Crownless One",
+  "summary": "Something waits beneath the coast. No crown, no throne, no kingdom — only the will to reclaim them. End it.",
+  "objectives": [
+    { "id": "reach-coast", "description": "Reach The Shattered Coast." },
+    { "id": "enter-throne-beneath", "description": "Enter The Throne Beneath." },
+    { "id": "defeat-crownless-one", "description": "Defeat The Crownless One." }
+  ],
+  "reward": { "gold": 500, "xp": 1000 }
+}

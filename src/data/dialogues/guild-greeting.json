@@ -86,6 +86,30 @@
           ]
         },
         {
+          "text": "I defeated The Crownless One.",
+          "next": "crownless-turnin",
+          "requires": [
+            { "type": "quest-complete", "questId": "the-crownless-one" },
+            { "type": "quest-not-turned-in", "questId": "the-crownless-one" }
+          ]
+        },
+        {
+          "text": "I reached The Shattered Coast.",
+          "next": "final-gate-turnin",
+          "requires": [
+            { "type": "quest-active", "questId": "the-final-gate" },
+            { "type": "quest-not-turned-in", "questId": "the-final-gate" }
+          ]
+        },
+        {
+          "text": "Something stirs beyond the Ashfields.",
+          "next": "final-gate-offer",
+          "requires": [
+            { "type": "quest-not-started", "questId": "the-final-gate" },
+            { "type": "quest-complete", "questId": "what-remains" }
+          ]
+        },
+        {
           "text": "What will you do now, Brenna?",
           "next": "brenna-backstory-3",
           "requires": [
@@ -621,6 +645,113 @@
       "speaker": "brenna",
       "expression": "neutral",
       "text": "Go. The work does not wait, and neither should you.",
+      "next": null
+    },
+
+    "final-gate-offer": {
+      "id": "final-gate-offer",
+      "speaker": "brenna",
+      "expression": "thoughtful",
+      "text": "You have the Mirror Shard. You have the Flame Amulet. I have been waiting for someone to carry both. It means the seals have broken. The Hollow King, the Drowned Warden — they were fragments. Pieces of something older.",
+      "next": "final-gate-offer-2"
+    },
+    "final-gate-offer-2": {
+      "id": "final-gate-offer-2",
+      "speaker": "brenna",
+      "expression": "sad",
+      "text": "The Crownless One. A king who lost his crown, his throne, his kingdom — and refused to let go. He scattered himself across the world. Every boss you killed freed a piece of his soul. Now he reforms, at The Shattered Coast. The edge of everything.",
+      "next": "final-gate-offer-3"
+    },
+    "final-gate-offer-3": {
+      "id": "final-gate-offer-3",
+      "speaker": "brenna",
+      "expression": "neutral",
+      "text": "The path opens east of the Ashfields. Bring both relics. Without them, the way resists you.",
+      "next": "final-gate-companion",
+      "effects": [
+        { "type": "accept-quest", "questId": "the-final-gate" },
+        { "type": "accept-quest", "questId": "the-crownless-one" }
+      ]
+    },
+    "final-gate-companion": {
+      "id": "final-gate-companion",
+      "speaker": "brenna",
+      "expression": "thoughtful",
+      "text": "I have been behind this counter long enough. Aldric would not have stayed. Neither will I.",
+      "choices": [
+        { "text": "Come with me.", "next": "brenna-joins" },
+        { "text": "Stay here. Someone needs to keep the ledger.", "next": "brenna-stays" }
+      ]
+    },
+    "brenna-joins": {
+      "id": "brenna-joins",
+      "speaker": "narrator",
+      "text": "Brenna reaches beneath the counter. A blade — old, well-kept, wrapped in oiled cloth. She unwraps it with steady hands. The steel remembers her.",
+      "effects": [
+        { "type": "hire-companion", "companionKey": "brenna" }
+      ],
+      "next": "brenna-joins-2"
+    },
+    "brenna-joins-2": {
+      "id": "brenna-joins-2",
+      "speaker": "brenna",
+      "expression": "neutral",
+      "text": "Let us finish what was started. For the guild. For Aldric. For every name on that wall.",
+      "next": null
+    },
+    "brenna-stays": {
+      "id": "brenna-stays",
+      "speaker": "brenna",
+      "expression": "sad",
+      "text": "You are right. Someone has to write the ending, whichever way it falls. Go. I will be here when you return. I am always here.",
+      "next": null
+    },
+
+    "final-gate-turnin": {
+      "id": "final-gate-turnin",
+      "speaker": "brenna",
+      "expression": "neutral",
+      "text": "You made it to the coast. Good. Now go deeper. The Throne Beneath waits.",
+      "effects": [
+        { "type": "complete-objective", "questId": "the-final-gate", "objectiveId": "travel-to-coast" },
+        { "type": "turn-in-quest", "questId": "the-final-gate" },
+        { "type": "complete-objective", "questId": "the-crownless-one", "objectiveId": "reach-coast" },
+        { "type": "give-gold", "amount": 200 },
+        { "type": "give-xp", "amount": 300 }
+      ],
+      "next": null
+    },
+
+    "crownless-turnin": {
+      "id": "crownless-turnin",
+      "speaker": "narrator",
+      "text": "Brenna does not speak immediately. She looks at you the way one looks at the last ember of a fire — not with relief, but with the understanding that something has ended that will not begin again.",
+      "next": "crownless-turnin-2"
+    },
+    "crownless-turnin-2": {
+      "id": "crownless-turnin-2",
+      "speaker": "brenna",
+      "expression": "sad",
+      "text": "It is done. The throne is empty. It always was — that was the cruelest part. He fought for something that never existed.",
+      "next": "crownless-turnin-3"
+    },
+    "crownless-turnin-3": {
+      "id": "crownless-turnin-3",
+      "speaker": "brenna",
+      "expression": "thoughtful",
+      "text": "Five hundred gold. One thousand experience. And something the guild has never given before — rest. You have earned it more than anyone I have known.",
+      "effects": [
+        { "type": "turn-in-quest", "questId": "the-crownless-one" },
+        { "type": "give-gold", "amount": 500 },
+        { "type": "give-xp", "amount": 1000 }
+      ],
+      "next": "crownless-turnin-close"
+    },
+    "crownless-turnin-close": {
+      "id": "crownless-turnin-close",
+      "speaker": "brenna",
+      "expression": "neutral",
+      "text": "Rest now. You have earned it more than anyone I have known.",
       "next": null
     }
   }

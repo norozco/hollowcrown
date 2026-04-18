@@ -35,6 +35,7 @@ import { Minimap } from './Minimap/Minimap';
 import { ItemDiscovery } from './ItemDiscovery/ItemDiscovery';
 import { WorldMap } from './WorldMap/WorldMap';
 import { FastTravel } from './FastTravel/FastTravel';
+import { Ending } from './Ending/Ending';
 import './InGameOverlay.css';
 
 /**
@@ -84,6 +85,19 @@ function getNextObjective(): string | null {
   if (!quests['what-remains'].isComplete) return 'Return to Brenna with Veyrin\'s message';
   if (!quests['what-remains'].turnedIn) return 'Speak with Brenna';
 
+  // The Final Gate / The Crownless One
+  if (!quests['the-final-gate']) return 'Speak with Brenna about what stirs beyond the Ashfields';
+  if (!quests['the-final-gate'].isComplete) return 'Travel to The Shattered Coast';
+
+  if (!quests['the-crownless-one']) return 'Speak with Brenna';
+  if (!quests['the-crownless-one'].isComplete) {
+    const state = quests['the-crownless-one'];
+    if (!state.completedObjectiveIds.includes('reach-coast')) return 'Reach The Shattered Coast';
+    if (!state.completedObjectiveIds.includes('enter-throne-beneath')) return 'Enter The Throne Beneath';
+    return 'Defeat The Crownless One';
+  }
+  if (!quests['the-crownless-one'].turnedIn) return 'Return to Brenna';
+
   // All main quests done
   return 'All main quests complete. Explore freely.';
 }
@@ -126,6 +140,7 @@ export function InGameOverlay() {
   const [journalOpen, setJournalOpen] = useState(false);
   const [statScreenOpen, setStatScreenOpen] = useState(false);
   const [fastTravelOpen, setFastTravelOpen] = useState(false);
+  const [endingOpen, setEndingOpen] = useState(false);
   const [gameMsg, setGameMsg] = useState<string | null>(null);
   const [toastKey, setToastKey] = useState<string | null>(null);
   const [showControls, setShowControls] = useState(true);
@@ -170,6 +185,10 @@ export function InGameOverlay() {
     };
     window.addEventListener('gameMessage', msgHandler);
 
+    // Game ending: show cinematic ending overlay.
+    const endingHandler = () => setEndingOpen(true);
+    window.addEventListener('gameEnding', endingHandler);
+
     // Fast travel: open modal when a waypoint stone is used.
     const ftOpenHandler = () => setFastTravelOpen(true);
     window.addEventListener('openFastTravel', ftOpenHandler);
@@ -183,6 +202,8 @@ export function InGameOverlay() {
           'TownScene', 'GreenhollowScene', 'MossbarrowScene', 'MossbarrowDepthsScene',
           'DepthsFloor2Scene', 'DepthsFloor3Scene', 'AshenmereScene',
           'DrownedSanctumF1Scene', 'DrownedSanctumF2Scene', 'InteriorScene',
+          'AshfieldsScene', 'AshenTowerF1Scene', 'AshenTowerF2Scene', 'AshenTowerF3Scene',
+          'ShatteredCoastScene', 'ThroneBeneathF1Scene', 'ThroneBeneathF2Scene', 'ThroneBeneathF3Scene',
         ];
         for (const k of worldScenes) {
           if (game.scene.isActive(k)) game.scene.stop(k);
@@ -197,6 +218,7 @@ export function InGameOverlay() {
       window.removeEventListener('gameMessage', msgHandler);
       window.removeEventListener('openFastTravel', ftOpenHandler);
       window.removeEventListener('fastTravel', ftTravelHandler);
+      window.removeEventListener('gameEnding', endingHandler);
     };
   }, []);
 
@@ -475,6 +497,7 @@ export function InGameOverlay() {
       {journalOpen && <Journal onClose={() => setJournalOpen(false)} />}
       {statScreenOpen && <StatScreen onClose={() => setStatScreenOpen(false)} />}
       {fastTravelOpen && <FastTravel onClose={() => setFastTravelOpen(false)} />}
+      {endingOpen && <Ending onClose={() => setEndingOpen(false)} />}
       {dialogueActive && <DialogueScene />}
       {combatActive && <CombatOverlay />}
       <LevelUpPopup />

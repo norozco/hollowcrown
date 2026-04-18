@@ -48,4 +48,11 @@ export const DUNGEON_ITEMS: Record<string, DungeonItem> = {
     icon: '\uD83E\uDE9E',
     enables: 'invisible',
   },
+  flame_amulet: {
+    key: 'flame_amulet',
+    name: 'Flame Amulet',
+    description: 'A ruby that burns without consuming itself. Ice retreats from its warmth.',
+    icon: '\uD83D\uDD25',
+    enables: 'melt-ice',
+  },
 };
