@@ -1,0 +1,10 @@
+{
+  "id": "bog-explorer",
+  "category": "side",
+  "title": "Into the Bog",
+  "summary": "The Hermit speaks of sunken halls beneath the marsh. Explore them.",
+  "objectives": [
+    { "id": "reach-warden-pool", "description": "Reach the Warden's Pool." }
+  ],
+  "reward": { "gold": 80, "xp": 200 }
+}

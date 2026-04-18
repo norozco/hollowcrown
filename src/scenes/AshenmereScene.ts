@@ -309,6 +309,32 @@ export class AshenmereScene extends BaseWorldScene {
       label: '',
     });
 
+    // ── Bog Dungeon entrance (south side, submerged stairway) ──
+    const bogEntranceX = 25 * TILE;
+    const bogEntranceY = 17 * TILE;
+    // Visual: dark pit with water edges
+    const bogSteps = this.add.rectangle(bogEntranceX, bogEntranceY, TILE * 1.5, TILE * 1.2, 0x203030);
+    bogSteps.setStrokeStyle(2, 0x304848);
+    bogSteps.setDepth(3);
+    // Step lines
+    this.add.rectangle(bogEntranceX, bogEntranceY - 6, TILE, 2, 0x406060, 0.5).setDepth(4);
+    this.add.rectangle(bogEntranceX, bogEntranceY, TILE, 2, 0x385050, 0.5).setDepth(4);
+    this.add.rectangle(bogEntranceX, bogEntranceY + 6, TILE, 2, 0x304040, 0.4).setDepth(4);
+    // Label
+    this.add.text(bogEntranceX, bogEntranceY - 28, '\u25BC The Sunken Halls [Lv 8-12]', {
+      fontFamily: 'Courier New', fontSize: '10px', color: '#408878',
+    }).setOrigin(0.5).setAlpha(0.7).setDepth(15);
+    // Exit trigger
+    this.addExit({
+      x: bogEntranceX - TILE * 0.75,
+      y: bogEntranceY - TILE * 0.6,
+      w: TILE * 1.5,
+      h: TILE * 1.2,
+      targetScene: 'BogDungeonF1Scene',
+      targetSpawn: 'fromAshenmere',
+      label: '',
+    });
+
     // ── Exits ──
     // West edge → back to Town
     this.addExit({
@@ -361,6 +387,8 @@ export class AshenmereScene extends BaseWorldScene {
     switch (name) {
       case 'fromSanctum':
         return { x: 15 * TILE, y: 16 * TILE };
+      case 'fromBogDungeon':
+        return { x: 25 * TILE, y: 16 * TILE };
       case 'fromTown':
       case 'default':
         return { x: 3 * TILE, y: 11 * TILE };

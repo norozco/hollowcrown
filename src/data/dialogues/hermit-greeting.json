@@ -28,6 +28,21 @@
             { "type": "quest-not-started", "questId": "scholars-trail" }
           ]
         },
+        {
+          "text": "What lies beneath the marsh?",
+          "next": "bog-intro",
+          "requires": [
+            { "type": "quest-not-started", "questId": "bog-explorer" }
+          ]
+        },
+        {
+          "text": "What guards the deepest pool?",
+          "next": "warden-intro",
+          "requires": [
+            { "type": "quest-complete", "questId": "bog-explorer" },
+            { "type": "quest-not-started", "questId": "warden-slayer" }
+          ]
+        },
         { "text": "What is this place?", "next": "place" },
         { "text": "What lies beyond the eastern mist?", "next": "east" },
         { "text": "Why do you live here?", "next": "why" },
@@ -124,6 +139,38 @@
       "speaker": "hermit",
       "text": "Whatever you find below, do not touch the altar. Do not read the inscriptions aloud. And if something speaks to you from the dark — do not answer.",
       "next": null
+    },
+
+    "bog-intro": {
+      "id": "bog-intro",
+      "speaker": "hermit",
+      "text": "Beneath the south-east island, there are steps. Old stone, older than the village the bog swallowed. They lead down into flooded halls — the Sunken Halls, the locals called them, before there were no more locals.",
+      "next": "bog-intro-2"
+    },
+    "bog-intro-2": {
+      "id": "bog-intro-2",
+      "speaker": "hermit",
+      "text": "Three floors, each deeper and darker. Something lives at the bottom — or lived, once, and forgot how to stop. If you mean to explore them, go. But do not expect the water to welcome you.",
+      "next": null,
+      "effects": [
+        { "type": "accept-quest", "questId": "bog-explorer" }
+      ]
+    },
+
+    "warden-intro": {
+      "id": "warden-intro",
+      "speaker": "hermit",
+      "text": "You reached the pool. I felt it — the water shifted when you entered that chamber. The thing down there is a warden. Was a warden. It guarded the halls when they were still above water.",
+      "next": "warden-intro-2"
+    },
+    "warden-intro-2": {
+      "id": "warden-intro-2",
+      "speaker": "hermit",
+      "text": "The water changed it but did not release it from its duty. It will not stop unless you stop it. End its vigil. It has earned that much.",
+      "next": null,
+      "effects": [
+        { "type": "accept-quest", "questId": "warden-slayer" }
+      ]
     }
   }
 }

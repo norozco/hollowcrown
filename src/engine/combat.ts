@@ -457,6 +457,14 @@ export function enemyAct(
     return s;
   }
 
+  // ── Drowned Warden phase 2 transition ──
+  if (monster.key === 'drowned_warden' && !s.bossPhase2 && s.monsterHp <= monster.maxHp * 0.4) {
+    s.bossPhase2 = true;
+    s.log.push({ text: 'The Warden\'s armor cracks. Salt water pours from the seams. It moves faster now.', type: 'system' });
+    s.monsterHp = Math.min(monster.maxHp, s.monsterHp + 15);
+    s.monsterStatus = { ...EMPTY_STATUS };
+  }
+
   // ── Hollow King phase 2 transition ──
   if (monster.key === 'hollow_king' && !s.bossPhase2 && s.monsterHp <= monster.maxHp / 2) {
     s.bossPhase2 = true;
@@ -487,11 +495,16 @@ export function enemyAct(
   } else {
   // ── Normal attack ──
 
-  // Determine number of attacks — Hollow King phase 2 has 50% double attack
+  // Determine number of attacks — boss phase 2 has 50% double attack
   const isKingPhase2 = monster.key === 'hollow_king' && s.bossPhase2;
-  const attackCount = isKingPhase2 && dice.d(100) <= 50 ? 2 : 1;
+  const isWardenPhase2 = monster.key === 'drowned_warden' && s.bossPhase2;
+  const attackCount = (isKingPhase2 || isWardenPhase2) && dice.d(100) <= 50 ? 2 : 1;
   if (attackCount === 2) {
-    s.log.push({ text: 'The Hollow King strikes twice!', type: 'system' });
+    if (isWardenPhase2) {
+      s.log.push({ text: 'The Warden swings twice — faster now.', type: 'system' });
+    } else {
+      s.log.push({ text: 'The Hollow King strikes twice!', type: 'system' });
+    }
   }
 
   let didHit = false;
@@ -540,6 +553,30 @@ export function enemyAct(
     } else if (monster.key === 'bandit' && statusRoll <= 20) {
       applyStatus(s.playerStatus, 'bleed', 2);
       s.log.push({ text: "The bandit's blade cuts deep.", type: 'system' });
+    } else if (monster.key === 'cave_bat' && statusRoll <= 25) {
+      applyStatus(s.playerStatus, 'bleed', 2);
+      s.log.push({ text: "The bat's claws tear skin.", type: 'system' });
+    } else if (monster.key === 'mine_golem' && statusRoll <= 20) {
+      applyStatus(s.playerStatus, 'stun', 1);
+      s.log.push({ text: 'The impact rattles your bones.', type: 'system' });
+    } else if (monster.key === 'bog_lurker' && statusRoll <= 30) {
+      applyStatus(s.playerStatus, 'poison', 2);
+      s.log.push({ text: 'Something in the water seeps into the wound.', type: 'system' });
+    } else if (monster.key === 'drowned_warden') {
+      // Boss — multiple possible effects, enhanced in phase 2
+      const stunThresh = s.bossPhase2 ? 30 : 15;
+      const bleedThresh = s.bossPhase2 ? 55 : 30;
+      const poisonThresh = s.bossPhase2 ? 75 : 40;
+      if (statusRoll <= stunThresh) {
+        applyStatus(s.playerStatus, 'stun', 1);
+        s.log.push({ text: 'The Warden\'s corroded blade stuns you.', type: 'system' });
+      } else if (statusRoll <= bleedThresh) {
+        applyStatus(s.playerStatus, 'bleed', 3);
+        s.log.push({ text: 'Salt-crusted iron tears a wound that weeps.', type: 'system' });
+      } else if (statusRoll <= poisonThresh) {
+        applyStatus(s.playerStatus, 'poison', 2);
+        s.log.push({ text: 'Brackish water burns in the cut.', type: 'system' });
+      }
     } else if (monster.key === 'hollow_king') {
       // Boss has multiple possible effects — enhanced in phase 2
       const stunThresh = s.bossPhase2 ? 30 : 15;

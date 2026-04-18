@@ -12,6 +12,8 @@ import boneRitual from '../data/quests/bone-ritual.json';
 import scholarsTrail from '../data/quests/scholars-trail.json';
 import drownedSanctum from '../data/quests/drowned-sanctum.json';
 import whatRemains from '../data/quests/what-remains.json';
+import bogExplorer from '../data/quests/bog-explorer.json';
+import wardenSlayer from '../data/quests/warden-slayer.json';
 import type { Quest } from './quest';
 
 /**
@@ -34,6 +36,8 @@ const QUESTS: Record<string, Quest> = {
   'scholars-trail': scholarsTrail as unknown as Quest,
   'drowned-sanctum': drownedSanctum as unknown as Quest,
   'what-remains': whatRemains as unknown as Quest,
+  'bog-explorer': bogExplorer as unknown as Quest,
+  'warden-slayer': wardenSlayer as unknown as Quest,
 };
 
 export function getQuest(id: string): Quest {

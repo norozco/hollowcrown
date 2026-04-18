@@ -1,0 +1,10 @@
+{
+  "id": "warden-slayer",
+  "category": "side",
+  "title": "The Drowned Warden",
+  "summary": "Something guards the deepest pool. It was a protector once. End its vigil.",
+  "objectives": [
+    { "id": "kill-drowned-warden", "description": "Defeat the Drowned Warden." }
+  ],
+  "reward": { "gold": 150, "xp": 400 }
+}

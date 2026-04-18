@@ -261,6 +261,11 @@ const ITEMS: Record<string, Item> = {
     buyPrice: 0, description: 'Water-stained parchment. The handwriting is precise, Elven. Some words are still legible.',
     stackable: false,
   },
+  gallery_key: {
+    key: 'gallery_key', name: 'Gallery Key', type: 'quest', rarity: 'uncommon',
+    buyPrice: 0, description: 'Tarnished bronze. The handle is shaped like a wave.',
+    stackable: false,
+  },
   sanctum_key: {
     key: 'sanctum_key', name: 'Sanctum Key', type: 'quest', rarity: 'rare',
     buyPrice: 0, description: 'Green-black iron, cold as the water it sat in. Shaped for a lock that does not want to be opened.',

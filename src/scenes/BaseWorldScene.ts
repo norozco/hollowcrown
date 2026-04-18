@@ -1077,7 +1077,7 @@ export abstract class BaseWorldScene extends Phaser.Scene {
   }
 }
 
-/** Returns true for dungeon floor scene keys (Depths, Sanctum). */
+/** Returns true for dungeon floor scene keys (Depths, Sanctum, BogDungeon). */
 function isDungeonScene(key: string): boolean {
-  return key.includes('Depths') || key.includes('Floor') || key.includes('Sanctum');
+  return key.includes('Depths') || key.includes('Floor') || key.includes('Sanctum') || key.includes('BogDungeon');
 }

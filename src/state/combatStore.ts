@@ -266,13 +266,19 @@ export const useCombatStore = create<CombatStoreState>((set, get) => ({
           msg('The Hollow Crown shatters. The curse lifts.');
         }
 
+        // Drowned Warden slayer: kill the bog boss.
+        if (monster.key === 'drowned_warden') {
+          qs.completeObjective('warden-slayer', 'kill-drowned-warden');
+          msg('The Warden sinks. The water stills.');
+        }
+
         // Bounty kill tracking.
         useBountyStore.getState().recordKill(monster.key);
 
         // Achievement tracking.
         const achStore = useAchievementStore.getState();
         achStore.recordKill(monster.key);
-        const bossKeys = ['hollow_king', 'hollow_knight'];
+        const bossKeys = ['hollow_king', 'hollow_knight', 'drowned_warden'];
         if (bossKeys.includes(monster.key)) {
           achStore.recordBossKill(monster.key);
         }

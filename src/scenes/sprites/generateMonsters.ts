@@ -30,6 +30,10 @@ export function generateMonsterSprite(scene: Phaser.Scene, key: string, monsterK
     case 'hollow_king': drawHollowKing(ctx); break;
     case 'boar': drawBoar(ctx); break;
     case 'bandit': drawBandit(ctx); break;
+    case 'cave_bat': drawCaveBat(ctx); break;
+    case 'mine_golem': drawMineGolem(ctx); break;
+    case 'bog_lurker': drawBogLurker(ctx); break;
+    case 'drowned_warden': drawDrownedWarden(ctx); break;
     default: drawWolf(ctx); break;
   }
 
@@ -721,6 +725,369 @@ function drawBandit(c: Ctx) {
   px(c, 5, 16, bladeHi); // edge gleam
   bk(c, 5, 28, 4, 2, '#806030'); // crossguard
   bk(c, 6, 30, 2, 4, '#604020'); // grip
+}
+
+// ─── CAVE BAT ────────────────────────────────────────────────
+
+function drawCaveBat(c: Ctx) {
+  const body = '#3a3040';
+  const bodyDk = '#2a2030';
+  const bodyLt = '#4a3850';
+  const wing = '#302838';
+  const wingLt = '#483858';
+  const wingEdge = '#201828';
+  const eye = '#c02020';
+  const eyeBr = '#ff4040';
+  const ear = '#4a3850';
+  const fang = '#d0d0c0';
+
+  // Shadow (wide, bat is airborne)
+  bk(c, 8, 42, 32, 4, 'rgba(0,0,0,0.15)');
+
+  // Left wing — spread wide
+  bk(c, 0, 18, 16, 14, wing);
+  bk(c, 2, 20, 12, 10, wingLt);
+  // Wing membrane lines
+  bk(c, 4, 20, 1, 12, wingEdge);
+  bk(c, 8, 18, 1, 14, wingEdge);
+  bk(c, 12, 20, 1, 10, wingEdge);
+  // Wing tip points
+  bk(c, 0, 16, 3, 4, wingEdge);
+  bk(c, 0, 30, 3, 4, wingEdge);
+  bk(c, 6, 14, 3, 6, wing);
+
+  // Right wing
+  bk(c, 32, 18, 16, 14, wing);
+  bk(c, 34, 20, 12, 10, wingLt);
+  bk(c, 36, 20, 1, 12, wingEdge);
+  bk(c, 40, 18, 1, 14, wingEdge);
+  bk(c, 44, 20, 1, 10, wingEdge);
+  bk(c, 45, 16, 3, 4, wingEdge);
+  bk(c, 45, 30, 3, 4, wingEdge);
+  bk(c, 39, 14, 3, 6, wing);
+
+  // Body (small, round)
+  bk(c, 18, 20, 12, 14, body);
+  bk(c, 20, 22, 8, 10, bodyLt);
+
+  // Head
+  bk(c, 19, 14, 10, 8, body);
+  bk(c, 20, 15, 8, 6, bodyLt);
+
+  // Ears (pointed, tall)
+  bk(c, 19, 8, 3, 7, ear);
+  bk(c, 20, 7, 2, 4, bodyLt);
+  bk(c, 26, 8, 3, 7, ear);
+  bk(c, 27, 7, 2, 4, bodyLt);
+
+  // Eyes (red, glowing)
+  bk(c, 20, 16, 3, 2, eye);
+  bk(c, 25, 16, 3, 2, eye);
+  px(c, 21, 16, eyeBr);
+  px(c, 26, 16, eyeBr);
+
+  // Nose (tiny)
+  px(c, 23, 19, bodyDk);
+  px(c, 24, 19, bodyDk);
+
+  // Fangs
+  px(c, 22, 21, fang);
+  px(c, 25, 21, fang);
+
+  // Fur texture on body
+  px(c, 20, 24, bodyDk);
+  px(c, 26, 26, bodyDk);
+  px(c, 22, 28, bodyDk);
+
+  // Small feet (tucked)
+  bk(c, 21, 33, 2, 3, bodyDk);
+  bk(c, 25, 33, 2, 3, bodyDk);
+}
+
+// ─── MINE GOLEM ──────────────────────────────────────────────
+
+function drawMineGolem(c: Ctx) {
+  const body = '#606870';
+  const bodyDk = '#484e58';
+  const bodyLt = '#788088';
+  const ore = '#c08030';
+  const oreLt = '#e0a040';
+  const crack = '#383840';
+  const eye = '#e08020';
+  const eyeBr = '#ffa030';
+  const joint = '#505860';
+
+  // Shadow (large, heavy)
+  bk(c, 8, 44, 32, 4, 'rgba(0,0,0,0.3)');
+
+  // Legs (thick, blocky)
+  bk(c, 14, 34, 8, 12, body);
+  bk(c, 15, 35, 6, 10, bodyLt);
+  bk(c, 26, 34, 8, 12, body);
+  bk(c, 27, 35, 6, 10, bodyLt);
+  // Feet (massive blocks)
+  bk(c, 12, 42, 12, 6, bodyDk);
+  bk(c, 24, 42, 12, 6, bodyDk);
+  bk(c, 13, 42, 10, 2, bodyLt);
+  bk(c, 25, 42, 10, 2, bodyLt);
+  // Knee joints
+  bk(c, 13, 36, 10, 3, joint);
+  bk(c, 25, 36, 10, 3, joint);
+
+  // Torso (massive, angular block)
+  bk(c, 8, 12, 32, 22, body);
+  bk(c, 10, 14, 28, 18, bodyLt);
+  // Angular edges
+  bk(c, 8, 12, 32, 2, bodyLt);
+  bk(c, 8, 32, 32, 2, bodyDk);
+  // Center line
+  bk(c, 23, 14, 2, 18, bodyDk);
+
+  // Cracks with ore showing through
+  bk(c, 14, 18, 6, 2, crack);
+  bk(c, 15, 19, 4, 1, ore);
+  bk(c, 28, 22, 5, 2, crack);
+  bk(c, 29, 23, 3, 1, ore);
+  bk(c, 18, 28, 4, 2, crack);
+  bk(c, 19, 29, 2, 1, oreLt);
+  // Ore veins on surface
+  px(c, 12, 16, ore); px(c, 34, 20, ore);
+  px(c, 20, 26, oreLt); px(c, 30, 14, ore);
+
+  // Arms (thick, angular)
+  bk(c, 2, 14, 8, 18, body);
+  bk(c, 3, 15, 6, 16, bodyLt);
+  bk(c, 38, 14, 8, 18, body);
+  bk(c, 39, 15, 6, 16, bodyLt);
+  // Fists (blocky)
+  bk(c, 1, 30, 10, 6, bodyDk);
+  bk(c, 37, 30, 10, 6, bodyDk);
+  bk(c, 2, 30, 8, 2, body);
+  bk(c, 38, 30, 8, 2, body);
+
+  // Pauldrons (angular rock)
+  bk(c, 4, 10, 12, 6, bodyDk);
+  bk(c, 5, 11, 10, 4, body);
+  bk(c, 32, 10, 12, 6, bodyDk);
+  bk(c, 33, 11, 10, 4, body);
+
+  // Head (blocky, smaller than body)
+  bk(c, 16, 2, 16, 12, body);
+  bk(c, 17, 3, 14, 10, bodyLt);
+  bk(c, 16, 2, 16, 2, bodyLt);
+
+  // Eyes (glowing orange, deep-set)
+  bk(c, 19, 6, 4, 3, '#201818');
+  bk(c, 27, 6, 4, 3, '#201818');
+  bk(c, 20, 7, 2, 2, eye);
+  bk(c, 28, 7, 2, 2, eye);
+  px(c, 20, 7, eyeBr);
+  px(c, 28, 7, eyeBr);
+
+  // Mouth (dark slit)
+  bk(c, 20, 11, 8, 2, crack);
+}
+
+// ─── BOG LURKER ──────────────────────────────────────────────
+
+function drawBogLurker(c: Ctx) {
+  const body = '#304828';
+  const bodyDk = '#203018';
+  const bodyLt = '#406038';
+  const belly = '#486040';
+  const slime = '#508040';
+  const slimeLt = '#60a050';
+  const eye = '#c0c020';
+  const eyeBr = '#e0e040';
+  const mouth = '#181810';
+  const teeth = '#d0d0b0';
+  const water = 'rgba(32,48,64,0.5)';
+
+  // Water/mud at base (partially submerged)
+  bk(c, 6, 38, 36, 10, water);
+  bk(c, 8, 40, 32, 8, 'rgba(24,40,56,0.6)');
+  // Ripples
+  bk(c, 10, 39, 8, 1, 'rgba(64,80,96,0.4)');
+  bk(c, 30, 40, 6, 1, 'rgba(64,80,96,0.4)');
+
+  // Legs (short, thick, partially hidden by water)
+  bk(c, 16, 36, 6, 8, body);
+  bk(c, 17, 37, 4, 6, bodyLt);
+  bk(c, 26, 36, 6, 8, body);
+  bk(c, 27, 37, 4, 6, bodyLt);
+
+  // Body (hunched, rounded)
+  bk(c, 12, 20, 24, 18, body);
+  bk(c, 14, 22, 20, 14, bodyLt);
+  // Belly (lighter, bloated)
+  bk(c, 16, 28, 16, 8, belly);
+  // Back hunch
+  bk(c, 14, 18, 20, 6, bodyDk);
+
+  // Long arms (reaching forward, past body)
+  bk(c, 4, 22, 10, 4, body);
+  bk(c, 2, 24, 6, 4, bodyLt);
+  bk(c, 0, 26, 4, 4, body);
+  // Clawed hand left
+  px(c, 0, 29, bodyDk); px(c, 1, 30, bodyDk); px(c, 3, 29, bodyDk);
+
+  bk(c, 34, 22, 10, 4, body);
+  bk(c, 40, 24, 6, 4, bodyLt);
+  bk(c, 44, 26, 4, 4, body);
+  // Clawed hand right
+  px(c, 47, 29, bodyDk); px(c, 46, 30, bodyDk); px(c, 44, 29, bodyDk);
+
+  // Head (wide, flat)
+  bk(c, 14, 10, 20, 12, body);
+  bk(c, 16, 12, 16, 8, bodyLt);
+
+  // Eyes (wide-set, yellow)
+  bk(c, 16, 12, 4, 3, eye);
+  bk(c, 28, 12, 4, 3, eye);
+  px(c, 17, 13, eyeBr);
+  px(c, 29, 13, eyeBr);
+
+  // Wide mouth (gaping)
+  bk(c, 16, 18, 16, 4, mouth);
+  // Teeth
+  px(c, 17, 18, teeth); px(c, 20, 18, teeth); px(c, 23, 18, teeth);
+  px(c, 26, 18, teeth); px(c, 29, 18, teeth);
+  px(c, 18, 21, teeth); px(c, 22, 21, teeth);
+  px(c, 26, 21, teeth);
+
+  // Dripping slime
+  px(c, 18, 22, slime); bk(c, 18, 23, 1, 3, slimeLt);
+  px(c, 24, 22, slime); bk(c, 24, 23, 1, 2, slimeLt);
+  px(c, 30, 20, slime); bk(c, 30, 21, 1, 2, slimeLt);
+
+  // Warts/bumps on skin
+  px(c, 14, 24, slime); px(c, 32, 26, slime);
+  px(c, 20, 30, bodyDk); px(c, 28, 28, bodyDk);
+}
+
+// ─── DROWNED WARDEN ──────────────────────────────────────────
+
+function drawDrownedWarden(c: Ctx) {
+  const armor = '#283848';
+  const armorDk = '#182030';
+  const armorLt = '#384858';
+  const rust = '#5a4828';
+  const rustLt = '#7a6038';
+  const barnacle = '#808878';
+  const cape = '#182028';
+  const capeLt = '#283038';
+  const visor = '#081018';
+  const glow = '#4080c0';
+  const glowBr = '#60a0e0';
+  const sword = '#6878a0';
+  const swordHi = '#8898b8';
+  const seaweed = '#305030';
+
+  // Shadow (very large)
+  bk(c, 6, 44, 36, 4, 'rgba(0,0,0,0.3)');
+
+  // Cape (waterlogged, heavy, behind body)
+  bk(c, 16, 12, 24, 34, cape);
+  bk(c, 18, 14, 20, 30, capeLt);
+  for (let fx = 20; fx < 38; fx += 3) bk(c, fx, 16, 1, 28, cape);
+  bk(c, 16, 42, 24, 4, cape);
+  // Cape drip lines
+  bk(c, 38, 36, 3, 8, cape);
+  bk(c, 17, 40, 2, 6, capeLt);
+
+  // Legs (heavy plate, corroded)
+  bk(c, 14, 34, 8, 10, armor);
+  bk(c, 15, 35, 6, 8, armorLt);
+  bk(c, 26, 34, 8, 10, armor);
+  bk(c, 27, 35, 6, 8, armorLt);
+  // Knee guards
+  bk(c, 13, 36, 10, 3, armorDk);
+  bk(c, 25, 36, 10, 3, armorDk);
+  // Boots (barnacle-encrusted)
+  bk(c, 12, 42, 12, 6, armorDk);
+  bk(c, 24, 42, 12, 6, armorDk);
+  bk(c, 13, 42, 10, 2, armorLt);
+  bk(c, 25, 42, 10, 2, armorLt);
+  // Barnacles on boots
+  px(c, 14, 44, barnacle); px(c, 22, 45, barnacle);
+  px(c, 26, 44, barnacle); px(c, 34, 45, barnacle);
+
+  // Body (heavy corroded plate)
+  bk(c, 10, 14, 28, 20, armor);
+  bk(c, 12, 16, 24, 16, armorLt);
+  // Plate bands
+  for (let by = 18; by < 32; by += 4) bk(c, 12, by, 24, 1, armorDk);
+  // Rust patches
+  px(c, 14, 20, rust); px(c, 30, 24, rust); px(c, 18, 28, rustLt);
+  px(c, 26, 18, rust); px(c, 20, 22, rustLt);
+  // Center line
+  bk(c, 23, 16, 2, 16, armorDk);
+  // Barnacles on torso
+  px(c, 16, 26, barnacle); px(c, 32, 22, barnacle);
+  px(c, 12, 18, barnacle); px(c, 28, 30, barnacle);
+
+  // Pauldrons (large, corroded)
+  bk(c, 4, 10, 14, 8, armor);
+  bk(c, 5, 11, 12, 6, armorLt);
+  bk(c, 4, 10, 14, 1, armorLt);
+  bk(c, 30, 10, 14, 8, armor);
+  bk(c, 31, 11, 12, 6, armorLt);
+  bk(c, 30, 10, 14, 1, armorLt);
+  // Barnacles on pauldrons
+  px(c, 7, 14, barnacle); px(c, 15, 12, barnacle);
+  px(c, 33, 14, barnacle); px(c, 41, 12, barnacle);
+  // Seaweed draped on shoulder
+  bk(c, 6, 16, 2, 6, seaweed);
+  bk(c, 40, 16, 2, 5, seaweed);
+
+  // Arms
+  bk(c, 6, 16, 6, 16, armor);
+  bk(c, 7, 17, 4, 14, armorLt);
+  bk(c, 36, 16, 6, 16, armor);
+  bk(c, 37, 17, 4, 14, armorLt);
+  // Gauntlets
+  bk(c, 5, 30, 8, 4, armorDk);
+  bk(c, 35, 30, 8, 4, armorDk);
+
+  // Helmet (larger than hollow_knight, corroded)
+  bk(c, 12, 0, 24, 14, armor);
+  bk(c, 14, 2, 20, 10, armorLt);
+  bk(c, 12, 0, 24, 2, armorLt);
+  // Visor slit
+  bk(c, 16, 6, 16, 4, visor);
+  // Blue glow behind visor
+  px(c, 18, 7, glow); px(c, 29, 7, glow);
+  px(c, 19, 7, glowBr); px(c, 28, 7, glowBr);
+  px(c, 20, 8, glow); px(c, 27, 8, glow);
+  // Rust on helmet
+  px(c, 14, 4, rust); px(c, 32, 6, rust); px(c, 20, 12, rustLt);
+  // Barnacles on helmet
+  px(c, 16, 2, barnacle); px(c, 30, 4, barnacle); px(c, 24, 0, barnacle);
+  // Helmet crest (corroded)
+  bk(c, 22, -2, 4, 4, armorDk);
+  bk(c, 23, -2, 2, 2, armor);
+
+  // CORRODED GREATSWORD
+  bk(c, 0, -2, 3, 36, sword);
+  bk(c, 0, -2, 3, 2, swordHi);
+  px(c, -1, 0, swordHi);
+  // Rust and pitting on blade
+  px(c, 1, 6, rust); px(c, 2, 14, rust); px(c, 0, 20, rustLt);
+  px(c, 1, 10, armorDk); px(c, 2, 24, armorDk);
+  // Barnacles on blade
+  px(c, 0, 16, barnacle); px(c, 2, 28, barnacle);
+  // Crossguard
+  bk(c, -2, 30, 8, 3, armorDk);
+  bk(c, -1, 31, 6, 1, armor);
+  // Grip (waterlogged)
+  bk(c, 0, 33, 3, 6, '#2a3830');
+  // Pommel
+  bk(c, 0, 39, 3, 3, armorDk);
+
+  // Water drips from armor
+  px(c, 10, 32, 'rgba(64,128,192,0.5)');
+  px(c, 34, 28, 'rgba(64,128,192,0.5)');
+  px(c, 22, 34, 'rgba(64,128,192,0.5)');
 }
 
 // ─── OUTLINE ──────────────────────────────────────────────────

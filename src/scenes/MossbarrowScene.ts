@@ -204,6 +204,17 @@ export class MossbarrowScene extends BaseWorldScene {
       label: '← Greenhollow',
     });
 
+    // East edge → Ironveil Mines.
+    this.addExit({
+      x: (MAP_W - 1) * TILE,
+      y: 0,
+      w: TILE,
+      h: WORLD_H,
+      targetScene: 'IronveilScene',
+      targetSpawn: 'fromMossbarrow',
+      label: '→ Ironveil Mines [Lv 5-7]',
+    });
+
     // Center stone — visible altar/pedestal with glow-ish highlight.
     const cairnCx = 22 * TILE;
     const cairnCy = 11 * TILE;
@@ -303,6 +314,8 @@ export class MossbarrowScene extends BaseWorldScene {
       case 'fromDepths':
         // Surface exit — just south of the stair entrance (center stone area)
         return { x: 22 * TILE, y: 15 * TILE };
+      case 'fromIronveil':
+        return { x: (MAP_W - 2) * TILE, y: WORLD_H / 2 };
       case 'default':
       default:
         return { x: 2 * TILE + 16, y: WORLD_H / 2 };
