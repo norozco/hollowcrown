@@ -41,6 +41,50 @@ import './InGameOverlay.css';
  *   - Corner menu (Esc or click) for returning to main menu
  *   - Dialogue overlay when a dialogue is active
  */
+function getNextObjective(): string | null {
+  const quests = useQuestStore.getState().active;
+  const character = usePlayerStore.getState().character;
+  if (!character) return null;
+
+  // Check main quests in order
+  if (!quests['iron-token']) return 'Visit the Adventurers\' Guild';
+  if (!quests['iron-token'].isComplete) {
+    const state = quests['iron-token'];
+    if (!state.completedObjectiveIds.includes('talk-orric')) return 'Speak with Orric in Greenhollow';
+    if (!state.completedObjectiveIds.includes('find-cairn')) return 'Find the cairn in Mossbarrow';
+    return 'Return to Brenna at the Guild';
+  }
+  if (!quests['iron-token'].turnedIn) return 'Return to Brenna at the Guild';
+
+  // After iron-token, suggest depths
+  if (!quests['depths-explorer']) return 'Ask Brenna about the depths';
+  if (!quests['depths-explorer'].isComplete) return 'Reach Floor 3 of Mossbarrow Depths';
+  if (!quests['depths-explorer'].turnedIn) return 'Report to Brenna';
+
+  // After depths, suggest hollow king
+  if (!quests['hollow-king-slayer']) return 'Ask Brenna about the Hollow King';
+  if (!quests['hollow-king-slayer'].isComplete) return 'Defeat the Hollow King in the depths';
+  if (!quests['hollow-king-slayer'].turnedIn) return 'Return to Brenna';
+
+  // After hollow king, suggest Ashenmere
+  if (!quests['scholars-trail']) return 'Explore Ashenmere Marshes — find the Hermit';
+  if (!quests['scholars-trail'].isComplete) return 'Search Ashenmere for Veyrin\'s trail';
+  if (!quests['scholars-trail'].turnedIn) return 'Bring the journal to the Hermit';
+
+  // Drowned sanctum
+  if (!quests['drowned-sanctum']) return 'Ask the Hermit about the Drowned Sanctum';
+  if (!quests['drowned-sanctum'].isComplete) return 'Find Veyrin in the Drowned Sanctum';
+  if (!quests['drowned-sanctum'].turnedIn) return 'Find Veyrin';
+
+  // What remains
+  if (!quests['what-remains']) return null;
+  if (!quests['what-remains'].isComplete) return 'Return to Brenna with Veyrin\'s message';
+  if (!quests['what-remains'].turnedIn) return 'Speak with Brenna';
+
+  // All main quests done
+  return 'All main quests complete. Explore freely.';
+}
+
 export function InGameOverlay() {
   const character = usePlayerStore((s) => s.character);
   // Subscribing to `version` forces re-renders when character fields
@@ -61,6 +105,7 @@ export function InGameOverlay() {
   const resetInventory = useInventoryStore((s) => s.reset);
 
   const questActive = useQuestStore((s) => s.active);
+  const nextObjective = getNextObjective();
   const perks = usePlayerStore((s) => s.perks);
 
   const checkAchievements = useAchievementStore((s) => s.checkAchievements);
@@ -337,6 +382,12 @@ export function InGameOverlay() {
           </button>
         </div>
       </header>
+
+      {nextObjective && (
+        <div className="ig__breadcrumb">
+          <span className="ig__breadcrumb-arrow">▸</span> {nextObjective}
+        </div>
+      )}
 
       {menuOpen && (
         <div className="ig__menu" role="dialog" aria-label="Pause menu">

@@ -229,3 +229,23 @@
   font-style: italic;
   pointer-events: none;
 }
+
+/* Next-objective breadcrumb — centered just below the HUD bar */
+.ig__breadcrumb {
+  position: absolute;
+  top: 2.8rem;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: 'Courier New', monospace;
+  font-size: 0.75rem;
+  color: #8a7a48;
+  background: rgba(10,6,4,0.6);
+  padding: 2px 12px;
+  border-radius: 3px;
+  pointer-events: none;
+  z-index: 14;
+  white-space: nowrap;
+}
+.ig__breadcrumb-arrow {
+  color: #d4a968;
+}
