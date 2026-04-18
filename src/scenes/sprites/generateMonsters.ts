@@ -5,6 +5,8 @@ import * as Phaser from 'phaser';
  * pixel-art shape drawn at 48×48, scaled up in the combat scene.
  *
  * Monster sprites face LEFT (toward the player on the left side).
+ * SNES/ALTTP-quality pixel art with 3-4 shade ramps, strong outlines,
+ * top-left light source, deliberate pixel placement.
  */
 
 const MW = 48;
@@ -45,1049 +47,1775 @@ export function generateMonsterSprite(scene: Phaser.Scene, key: string, monsterK
 }
 
 // ─── WOLF ─────────────────────────────────────────────────────
+// Full wolf profile facing left: pointed snout, erect ears, bushy tail,
+// grey fur with 4-shade ramp, yellow eyes, running stance.
 
 function drawWolf(c: Ctx) {
-  const body = '#707878';
-  const dark = '#505858';
-  const lite = '#909898';
-  const belly = '#a0a8a8';
-  const eye = '#e0c020';
-  const nose = '#282020';
+  const dk   = '#404040';
+  const mid  = '#606060';
+  const lite = '#808080';
+  const hi   = '#a0a0a0';
+  const belly = '#b0b0a8';
+  const eye  = '#d0b020';
+  const eyeHi = '#f0d840';
+  const pupil = '#181008';
+  const nose = '#1a1010';
   const teeth = '#e0e0d0';
+  const gum  = '#804040';
+  const pawDk = '#383838';
 
-  // Shadow
-  bk(c, 10, 42, 28, 6, 'rgba(0,0,0,0.2)');
+  // ── Ground shadow ──
+  bk(c, 8, 44, 32, 4, 'rgba(0,0,0,0.18)');
 
-  // Tail (curves up from rear)
-  bk(c, 36, 18, 3, 8, dark);
-  bk(c, 38, 16, 3, 6, body);
-  bk(c, 40, 14, 2, 4, lite);
-  px(c, 41, 13, lite);
+  // ── Bushy tail (curves up behind) ──
+  bk(c, 37, 18, 4, 3, dk);
+  bk(c, 38, 16, 4, 4, mid);
+  bk(c, 39, 14, 4, 5, lite);
+  bk(c, 40, 12, 3, 4, mid);
+  px(c, 42, 11, hi);
+  px(c, 41, 11, lite);
+  // tail tip fur wisps
+  px(c, 43, 13, hi);
+  px(c, 42, 15, hi);
+  // shadow underside
+  bk(c, 38, 20, 4, 2, dk);
+  px(c, 40, 19, dk);
 
-  // Hind legs
-  bk(c, 30, 34, 4, 10, dark);
-  bk(c, 31, 35, 2, 8, body);
-  bk(c, 35, 34, 4, 10, dark);
-  bk(c, 36, 35, 2, 8, body);
-  // Paws
-  bk(c, 29, 42, 6, 3, dark);
-  bk(c, 34, 42, 6, 3, dark);
+  // ── Hind legs (running stance — one forward, one back) ──
+  // Rear hind leg (further back)
+  bk(c, 34, 34, 3, 9, dk);
+  bk(c, 35, 35, 2, 7, mid);
+  px(c, 36, 36, lite);
+  // Rear hind paw
+  bk(c, 33, 42, 5, 3, dk);
+  bk(c, 34, 42, 3, 2, mid);
+  px(c, 34, 42, lite);
 
-  // Body (elongated horizontal)
-  bk(c, 10, 22, 28, 14, body);
-  bk(c, 12, 24, 24, 10, lite);
-  // Back line (darker)
-  bk(c, 10, 22, 28, 3, dark);
-  // Belly (lighter underneath)
+  // Front hind leg (closer)
+  bk(c, 29, 33, 4, 10, mid);
+  bk(c, 30, 34, 2, 8, lite);
+  px(c, 30, 34, hi);
+  // upper haunch
+  bk(c, 28, 30, 6, 5, mid);
+  bk(c, 29, 31, 4, 3, lite);
+  // Front hind paw
+  bk(c, 28, 42, 6, 3, dk);
+  bk(c, 29, 42, 4, 2, mid);
+  px(c, 29, 42, lite);
+
+  // ── Body (elongated, muscular) ──
+  // dark base layer
+  bk(c, 9, 22, 30, 14, dk);
+  // mid fill
+  bk(c, 10, 23, 28, 12, mid);
+  // lighter core
+  bk(c, 12, 24, 24, 9, lite);
+  // highlight ridge along top-left
+  bk(c, 10, 22, 16, 2, hi);
+  px(c, 12, 24, hi); px(c, 14, 24, hi);
+  // back dark line
+  bk(c, 9, 22, 30, 2, dk);
+  bk(c, 9, 23, 28, 1, mid);
+  // belly lighter
   bk(c, 14, 33, 18, 3, belly);
-
-  // Front legs
-  bk(c, 12, 34, 4, 10, body);
-  bk(c, 13, 35, 2, 8, lite);
-  bk(c, 17, 34, 4, 10, body);
-  bk(c, 18, 35, 2, 8, lite);
-  // Front paws
-  bk(c, 11, 42, 6, 3, body);
-  bk(c, 16, 42, 6, 3, body);
-
-  // Neck (thicker, connects to head)
-  bk(c, 6, 20, 8, 10, body);
-  bk(c, 7, 21, 6, 8, lite);
-
-  // Head
-  bk(c, 2, 16, 10, 10, body);
-  bk(c, 3, 17, 8, 8, lite);
-  // Snout (extends left)
-  bk(c, 0, 20, 5, 5, body);
-  bk(c, 0, 21, 4, 3, lite);
-  // Nose
-  bk(c, 0, 20, 2, 2, nose);
-  // Teeth (small white line under snout)
-  px(c, 1, 24, teeth); px(c, 3, 24, teeth); px(c, 5, 24, teeth);
-
-  // Eyes (yellow, menacing)
-  bk(c, 4, 18, 3, 2, eye);
-  px(c, 5, 18, '#f0d830'); // bright center
-  // Eye glow
-  px(c, 3, 17, '#e0c020');
-
-  // Ears (pointed, on top of head)
-  bk(c, 4, 12, 3, 5, dark);
-  bk(c, 5, 11, 2, 3, body);
-  px(c, 5, 10, lite);
-  bk(c, 8, 13, 3, 4, dark);
-  bk(c, 9, 12, 2, 3, body);
-  px(c, 9, 11, lite);
-
-  // Fur texture (darker streaks on back)
-  for (let fx = 14; fx < 36; fx += 4) {
-    px(c, fx, 23, dark);
-    px(c, fx + 1, 24, dark);
+  bk(c, 16, 34, 14, 2, hi);
+  // fur texture dithering on back
+  for (let fx = 13; fx < 36; fx += 3) {
+    px(c, fx, 24, dk);
+    px(c, fx + 1, 25, mid);
   }
+  // side shading (right/bottom = shadow)
+  bk(c, 36, 26, 2, 8, dk);
+  bk(c, 35, 28, 1, 6, dk);
+
+  // ── Front legs (running stance) ──
+  // Back front leg
+  bk(c, 17, 33, 3, 10, dk);
+  bk(c, 18, 34, 2, 8, mid);
+  px(c, 18, 34, lite);
+  bk(c, 16, 42, 5, 3, dk);
+  bk(c, 17, 42, 3, 2, mid);
+
+  // Front front leg (extended forward)
+  bk(c, 10, 32, 4, 11, mid);
+  bk(c, 11, 33, 2, 9, lite);
+  px(c, 11, 33, hi);
+  bk(c, 9, 42, 6, 3, dk);
+  bk(c, 10, 42, 4, 2, mid);
+  px(c, 10, 42, lite);
+  // claw details on front paw
+  px(c, 9, 44, pawDk); px(c, 11, 44, pawDk);
+
+  // ── Neck (muscular, connects head to body) ──
+  bk(c, 5, 20, 9, 10, mid);
+  bk(c, 6, 21, 7, 8, lite);
+  bk(c, 5, 20, 9, 2, dk); // top dark
+  bk(c, 5, 20, 2, 4, hi); // left highlight
+  // mane/ruff (darker fur along neck top)
+  bk(c, 6, 18, 8, 4, dk);
+  bk(c, 7, 19, 6, 2, mid);
+
+  // ── Head (angular wolf head facing left) ──
+  bk(c, 2, 16, 10, 10, mid);
+  bk(c, 3, 17, 8, 8, lite);
+  bk(c, 2, 16, 10, 2, hi); // top highlight
+  bk(c, 2, 16, 2, 6, hi);  // left highlight
+  // forehead shape
+  bk(c, 4, 15, 6, 2, mid);
+  px(c, 4, 15, hi); px(c, 5, 15, hi);
+
+  // ── Snout (pointed, extends left) ──
+  bk(c, 0, 20, 5, 5, mid);
+  bk(c, 0, 21, 4, 3, lite);
+  bk(c, 0, 20, 3, 1, hi);  // top of snout highlight
+  // bridge of nose
+  bk(c, 2, 19, 4, 2, mid);
+  bk(c, 2, 19, 3, 1, hi);
+
+  // ── Nose (dark tip) ──
+  bk(c, 0, 20, 2, 2, nose);
+  px(c, 0, 20, '#281818');
+  px(c, 1, 20, '#201010');
+
+  // ── Mouth / jaw ──
+  bk(c, 0, 24, 7, 2, dk);
+  bk(c, 1, 24, 5, 1, mid);
+  // teeth (white pixels showing)
+  px(c, 1, 24, teeth); px(c, 3, 24, teeth); px(c, 5, 24, teeth);
+  // gum line
+  px(c, 2, 24, gum); px(c, 4, 24, gum);
+  // lower jaw
+  bk(c, 2, 25, 5, 1, dk);
+
+  // ── Eyes (yellow, menacing, with pupil) ──
+  // eye socket dark surround
+  bk(c, 3, 17, 5, 3, dk);
+  // eye fill
+  bk(c, 4, 17, 3, 2, eye);
+  // bright center
+  px(c, 5, 17, eyeHi);
+  px(c, 4, 18, eye);
+  // pupil (dark slit)
+  px(c, 5, 18, pupil);
+  // eye shine
+  px(c, 4, 17, '#f8e860');
+  // brow ridge
+  bk(c, 3, 16, 5, 1, dk);
+
+  // ── Ears (tall, pointed, erect) ──
+  // Left ear (closer to viewer)
+  bk(c, 3, 10, 4, 6, dk);
+  bk(c, 4, 10, 2, 5, mid);
+  px(c, 4, 10, hi);
+  px(c, 5, 11, lite);
+  // inner ear
+  px(c, 5, 12, '#806060');
+  px(c, 5, 13, '#806060');
+
+  // Right ear (behind)
+  bk(c, 8, 11, 3, 5, dk);
+  bk(c, 9, 11, 2, 4, mid);
+  px(c, 9, 11, lite);
+  px(c, 10, 12, '#706060');
+
+  // ── Fur detail passes ──
+  // light dither along left flank
+  px(c, 11, 26, hi); px(c, 11, 28, hi);
+  px(c, 12, 30, hi);
+  // dark guard hairs
+  px(c, 20, 23, dk); px(c, 26, 23, dk); px(c, 32, 24, dk);
+  // chest fur tuft
+  px(c, 8, 28, belly); px(c, 9, 29, belly); px(c, 8, 30, belly);
 }
 
-// ─── SKELETON ─────────────────────────────────────────────────
+// ─── BOAR ───────────────────────────────────────────────────
+// Stocky quadruped: barrel body, short legs, lowered head, tusks.
 
-function drawSkeleton(c: Ctx) {
-  const bone = '#d8d0c0';
-  const boneDk = '#b0a890';
-  const boneLt = '#e8e0d0';
-  const socket = '#201810';
-  const armor = '#606868';
-  const armorLt = '#808888';
-  const sword = '#a0a8b0';
-  const swordHi = '#c0c8d0';
+function drawBoar(c: Ctx) {
+  const dk   = '#5a3a1a';
+  const mid  = '#7a5a30';
+  const lite = '#9a7a48';
+  const hi   = '#b89860';
+  const belly = '#c0a878';
+  const tusk = '#e0dcc0';
+  const tuskSh = '#c0b8a0';
+  const eye  = '#c04040';
+  const eyeBr = '#e05050';
+  const nose = '#2a1810';
+  const noseLt = '#4a2818';
+  const hoof = '#302010';
+  const hoofLt = '#483018';
+  const bristle = '#4a2a10';
+
+  // Shadow
+  bk(c, 6, 43, 34, 5, 'rgba(0,0,0,0.18)');
+
+  // ── Tail (short, curly) ──
+  px(c, 40, 21, dk); px(c, 41, 20, mid);
+  px(c, 42, 21, mid); px(c, 41, 22, dk);
+
+  // ── Hind legs ──
+  bk(c, 31, 35, 4, 9, dk);
+  bk(c, 32, 36, 2, 7, mid);
+  px(c, 32, 36, lite);
+  bk(c, 36, 35, 4, 9, dk);
+  bk(c, 37, 36, 2, 7, mid);
+  // Hooves
+  bk(c, 30, 43, 6, 4, hoof);
+  bk(c, 31, 43, 4, 3, hoofLt);
+  bk(c, 35, 43, 6, 4, hoof);
+  bk(c, 36, 43, 4, 3, hoofLt);
+
+  // ── Body (massive barrel) ──
+  bk(c, 8, 23, 32, 14, dk);
+  bk(c, 9, 24, 30, 12, mid);
+  bk(c, 11, 25, 26, 9, lite);
+  // top highlight (light from top-left)
+  bk(c, 9, 23, 20, 2, hi);
+  bk(c, 8, 24, 4, 4, hi);
+  // belly lighter
+  bk(c, 14, 34, 20, 3, belly);
+  // dark underside shadow
+  bk(c, 10, 36, 28, 1, dk);
+  // bristly back ridge (spiky dark pixels)
+  for (let bx = 10; bx < 38; bx += 2) {
+    px(c, bx, 22, bristle);
+    px(c, bx, 23, dk);
+    if (bx % 4 === 0) px(c, bx, 21, bristle);
+  }
+  // body fur texture
+  for (let fx = 14; fx < 36; fx += 4) {
+    px(c, fx, 26, dk);
+    px(c, fx + 1, 28, dk);
+    px(c, fx + 2, 30, mid);
+  }
+  // right side shadow
+  bk(c, 38, 26, 2, 8, dk);
+
+  // ── Front legs ──
+  bk(c, 10, 35, 4, 9, mid);
+  bk(c, 11, 36, 2, 7, lite);
+  px(c, 11, 36, hi);
+  bk(c, 16, 35, 4, 9, mid);
+  bk(c, 17, 36, 2, 7, lite);
+  // Front hooves
+  bk(c, 9, 43, 6, 4, hoof);
+  bk(c, 10, 43, 4, 3, hoofLt);
+  bk(c, 15, 43, 6, 4, hoof);
+  bk(c, 16, 43, 4, 3, hoofLt);
+
+  // ── Thick neck ──
+  bk(c, 4, 22, 10, 12, mid);
+  bk(c, 5, 23, 8, 10, lite);
+  bk(c, 4, 22, 6, 3, hi); // top-left highlight
+  // neck muscle shading
+  px(c, 12, 28, dk); px(c, 12, 30, dk);
+
+  // ── Head (wide, low, aggressive) ──
+  bk(c, 0, 20, 12, 12, dk);
+  bk(c, 1, 21, 10, 10, mid);
+  bk(c, 2, 22, 8, 8, lite);
+  // top-left highlight
+  bk(c, 1, 20, 8, 2, hi);
+  bk(c, 0, 21, 2, 4, hi);
+  // forehead ridge
+  bk(c, 2, 19, 8, 2, mid);
+  bk(c, 3, 18, 6, 2, dk);
+
+  // ── Snout (broad, blunt) ──
+  bk(c, 0, 26, 6, 6, dk);
+  bk(c, 0, 27, 5, 4, mid);
+  bk(c, 1, 27, 3, 3, lite);
+  // Nostrils
+  bk(c, 0, 27, 2, 2, nose);
+  px(c, 0, 28, noseLt);
+  bk(c, 0, 29, 2, 2, nose);
+  // snout highlight
+  px(c, 1, 26, hi);
+
+  // ── Tusks (curved upward, 4px each) ──
+  // Left tusk
+  bk(c, 1, 30, 2, 4, tusk);
+  px(c, 1, 29, tusk);
+  px(c, 0, 29, tuskSh);
+  px(c, 2, 33, tuskSh);
+  // Right tusk
+  bk(c, 5, 30, 2, 4, tusk);
+  px(c, 5, 29, tusk);
+  px(c, 6, 29, tuskSh);
+  px(c, 6, 33, tuskSh);
+
+  // ── Eyes (small, angry red, deep-set) ──
+  bk(c, 3, 22, 3, 3, '#181010'); // socket
+  bk(c, 3, 22, 2, 2, eye);
+  px(c, 3, 22, eyeBr);
+  // brow
+  bk(c, 2, 21, 4, 1, dk);
+
+  // ── Ears (small, pointed, folded back) ──
+  bk(c, 3, 16, 3, 4, dk);
+  bk(c, 4, 15, 2, 3, mid);
+  px(c, 4, 15, lite);
+  bk(c, 7, 17, 3, 3, dk);
+  bk(c, 8, 16, 2, 2, mid);
+  px(c, 8, 16, lite);
+}
+
+// ─── BANDIT ─────────────────────────────────────────────────
+// Hooded humanoid, hunched, dagger in hand, face hidden.
+
+function drawBandit(c: Ctx) {
+  const hood   = '#3a4a2a';
+  const hoodDk = '#2a3820';
+  const hoodMd = '#4a5a3a';
+  const hoodLt = '#5a6a4a';
+  const tunic  = '#5a4a3a';
+  const tunicDk= '#3a3020';
+  const tunicLt= '#6a5a48';
+  const skin   = '#c0a080';
+  const skinDk = '#a08060';
+  const pants  = '#3a3228';
+  const pantsLt= '#4a4238';
+  const boot   = '#2a2018';
+  const bootLt = '#3a2820';
+  const blade  = '#b0b8c0';
+  const bladeHi= '#d0d8e0';
+  const bladeDk= '#808898';
+  const face   = '#101008';
+  const eyeL   = '#c0c8a0';
+  const eyeR   = '#e0e8c8';
+  const belt   = '#705028';
+  const beltLt = '#906838';
+  const buckle = '#c0a040';
 
   // Shadow
   bk(c, 14, 44, 20, 4, 'rgba(0,0,0,0.2)');
 
-  // Feet (bone)
-  bk(c, 18, 40, 4, 4, bone);
-  bk(c, 26, 40, 4, 4, bone);
+  // ── Cape/cloak behind body ──
+  bk(c, 17, 14, 18, 30, hoodDk);
+  bk(c, 19, 16, 14, 26, hood);
+  // cloak flow lines
+  for (let fx = 20; fx < 34; fx += 3) bk(c, fx, 18, 1, 24, hoodDk);
+  // tattered bottom edge
+  px(c, 18, 43, hoodDk); px(c, 20, 44, hood);
+  px(c, 33, 43, hoodDk); px(c, 31, 44, hood);
+  bk(c, 34, 38, 2, 6, hoodDk);
 
-  // Legs (thin bones)
-  bk(c, 19, 30, 2, 10, bone);
-  bk(c, 27, 30, 2, 10, bone);
-  // Knee joints
-  bk(c, 18, 34, 4, 2, boneDk);
-  bk(c, 26, 34, 4, 2, boneDk);
+  // ── Boots ──
+  bk(c, 16, 42, 6, 5, boot);
+  bk(c, 17, 42, 4, 4, bootLt);
+  bk(c, 17, 42, 3, 1, '#4a3828'); // highlight
+  bk(c, 26, 42, 6, 5, boot);
+  bk(c, 27, 42, 4, 4, bootLt);
+  bk(c, 27, 42, 3, 1, '#4a3828');
 
-  // Pelvis
-  bk(c, 16, 28, 16, 4, bone);
-  bk(c, 17, 29, 14, 2, boneDk);
+  // ── Legs ──
+  bk(c, 17, 34, 5, 8, pants);
+  bk(c, 18, 35, 3, 6, pantsLt);
+  bk(c, 27, 34, 5, 8, pants);
+  bk(c, 28, 35, 3, 6, pantsLt);
+  // knee patches
+  px(c, 18, 37, tunicDk); px(c, 28, 37, tunicDk);
 
-  // Ribcage
-  bk(c, 16, 16, 16, 12, bone);
-  // Individual ribs (dark gaps)
-  for (let ry = 18; ry < 28; ry += 2) {
-    bk(c, 18, ry, 12, 1, socket);
+  // ── Body (tunic) ──
+  bk(c, 14, 16, 20, 18, tunic);
+  bk(c, 15, 17, 18, 16, tunicLt);
+  bk(c, 14, 16, 12, 2, '#6a5a48'); // top-left highlight
+  // fold lines
+  bk(c, 23, 18, 1, 14, tunicDk);
+  bk(c, 18, 20, 1, 10, tunicDk);
+  bk(c, 28, 22, 1, 8, tunicDk);
+  // shadow right side
+  bk(c, 32, 18, 2, 14, tunicDk);
+
+  // ── Belt with pouches ──
+  bk(c, 14, 31, 20, 3, belt);
+  bk(c, 15, 31, 18, 1, beltLt); // highlight
+  // buckle
+  bk(c, 22, 31, 4, 3, buckle);
+  px(c, 23, 32, '#e0c060');
+  // pouches (small brown rectangles on belt)
+  bk(c, 15, 32, 3, 2, '#604020');
+  px(c, 16, 32, '#705028');
+  bk(c, 30, 32, 3, 2, '#604020');
+  px(c, 31, 32, '#705028');
+
+  // ── Arms ──
+  bk(c, 10, 18, 5, 12, tunic);
+  bk(c, 11, 19, 3, 10, tunicLt);
+  bk(c, 10, 18, 3, 2, '#6a5a48'); // highlight
+  bk(c, 33, 18, 5, 12, tunic);
+  bk(c, 34, 19, 3, 10, tunicLt);
+  // Hands (skin tone)
+  bk(c, 10, 28, 4, 4, skin);
+  bk(c, 10, 28, 3, 2, '#d0b090');
+  bk(c, 34, 28, 4, 4, skinDk);
+  bk(c, 34, 28, 3, 2, skin);
+
+  // ── Hood ──
+  bk(c, 14, 2, 20, 16, hood);
+  bk(c, 15, 3, 18, 14, hoodMd);
+  bk(c, 16, 4, 16, 12, hoodLt);
+  // top edge highlight
+  bk(c, 14, 2, 14, 2, hoodLt);
+  // hood peak
+  bk(c, 20, 0, 8, 4, hood);
+  bk(c, 22, 0, 4, 2, hoodDk);
+  px(c, 22, 0, hoodMd);
+  // hood shadow creases
+  bk(c, 14, 4, 2, 10, hoodDk);
+  bk(c, 32, 4, 2, 10, hoodDk);
+  // hood drape over shoulders
+  bk(c, 12, 14, 4, 4, hood);
+  bk(c, 32, 14, 4, 4, hood);
+
+  // ── Face (deep shadow under hood) ──
+  bk(c, 18, 6, 12, 10, face);
+  // mask
+  bk(c, 18, 10, 12, 5, '#1a1a10');
+  bk(c, 19, 11, 10, 3, '#222218');
+  // eyes (gleaming)
+  bk(c, 20, 8, 3, 2, eyeL);
+  px(c, 21, 8, eyeR); // bright center
+  bk(c, 25, 8, 3, 2, eyeL);
+  px(c, 26, 8, eyeR);
+  // eye glow subtle
+  px(c, 19, 8, 'rgba(192,200,160,0.3)');
+  px(c, 28, 8, 'rgba(192,200,160,0.3)');
+
+  // ── Dagger (in left hand) ──
+  // blade (silver, 1px wide, 8px tall)
+  bk(c, 7, 14, 2, 16, blade);
+  bk(c, 7, 14, 2, 2, bladeHi); // tip highlight
+  px(c, 6, 16, bladeHi); // edge gleam
+  px(c, 6, 18, bladeHi);
+  bk(c, 8, 20, 1, 8, bladeDk); // shadow edge
+  // crossguard
+  bk(c, 5, 28, 6, 2, '#705028');
+  bk(c, 6, 28, 4, 1, beltLt);
+  // grip (wrapped leather)
+  bk(c, 7, 30, 2, 4, '#4a3020');
+  px(c, 7, 31, '#5a3828');
+  px(c, 7, 33, '#5a3828');
+}
+
+// ─── SKELETON ─────────────────────────────────────────────────
+// Standing skeleton with rusty sword, bone color ramp, visible ribcage.
+
+function drawSkeleton(c: Ctx) {
+  const bone   = '#d0d0c0';
+  const boneMd = '#c0c0b0';
+  const boneDk = '#a0a098';
+  const boneSh = '#808078';
+  const socket = '#181010';
+  const glowG  = '#80c080';
+  const glowGb = '#a0e0a0';
+  const armor  = '#506068';
+  const armorLt= '#688080';
+  const sword  = '#909898';
+  const swordHi= '#c0c8d0';
+  const rust   = '#785838';
+  const rustLt = '#906840';
+  const grip   = '#604020';
+
+  // Shadow
+  bk(c, 14, 44, 20, 4, 'rgba(0,0,0,0.2)');
+
+  // ── Feet (bone) ──
+  bk(c, 17, 41, 5, 4, boneDk);
+  bk(c, 18, 41, 3, 3, bone);
+  px(c, 18, 41, '#e0e0d0');
+  bk(c, 26, 41, 5, 4, boneDk);
+  bk(c, 27, 41, 3, 3, bone);
+
+  // ── Leg bones (thin with joints) ──
+  // Left leg
+  bk(c, 19, 30, 2, 11, boneDk);
+  bk(c, 19, 31, 1, 9, bone);
+  // knee joint
+  bk(c, 18, 34, 4, 3, boneSh);
+  bk(c, 19, 35, 2, 1, boneMd);
+  // Right leg
+  bk(c, 27, 30, 2, 11, boneDk);
+  bk(c, 27, 31, 1, 9, bone);
+  bk(c, 26, 34, 4, 3, boneSh);
+  bk(c, 27, 35, 2, 1, boneMd);
+
+  // ── Pelvis ──
+  bk(c, 16, 28, 16, 4, boneDk);
+  bk(c, 17, 28, 14, 2, bone);
+  bk(c, 18, 29, 12, 2, boneMd);
+  // hip joint details
+  px(c, 18, 30, boneSh); px(c, 28, 30, boneSh);
+
+  // ── Ribcage ──
+  bk(c, 16, 16, 16, 12, boneDk);
+  bk(c, 17, 16, 14, 11, bone);
+  // individual rib bones with gaps
+  for (let ry = 17; ry < 27; ry += 2) {
+    bk(c, 18, ry, 12, 1, socket); // dark gap between ribs
+    // rib bone highlight
+    bk(c, 18, ry + 1, 12, 1, bone);
+    px(c, 18, ry + 1, '#e0e0d0'); // left highlight
   }
-  // Spine (center dark line)
-  bk(c, 23, 16, 2, 14, boneDk);
+  // Spine (center)
+  bk(c, 23, 16, 2, 14, boneSh);
+  bk(c, 23, 16, 1, 14, boneDk);
+  // sternum
+  bk(c, 22, 16, 4, 2, boneMd);
 
-  // Tattered armor piece (one shoulder)
+  // ── Shoulder armor piece ──
   bk(c, 12, 14, 8, 6, armor);
-  bk(c, 13, 15, 6, 4, armorLt);
-  bk(c, 12, 14, 8, 1, armorLt); // highlight
+  bk(c, 13, 14, 6, 4, armorLt);
+  bk(c, 12, 14, 8, 1, armorLt);
+  // rust on armor
+  px(c, 14, 16, rust); px(c, 18, 18, rust);
 
-  // Arms (bone thin)
-  bk(c, 14, 18, 2, 12, bone);
-  bk(c, 32, 18, 2, 12, bone);
-  // Hands
-  bk(c, 13, 28, 4, 3, boneDk);
-  bk(c, 31, 28, 4, 3, boneDk);
+  // ── Arms (thin bones) ──
+  bk(c, 14, 18, 2, 12, boneDk);
+  bk(c, 14, 19, 1, 10, bone);
+  bk(c, 32, 18, 2, 12, boneDk);
+  bk(c, 32, 19, 1, 10, bone);
+  // elbow joints
+  bk(c, 13, 24, 4, 2, boneSh);
+  bk(c, 31, 24, 4, 2, boneSh);
+  // Hands (bony claws)
+  bk(c, 13, 29, 4, 3, boneSh);
+  bk(c, 14, 29, 2, 2, bone);
+  // finger bones
+  px(c, 12, 31, boneDk); px(c, 14, 31, boneDk); px(c, 16, 31, boneDk);
+  bk(c, 31, 29, 4, 3, boneSh);
+  bk(c, 32, 29, 2, 2, bone);
 
-  // Skull
-  bk(c, 18, 4, 12, 12, bone);
-  bk(c, 17, 6, 14, 8, bone);
-  bk(c, 19, 5, 10, 10, boneLt);
-  // Eye sockets (dark holes)
+  // ── Skull ──
+  // cranium
+  bk(c, 18, 4, 12, 12, boneDk);
+  bk(c, 17, 6, 14, 8, boneDk);
+  bk(c, 19, 5, 10, 10, bone);
+  bk(c, 20, 5, 8, 8, '#e0e0d0');
+  // top highlight
+  bk(c, 19, 4, 8, 2, '#e8e8d8');
+  // cranium left highlight
+  bk(c, 17, 6, 2, 4, bone);
+  // Eye sockets (deep, dark)
   bk(c, 20, 7, 3, 3, socket);
   bk(c, 25, 7, 3, 3, socket);
-  // Red glow in sockets
-  px(c, 21, 8, '#c02020');
-  px(c, 26, 8, '#c02020');
+  // Green glow in sockets
+  px(c, 21, 8, glowG);
+  px(c, 26, 8, glowG);
+  px(c, 21, 7, glowGb);
+  px(c, 26, 7, glowGb);
+  // glow halo around eyes
+  px(c, 19, 8, 'rgba(128,192,128,0.3)');
+  px(c, 23, 8, 'rgba(128,192,128,0.3)');
+  px(c, 24, 8, 'rgba(128,192,128,0.3)');
+  px(c, 28, 8, 'rgba(128,192,128,0.3)');
   // Nose hole
   bk(c, 23, 11, 2, 2, socket);
   // Jaw / teeth
-  bk(c, 19, 13, 10, 3, bone);
-  bk(c, 20, 14, 2, 1, socket); bk(c, 23, 14, 2, 1, socket); bk(c, 26, 14, 2, 1, socket);
+  bk(c, 19, 13, 10, 3, boneDk);
+  bk(c, 20, 13, 8, 2, bone);
+  // individual teeth gaps
+  px(c, 21, 14, socket); px(c, 24, 14, socket); px(c, 27, 14, socket);
+  // jaw shadow
+  bk(c, 19, 15, 10, 1, boneSh);
+  // cheekbones
+  px(c, 18, 10, boneMd); px(c, 29, 10, boneMd);
 
-  // Sword in right hand
-  bk(c, 8, 6, 2, 24, sword);
-  bk(c, 8, 6, 2, 1, swordHi); // tip shine
-  bk(c, 7, 28, 4, 2, '#806030'); // crossguard
-  bk(c, 8, 30, 2, 4, '#604020'); // grip
-  px(c, 8, 4, swordHi); px(c, 9, 5, swordHi); // blade gleam
-}
-
-// ─── HOLLOW KNIGHT ────────────────────────────────────────────
-
-function drawHollowKnight(c: Ctx) {
-  const armor = '#506068';
-  const armorDk = '#384048';
-  const armorLt = '#687880';
-  const rust = '#785838';
-  const cape = '#302838';
-  const capeLt = '#483858';
-  const visor = '#101018';
-  const sword = '#8890a0';
-  const swordHi = '#b0b8c8';
-  const glow = '#c02030';
-
-  // Shadow (large)
-  bk(c, 8, 44, 32, 4, 'rgba(0,0,0,0.25)');
-
-  // Cape (behind body, flowing)
-  bk(c, 18, 14, 20, 30, cape);
-  bk(c, 20, 16, 16, 26, capeLt);
-  // Cape flow lines
-  for (let fx = 22; fx < 36; fx += 4) bk(c, fx, 18, 1, 24, cape);
-  // Cape bottom hem
-  bk(c, 18, 42, 20, 2, cape);
-  // Cape tatter
-  bk(c, 36, 38, 3, 6, cape);
-  bk(c, 19, 40, 2, 4, capeLt);
-
-  // Legs (armored)
-  bk(c, 16, 34, 6, 10, armor);
-  bk(c, 17, 35, 4, 8, armorLt);
-  bk(c, 26, 34, 6, 10, armor);
-  bk(c, 27, 35, 4, 8, armorLt);
-  // Knee guards
-  bk(c, 15, 36, 8, 3, armorDk);
-  bk(c, 25, 36, 8, 3, armorDk);
-  // Armored boots
-  bk(c, 14, 42, 10, 4, armorDk);
-  bk(c, 24, 42, 10, 4, armorDk);
-  bk(c, 15, 42, 8, 1, armorLt);
-  bk(c, 25, 42, 8, 1, armorLt);
-
-  // Body (heavy plate)
-  bk(c, 12, 16, 24, 18, armor);
-  bk(c, 14, 18, 20, 14, armorLt);
-  // Plate bands
-  for (let by = 20; by < 32; by += 4) bk(c, 14, by, 20, 1, armorDk);
-  // Rust spots
-  px(c, 16, 22, rust); px(c, 28, 26, rust); px(c, 20, 30, rust);
-  // Center line
-  bk(c, 23, 18, 2, 14, armorDk);
-
-  // Pauldrons (massive shoulder plates)
-  bk(c, 6, 12, 12, 8, armor);
-  bk(c, 7, 13, 10, 6, armorLt);
-  bk(c, 6, 12, 12, 1, armorLt);
-  bk(c, 30, 12, 12, 8, armor);
-  bk(c, 31, 13, 10, 6, armorLt);
-  bk(c, 30, 12, 12, 1, armorLt);
-  // Pauldron rivets
-  px(c, 8, 14, '#909898'); px(c, 15, 14, '#909898');
-  px(c, 32, 14, '#909898'); px(c, 39, 14, '#909898');
-
-  // Arms
-  bk(c, 8, 18, 5, 14, armor);
-  bk(c, 9, 19, 3, 12, armorLt);
-  bk(c, 35, 18, 5, 14, armor);
-  bk(c, 36, 19, 3, 12, armorLt);
-  // Gauntlets
-  bk(c, 7, 30, 7, 4, armorDk);
-  bk(c, 34, 30, 7, 4, armorDk);
-
-  // Helmet
-  bk(c, 14, 2, 20, 14, armor);
-  bk(c, 16, 4, 16, 10, armorLt);
-  bk(c, 14, 2, 20, 2, armorLt); // top shine
-  // Visor slit (pure darkness — no face)
-  bk(c, 18, 8, 12, 3, visor);
-  // Red glow behind visor
-  px(c, 20, 9, glow); px(c, 27, 9, glow);
-  px(c, 21, 9, '#e03040'); px(c, 26, 9, '#e03040');
-  // Helmet crest
-  bk(c, 22, 0, 4, 4, armorDk);
-  bk(c, 23, 0, 2, 2, armorLt);
-
-  // GREATSWORD (massive, held in right hand)
-  bk(c, 2, 0, 3, 34, sword);
-  bk(c, 2, 0, 3, 2, swordHi); // tip
-  bk(c, 1, 0, 1, 8, swordHi); // edge gleam
-  bk(c, 0, 30, 7, 3, '#806030'); // crossguard
-  bk(c, 1, 33, 5, 6, '#604020'); // grip
-  bk(c, 2, 38, 3, 3, '#806030'); // pommel
-  // Blood on blade
-  px(c, 3, 8, '#802020'); px(c, 3, 12, '#802020');
+  // ── Rusty Sword (in right hand) ──
+  // blade
+  bk(c, 8, 4, 2, 26, sword);
+  bk(c, 8, 4, 2, 1, swordHi); // tip
+  bk(c, 7, 5, 1, 6, swordHi); // edge gleam
+  // rust on blade
+  px(c, 8, 10, rust); px(c, 9, 16, rust); px(c, 8, 22, rustLt);
+  // crossguard
+  bk(c, 6, 28, 6, 2, rust);
+  bk(c, 7, 28, 4, 1, rustLt);
+  // grip (worn)
+  bk(c, 8, 30, 2, 5, grip);
+  px(c, 8, 31, '#705030'); px(c, 8, 33, '#705030');
+  // pommel
+  bk(c, 7, 34, 4, 2, boneSh);
 }
 
 // ─── SPIDER ──────────────────────────────────────────────────
+// Wide low body, 8 articulated legs, cluster of red eyes, fangs.
 
 function drawSpider(c: Ctx) {
-  const body = '#3a3a2a';
-  const bodyDk = '#2a2a1a';
-  const bodyLt = '#4a4a38';
-  const leg = '#2e2e20';
-  const legLt = '#484830';
-  const eye = '#c02020';
-  const fang = '#d0d0c0';
+  const bodyDk = '#2a2a20';
+  const bodyMd = '#3a3a2a';
+  const bodyLt = '#4a4a3a';
+  const bodyHi = '#585848';
+  const leg    = '#2e2e20';
+  const legMd  = '#3e3e30';
+  const legLt  = '#4e4e3e';
+  const eye    = '#c02020';
+  const eyeBr  = '#ff4040';
+  const fang   = '#d0d0c0';
+  const fangDk = '#a0a090';
+  const mark   = '#5a5a48';
 
-  // Shadow (wide)
-  bk(c, 4, 42, 40, 4, 'rgba(0,0,0,0.2)');
+  // Shadow
+  bk(c, 4, 43, 40, 4, 'rgba(0,0,0,0.18)');
 
-  // Legs — 4 on each side, curving outward
-  // Left legs (facing left toward player)
-  // Front left
-  bk(c, 4, 26, 10, 2, leg); bk(c, 2, 28, 4, 2, leg); bk(c, 0, 30, 4, 12, leg); px(c, 0, 42, legLt);
-  // Mid-front left
-  bk(c, 6, 30, 8, 2, leg); bk(c, 2, 32, 6, 2, leg); bk(c, 0, 34, 4, 2, legLt);
-  // Mid-rear left
-  bk(c, 6, 34, 8, 2, leg); bk(c, 2, 36, 6, 2, leg); bk(c, 0, 38, 4, 4, leg);
-  // Rear left
-  bk(c, 8, 36, 6, 2, leg); bk(c, 4, 38, 6, 2, leg); bk(c, 2, 40, 4, 4, leg);
+  // ── 8 Legs with joints ──
+  // Front-left leg
+  bk(c, 8, 24, 8, 2, leg);
+  bk(c, 4, 26, 6, 2, legMd);
+  bk(c, 1, 28, 5, 2, leg);
+  bk(c, 0, 30, 3, 12, leg);
+  px(c, 0, 42, legLt);
+  px(c, 4, 26, legLt); // joint highlight
 
-  // Right legs
-  // Front right
-  bk(c, 34, 26, 10, 2, leg); bk(c, 42, 28, 4, 2, leg); bk(c, 44, 30, 4, 12, leg); px(c, 47, 42, legLt);
-  // Mid-front right
-  bk(c, 34, 30, 8, 2, leg); bk(c, 40, 32, 6, 2, leg); bk(c, 44, 34, 4, 2, legLt);
-  // Mid-rear right
-  bk(c, 34, 34, 8, 2, leg); bk(c, 40, 36, 6, 2, leg); bk(c, 44, 38, 4, 4, leg);
-  // Rear right
-  bk(c, 30, 36, 6, 2, leg); bk(c, 36, 38, 6, 2, leg); bk(c, 42, 40, 4, 4, leg);
+  // Mid-front-left
+  bk(c, 10, 28, 6, 2, leg);
+  bk(c, 5, 30, 7, 2, legMd);
+  bk(c, 2, 32, 5, 2, leg);
+  bk(c, 0, 34, 4, 8, leg);
+  px(c, 0, 42, legLt);
+  px(c, 5, 30, legLt);
 
-  // Abdomen (large, rear section)
-  bk(c, 16, 28, 16, 14, body);
+  // Mid-rear-left
+  bk(c, 12, 32, 6, 2, leg);
+  bk(c, 6, 34, 8, 2, legMd);
+  bk(c, 3, 36, 5, 2, leg);
+  bk(c, 2, 38, 3, 6, leg);
+  px(c, 6, 34, legLt);
+
+  // Rear-left
+  bk(c, 14, 34, 6, 2, leg);
+  bk(c, 8, 36, 8, 2, legMd);
+  bk(c, 5, 38, 5, 2, leg);
+  bk(c, 4, 40, 3, 4, leg);
+  px(c, 8, 36, legLt);
+
+  // Front-right leg
+  bk(c, 32, 24, 8, 2, leg);
+  bk(c, 38, 26, 6, 2, legMd);
+  bk(c, 42, 28, 5, 2, leg);
+  bk(c, 45, 30, 3, 12, leg);
+  px(c, 47, 42, legLt);
+  px(c, 42, 26, legLt);
+
+  // Mid-front-right
+  bk(c, 32, 28, 6, 2, leg);
+  bk(c, 36, 30, 7, 2, legMd);
+  bk(c, 41, 32, 5, 2, leg);
+  bk(c, 44, 34, 4, 8, leg);
+  px(c, 42, 30, legLt);
+
+  // Mid-rear-right
+  bk(c, 30, 32, 6, 2, leg);
+  bk(c, 34, 34, 8, 2, legMd);
+  bk(c, 40, 36, 5, 2, leg);
+  bk(c, 43, 38, 3, 6, leg);
+  px(c, 38, 34, legLt);
+
+  // Rear-right
+  bk(c, 28, 34, 6, 2, leg);
+  bk(c, 32, 36, 8, 2, legMd);
+  bk(c, 38, 38, 5, 2, leg);
+  bk(c, 41, 40, 3, 4, leg);
+  px(c, 36, 36, legLt);
+
+  // ── Abdomen (large, round) ──
+  bk(c, 16, 28, 16, 14, bodyDk);
+  bk(c, 17, 29, 14, 12, bodyMd);
   bk(c, 18, 30, 12, 10, bodyLt);
-  // Abdomen markings
-  bk(c, 20, 32, 8, 2, bodyDk);
-  bk(c, 22, 36, 4, 2, bodyDk);
-  px(c, 21, 34, '#4a3a2a'); px(c, 27, 34, '#4a3a2a');
+  // sheen highlight top
+  bk(c, 19, 29, 8, 2, bodyHi);
+  px(c, 20, 28, bodyHi);
+  // chevron/diamond markings
+  px(c, 22, 32, mark); px(c, 25, 32, mark);
+  px(c, 21, 34, mark); px(c, 26, 34, mark);
+  px(c, 23, 34, bodyDk); px(c, 24, 34, bodyDk);
+  px(c, 22, 36, mark); px(c, 25, 36, mark);
+  px(c, 23, 38, mark); px(c, 24, 38, mark);
+  // dark bottom shadow
+  bk(c, 18, 40, 12, 2, bodyDk);
 
-  // Cephalothorax (front body)
-  bk(c, 14, 22, 20, 10, body);
-  bk(c, 16, 24, 16, 6, bodyLt);
+  // ── Cephalothorax (front, smaller) ──
+  bk(c, 16, 20, 16, 10, bodyDk);
+  bk(c, 17, 21, 14, 8, bodyMd);
+  bk(c, 18, 22, 12, 6, bodyLt);
+  // top highlight
+  bk(c, 18, 20, 8, 2, bodyHi);
 
-  // Eyes (cluster of small red dots)
-  bk(c, 16, 22, 2, 2, eye); bk(c, 20, 22, 2, 2, eye);
-  bk(c, 24, 22, 2, 2, eye); bk(c, 28, 22, 2, 2, eye);
-  px(c, 18, 24, eye); px(c, 26, 24, eye);
-  // Eye shine
-  px(c, 17, 22, '#ff4040'); px(c, 25, 22, '#ff4040');
+  // ── Eyes (cluster of 6 red dots) ──
+  // row 1 (top, 2 big eyes)
+  bk(c, 19, 20, 2, 2, eye);
+  px(c, 19, 20, eyeBr);
+  bk(c, 27, 20, 2, 2, eye);
+  px(c, 27, 20, eyeBr);
+  // row 2 (middle, 2 medium eyes)
+  bk(c, 21, 22, 2, 2, eye);
+  px(c, 21, 22, eyeBr);
+  bk(c, 25, 22, 2, 2, eye);
+  px(c, 25, 22, eyeBr);
+  // row 3 (bottom, 2 small eyes)
+  px(c, 22, 24, eye);
+  px(c, 25, 24, eye);
 
-  // Fangs (chelicerae)
-  bk(c, 18, 20, 2, 4, fang);
-  bk(c, 26, 20, 2, 4, fang);
-  px(c, 18, 23, '#a0a090'); px(c, 26, 23, '#a0a090');
+  // ── Fangs (chelicerae) ──
+  bk(c, 20, 18, 2, 5, fang);
+  bk(c, 26, 18, 2, 5, fang);
+  px(c, 20, 22, fangDk);
+  px(c, 26, 22, fangDk);
+  // fang tips
+  px(c, 20, 17, fang);
+  px(c, 26, 17, fang);
 }
 
 // ─── WRAITH ─────────────────────────────────────────────────
+// Floating hooded figure, ethereal blue/purple, glowing eyes, wispy bottom.
 
 function drawWraith(c: Ctx) {
-  const cloak = '#304060';
-  const cloakDk = '#1c2840';
-  const cloakLt = '#405878';
+  const dk   = '#1c2840';
+  const mid  = '#304060';
+  const lite = '#405878';
+  const hi   = '#506890';
   const glow = '#80c0ff';
-  const glowBr = '#c0e8ff';
-  const wisp = 'rgba(64,96,160,0.4)';
+  const glowBr= '#c0e8ff';
+  const glowDm= '#4080c0';
+  const void_ = '#080810';
+  const wisp = 'rgba(48,64,96,0.4)';
+  const wispLt= 'rgba(64,88,128,0.3)';
 
-  // Ethereal wisps below (floating, no legs)
+  // ── Ethereal wisps below (floating, no feet) ──
+  bk(c, 18, 42, 12, 4, wisp);
   bk(c, 16, 40, 16, 4, wisp);
-  bk(c, 14, 42, 20, 4, wisp);
-  bk(c, 18, 44, 12, 4, 'rgba(48,64,96,0.3)');
+  bk(c, 20, 44, 8, 4, wispLt);
+  // scattered wisp pixels
+  px(c, 14, 42, wispLt); px(c, 33, 43, wispLt);
+  px(c, 17, 44, wisp); px(c, 30, 42, wisp);
+  px(c, 12, 44, 'rgba(48,64,96,0.2)');
+  px(c, 35, 44, 'rgba(48,64,96,0.2)');
 
-  // Cloak body (flowing, tapers at bottom)
-  bk(c, 14, 16, 20, 28, cloak);
-  bk(c, 16, 18, 16, 24, cloakLt);
-  // Cloak flow lines
-  for (let fx = 17; fx < 32; fx += 3) bk(c, fx, 20, 1, 22, cloakDk);
-  // Tattered bottom edges
-  bk(c, 12, 40, 4, 6, cloakDk);
-  bk(c, 32, 40, 4, 6, cloakDk);
-  bk(c, 15, 42, 3, 4, cloakLt);
-  bk(c, 30, 42, 3, 4, cloakLt);
+  // ── Aura glow (lighter pixels around figure) ──
+  px(c, 9, 16, 'rgba(80,104,144,0.15)');
+  px(c, 38, 16, 'rgba(80,104,144,0.15)');
+  px(c, 8, 20, 'rgba(80,104,144,0.12)');
+  px(c, 39, 20, 'rgba(80,104,144,0.12)');
+  px(c, 13, 38, 'rgba(80,104,144,0.1)');
+  px(c, 34, 38, 'rgba(80,104,144,0.1)');
 
-  // Cloak shoulders (wider)
-  bk(c, 10, 14, 28, 6, cloak);
-  bk(c, 12, 15, 24, 4, cloakLt);
+  // ── Cloak body (flowing, tapers) ──
+  bk(c, 14, 16, 20, 28, dk);
+  bk(c, 15, 17, 18, 26, mid);
+  bk(c, 16, 18, 16, 24, lite);
+  // flow lines (darker creases)
+  for (let fx = 17; fx < 32; fx += 3) bk(c, fx, 20, 1, 22, dk);
+  // highlight left edge (light source)
+  bk(c, 14, 16, 2, 20, hi);
+  // tattered bottom edges
+  bk(c, 12, 38, 4, 6, dk);
+  bk(c, 32, 38, 4, 6, dk);
+  bk(c, 14, 40, 3, 4, mid);
+  bk(c, 31, 40, 3, 4, mid);
+  // bottom taper points
+  px(c, 12, 43, dk); px(c, 35, 43, dk);
+  px(c, 15, 44, mid); px(c, 32, 44, mid);
 
-  // Arms (spectral, thin, reaching forward)
-  bk(c, 6, 20, 8, 3, cloakDk);
-  bk(c, 4, 22, 6, 3, cloak);
-  bk(c, 2, 24, 4, 2, cloakLt);
-  // Ghostly fingers
-  px(c, 1, 24, glow); px(c, 2, 25, glow); px(c, 4, 25, glow);
+  // ── Cloak shoulders (wider, draped) ──
+  bk(c, 10, 14, 28, 6, mid);
+  bk(c, 11, 14, 26, 4, lite);
+  bk(c, 10, 14, 16, 2, hi); // top-left highlight
 
-  bk(c, 34, 20, 8, 3, cloakDk);
-  bk(c, 38, 22, 6, 3, cloak);
-  bk(c, 42, 24, 4, 2, cloakLt);
-  px(c, 45, 24, glow); px(c, 44, 25, glow); px(c, 42, 25, glow);
+  // ── Spectral arms (thin, reaching forward) ──
+  // Left arm
+  bk(c, 6, 20, 8, 2, dk);
+  bk(c, 4, 22, 6, 2, mid);
+  bk(c, 2, 24, 4, 2, lite);
+  bk(c, 0, 26, 3, 2, mid);
+  // ghostly fingers (glowing tips)
+  px(c, 0, 26, glowDm);
+  px(c, 1, 27, glow);
+  px(c, 3, 27, glowDm);
+  // arm glow trail
+  px(c, 5, 21, 'rgba(128,192,255,0.2)');
 
-  // Hood
-  bk(c, 14, 4, 20, 14, cloak);
-  bk(c, 16, 6, 16, 10, cloakDk);
-  bk(c, 14, 4, 20, 2, cloakLt);
-  // Hood peak
-  bk(c, 20, 2, 8, 4, cloak);
-  bk(c, 22, 0, 4, 4, cloakDk);
+  // Right arm
+  bk(c, 34, 20, 8, 2, dk);
+  bk(c, 38, 22, 6, 2, mid);
+  bk(c, 42, 24, 4, 2, lite);
+  bk(c, 45, 26, 3, 2, mid);
+  px(c, 47, 26, glowDm);
+  px(c, 46, 27, glow);
+  px(c, 44, 27, glowDm);
 
-  // Face void (pure darkness inside hood)
-  bk(c, 18, 8, 12, 6, '#080810');
+  // ── Hood (deep, pointed) ──
+  bk(c, 14, 4, 20, 14, mid);
+  bk(c, 15, 5, 18, 12, lite);
+  bk(c, 16, 6, 16, 10, dk);
+  // top edge highlight
+  bk(c, 14, 4, 14, 2, hi);
+  bk(c, 14, 4, 2, 6, hi);
+  // hood peak
+  bk(c, 20, 2, 8, 4, mid);
+  bk(c, 22, 0, 4, 4, dk);
+  px(c, 22, 0, mid);
 
-  // Glowing eyes
+  // ── Face void (pure darkness inside hood) ──
+  bk(c, 18, 8, 12, 6, void_);
+
+  // ── Glowing eyes (brilliant blue with trails) ──
   bk(c, 20, 9, 3, 3, glow);
   bk(c, 25, 9, 3, 3, glow);
-  px(c, 21, 10, glowBr); px(c, 26, 10, glowBr);
-  // Eye trails (ghostly streaks)
-  px(c, 19, 10, 'rgba(128,192,255,0.5)');
-  px(c, 28, 10, 'rgba(128,192,255,0.5)');
-  px(c, 18, 11, 'rgba(128,192,255,0.3)');
-  px(c, 29, 11, 'rgba(128,192,255,0.3)');
+  px(c, 21, 10, glowBr);
+  px(c, 26, 10, glowBr);
+  // bright center
+  px(c, 21, 9, '#e0f0ff');
+  px(c, 26, 9, '#e0f0ff');
+  // eye trails (ghostly streaks extending outward)
+  px(c, 19, 10, glowDm);
+  px(c, 18, 10, 'rgba(128,192,255,0.4)');
+  px(c, 17, 11, 'rgba(128,192,255,0.2)');
+  px(c, 28, 10, glowDm);
+  px(c, 29, 10, 'rgba(128,192,255,0.4)');
+  px(c, 30, 11, 'rgba(128,192,255,0.2)');
+  // upward glow
+  px(c, 21, 8, 'rgba(128,192,255,0.3)');
+  px(c, 26, 8, 'rgba(128,192,255,0.3)');
+}
+
+// ─── HOLLOW KNIGHT ────────────────────────────────────────────
+// Full armored figure with shield and sword, tattered cape, dark visor.
+
+function drawHollowKnight(c: Ctx) {
+  const armDk  = '#404850';
+  const armMd  = '#506068';
+  const armLt  = '#607078';
+  const armHi  = '#708890';
+  const rust   = '#785838';
+  const capeDk = '#201828';
+  const capeMd = '#302838';
+  const capeLt = '#403848';
+  const visor  = '#080810';
+  const swd    = '#8890a0';
+  const swdHi  = '#b0b8c8';
+  const swdDk  = '#687080';
+  const glow   = '#c02030';
+  const glowBr = '#e04050';
+  const shield = '#485868';
+  const shieldLt= '#607880';
+  const emblem = '#8898a8';
+
+  // Shadow
+  bk(c, 8, 44, 32, 4, 'rgba(0,0,0,0.25)');
+
+  // ── Cape (behind body, tattered) ──
+  bk(c, 18, 14, 20, 30, capeDk);
+  bk(c, 20, 16, 16, 26, capeMd);
+  bk(c, 22, 18, 12, 22, capeLt);
+  for (let fx = 22; fx < 36; fx += 3) bk(c, fx, 18, 1, 24, capeDk);
+  // tattered bottom
+  bk(c, 18, 42, 20, 3, capeDk);
+  bk(c, 36, 38, 3, 6, capeDk);
+  px(c, 19, 44, capeMd); px(c, 22, 44, capeDk);
+  px(c, 35, 44, capeMd); px(c, 37, 43, capeDk);
+
+  // ── Legs (armored) ──
+  bk(c, 16, 34, 6, 10, armMd);
+  bk(c, 17, 35, 4, 8, armLt);
+  bk(c, 17, 35, 2, 3, armHi); // highlight
+  bk(c, 26, 34, 6, 10, armMd);
+  bk(c, 27, 35, 4, 8, armLt);
+  bk(c, 27, 35, 2, 3, armHi);
+  // Knee guards
+  bk(c, 15, 36, 8, 3, armDk);
+  bk(c, 16, 36, 6, 1, armMd);
+  bk(c, 25, 36, 8, 3, armDk);
+  bk(c, 26, 36, 6, 1, armMd);
+  // Armored boots
+  bk(c, 14, 42, 10, 4, armDk);
+  bk(c, 15, 42, 8, 1, armLt);
+  bk(c, 15, 42, 4, 1, armHi);
+  bk(c, 24, 42, 10, 4, armDk);
+  bk(c, 25, 42, 8, 1, armLt);
+  bk(c, 25, 42, 4, 1, armHi);
+
+  // ── Body (heavy plate) ──
+  bk(c, 12, 16, 24, 18, armMd);
+  bk(c, 13, 17, 22, 16, armLt);
+  bk(c, 14, 18, 20, 14, armHi);
+  // plate bands
+  for (let by = 20; by < 32; by += 4) {
+    bk(c, 14, by, 20, 1, armDk);
+  }
+  // center line
+  bk(c, 23, 18, 2, 14, armDk);
+  // rust spots
+  px(c, 16, 22, rust); px(c, 28, 26, rust); px(c, 20, 30, rust);
+  // top-left highlight
+  bk(c, 12, 16, 12, 2, armHi);
+  // right shadow
+  bk(c, 34, 18, 2, 14, armDk);
+
+  // ── Pauldrons ──
+  bk(c, 6, 12, 12, 8, armMd);
+  bk(c, 7, 13, 10, 6, armLt);
+  bk(c, 8, 13, 8, 4, armHi);
+  bk(c, 6, 12, 12, 1, armHi);
+  bk(c, 30, 12, 12, 8, armMd);
+  bk(c, 31, 13, 10, 6, armLt);
+  bk(c, 32, 13, 8, 4, armHi);
+  bk(c, 30, 12, 12, 1, armHi);
+  // rivets
+  px(c, 8, 14, '#90a0a8'); px(c, 15, 14, '#90a0a8');
+  px(c, 32, 14, '#90a0a8'); px(c, 39, 14, '#90a0a8');
+
+  // ── Arms ──
+  bk(c, 8, 18, 5, 14, armMd);
+  bk(c, 9, 19, 3, 12, armLt);
+  bk(c, 9, 19, 2, 4, armHi);
+  bk(c, 35, 18, 5, 14, armMd);
+  bk(c, 36, 19, 3, 12, armLt);
+  // Gauntlets
+  bk(c, 7, 30, 7, 4, armDk);
+  bk(c, 8, 30, 5, 2, armMd);
+  bk(c, 34, 30, 7, 4, armDk);
+  bk(c, 35, 30, 5, 2, armMd);
+
+  // ── Helmet ──
+  bk(c, 14, 2, 20, 14, armMd);
+  bk(c, 15, 3, 18, 12, armLt);
+  bk(c, 16, 4, 16, 10, armHi);
+  bk(c, 14, 2, 14, 2, armHi); // top-left highlight
+  // Visor slit
+  bk(c, 18, 8, 12, 3, visor);
+  // Red glow behind visor
+  px(c, 20, 9, glow); px(c, 27, 9, glow);
+  px(c, 21, 9, glowBr); px(c, 26, 9, glowBr);
+  // subtle glow spread
+  px(c, 19, 9, 'rgba(192,32,48,0.3)');
+  px(c, 28, 9, 'rgba(192,32,48,0.3)');
+  // Helmet crest
+  bk(c, 22, 0, 4, 4, armDk);
+  bk(c, 23, 0, 2, 3, armMd);
+  px(c, 23, 0, armHi);
+
+  // ── Shield (round, held in left hand, with emblem) ──
+  bk(c, 34, 20, 10, 12, shield);
+  bk(c, 35, 21, 8, 10, shieldLt);
+  bk(c, 36, 22, 6, 8, shield);
+  // shield rim highlight
+  bk(c, 34, 20, 10, 1, armHi);
+  bk(c, 34, 20, 1, 6, armHi);
+  // emblem (crown/cross shape)
+  // vertical bar
+  bk(c, 38, 23, 2, 6, emblem);
+  // horizontal bar
+  bk(c, 36, 25, 6, 2, emblem);
+  // center bright
+  px(c, 38, 25, '#a0b0c0');
+  px(c, 39, 26, '#a0b0c0');
+
+  // ── Greatsword (in right hand) ──
+  bk(c, 2, 0, 3, 32, swd);
+  bk(c, 2, 0, 3, 2, swdHi); // tip
+  bk(c, 1, 0, 1, 8, swdHi); // edge gleam
+  bk(c, 5, 4, 1, 6, swdDk); // shadow edge
+  // crossguard
+  bk(c, 0, 30, 7, 3, '#706038');
+  bk(c, 1, 30, 5, 1, '#907848');
+  // grip
+  bk(c, 1, 33, 5, 6, '#503820');
+  px(c, 2, 34, '#604828'); px(c, 2, 36, '#604828');
+  // pommel
+  bk(c, 2, 38, 3, 3, '#706038');
+  px(c, 3, 39, '#907848');
+  // blood on blade
+  px(c, 3, 8, '#802020'); px(c, 3, 14, '#802020');
 }
 
 // ─── HOLLOW KING ─────────────────────────────────────────────
+// Large imposing armored figure with crown, massive greatsword, dark energy.
 
 function drawHollowKing(c: Ctx) {
-  const armor = '#302848';
-  const armorDk = '#1c1830';
-  const armorLt = '#483860';
-  const purple = '#503878';
-  const purpleLt = '#685090';
-  const gold = '#c0a040';
+  const armDk  = '#201830';
+  const armMd  = '#302848';
+  const armLt  = '#403860';
+  const armHi  = '#504870';
+  const purp   = '#503878';
+  const purpLt = '#685090';
+  const gold   = '#c0a040';
   const goldDk = '#907020';
   const goldLt = '#e0c860';
-  const cape = '#180c28';
+  const goldHi = '#f0d870';
+  const capeDk = '#100818';
+  const capeMd = '#180c28';
   const capeLt = '#281840';
-  const visor = '#080010';
-  const glow = '#a020c0';
+  const visor  = '#060010';
+  const glow   = '#a020c0';
   const glowBr = '#d050f0';
-  const sword = '#8888a0';
-  const swordHi = '#b0b0c8';
+  const glowDm = '#801098';
+  const swd    = '#8888a0';
+  const swdHi  = '#b0b0c8';
+  const swdDk  = '#686880';
+  const jewel  = '#c02060';
+  const jewelBr= '#e04080';
 
-  // Shadow (very large)
+  // Shadow
   bk(c, 4, 44, 40, 4, 'rgba(0,0,0,0.3)');
 
-  // Cape (behind body, massive and flowing)
-  bk(c, 14, 10, 28, 36, cape);
-  bk(c, 16, 12, 24, 32, capeLt);
-  for (let fx = 18; fx < 40; fx += 3) bk(c, fx, 14, 1, 30, cape);
-  bk(c, 14, 42, 28, 4, cape);
-  bk(c, 40, 36, 4, 10, cape);
-  bk(c, 15, 40, 3, 6, capeLt);
+  // ── Dark energy wisps ──
+  px(c, 6, 8, 'rgba(160,32,192,0.2)');
+  px(c, 42, 12, 'rgba(160,32,192,0.2)');
+  px(c, 8, 32, 'rgba(160,32,192,0.15)');
+  px(c, 44, 28, 'rgba(160,32,192,0.15)');
+  px(c, 10, 40, 'rgba(128,16,152,0.1)');
+  px(c, 40, 38, 'rgba(128,16,152,0.1)');
 
-  // Legs (heavy plate)
-  bk(c, 14, 34, 8, 10, armor);
-  bk(c, 15, 35, 6, 8, armorLt);
-  bk(c, 26, 34, 8, 10, armor);
-  bk(c, 27, 35, 6, 8, armorLt);
-  // Knee guards with gold trim
-  bk(c, 13, 36, 10, 3, armorDk);
-  bk(c, 25, 36, 10, 3, armorDk);
+  // ── Cape (massive, behind body) ──
+  bk(c, 14, 10, 28, 36, capeDk);
+  bk(c, 16, 12, 24, 32, capeMd);
+  bk(c, 18, 14, 20, 28, capeLt);
+  for (let fx = 18; fx < 40; fx += 3) bk(c, fx, 14, 1, 30, capeDk);
+  bk(c, 14, 42, 28, 4, capeDk);
+  bk(c, 40, 34, 4, 12, capeDk);
+  // cape bottom tatter
+  px(c, 15, 45, capeMd); px(c, 18, 46, capeDk);
+  px(c, 38, 45, capeMd); px(c, 40, 45, capeDk);
+
+  // ── Legs (heavy ornate plate) ──
+  bk(c, 14, 34, 8, 10, armMd);
+  bk(c, 15, 35, 6, 8, armLt);
+  bk(c, 15, 35, 3, 4, armHi);
+  bk(c, 26, 34, 8, 10, armMd);
+  bk(c, 27, 35, 6, 8, armLt);
+  bk(c, 27, 35, 3, 4, armHi);
+  // Gold trim knee guards
+  bk(c, 13, 36, 10, 3, armDk);
   bk(c, 13, 36, 10, 1, goldDk);
+  bk(c, 14, 36, 6, 1, gold);
+  bk(c, 25, 36, 10, 3, armDk);
   bk(c, 25, 36, 10, 1, goldDk);
-  // Armored boots
-  bk(c, 12, 42, 12, 4, armorDk);
-  bk(c, 24, 42, 12, 4, armorDk);
-  bk(c, 13, 42, 10, 1, armorLt);
-  bk(c, 25, 42, 10, 1, armorLt);
+  bk(c, 26, 36, 6, 1, gold);
+  // Boots
+  bk(c, 12, 42, 12, 4, armDk);
+  bk(c, 13, 42, 10, 1, armLt);
+  bk(c, 13, 42, 5, 1, armHi);
+  bk(c, 24, 42, 12, 4, armDk);
+  bk(c, 25, 42, 10, 1, armLt);
+  bk(c, 25, 42, 5, 1, armHi);
 
-  // Body (ornate dark plate)
-  bk(c, 10, 14, 28, 20, armor);
-  bk(c, 12, 16, 24, 16, armorLt);
-  // Purple accents on plate
-  bk(c, 14, 18, 20, 2, purple);
-  bk(c, 14, 24, 20, 2, purple);
-  bk(c, 14, 30, 20, 2, purple);
-  // Gold center emblem
+  // ── Body (ornate dark plate) ──
+  bk(c, 10, 14, 28, 20, armMd);
+  bk(c, 11, 15, 26, 18, armLt);
+  bk(c, 12, 16, 24, 16, armHi);
+  // purple accent bands
+  bk(c, 14, 18, 20, 2, purp);
+  bk(c, 15, 18, 12, 1, purpLt);
+  bk(c, 14, 24, 20, 2, purp);
+  bk(c, 15, 24, 12, 1, purpLt);
+  bk(c, 14, 30, 20, 2, purp);
+  // gold center emblem
   bk(c, 21, 20, 6, 6, goldDk);
   bk(c, 22, 21, 4, 4, gold);
-  px(c, 23, 22, goldLt); px(c, 24, 23, goldLt);
-  // Center line
-  bk(c, 23, 16, 2, 16, armorDk);
+  px(c, 23, 22, goldLt); px(c, 24, 22, goldHi);
+  px(c, 23, 23, gold);
+  // center line
+  bk(c, 23, 16, 2, 16, armDk);
+  // top-left highlight
+  bk(c, 10, 14, 14, 2, armHi);
+  // right shadow
+  bk(c, 36, 16, 2, 16, armDk);
 
-  // Massive pauldrons with gold trim
-  bk(c, 2, 10, 14, 10, armor);
-  bk(c, 3, 11, 12, 8, armorLt);
+  // ── Massive pauldrons with gold trim and spikes ──
+  bk(c, 2, 10, 14, 10, armMd);
+  bk(c, 3, 11, 12, 8, armLt);
+  bk(c, 4, 12, 10, 6, armHi);
   bk(c, 2, 10, 14, 1, gold);
+  bk(c, 3, 10, 8, 1, goldLt);
   bk(c, 2, 19, 14, 1, goldDk);
-  // Spikes on pauldrons
-  bk(c, 4, 6, 3, 5, armorDk);
-  bk(c, 5, 5, 2, 3, armorLt);
-  bk(c, 10, 7, 3, 4, armorDk);
-  bk(c, 11, 6, 2, 3, armorLt);
+  // spikes
+  bk(c, 4, 6, 3, 5, armDk);
+  bk(c, 5, 5, 2, 3, armMd);
+  px(c, 5, 4, armHi);
+  bk(c, 10, 7, 3, 4, armDk);
+  bk(c, 11, 6, 2, 3, armMd);
+  px(c, 11, 5, armHi);
 
-  bk(c, 32, 10, 14, 10, armor);
-  bk(c, 33, 11, 12, 8, armorLt);
+  bk(c, 32, 10, 14, 10, armMd);
+  bk(c, 33, 11, 12, 8, armLt);
+  bk(c, 34, 12, 10, 6, armHi);
   bk(c, 32, 10, 14, 1, gold);
+  bk(c, 33, 10, 8, 1, goldLt);
   bk(c, 32, 19, 14, 1, goldDk);
-  bk(c, 41, 6, 3, 5, armorDk);
-  bk(c, 42, 5, 2, 3, armorLt);
-  bk(c, 35, 7, 3, 4, armorDk);
-  bk(c, 36, 6, 2, 3, armorLt);
-
-  // Pauldron rivets (gold)
+  bk(c, 41, 6, 3, 5, armDk);
+  bk(c, 42, 5, 2, 3, armMd);
+  px(c, 42, 4, armHi);
+  bk(c, 35, 7, 3, 4, armDk);
+  bk(c, 36, 6, 2, 3, armMd);
+  px(c, 36, 5, armHi);
+  // gold rivets
   px(c, 5, 12, gold); px(c, 13, 12, gold);
   px(c, 34, 12, gold); px(c, 42, 12, gold);
 
-  // Arms
-  bk(c, 6, 18, 6, 14, armor);
-  bk(c, 7, 19, 4, 12, armorLt);
-  bk(c, 36, 18, 6, 14, armor);
-  bk(c, 37, 19, 4, 12, armorLt);
+  // ── Arms ──
+  bk(c, 6, 18, 6, 14, armMd);
+  bk(c, 7, 19, 4, 12, armLt);
+  bk(c, 7, 19, 2, 6, armHi);
+  bk(c, 36, 18, 6, 14, armMd);
+  bk(c, 37, 19, 4, 12, armLt);
   // Gauntlets with gold
-  bk(c, 5, 30, 8, 4, armorDk);
-  bk(c, 35, 30, 8, 4, armorDk);
+  bk(c, 5, 30, 8, 4, armDk);
+  bk(c, 6, 30, 6, 2, armMd);
   bk(c, 5, 30, 8, 1, goldDk);
+  bk(c, 6, 30, 4, 1, gold);
+  bk(c, 35, 30, 8, 4, armDk);
+  bk(c, 36, 30, 6, 2, armMd);
   bk(c, 35, 30, 8, 1, goldDk);
+  bk(c, 36, 30, 4, 1, gold);
 
-  // Helmet (larger, more ornate)
-  bk(c, 12, 0, 24, 14, armor);
-  bk(c, 14, 2, 20, 10, armorLt);
-  bk(c, 12, 0, 24, 2, purple); // purple band
+  // ── Helmet (ornate, larger) ──
+  bk(c, 12, 0, 24, 14, armMd);
+  bk(c, 13, 1, 22, 12, armLt);
+  bk(c, 14, 2, 20, 10, armHi);
+  bk(c, 12, 0, 16, 2, armHi); // top-left highlight
+  // purple band
+  bk(c, 12, 0, 24, 2, purp);
+  bk(c, 13, 0, 14, 1, purpLt);
   // Visor slit
   bk(c, 16, 6, 16, 4, visor);
-  // Purple glow behind visor
+  // Purple/red glow behind visor
   px(c, 18, 7, glow); px(c, 29, 7, glow);
   px(c, 19, 7, glowBr); px(c, 28, 7, glowBr);
   px(c, 20, 8, glow); px(c, 27, 8, glow);
+  // glow spread
+  px(c, 17, 7, glowDm); px(c, 30, 7, glowDm);
+  px(c, 19, 6, 'rgba(160,32,192,0.3)');
+  px(c, 28, 6, 'rgba(160,32,192,0.3)');
 
-  // THE CROWN — tarnished gold atop the helmet
+  // ── THE CROWN (tarnished gold, 3 points) ──
   bk(c, 14, -2, 20, 4, goldDk);
   bk(c, 15, -1, 18, 2, gold);
+  bk(c, 16, -1, 10, 1, goldLt);
   // Crown points
-  bk(c, 16, -4, 3, 3, gold); px(c, 17, -5, goldLt);
-  bk(c, 22, -4, 4, 3, gold); px(c, 23, -5, goldLt);
-  bk(c, 29, -4, 3, 3, gold); px(c, 30, -5, goldLt);
+  bk(c, 16, -5, 3, 4, goldDk);
+  bk(c, 17, -5, 2, 2, gold);
+  px(c, 17, -5, goldLt);
+  bk(c, 22, -5, 4, 4, goldDk);
+  bk(c, 23, -5, 2, 2, gold);
+  px(c, 23, -5, goldHi);
+  bk(c, 29, -5, 3, 4, goldDk);
+  bk(c, 30, -5, 2, 2, gold);
+  px(c, 30, -5, goldLt);
   // Jewel in center crown point
-  px(c, 23, -4, '#c02060'); px(c, 24, -4, '#c02060');
+  px(c, 23, -4, jewel); px(c, 24, -4, jewel);
+  px(c, 24, -3, jewelBr);
 
-  // GREATSWORD (even larger than hollow knight's)
-  bk(c, 0, -4, 4, 38, sword);
-  bk(c, 0, -4, 4, 2, swordHi);
-  bk(c, -1, -2, 1, 10, swordHi); // edge gleam left
-  bk(c, 4, -2, 1, 10, swordHi); // edge gleam right
-  // Ornate crossguard
+  // ── Greatsword (massive, dark energy) ──
+  bk(c, 0, -4, 4, 38, swd);
+  bk(c, 0, -4, 4, 2, swdHi); // tip
+  bk(c, -1, -2, 1, 10, swdHi); // edge gleam left
+  bk(c, 4, -2, 1, 10, swdHi); // edge gleam right
+  bk(c, 4, 10, 1, 20, swdDk); // shadow edge
+  // Ornate crossguard (gold)
   bk(c, -2, 30, 10, 3, goldDk);
   bk(c, -1, 31, 8, 1, gold);
+  px(c, 0, 30, goldLt);
   // Purple grip
-  bk(c, 0, 33, 4, 6, purple);
-  bk(c, 1, 34, 2, 4, purpleLt);
+  bk(c, 0, 33, 4, 6, purp);
+  bk(c, 1, 34, 2, 4, purpLt);
   // Gold pommel
   bk(c, 0, 39, 4, 3, gold);
   px(c, 1, 40, goldLt);
   // Dark energy on blade
   px(c, 1, 4, glow); px(c, 2, 10, glow); px(c, 1, 18, glow);
-  px(c, 3, 8, '#800060'); px(c, 2, 22, '#800060');
-}
-
-// ─── BOAR ───────────────────────────────────────────────────
-
-function drawBoar(c: Ctx) {
-  const body = '#8a6040';
-  const bodyDk = '#6a4828';
-  const bodyLt = '#a07850';
-  const belly = '#b09068';
-  const tusk = '#e0d8c0';
-  const eye = '#c02020';
-  const nose = '#3a2018';
-  const hoof = '#402818';
-
-  // Shadow
-  bk(c, 8, 42, 32, 6, 'rgba(0,0,0,0.2)');
-
-  // Tail (short curly)
-  bk(c, 38, 22, 3, 3, bodyDk);
-  px(c, 40, 21, bodyDk);
-  px(c, 41, 22, body);
-
-  // Hind legs (short, sturdy)
-  bk(c, 30, 36, 5, 8, bodyDk);
-  bk(c, 31, 37, 3, 6, body);
-  bk(c, 36, 36, 5, 8, bodyDk);
-  bk(c, 37, 37, 3, 6, body);
-  // Hooves
-  bk(c, 30, 42, 5, 4, hoof);
-  bk(c, 36, 42, 5, 4, hoof);
-
-  // Body (squat, barrel-shaped)
-  bk(c, 8, 24, 32, 14, body);
-  bk(c, 10, 26, 28, 10, bodyLt);
-  // Back bristles (darker ridge)
-  bk(c, 8, 24, 32, 3, bodyDk);
-  // Belly
-  bk(c, 12, 35, 22, 3, belly);
-
-  // Front legs (sturdy)
-  bk(c, 10, 36, 5, 8, body);
-  bk(c, 11, 37, 3, 6, bodyLt);
-  bk(c, 16, 36, 5, 8, body);
-  bk(c, 17, 37, 3, 6, bodyLt);
-  // Front hooves
-  bk(c, 10, 42, 5, 4, hoof);
-  bk(c, 16, 42, 5, 4, hoof);
-
-  // Neck (thick)
-  bk(c, 4, 22, 10, 12, body);
-  bk(c, 5, 23, 8, 10, bodyLt);
-
-  // Head (wide, low)
-  bk(c, 0, 20, 12, 12, body);
-  bk(c, 1, 21, 10, 10, bodyLt);
-  // Snout (broad, blunt)
-  bk(c, 0, 26, 6, 6, bodyDk);
-  bk(c, 0, 27, 5, 4, body);
-  // Nose
-  bk(c, 0, 27, 3, 3, nose);
-  px(c, 1, 28, '#502818');
-
-  // Tusks (curved white)
-  bk(c, 0, 30, 2, 5, tusk);
-  bk(c, 4, 30, 2, 5, tusk);
-  px(c, 0, 34, tusk); px(c, 4, 34, tusk);
-
-  // Eyes (small, angry red)
-  bk(c, 3, 22, 2, 2, eye);
-  px(c, 3, 22, '#ff3030');
-
-  // Ears (small, pointed)
-  bk(c, 4, 16, 3, 5, bodyDk);
-  bk(c, 5, 15, 2, 3, body);
-  bk(c, 8, 17, 3, 4, bodyDk);
-  bk(c, 9, 16, 2, 3, body);
-
-  // Bristle texture on back
-  for (let fx = 12; fx < 38; fx += 3) {
-    px(c, fx, 25, bodyDk);
-    px(c, fx + 1, 24, bodyDk);
-  }
-}
-
-// ─── BANDIT ─────────────────────────────────────────────────
-
-function drawBandit(c: Ctx) {
-  const hood = '#3a4a30';
-  const hoodDk = '#2a3820';
-  const hoodLt = '#4a5a40';
-  const tunic = '#5a4a3a';
-  const tunicDk = '#403020';
-  const tunicLt = '#6a5a48';
-  const skin = '#c0a080';
-  const skinDk = '#a08060';
-  const pants = '#3a3228';
-  const boot = '#2a2018';
-  const blade = '#a0a8b0';
-  const bladeHi = '#c8d0d8';
-  const mask = '#2a2a20';
-  const eye = '#c0c8a0';
-  const belt = '#806030';
-
-  // Shadow
-  bk(c, 14, 44, 20, 4, 'rgba(0,0,0,0.2)');
-
-  // Boots
-  bk(c, 16, 42, 6, 4, boot);
-  bk(c, 26, 42, 6, 4, boot);
-  bk(c, 17, 42, 4, 1, '#3a2818');
-
-  // Legs (dark pants)
-  bk(c, 17, 34, 5, 8, pants);
-  bk(c, 26, 34, 5, 8, pants);
-  bk(c, 18, 35, 3, 6, '#4a4238');
-
-  // Body (tunic)
-  bk(c, 14, 16, 20, 18, tunic);
-  bk(c, 16, 18, 16, 14, tunicLt);
-  // Tunic fold lines
-  bk(c, 23, 18, 2, 14, tunicDk);
-  bk(c, 18, 20, 1, 10, tunicDk);
-
-  // Belt
-  bk(c, 14, 30, 20, 3, belt);
-  bk(c, 22, 30, 4, 3, '#a07840'); // buckle
-
-  // Arms
-  bk(c, 10, 18, 5, 12, tunic);
-  bk(c, 11, 19, 3, 10, tunicLt);
-  bk(c, 33, 18, 5, 12, tunic);
-  bk(c, 34, 19, 3, 10, tunicLt);
-  // Hands (skin)
-  bk(c, 10, 28, 5, 4, skin);
-  bk(c, 33, 28, 5, 4, skin);
-
-  // Cloak/cape (behind, subtle)
-  bk(c, 16, 14, 18, 28, hoodDk);
-  bk(c, 18, 16, 14, 24, hood);
-  for (let fx = 19; fx < 32; fx += 3) bk(c, fx, 18, 1, 22, hoodDk);
-
-  // Re-draw body over cape
-  bk(c, 14, 16, 20, 18, tunic);
-  bk(c, 16, 18, 16, 14, tunicLt);
-  bk(c, 23, 18, 2, 14, tunicDk);
-  bk(c, 14, 30, 20, 3, belt);
-  bk(c, 22, 30, 4, 3, '#a07840');
-
-  // Hood
-  bk(c, 14, 2, 20, 16, hood);
-  bk(c, 16, 4, 16, 12, hoodLt);
-  bk(c, 14, 2, 20, 2, hoodLt); // top edge
-  // Hood peak
-  bk(c, 20, 0, 8, 4, hood);
-  bk(c, 22, 0, 4, 2, hoodDk);
-
-  // Face (in shadow of hood)
-  bk(c, 18, 6, 12, 10, '#181810');
-  // Mask across lower face
-  bk(c, 18, 10, 12, 5, mask);
-  // Eyes (gleaming in shadow)
-  bk(c, 20, 8, 3, 2, eye);
-  bk(c, 25, 8, 3, 2, eye);
-  px(c, 21, 8, '#e0e8c0'); px(c, 26, 8, '#e0e8c0');
-
-  // DAGGER (left hand, short blade)
-  bk(c, 6, 14, 2, 16, blade);
-  bk(c, 6, 14, 2, 2, bladeHi); // tip
-  px(c, 5, 16, bladeHi); // edge gleam
-  bk(c, 5, 28, 4, 2, '#806030'); // crossguard
-  bk(c, 6, 30, 2, 4, '#604020'); // grip
+  px(c, 3, 8, glowDm); px(c, 2, 22, glowDm);
+  px(c, 1, 14, 'rgba(160,32,192,0.4)');
+  px(c, 3, 26, 'rgba(160,32,192,0.3)');
 }
 
 // ─── CAVE BAT ────────────────────────────────────────────────
+// Small body, huge wingspan, dark purple/grey, red eyes, fangs.
 
 function drawCaveBat(c: Ctx) {
-  const body = '#3a3040';
   const bodyDk = '#2a2030';
+  const bodyMd = '#3a3040';
   const bodyLt = '#4a3850';
-  const wing = '#302838';
-  const wingLt = '#483858';
-  const wingEdge = '#201828';
-  const eye = '#c02020';
-  const eyeBr = '#ff4040';
-  const ear = '#4a3850';
-  const fang = '#d0d0c0';
+  const bodyHi = '#584860';
+  const wingDk = '#201828';
+  const wingMd = '#302838';
+  const wingLt = '#403848';
+  const wingHi = '#484858';
+  const membr  = '#382840';
+  const membrLt= '#483848';
+  const eye    = '#c02020';
+  const eyeBr  = '#ff4040';
+  const ear    = '#4a3850';
+  const earLt  = '#584860';
+  const fang   = '#d0d0c0';
 
-  // Shadow (wide, bat is airborne)
-  bk(c, 8, 42, 32, 4, 'rgba(0,0,0,0.15)');
+  // Shadow (airborne)
+  bk(c, 10, 43, 28, 4, 'rgba(0,0,0,0.12)');
 
-  // Left wing — spread wide
-  bk(c, 0, 18, 16, 14, wing);
-  bk(c, 2, 20, 12, 10, wingLt);
-  // Wing membrane lines
-  bk(c, 4, 20, 1, 12, wingEdge);
-  bk(c, 8, 18, 1, 14, wingEdge);
-  bk(c, 12, 20, 1, 10, wingEdge);
-  // Wing tip points
-  bk(c, 0, 16, 3, 4, wingEdge);
-  bk(c, 0, 30, 3, 4, wingEdge);
-  bk(c, 6, 14, 3, 6, wing);
+  // ── Left wing ──
+  // wing bone structure (finger bones)
+  bk(c, 8, 18, 1, 14, wingDk); // main bone
+  bk(c, 4, 16, 1, 16, wingDk); // outer bone
+  bk(c, 12, 20, 1, 10, wingDk); // inner bone
+  bk(c, 0, 14, 1, 18, wingDk); // tip bone
+  // membrane between bones
+  bk(c, 1, 16, 3, 14, membr);
+  bk(c, 5, 18, 3, 12, membrLt);
+  bk(c, 9, 20, 3, 10, membr);
+  bk(c, 13, 22, 3, 8, membrLt);
+  // wing top edge (lighter)
+  bk(c, 0, 14, 16, 2, wingMd);
+  bk(c, 2, 14, 8, 1, wingLt);
+  // wing tip points
+  bk(c, 0, 14, 2, 3, wingDk);
+  px(c, 0, 13, wingDk);
+  // wing bottom scallop
+  bk(c, 0, 30, 3, 3, wingDk);
+  bk(c, 4, 31, 2, 2, wingDk);
+  bk(c, 8, 30, 2, 3, wingDk);
+  // highlight on membrane
+  px(c, 3, 18, wingHi); px(c, 7, 20, wingHi);
 
-  // Right wing
-  bk(c, 32, 18, 16, 14, wing);
-  bk(c, 34, 20, 12, 10, wingLt);
-  bk(c, 36, 20, 1, 12, wingEdge);
-  bk(c, 40, 18, 1, 14, wingEdge);
-  bk(c, 44, 20, 1, 10, wingEdge);
-  bk(c, 45, 16, 3, 4, wingEdge);
-  bk(c, 45, 30, 3, 4, wingEdge);
-  bk(c, 39, 14, 3, 6, wing);
+  // ── Right wing ──
+  bk(c, 39, 18, 1, 14, wingDk);
+  bk(c, 43, 16, 1, 16, wingDk);
+  bk(c, 35, 20, 1, 10, wingDk);
+  bk(c, 47, 14, 1, 18, wingDk);
+  bk(c, 44, 16, 3, 14, membr);
+  bk(c, 40, 18, 3, 12, membrLt);
+  bk(c, 36, 20, 3, 10, membr);
+  bk(c, 32, 22, 3, 8, membrLt);
+  bk(c, 32, 14, 16, 2, wingMd);
+  bk(c, 38, 14, 8, 1, wingLt);
+  bk(c, 46, 14, 2, 3, wingDk);
+  px(c, 47, 13, wingDk);
+  bk(c, 45, 30, 3, 3, wingDk);
+  bk(c, 42, 31, 2, 2, wingDk);
+  bk(c, 38, 30, 2, 3, wingDk);
 
-  // Body (small, round)
-  bk(c, 18, 20, 12, 14, body);
+  // ── Body (small, compact) ──
+  bk(c, 18, 20, 12, 14, bodyDk);
+  bk(c, 19, 21, 10, 12, bodyMd);
   bk(c, 20, 22, 8, 10, bodyLt);
+  // highlight top-left
+  bk(c, 19, 20, 6, 2, bodyHi);
+  // belly lighter
+  bk(c, 21, 28, 6, 4, bodyHi);
+  // fur texture
+  px(c, 20, 24, bodyDk); px(c, 26, 26, bodyDk);
+  px(c, 22, 28, bodyDk); px(c, 24, 24, bodyDk);
 
-  // Head
-  bk(c, 19, 14, 10, 8, body);
-  bk(c, 20, 15, 8, 6, bodyLt);
+  // ── Head ──
+  bk(c, 19, 14, 10, 8, bodyDk);
+  bk(c, 20, 15, 8, 6, bodyMd);
+  bk(c, 21, 15, 6, 5, bodyLt);
+  bk(c, 20, 14, 6, 2, bodyHi); // forehead highlight
 
-  // Ears (pointed, tall)
+  // ── Ears (tall, pointed) ──
   bk(c, 19, 8, 3, 7, ear);
-  bk(c, 20, 7, 2, 4, bodyLt);
+  bk(c, 20, 7, 2, 5, earLt);
+  px(c, 20, 6, bodyHi);
+  // inner ear
+  px(c, 21, 9, '#604858');
   bk(c, 26, 8, 3, 7, ear);
-  bk(c, 27, 7, 2, 4, bodyLt);
+  bk(c, 27, 7, 2, 5, earLt);
+  px(c, 27, 6, bodyHi);
+  px(c, 27, 9, '#604858');
 
-  // Eyes (red, glowing)
-  bk(c, 20, 16, 3, 2, eye);
-  bk(c, 25, 16, 3, 2, eye);
+  // ── Eyes (red, glowing) ──
+  bk(c, 20, 16, 3, 2, '#181010'); // socket
+  bk(c, 21, 16, 2, 2, eye);
   px(c, 21, 16, eyeBr);
-  px(c, 26, 16, eyeBr);
+  bk(c, 25, 16, 3, 2, '#181010');
+  bk(c, 25, 16, 2, 2, eye);
+  px(c, 25, 16, eyeBr);
+  // glow
+  px(c, 19, 16, 'rgba(192,32,32,0.3)');
+  px(c, 28, 16, 'rgba(192,32,32,0.3)');
 
-  // Nose (tiny)
-  px(c, 23, 19, bodyDk);
-  px(c, 24, 19, bodyDk);
+  // ── Nose ──
+  px(c, 23, 19, bodyDk); px(c, 24, 19, bodyDk);
 
-  // Fangs
-  px(c, 22, 21, fang);
-  px(c, 25, 21, fang);
+  // ── Open mouth with fangs ──
+  bk(c, 22, 20, 4, 2, '#181010');
+  // fangs
+  px(c, 22, 21, fang); px(c, 25, 21, fang);
+  px(c, 23, 22, fang); px(c, 24, 22, fang);
 
-  // Fur texture on body
-  px(c, 20, 24, bodyDk);
-  px(c, 26, 26, bodyDk);
-  px(c, 22, 28, bodyDk);
-
-  // Small feet (tucked)
+  // ── Small tucked feet ──
   bk(c, 21, 33, 2, 3, bodyDk);
+  px(c, 21, 35, '#1a1020'); // claw
   bk(c, 25, 33, 2, 3, bodyDk);
+  px(c, 25, 35, '#1a1020');
 }
 
 // ─── MINE GOLEM ──────────────────────────────────────────────
+// Blocky humanoid made of rock/iron with glowing ore cracks.
 
 function drawMineGolem(c: Ctx) {
-  const body = '#606870';
-  const bodyDk = '#484e58';
-  const bodyLt = '#788088';
-  const ore = '#c08030';
+  const rkDk  = '#484848';
+  const rkMd  = '#606060';
+  const rkLt  = '#787878';
+  const rkHi  = '#909090';
+  const crack = '#303030';
+  const oreDk = '#a06820';
+  const oreMd = '#c08030';
   const oreLt = '#e0a040';
-  const crack = '#383840';
-  const eye = '#e08020';
+  const oreHi = '#f0c060';
+  const eyeDk = '#c06010';
+  const eye   = '#e08020';
   const eyeBr = '#ffa030';
-  const joint = '#505860';
+  const joint = '#404848';
+  const crystal= '#40a0c0';
+  const crystHi= '#60c0e0';
 
-  // Shadow (large, heavy)
+  // Shadow
   bk(c, 8, 44, 32, 4, 'rgba(0,0,0,0.3)');
 
-  // Legs (thick, blocky)
-  bk(c, 14, 34, 8, 12, body);
-  bk(c, 15, 35, 6, 10, bodyLt);
-  bk(c, 26, 34, 8, 12, body);
-  bk(c, 27, 35, 6, 10, bodyLt);
-  // Feet (massive blocks)
-  bk(c, 12, 42, 12, 6, bodyDk);
-  bk(c, 24, 42, 12, 6, bodyDk);
-  bk(c, 13, 42, 10, 2, bodyLt);
-  bk(c, 25, 42, 10, 2, bodyLt);
+  // ── Legs (thick, blocky) ──
+  bk(c, 14, 34, 8, 12, rkDk);
+  bk(c, 15, 35, 6, 10, rkMd);
+  bk(c, 16, 36, 4, 8, rkLt);
+  bk(c, 15, 35, 3, 4, rkHi);
+  bk(c, 26, 34, 8, 12, rkDk);
+  bk(c, 27, 35, 6, 10, rkMd);
+  bk(c, 28, 36, 4, 8, rkLt);
+  bk(c, 27, 35, 3, 4, rkHi);
+  // Massive feet
+  bk(c, 12, 43, 12, 5, rkDk);
+  bk(c, 13, 43, 10, 2, rkMd);
+  bk(c, 13, 43, 6, 1, rkHi);
+  bk(c, 24, 43, 12, 5, rkDk);
+  bk(c, 25, 43, 10, 2, rkMd);
+  bk(c, 25, 43, 6, 1, rkHi);
   // Knee joints
   bk(c, 13, 36, 10, 3, joint);
+  bk(c, 14, 37, 8, 1, rkDk);
   bk(c, 25, 36, 10, 3, joint);
+  bk(c, 26, 37, 8, 1, rkDk);
 
-  // Torso (massive, angular block)
-  bk(c, 8, 12, 32, 22, body);
-  bk(c, 10, 14, 28, 18, bodyLt);
-  // Angular edges
-  bk(c, 8, 12, 32, 2, bodyLt);
-  bk(c, 8, 32, 32, 2, bodyDk);
-  // Center line
-  bk(c, 23, 14, 2, 18, bodyDk);
+  // ── Torso (massive angular block) ──
+  bk(c, 8, 12, 32, 22, rkDk);
+  bk(c, 9, 13, 30, 20, rkMd);
+  bk(c, 10, 14, 28, 18, rkLt);
+  // angular highlights (top-left)
+  bk(c, 8, 12, 20, 2, rkHi);
+  bk(c, 8, 12, 4, 10, rkHi);
+  // bottom shadow
+  bk(c, 8, 32, 32, 2, rkDk);
+  // right shadow
+  bk(c, 38, 14, 2, 18, rkDk);
+  // center line
+  bk(c, 23, 14, 2, 18, crack);
 
-  // Cracks with ore showing through
-  bk(c, 14, 18, 6, 2, crack);
-  bk(c, 15, 19, 4, 1, ore);
-  bk(c, 28, 22, 5, 2, crack);
-  bk(c, 29, 23, 3, 1, ore);
-  bk(c, 18, 28, 4, 2, crack);
-  bk(c, 19, 29, 2, 1, oreLt);
-  // Ore veins on surface
-  px(c, 12, 16, ore); px(c, 34, 20, ore);
-  px(c, 20, 26, oreLt); px(c, 30, 14, ore);
+  // Ore cracks with inner glow
+  bk(c, 14, 18, 7, 2, crack);
+  bk(c, 15, 19, 5, 1, oreDk);
+  bk(c, 16, 19, 3, 1, oreMd);
+  px(c, 17, 19, oreLt);
 
-  // Arms (thick, angular)
-  bk(c, 2, 14, 8, 18, body);
-  bk(c, 3, 15, 6, 16, bodyLt);
-  bk(c, 38, 14, 8, 18, body);
-  bk(c, 39, 15, 6, 16, bodyLt);
-  // Fists (blocky)
-  bk(c, 1, 30, 10, 6, bodyDk);
-  bk(c, 37, 30, 10, 6, bodyDk);
-  bk(c, 2, 30, 8, 2, body);
-  bk(c, 38, 30, 8, 2, body);
+  bk(c, 28, 22, 6, 2, crack);
+  bk(c, 29, 23, 4, 1, oreDk);
+  bk(c, 30, 23, 2, 1, oreMd);
+  px(c, 31, 23, oreLt);
 
-  // Pauldrons (angular rock)
-  bk(c, 4, 10, 12, 6, bodyDk);
-  bk(c, 5, 11, 10, 4, body);
-  bk(c, 32, 10, 12, 6, bodyDk);
-  bk(c, 33, 11, 10, 4, body);
+  bk(c, 18, 28, 5, 2, crack);
+  bk(c, 19, 29, 3, 1, oreDk);
+  px(c, 20, 29, oreHi);
 
-  // Head (blocky, smaller than body)
-  bk(c, 16, 2, 16, 12, body);
-  bk(c, 17, 3, 14, 10, bodyLt);
-  bk(c, 16, 2, 16, 2, bodyLt);
+  // scattered ore veins
+  px(c, 12, 16, oreMd); px(c, 34, 20, oreDk);
+  px(c, 20, 26, oreLt); px(c, 30, 14, oreDk);
+  px(c, 16, 30, oreMd);
 
-  // Eyes (glowing orange, deep-set)
-  bk(c, 19, 6, 4, 3, '#201818');
-  bk(c, 27, 6, 4, 3, '#201818');
-  bk(c, 20, 7, 2, 2, eye);
-  bk(c, 28, 7, 2, 2, eye);
-  px(c, 20, 7, eyeBr);
-  px(c, 28, 7, eyeBr);
+  // ── Arms (thick, heavy) ──
+  bk(c, 2, 14, 8, 18, rkDk);
+  bk(c, 3, 15, 6, 16, rkMd);
+  bk(c, 4, 16, 4, 14, rkLt);
+  bk(c, 3, 14, 4, 4, rkHi); // highlight
+  bk(c, 38, 14, 8, 18, rkDk);
+  bk(c, 39, 15, 6, 16, rkMd);
+  bk(c, 40, 16, 4, 14, rkLt);
 
-  // Mouth (dark slit)
+  // ── Massive fists (disproportionately large) ──
+  bk(c, 0, 30, 12, 8, rkDk);
+  bk(c, 1, 31, 10, 6, rkMd);
+  bk(c, 2, 31, 8, 4, rkLt);
+  bk(c, 1, 30, 6, 2, rkHi); // highlight
+  // finger grooves
+  px(c, 2, 36, crack); px(c, 5, 36, crack); px(c, 8, 36, crack);
+
+  bk(c, 36, 30, 12, 8, rkDk);
+  bk(c, 37, 31, 10, 6, rkMd);
+  bk(c, 38, 31, 8, 4, rkLt);
+  px(c, 38, 36, crack); px(c, 41, 36, crack); px(c, 44, 36, crack);
+
+  // ── Pauldrons (angular boulders) ──
+  bk(c, 4, 10, 12, 6, rkDk);
+  bk(c, 5, 10, 10, 4, rkMd);
+  bk(c, 6, 10, 8, 2, rkHi);
+  bk(c, 32, 10, 12, 6, rkDk);
+  bk(c, 33, 10, 10, 4, rkMd);
+  bk(c, 34, 10, 8, 2, rkHi);
+
+  // ── Ore crystals on shoulders ──
+  // left shoulder
+  bk(c, 6, 8, 3, 4, crystal);
+  px(c, 7, 7, crystHi);
+  px(c, 7, 8, crystHi);
+  bk(c, 11, 9, 2, 3, crystal);
+  px(c, 11, 8, crystHi);
+  // right shoulder
+  bk(c, 39, 8, 3, 4, crystal);
+  px(c, 40, 7, crystHi);
+  bk(c, 34, 9, 2, 3, crystal);
+  px(c, 34, 8, crystHi);
+
+  // ── Head (small, blocky) ──
+  bk(c, 16, 2, 16, 12, rkDk);
+  bk(c, 17, 3, 14, 10, rkMd);
+  bk(c, 18, 4, 12, 8, rkLt);
+  bk(c, 17, 2, 10, 2, rkHi); // top highlight
+  bk(c, 16, 3, 2, 4, rkHi); // left highlight
+
+  // ── Eyes (deep-set, glowing orange) ──
+  bk(c, 19, 6, 4, 3, '#181010'); // socket left
+  bk(c, 20, 7, 2, 2, eyeDk);
+  px(c, 20, 7, eye);
+  px(c, 21, 7, eyeBr);
+  bk(c, 27, 6, 4, 3, '#181010'); // socket right
+  bk(c, 28, 7, 2, 2, eyeDk);
+  px(c, 28, 7, eye);
+  px(c, 29, 7, eyeBr);
+  // eye glow
+  px(c, 18, 7, 'rgba(224,128,32,0.3)');
+  px(c, 23, 7, 'rgba(224,128,32,0.3)');
+  px(c, 26, 7, 'rgba(224,128,32,0.3)');
+  px(c, 31, 7, 'rgba(224,128,32,0.3)');
+
+  // ── Mouth (dark slit) ──
   bk(c, 20, 11, 8, 2, crack);
+  bk(c, 21, 11, 6, 1, '#202020');
+  // inner glow in mouth
+  px(c, 23, 11, oreDk); px(c, 25, 11, oreDk);
 }
 
 // ─── BOG LURKER ──────────────────────────────────────────────
+// Hunched amphibian creature, partially submerged, wide mouth, webbed hands.
 
 function drawBogLurker(c: Ctx) {
-  const body = '#304828';
-  const bodyDk = '#203018';
-  const bodyLt = '#406038';
-  const belly = '#486040';
+  const dk   = '#1a3018';
+  const mid  = '#2a4828';
+  const lite = '#3a6038';
+  const hi   = '#4a7848';
+  const belly = '#486848';
+  const bellyLt= '#588858';
   const slime = '#508040';
-  const slimeLt = '#60a050';
-  const eye = '#c0c020';
+  const slimeLt= '#60a050';
+  const eyeDk = '#808010';
+  const eye   = '#c0c020';
   const eyeBr = '#e0e040';
-  const mouth = '#181810';
+  const mouth = '#101008';
   const teeth = '#d0d0b0';
+  const teethDk= '#b0b090';
   const water = 'rgba(32,48,64,0.5)';
+  const waterLt= 'rgba(48,64,80,0.4)';
+  const wart  = '#3a5030';
 
-  // Water/mud at base (partially submerged)
-  bk(c, 6, 38, 36, 10, water);
-  bk(c, 8, 40, 32, 8, 'rgba(24,40,56,0.6)');
-  // Ripples
-  bk(c, 10, 39, 8, 1, 'rgba(64,80,96,0.4)');
-  bk(c, 30, 40, 6, 1, 'rgba(64,80,96,0.4)');
+  // ── Water/mud at base ──
+  bk(c, 4, 38, 40, 10, water);
+  bk(c, 6, 40, 36, 8, 'rgba(24,40,56,0.6)');
+  // ripples
+  bk(c, 8, 38, 10, 1, waterLt);
+  bk(c, 28, 39, 8, 1, waterLt);
+  bk(c, 14, 40, 6, 1, waterLt);
 
-  // Legs (short, thick, partially hidden by water)
-  bk(c, 16, 36, 6, 8, body);
-  bk(c, 17, 37, 4, 6, bodyLt);
-  bk(c, 26, 36, 6, 8, body);
-  bk(c, 27, 37, 4, 6, bodyLt);
+  // ── Legs (partially hidden by water) ──
+  bk(c, 16, 36, 6, 8, dk);
+  bk(c, 17, 37, 4, 6, mid);
+  bk(c, 17, 37, 2, 3, lite);
+  bk(c, 26, 36, 6, 8, dk);
+  bk(c, 27, 37, 4, 6, mid);
+  bk(c, 27, 37, 2, 3, lite);
+  // webbed feet (visible at waterline)
+  bk(c, 14, 42, 4, 2, dk);
+  px(c, 13, 42, mid); // web
+  bk(c, 24, 42, 4, 2, dk);
 
-  // Body (hunched, rounded)
-  bk(c, 12, 20, 24, 18, body);
-  bk(c, 14, 22, 20, 14, bodyLt);
-  // Belly (lighter, bloated)
+  // ── Body (hunched, rounded, bulky) ──
+  bk(c, 12, 20, 24, 18, dk);
+  bk(c, 13, 21, 22, 16, mid);
+  bk(c, 14, 22, 20, 14, lite);
+  // belly (bloated, lighter)
   bk(c, 16, 28, 16, 8, belly);
-  // Back hunch
-  bk(c, 14, 18, 20, 6, bodyDk);
+  bk(c, 18, 30, 12, 4, bellyLt);
+  // back hunch (darker)
+  bk(c, 14, 18, 20, 5, dk);
+  bk(c, 16, 19, 16, 3, mid);
+  // top-left highlight
+  bk(c, 12, 20, 10, 2, hi);
+  bk(c, 12, 20, 3, 6, hi);
+  // right shadow
+  bk(c, 34, 24, 2, 10, dk);
+  // warts/bumps
+  px(c, 14, 24, wart); px(c, 32, 26, wart);
+  px(c, 20, 32, wart); px(c, 28, 28, wart);
+  px(c, 16, 30, wart); px(c, 30, 22, wart);
 
-  // Long arms (reaching forward, past body)
-  bk(c, 4, 22, 10, 4, body);
-  bk(c, 2, 24, 6, 4, bodyLt);
-  bk(c, 0, 26, 4, 4, body);
-  // Clawed hand left
-  px(c, 0, 29, bodyDk); px(c, 1, 30, bodyDk); px(c, 3, 29, bodyDk);
+  // ── Long arms reaching forward ──
+  // Left arm
+  bk(c, 4, 22, 10, 4, mid);
+  bk(c, 5, 23, 8, 2, lite);
+  bk(c, 2, 24, 5, 4, mid);
+  bk(c, 3, 25, 3, 2, lite);
+  bk(c, 0, 26, 4, 4, dk);
+  bk(c, 0, 27, 3, 2, mid);
+  // webbed hand/claws
+  px(c, 0, 29, dk); px(c, 1, 30, dk); px(c, 3, 29, dk);
+  // webbing
+  px(c, 1, 29, mid); px(c, 2, 30, mid);
 
-  bk(c, 34, 22, 10, 4, body);
-  bk(c, 40, 24, 6, 4, bodyLt);
-  bk(c, 44, 26, 4, 4, body);
-  // Clawed hand right
-  px(c, 47, 29, bodyDk); px(c, 46, 30, bodyDk); px(c, 44, 29, bodyDk);
+  // Right arm
+  bk(c, 34, 22, 10, 4, mid);
+  bk(c, 35, 23, 8, 2, lite);
+  bk(c, 40, 24, 5, 4, mid);
+  bk(c, 41, 25, 3, 2, lite);
+  bk(c, 44, 26, 4, 4, dk);
+  bk(c, 44, 27, 3, 2, mid);
+  px(c, 47, 29, dk); px(c, 46, 30, dk); px(c, 44, 29, dk);
+  px(c, 46, 29, mid); px(c, 45, 30, mid);
 
-  // Head (wide, flat)
-  bk(c, 14, 10, 20, 12, body);
-  bk(c, 16, 12, 16, 8, bodyLt);
+  // ── Head (wide, flat, frog-like) ──
+  bk(c, 14, 10, 20, 12, dk);
+  bk(c, 15, 11, 18, 10, mid);
+  bk(c, 16, 12, 16, 8, lite);
+  // forehead highlight
+  bk(c, 15, 10, 12, 2, hi);
+  bk(c, 14, 11, 3, 4, hi);
 
-  // Eyes (wide-set, yellow)
-  bk(c, 16, 12, 4, 3, eye);
-  bk(c, 28, 12, 4, 3, eye);
-  px(c, 17, 13, eyeBr);
-  px(c, 29, 13, eyeBr);
+  // ── Bulging eyes on top of head ──
+  // Left eye (protruding up)
+  bk(c, 15, 9, 5, 4, dk);
+  bk(c, 16, 9, 3, 3, eyeDk);
+  bk(c, 16, 10, 3, 2, eye);
+  px(c, 17, 10, eyeBr);
+  // pupil
+  px(c, 18, 10, '#404008');
 
-  // Wide mouth (gaping)
+  // Right eye
+  bk(c, 28, 9, 5, 4, dk);
+  bk(c, 29, 9, 3, 3, eyeDk);
+  bk(c, 29, 10, 3, 2, eye);
+  px(c, 30, 10, eyeBr);
+  px(c, 31, 10, '#404008');
+
+  // ── Wide mouth (gaping) ──
   bk(c, 16, 18, 16, 4, mouth);
-  // Teeth
-  px(c, 17, 18, teeth); px(c, 20, 18, teeth); px(c, 23, 18, teeth);
-  px(c, 26, 18, teeth); px(c, 29, 18, teeth);
-  px(c, 18, 21, teeth); px(c, 22, 21, teeth);
-  px(c, 26, 21, teeth);
+  bk(c, 17, 18, 14, 3, '#181810');
+  // upper teeth
+  px(c, 17, 18, teeth); px(c, 20, 18, teeth);
+  px(c, 23, 18, teeth); px(c, 26, 18, teeth);
+  px(c, 29, 18, teeth);
+  // lower teeth
+  px(c, 18, 21, teethDk); px(c, 22, 21, teethDk);
+  px(c, 26, 21, teethDk);
+  // tongue
+  bk(c, 22, 19, 4, 2, '#604040');
 
-  // Dripping slime
+  // ── Dripping slime ──
   px(c, 18, 22, slime); bk(c, 18, 23, 1, 3, slimeLt);
   px(c, 24, 22, slime); bk(c, 24, 23, 1, 2, slimeLt);
   px(c, 30, 20, slime); bk(c, 30, 21, 1, 2, slimeLt);
-
-  // Warts/bumps on skin
-  px(c, 14, 24, slime); px(c, 32, 26, slime);
-  px(c, 20, 30, bodyDk); px(c, 28, 28, bodyDk);
+  // drip from arms
+  px(c, 2, 30, slimeLt); px(c, 46, 30, slimeLt);
 }
 
 // ─── DROWNED WARDEN ──────────────────────────────────────────
+// Waterlogged armored warrior, corroded, barnacles, seaweed, dripping.
 
 function drawDrownedWarden(c: Ctx) {
-  const armor = '#283848';
-  const armorDk = '#182030';
-  const armorLt = '#384858';
-  const rust = '#5a4828';
+  const armDk  = '#182030';
+  const armMd  = '#283848';
+  const armLt  = '#384858';
+  const armHi  = '#486068';
+  const rust   = '#5a4828';
   const rustLt = '#7a6038';
-  const barnacle = '#808878';
-  const cape = '#182028';
+  const rustHi = '#8a7040';
+  const barn   = '#808878';
+  const barnLt = '#98a088';
+  const capeDk = '#101820';
+  const capeMd = '#182028';
   const capeLt = '#283038';
-  const visor = '#081018';
-  const glow = '#4080c0';
+  const visor  = '#060810';
+  const glow   = '#4080c0';
   const glowBr = '#60a0e0';
-  const sword = '#6878a0';
-  const swordHi = '#8898b8';
-  const seaweed = '#305030';
+  const glowDm = '#306090';
+  const swd    = '#586888';
+  const swdHi  = '#7888a8';
+  const swdDk  = '#405060';
+  const seaweed= '#284828';
+  const seaLt  = '#386838';
+  const drip   = 'rgba(64,128,192,0.4)';
+  const dripBr = 'rgba(80,160,220,0.5)';
 
-  // Shadow (very large)
+  // Shadow
   bk(c, 6, 44, 36, 4, 'rgba(0,0,0,0.3)');
 
-  // Cape (waterlogged, heavy, behind body)
-  bk(c, 16, 12, 24, 34, cape);
-  bk(c, 18, 14, 20, 30, capeLt);
-  for (let fx = 20; fx < 38; fx += 3) bk(c, fx, 16, 1, 28, cape);
-  bk(c, 16, 42, 24, 4, cape);
-  // Cape drip lines
-  bk(c, 38, 36, 3, 8, cape);
-  bk(c, 17, 40, 2, 6, capeLt);
+  // ── Cape (waterlogged, heavy) ──
+  bk(c, 16, 12, 24, 34, capeDk);
+  bk(c, 18, 14, 20, 30, capeMd);
+  bk(c, 20, 16, 16, 26, capeLt);
+  for (let fx = 20; fx < 38; fx += 3) bk(c, fx, 16, 1, 28, capeDk);
+  bk(c, 16, 42, 24, 4, capeDk);
+  bk(c, 38, 36, 3, 8, capeDk);
+  // drip lines from cape
+  bk(c, 17, 42, 1, 4, capeMd);
+  bk(c, 38, 44, 1, 3, capeMd);
 
-  // Legs (heavy plate, corroded)
-  bk(c, 14, 34, 8, 10, armor);
-  bk(c, 15, 35, 6, 8, armorLt);
-  bk(c, 26, 34, 8, 10, armor);
-  bk(c, 27, 35, 6, 8, armorLt);
+  // ── Legs (heavy corroded plate) ──
+  bk(c, 14, 34, 8, 10, armMd);
+  bk(c, 15, 35, 6, 8, armLt);
+  bk(c, 16, 36, 4, 6, armHi);
+  bk(c, 15, 35, 3, 3, armHi);
+  bk(c, 26, 34, 8, 10, armMd);
+  bk(c, 27, 35, 6, 8, armLt);
+  bk(c, 28, 36, 4, 6, armHi);
+  bk(c, 27, 35, 3, 3, armHi);
   // Knee guards
-  bk(c, 13, 36, 10, 3, armorDk);
-  bk(c, 25, 36, 10, 3, armorDk);
+  bk(c, 13, 36, 10, 3, armDk);
+  bk(c, 14, 36, 8, 1, armMd);
+  bk(c, 25, 36, 10, 3, armDk);
+  bk(c, 26, 36, 8, 1, armMd);
   // Boots (barnacle-encrusted)
-  bk(c, 12, 42, 12, 6, armorDk);
-  bk(c, 24, 42, 12, 6, armorDk);
-  bk(c, 13, 42, 10, 2, armorLt);
-  bk(c, 25, 42, 10, 2, armorLt);
+  bk(c, 12, 42, 12, 6, armDk);
+  bk(c, 13, 42, 10, 2, armMd);
+  bk(c, 13, 42, 5, 1, armHi);
+  bk(c, 24, 42, 12, 6, armDk);
+  bk(c, 25, 42, 10, 2, armMd);
+  bk(c, 25, 42, 5, 1, armHi);
   // Barnacles on boots
-  px(c, 14, 44, barnacle); px(c, 22, 45, barnacle);
-  px(c, 26, 44, barnacle); px(c, 34, 45, barnacle);
+  px(c, 14, 44, barn); px(c, 22, 45, barn);
+  px(c, 15, 45, barnLt);
+  px(c, 26, 44, barn); px(c, 34, 45, barn);
+  px(c, 27, 45, barnLt);
 
-  // Body (heavy corroded plate)
-  bk(c, 10, 14, 28, 20, armor);
-  bk(c, 12, 16, 24, 16, armorLt);
-  // Plate bands
-  for (let by = 18; by < 32; by += 4) bk(c, 12, by, 24, 1, armorDk);
-  // Rust patches
+  // ── Body (corroded plate armor) ──
+  bk(c, 10, 14, 28, 20, armMd);
+  bk(c, 11, 15, 26, 18, armLt);
+  bk(c, 12, 16, 24, 16, armHi);
+  // plate bands
+  for (let by = 18; by < 32; by += 4) bk(c, 12, by, 24, 1, armDk);
+  // center line
+  bk(c, 23, 16, 2, 16, armDk);
+  // top-left highlight
+  bk(c, 10, 14, 14, 2, armHi);
+  // right shadow
+  bk(c, 36, 16, 2, 16, armDk);
+  // Rust patches (many, corroded)
   px(c, 14, 20, rust); px(c, 30, 24, rust); px(c, 18, 28, rustLt);
-  px(c, 26, 18, rust); px(c, 20, 22, rustLt);
-  // Center line
-  bk(c, 23, 16, 2, 16, armorDk);
+  px(c, 26, 18, rust); px(c, 20, 22, rustHi); px(c, 34, 20, rustLt);
+  px(c, 16, 26, rust); px(c, 28, 30, rustLt);
   // Barnacles on torso
-  px(c, 16, 26, barnacle); px(c, 32, 22, barnacle);
-  px(c, 12, 18, barnacle); px(c, 28, 30, barnacle);
+  px(c, 16, 26, barn); px(c, 32, 22, barn);
+  px(c, 12, 18, barnLt); px(c, 28, 30, barn);
+  px(c, 22, 20, barn);
 
-  // Pauldrons (large, corroded)
-  bk(c, 4, 10, 14, 8, armor);
-  bk(c, 5, 11, 12, 6, armorLt);
-  bk(c, 4, 10, 14, 1, armorLt);
-  bk(c, 30, 10, 14, 8, armor);
-  bk(c, 31, 11, 12, 6, armorLt);
-  bk(c, 30, 10, 14, 1, armorLt);
+  // ── Pauldrons (large, corroded) ──
+  bk(c, 4, 10, 14, 8, armMd);
+  bk(c, 5, 11, 12, 6, armLt);
+  bk(c, 6, 12, 10, 4, armHi);
+  bk(c, 4, 10, 10, 1, armHi);
+  bk(c, 30, 10, 14, 8, armMd);
+  bk(c, 31, 11, 12, 6, armLt);
+  bk(c, 32, 12, 10, 4, armHi);
+  bk(c, 30, 10, 10, 1, armHi);
   // Barnacles on pauldrons
-  px(c, 7, 14, barnacle); px(c, 15, 12, barnacle);
-  px(c, 33, 14, barnacle); px(c, 41, 12, barnacle);
-  // Seaweed draped on shoulder
-  bk(c, 6, 16, 2, 6, seaweed);
-  bk(c, 40, 16, 2, 5, seaweed);
+  px(c, 7, 14, barn); px(c, 15, 12, barn);
+  px(c, 9, 12, barnLt);
+  px(c, 33, 14, barn); px(c, 41, 12, barn);
+  px(c, 37, 12, barnLt);
+  // Seaweed draped from shoulders
+  bk(c, 5, 16, 2, 8, seaweed);
+  px(c, 5, 24, seaLt);
+  px(c, 6, 18, seaLt);
+  bk(c, 41, 16, 2, 7, seaweed);
+  px(c, 41, 23, seaLt);
+  px(c, 42, 18, seaLt);
 
-  // Arms
-  bk(c, 6, 16, 6, 16, armor);
-  bk(c, 7, 17, 4, 14, armorLt);
-  bk(c, 36, 16, 6, 16, armor);
-  bk(c, 37, 17, 4, 14, armorLt);
+  // ── Arms ──
+  bk(c, 6, 16, 6, 16, armMd);
+  bk(c, 7, 17, 4, 14, armLt);
+  bk(c, 7, 17, 2, 6, armHi);
+  bk(c, 36, 16, 6, 16, armMd);
+  bk(c, 37, 17, 4, 14, armLt);
   // Gauntlets
-  bk(c, 5, 30, 8, 4, armorDk);
-  bk(c, 35, 30, 8, 4, armorDk);
+  bk(c, 5, 30, 8, 4, armDk);
+  bk(c, 6, 30, 6, 2, armMd);
+  bk(c, 35, 30, 8, 4, armDk);
+  bk(c, 36, 30, 6, 2, armMd);
 
-  // Helmet (larger than hollow_knight, corroded)
-  bk(c, 12, 0, 24, 14, armor);
-  bk(c, 14, 2, 20, 10, armorLt);
-  bk(c, 12, 0, 24, 2, armorLt);
+  // ── Helmet (corroded, larger) ──
+  bk(c, 12, 0, 24, 14, armMd);
+  bk(c, 13, 1, 22, 12, armLt);
+  bk(c, 14, 2, 20, 10, armHi);
+  bk(c, 12, 0, 16, 2, armHi); // top-left highlight
   // Visor slit
   bk(c, 16, 6, 16, 4, visor);
   // Blue glow behind visor
   px(c, 18, 7, glow); px(c, 29, 7, glow);
   px(c, 19, 7, glowBr); px(c, 28, 7, glowBr);
   px(c, 20, 8, glow); px(c, 27, 8, glow);
+  px(c, 17, 7, glowDm); px(c, 30, 7, glowDm);
+  // glow leak below visor
+  px(c, 20, 10, 'rgba(64,128,192,0.2)');
+  px(c, 27, 10, 'rgba(64,128,192,0.2)');
   // Rust on helmet
   px(c, 14, 4, rust); px(c, 32, 6, rust); px(c, 20, 12, rustLt);
+  px(c, 28, 2, rustLt); px(c, 16, 8, rust);
   // Barnacles on helmet
-  px(c, 16, 2, barnacle); px(c, 30, 4, barnacle); px(c, 24, 0, barnacle);
-  // Helmet crest (corroded)
-  bk(c, 22, -2, 4, 4, armorDk);
-  bk(c, 23, -2, 2, 2, armor);
+  px(c, 16, 2, barn); px(c, 30, 4, barn); px(c, 24, 0, barn);
+  px(c, 20, 0, barnLt);
+  // Helmet crest (corroded stub)
+  bk(c, 22, -2, 4, 4, armDk);
+  bk(c, 23, -2, 2, 2, armMd);
+  px(c, 23, -2, armHi);
 
-  // CORRODED GREATSWORD
-  bk(c, 0, -2, 3, 36, sword);
-  bk(c, 0, -2, 3, 2, swordHi);
-  px(c, -1, 0, swordHi);
+  // ── Corroded Greatsword ──
+  // Blade (irregular edge from corrosion)
+  bk(c, 0, -2, 3, 36, swd);
+  bk(c, 0, -2, 3, 2, swdHi); // tip
+  px(c, -1, 0, swdHi); // edge gleam
+  bk(c, 3, 4, 1, 20, swdDk); // shadow edge
   // Rust and pitting on blade
   px(c, 1, 6, rust); px(c, 2, 14, rust); px(c, 0, 20, rustLt);
-  px(c, 1, 10, armorDk); px(c, 2, 24, armorDk);
+  px(c, 1, 10, rustHi); px(c, 2, 24, armDk);
+  px(c, 0, 8, rust); px(c, 2, 18, rustLt);
+  // irregular blade edge (corrosion notches)
+  px(c, -1, 12, swdDk); px(c, 3, 8, swdDk);
+  px(c, -1, 22, swdDk); px(c, 3, 16, swdDk);
   // Barnacles on blade
-  px(c, 0, 16, barnacle); px(c, 2, 28, barnacle);
-  // Crossguard
-  bk(c, -2, 30, 8, 3, armorDk);
-  bk(c, -1, 31, 6, 1, armor);
-  // Grip (waterlogged)
+  px(c, 0, 16, barn); px(c, 2, 28, barn);
+  px(c, 1, 22, barnLt);
+  // Crossguard (corroded)
+  bk(c, -2, 30, 8, 3, armDk);
+  bk(c, -1, 31, 6, 1, armMd);
+  // Grip (waterlogged leather)
   bk(c, 0, 33, 3, 6, '#2a3830');
+  px(c, 1, 34, '#3a4840');
+  px(c, 1, 36, '#3a4840');
   // Pommel
-  bk(c, 0, 39, 3, 3, armorDk);
+  bk(c, 0, 39, 3, 3, armDk);
+  px(c, 1, 40, armMd);
 
-  // Water drips from armor
-  px(c, 10, 32, 'rgba(64,128,192,0.5)');
-  px(c, 34, 28, 'rgba(64,128,192,0.5)');
-  px(c, 22, 34, 'rgba(64,128,192,0.5)');
+  // ── Water drips from armor ──
+  px(c, 10, 32, drip); px(c, 10, 34, dripBr);
+  px(c, 34, 28, drip); px(c, 34, 30, dripBr);
+  px(c, 22, 34, drip);
+  px(c, 6, 24, drip);
+  px(c, 40, 22, drip);
+  // drips from helmet
+  px(c, 14, 12, drip); px(c, 14, 14, dripBr);
+  px(c, 32, 12, drip);
 }
 
 // ─── OUTLINE ──────────────────────────────────────────────────
