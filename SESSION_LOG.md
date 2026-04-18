@@ -41,17 +41,28 @@ Everything built in this project from start to current state. Use this to resume
 | DepthsFloor3Scene | `scenes/DepthsFloor3Scene.ts` | Dungeon Floor 3 — The Hollow Throne (boss) |
 | InteriorScene | `scenes/InteriorScene.ts` | Generic building interiors (Guild, Inn, Shop, Smithy, Orric's Cabin) |
 | CombatScene | `scenes/CombatScene.ts` | Visual battle scene |
+| AshenmereScene | `scenes/AshenmereScene.ts` | Post-boss marsh zone (Lv 7+) |
+| IronveilScene | `scenes/IronveilScene.ts` | Abandoned mines (Lv 5-7) |
+| DrownedSanctumF1Scene | `scenes/DrownedSanctumF1Scene.ts` | Main quest dungeon F1 — flooded ruins |
+| DrownedSanctumF2Scene | `scenes/DrownedSanctumF2Scene.ts` | Main quest dungeon F2 — Veyrin's altar |
+| BogDungeonF1Scene | `scenes/BogDungeonF1Scene.ts` | Bog dungeon F1 — The Sunken Halls (Lv 8-10) |
+| BogDungeonF2Scene | `scenes/BogDungeonF2Scene.ts` | Bog dungeon F2 — The Drowned Gallery (Lv 10-11) |
+| BogDungeonF3Scene | `scenes/BogDungeonF3Scene.ts` | Bog dungeon F3 — The Warden's Pool (boss, Lv 11-12) |
 
 ### State Stores (Zustand)
 | Store | File | Purpose |
 |-------|------|---------|
-| playerStore | `state/playerStore.ts` | Active character, gold, XP, HP mutations |
-| combatStore | `state/combatStore.ts` | Active battle state, enemy tracking, finish rewards |
+| playerStore | `state/playerStore.ts` | Active character, gold, XP, HP, perks, companion |
+| combatStore | `state/combatStore.ts` | Active battle state, enemy tracking, finish rewards, dungeon checkpoints |
 | inventoryStore | `state/inventoryStore.ts` | Bag slots, equipment, shop, crafting toggles |
 | questStore | `state/questStore.ts` | Quest tracking, objectives, turn-in |
 | dialogueStore | `state/dialogueStore.ts` | Active dialogue tree navigation |
 | uiStore | `state/uiStore.ts` | Screen state (menu/creation/game) |
 | characterCreationStore | `state/characterCreationStore.ts` | Wizard steps |
+| achievementStore | `state/achievementStore.ts` | Achievements, kill tracking, zone visits, bestiary |
+| bountyStore | `state/bountyStore.ts` | Repeatable bounties (rotating kill/collect tasks) |
+| commissionStore | `state/commissionStore.ts` | Smithy commissions (timed crafting for masterwork items) |
+| loreStore | `state/loreStore.ts` | Discovered lore entries for the journal/codex |
 
 ### Engine Modules
 | Module | File | Purpose |
@@ -87,35 +98,54 @@ Everything built in this project from start to current state. Use this to resume
 
 ---
 
-## Monsters (8 types)
+## Monsters (12 types)
 
-| Monster | HP | AC | XP | Zone | Status Effects |
-|---------|----|----|----|----|----------------|
-| Dire Wolf | 12 | 11 | 25 | Greenhollow | 30% bleed |
-| Wild Boar | 16 | 12 | 30 | Greenhollow | 25% stun |
-| Forest Bandit | 20 | 13 | 45 | Greenhollow | 20% bleed |
-| Risen Bones | 18 | 13 | 50 | Mossbarrow | 25% poison |
-| Cairn Spider | 14 | 10 | 30 | Depths F1 | 40% poison |
-| Barrow Wraith | 22 | 14 | 75 | Depths F2 | 35% burn |
-| Hollow Knight | 40 | 16 | 150 | Mossbarrow | 20% stun |
-| The Hollow King | 120 | 18 | 500 | Depths F3 (BOSS) | Multi-effect, phase 2 at 50% |
+| Monster | HP | AC | XP | Zone | Special | Element |
+|---------|----|----|----|----|---------|---------|
+| Dire Wolf | 12 | 11 | 25 | Greenhollow | Lunge (1.5x) | physical, weak fire |
+| Wild Boar | 16 | 12 | 30 | Greenhollow | Gore (1.8x + bleed) | physical, weak fire |
+| Forest Bandit | 20 | 13 | 45 | Greenhollow | Cheap Shot (poison) | physical, weak shadow |
+| Risen Bones | 18 | 13 | 50 | Mossbarrow | Bone Throw (stun) | shadow, weak fire |
+| Cairn Spider | 14 | 10 | 30 | Depths F1 | Web Spit (stun) | poison, weak fire |
+| Barrow Wraith | 22 | 14 | 75 | Depths F2 | Soul Drain (heal) | shadow, weak fire |
+| Hollow Knight | 40 | 16 | 150 | Mossbarrow | Shield Bash (stun) | shadow, weak fire |
+| Cave Bat | 10 | 14 | 25 | Ironveil | Swarm Dive (bleed) | physical, weak fire |
+| Iron Golem | 35 | 17 | 80 | Ironveil | Earthshaker (stun) | physical, weak shadow |
+| Bog Lurker | 28 | 12 | 65 | Ashenmere Bog | Drag Under (stun) | poison, weak fire |
+| **Hollow King** | **120** | **18** | **500** | Depths F3 | Phase 2 at 50% | shadow, weak fire |
+| **Drowned Warden** | **95** | **17** | **400** | Bog F3 | Phase 2 at 40% | shadow, weak fire |
 
 ---
 
-## Quests (10 total)
+## Quests (15 total)
 
+### Main Story (Act 1 + Act 2)
+| Quest | Giver | Type | Objective |
+|-------|-------|------|-----------|
+| iron-token | Brenna | Story | Find Veyrin via Orric → Mossbarrow cairn |
+| depths-explorer | Brenna | Explore | Reach Floor 3 of Mossbarrow |
+| hollow-king-slayer | Brenna | Kill | Defeat the Hollow King |
+| scholars-trail | Hermit | Story | Find Veyrin's journal in Ashenmere |
+| drowned-sanctum | Hermit | Explore | Enter sanctum, find Veyrin |
+| what-remains | Auto | Story | Return Veyrin's message to Brenna |
+
+### Side Quests
 | Quest | Giver | Type | Objective |
 |-------|-------|------|-----------|
 | wolf-cull | Brenna | Kill | Kill 3 wolves |
 | bone-collector | Brenna | Kill | Kill 2 skeletons |
 | spider-nest | Brenna | Kill | Kill 3 spiders |
 | wraith-hunt | Brenna | Kill | Kill 2 wraiths |
-| depths-explorer | Brenna | Explore | Reach Floor 3 |
-| hollow-king-slayer | Brenna | Kill | Defeat the Hollow King |
 | herb-gathering | Tomas | Collect | 3 moonpetals |
 | iron-delivery | Kael | Collect | 3 iron ore |
 | silk-trader | Vira | Collect | 2 spider silk |
 | bone-ritual | Orric | Collect | 3 bone shards |
+| bog-explorer | Hermit | Explore | Reach the Warden's Pool |
+| warden-slayer | Hermit | Kill | Defeat the Drowned Warden |
+
+### Repeatable Bounties (8 rotating)
+Kill bounties: wolves, spiders, skeletons, bandits, wraiths
+Collect bounties: iron ore, moonpetals, spider silk
 
 ---
 
@@ -235,6 +265,49 @@ Everything built in this project from start to current state. Use this to resume
 - [x] Perk system on level up (choose 1 of 3 random perks: stats, HP, MP, ATK, DMG)
 - [x] Perks saved/loaded with save files
 - [x] Perk bonuses wired into combat and HUD
+- [x] Difficulty scaling (monsters scale HP +8%/level above 3, damage +5%/level above 5)
+- [x] Status effect caps (poison/burn/bleed max 5, stun max 2)
+- [x] Level-up HP refill fix (no longer overwritten by combat HP)
+
+### Systems Added Later
+- [x] Smithy commission system (give materials → wait zone transitions → get masterwork gear)
+- [x] 9 masterwork items (Kael's versions with +1 stat bonuses, rare quality)
+- [x] Fast travel via waypoint stones (4 outdoor zones)
+- [x] Dungeon checkpoint system (respawn at last floor on death, not town)
+- [x] Repeatable bounties (8 rotating kill/collect tasks from Quest Board)
+- [x] Achievement system (12 achievements with toast notifications)
+- [x] Bestiary / Monster Compendium (tracks encounters + kills)
+- [x] Character stat screen (full breakdown of stats, equipment, perks, combat record)
+- [x] Lore codex / journal (re-read discovered lore entries, grouped by location)
+- [x] World map screen (SVG showing visited/unvisited zones)
+- [x] Elemental weakness system (fire/ice/poison/shadow/physical, 1.5x on weakness)
+- [x] Enemy special abilities (8 unique: Lunge, Gore, Cheap Shot, Bone Throw, Web Spit, Soul Drain, Shield Bash, Dark Command + 4 new: Swarm Dive, Earthshaker, Drag Under, Tidal Slam)
+- [x] Enemy spawn randomization (±24px jitter per visit)
+- [x] Random world events (merchant encounters, ambushes, flavor text per zone)
+- [x] Environmental storytelling (13+ lore objects across all zones)
+- [x] Combat victory results screen (XP bar animation, loot display)
+- [x] Inventory sorting (by type/rarity/name) + rarity-colored borders
+- [x] Rare item discovery popup (centered modal for rare/epic/legendary finds)
+- [x] NPC companion system (Orric +2 DMG, Kael +2 AC, Tomas +3 heal/turn)
+- [x] Tutorial intro sequence (arrow pointing at Guild + controls hint)
+- [x] Loading tips during zone transitions (14 gameplay tips)
+- [x] Next objective breadcrumb in HUD (subtle hint below HUD bar)
+- [x] Zone difficulty labels at exits (e.g. "[Lv 1-3]", "[Lv 7+]")
+- [x] Death message rotation (5 atmospheric messages on defeat)
+- [x] HUD HP/MP colored bars (green→yellow→red based on %)
+- [x] Damage flash + gold gain indicators in HUD
+- [x] Item pickup particles across all zones
+- [x] Town ambient life (wandering NPCs, cat, birds, chimney smoke)
+
+### Content Zones
+- [x] Ashenvale (starter town with 4 buildings, NPCs, signposts)
+- [x] Greenhollow Woods (Lv 1-3, wolves/boars/bandits, Orric's cabin)
+- [x] Mossbarrow Cairn (Lv 3-5, skeletons, center stone, hollow oak)
+- [x] Mossbarrow Depths (3 floors: Spider Cavern → Catacombs → Hollow Throne)
+- [x] Ironveil Mines (Lv 5-7, cave bats/golems, ore veins, mine atmosphere)
+- [x] Ashenmere Marshes (Lv 7+, post-boss, fog/fireflies, Hermit NPC)
+- [x] Drowned Sanctum (2 floors, Act 2 main quest, Veyrin NPC)
+- [x] Ashenmere Bog Dungeon (3 floors: Sunken Halls → Drowned Gallery → Warden's Pool)
 
 ---
 
@@ -245,8 +318,8 @@ Everything built in this project from start to current state. Use this to resume
 - Act 3 content not yet built (Brenna's dialogue hints at it)
 - Eastern Ashenmere exit is a "coming soon" teaser
 - Class-specific perk enhancements not yet designed
-- AC perk not in the perk list (could be added)
-- `gainXp` HP/MP refill gets overwritten by `character.hp = state.playerHp` in combat finish
+- Commission store not persisted to save files yet
+- Achievement/bounty/lore stores not persisted to save files yet
 
 ---
 
