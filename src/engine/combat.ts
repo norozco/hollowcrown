@@ -20,7 +20,7 @@ import { modifier } from './stats';
 import type { Character } from './character';
 import type { Monster } from './monster';
 import { useInventoryStore } from '../state/inventoryStore';
-import { usePlayerStore } from '../state/playerStore';
+import { usePlayerStore, getHeartPieceHpBonus } from '../state/playerStore';
 import { COMPANIONS } from './companion';
 import { getPerkCombatBonuses, getPerkHpBonus } from './perks';
 
@@ -325,7 +325,7 @@ export function playerAct(
       if (classKey === 'cleric') {
         // Cure Wounds: heal self — no damage element to check
         const healAmt = 8 + modifier(player.stats.wis) * 2;
-        const maxHpWithPerks = player.derived.maxHp + getPerkHpBonus(usePlayerStore.getState().perks);
+        const maxHpWithPerks = player.derived.maxHp + getPerkHpBonus(usePlayerStore.getState().perks) + getHeartPieceHpBonus(usePlayerStore.getState().heartPieces);
         s.playerHp = Math.min(maxHpWithPerks, s.playerHp + healAmt);
         s.log.push({ text: `Divine light mends your wounds. +${healAmt} HP.`, type: 'player_hit' });
       } else if (classKey === 'wizard') {
@@ -413,7 +413,7 @@ export function playerAct(
     const companion = COMPANIONS[companionKey];
     if (companion?.effect.healPerTurn) {
       const heal = companion.effect.healPerTurn;
-      const maxHpWithPerks2 = player.derived.maxHp + getPerkHpBonus(usePlayerStore.getState().perks);
+      const maxHpWithPerks2 = player.derived.maxHp + getPerkHpBonus(usePlayerStore.getState().perks) + getHeartPieceHpBonus(usePlayerStore.getState().heartPieces);
       s.playerHp = Math.min(maxHpWithPerks2, s.playerHp + heal);
       s.log.push({ text: `${companion.name} patches your wounds. +${heal} HP.`, type: 'player_hit' });
     }

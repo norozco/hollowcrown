@@ -16,6 +16,9 @@ import { ShopScreen } from './Inventory/ShopScreen';
 import { CraftingScreen } from './Crafting/CraftingScreen';
 import { LevelUpPopup } from './LevelUp/LevelUpPopup';
 import { getPerkHpBonus, getPerkMpBonus } from '../engine/perks';
+import { useDungeonItemStore } from '../state/dungeonItemStore';
+import { DUNGEON_ITEMS } from '../engine/dungeonItems';
+import { getHeartPieceHpBonus } from '../state/playerStore';
 import { QuestBoard } from './QuestBoard/QuestBoard';
 import { OptionsMenu } from './OptionsMenu/OptionsMenu';
 import { AchievementsScreen } from './Achievements/AchievementsScreen';
@@ -107,6 +110,8 @@ export function InGameOverlay() {
   const questActive = useQuestStore((s) => s.active);
   const nextObjective = getNextObjective();
   const perks = usePlayerStore((s) => s.perks);
+  const heartPieces = usePlayerStore((s) => s.heartPieces);
+  const dungeonItems = useDungeonItemStore((s) => s.found);
 
   const checkAchievements = useAchievementStore((s) => s.checkAchievements);
   const resetAchievements = useAchievementStore((s) => s.reset);
@@ -278,12 +283,13 @@ export function InGameOverlay() {
     resetAchievements();
     resetLore();
     useCommissionStore.getState().reset();
+    useDungeonItemStore.getState().reset();
     setMenuOpen(false);
     setScreen('menu');
   };
 
   const d = character.derived;
-  const effectiveMaxHp = d.maxHp + getPerkHpBonus(perks);
+  const effectiveMaxHp = d.maxHp + getPerkHpBonus(perks) + getHeartPieceHpBonus(heartPieces);
   const effectiveMaxMp = d.maxMp + getPerkMpBonus(perks);
   const questsCompleted = Object.values(questActive).filter((q) => q.turnedIn).length;
   const rank = getCurrentRank(questsCompleted, character.level);
@@ -395,6 +401,15 @@ export function InGameOverlay() {
           <span className="ig__companion-icon">☻</span>
           {COMPANIONS[companionKey].name.split(' ')[0]}
           <span className="ig__companion-bonus">{companionBonusLabel(COMPANIONS[companionKey])}</span>
+        </div>
+      )}
+
+      {dungeonItems.size > 0 && (
+        <div className="ig__dungeon-items">
+          {Array.from(dungeonItems).map(key => {
+            const item = DUNGEON_ITEMS[key];
+            return item ? <span key={key} className="ig__di" title={item.name}>{item.icon}</span> : null;
+          })}
         </div>
       )}
 

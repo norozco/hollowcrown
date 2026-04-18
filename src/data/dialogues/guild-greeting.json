@@ -86,6 +86,27 @@
           ]
         },
         {
+          "text": "What will you do now, Brenna?",
+          "next": "brenna-backstory-3",
+          "requires": [
+            { "type": "quest-complete", "questId": "what-remains" }
+          ]
+        },
+        {
+          "text": "Tell me about the one you lost.",
+          "next": "brenna-backstory-2",
+          "requires": [
+            { "type": "quest-complete", "questId": "hollow-king-slayer" }
+          ]
+        },
+        {
+          "text": "You seem different today.",
+          "next": "brenna-backstory-1",
+          "requires": [
+            { "type": "quest-complete", "questId": "spider-nest" }
+          ]
+        },
+        {
           "text": "I need work.",
           "next": "quest-hub"
         },
@@ -556,6 +577,50 @@
       "id": "close",
       "speaker": "narrator",
       "text": "She returns to her ledger. The token is warm in your hand, though the counter was cold.",
+      "next": null
+    },
+
+    "brenna-backstory-1": {
+      "id": "brenna-backstory-1",
+      "speaker": "brenna",
+      "expression": "sad",
+      "text": "I had someone. An adventurer, like you. He went into Mossbarrow seven months ago. I stopped counting the days when I lost the number.",
+      "next": "brenna-backstory-1-close"
+    },
+    "brenna-backstory-1-close": {
+      "id": "brenna-backstory-1-close",
+      "speaker": "brenna",
+      "expression": "neutral",
+      "text": "That is more than I have said to anyone in this hall. Do not make me regret it.",
+      "next": null
+    },
+
+    "brenna-backstory-2": {
+      "id": "brenna-backstory-2",
+      "speaker": "brenna",
+      "expression": "sad",
+      "text": "His name was Aldric. He was better than me with a blade and worse than me with words. The Hollow King killed him on the third floor. I found his shield when you cleared it. I have not been able to look at it.",
+      "next": "brenna-backstory-2-close"
+    },
+    "brenna-backstory-2-close": {
+      "id": "brenna-backstory-2-close",
+      "speaker": "narrator",
+      "text": "Brenna turns away. Her hand rests on the edge of the counter — the only part of the gesture that trembles.",
+      "next": null
+    },
+
+    "brenna-backstory-3": {
+      "id": "brenna-backstory-3",
+      "speaker": "brenna",
+      "expression": "thoughtful",
+      "text": "I will do what I have always done. Keep the ledger. Light the fire. Wait for someone to walk through that door who is braver than I am. You already did. So I suppose I am waiting for the next one.",
+      "next": "brenna-backstory-3-close"
+    },
+    "brenna-backstory-3-close": {
+      "id": "brenna-backstory-3-close",
+      "speaker": "brenna",
+      "expression": "neutral",
+      "text": "Go. The work does not wait, and neither should you.",
       "next": null
     }
   }

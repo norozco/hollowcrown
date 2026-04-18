@@ -6,6 +6,7 @@ import {
 import { usePlayerStore } from './playerStore';
 import { useQuestStore } from './questStore';
 import { getPerkHpBonus, getPerkMpBonus } from '../engine/perks';
+import { getHeartPieceHpBonus } from './playerStore';
 
 interface InventoryState {
   /** Player's bag — up to 30 slots. */
@@ -145,7 +146,7 @@ export const useInventoryStore = create<InventoryState>((set, get) => ({
 
     if (item.effect.healHp) {
       // Perk HP bonus extends the cap beyond derived.maxHp.
-      const effectiveMax = char.derived.maxHp + getPerkHpBonus(player.perks);
+      const effectiveMax = char.derived.maxHp + getPerkHpBonus(player.perks) + getHeartPieceHpBonus(player.heartPieces);
       char.hp = Math.min(effectiveMax, char.hp + item.effect.healHp);
     }
     if (item.effect.healMp) {

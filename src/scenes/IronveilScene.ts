@@ -1,5 +1,6 @@
 import { useInventoryStore } from '../state/inventoryStore';
 import { useLoreStore } from '../state/loreStore';
+import { useDungeonItemStore } from '../state/dungeonItemStore';
 import { BaseWorldScene, TILE, WORLD_W, WORLD_H } from './BaseWorldScene';
 import { generateTileset, TILE as T, TILE_SIZE } from './tiles/generateTiles';
 
@@ -270,6 +271,12 @@ export class IronveilScene extends BaseWorldScene {
       },
     });
 
+    // ── Fairy Fountain (side tunnel dead-end, north-east alcove) ──
+    this.spawnFairyFountain({ x: 35 * TILE, y: 4 * TILE });
+
+    // ── The Watcher ──
+    this.spawnWatcher(3 * TILE, 12 * TILE);
+
     // ── Zone marker ──
     this.add
       .text(2 * TILE, WORLD_H / 2, 'IRONVEIL MINES', {
@@ -302,6 +309,33 @@ export class IronveilScene extends BaseWorldScene {
         { itemKey: 'troll_heart', weight: 1 },
       ],
       gold: 20, spawnChance: 0.2,
+    });
+
+    // ── Pickaxe dungeon item chest (north cavern, golden trim) ──
+    if (!useDungeonItemStore.getState().has('pickaxe')) {
+      const diChest = this.add.rectangle(26 * TILE, 5 * TILE, 28, 24, 0x8a6830);
+      diChest.setStrokeStyle(2, 0xe0c040);
+      diChest.setDepth(8);
+      this.add.rectangle(26 * TILE, 5 * TILE - 10, 28, 8, 0xa08040).setStrokeStyle(1, 0xe0c040).setDepth(8);
+      this.add.circle(26 * TILE, 5 * TILE, 18, 0xe0c040, 0.1).setDepth(7);
+      this.spawnInteractable({
+        sprite: diChest as any, label: 'Open golden chest', radius: 24,
+        action: () => {
+          useDungeonItemStore.getState().acquire('pickaxe');
+          window.dispatchEvent(new CustomEvent('gameMessage', { detail: "Miner's Pickaxe acquired! Cracked walls can now be broken." }));
+          diChest.destroy();
+        },
+      });
+    }
+
+    // ── Breakable wall (south cavern east wall) → hidden ore vein room ──
+    this.spawnBreakableWall({
+      x: 29 * TILE, y: 16 * TILE, w: TILE, h: TILE * 2,
+      onBreak: () => {
+        useInventoryStore.getState().addItem('iron_ore', 3);
+        window.dispatchEvent(new CustomEvent('gameMessage', { detail: 'Hidden ore vein! Found iron ore x3!' }));
+        this.spawnHeartPiece(30 * TILE, 17 * TILE);
+      },
     });
   }
 

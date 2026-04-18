@@ -215,6 +215,9 @@ export class DepthsFloor3Scene extends BaseWorldScene {
       gold: 50,
     });
 
+    // ── The Watcher ──
+    this.spawnWatcher(18 * TILE, 4 * TILE);
+
     // ── EXIT UP → Floor 2 (top-center, wide) ──
     this.addExit({
       x: 12 * TILE, y: 0, w: 6 * TILE, h: TILE,

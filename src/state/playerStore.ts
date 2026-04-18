@@ -47,6 +47,11 @@ interface PlayerState {
   hireCompanion: (key: string) => void;
   /** Dismiss the current companion. */
   dismissCompanion: () => void;
+
+  /** Heart piece tracking. Every 4 pieces = +5 max HP. */
+  heartPieces: number;
+  heartPiecesCollected: Set<string>;
+  collectHeartPiece: (id: string) => void;
 }
 
 export const usePlayerStore = create<PlayerState>((set, get) => ({
@@ -55,6 +60,8 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   companion: null,
   perks: [],
   pendingPerkChoices: null,
+  heartPieces: 0,
+  heartPiecesCollected: new Set<string>(),
 
   choosePerk: (perkKey) => {
     const { pendingPerkChoices, character, perks } = get();
@@ -70,9 +77,9 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
     });
   },
 
-  create: (init) => set({ character: new Character(init), version: 1, perks: [], pendingPerkChoices: null }),
+  create: (init) => set({ character: new Character(init), version: 1, perks: [], pendingPerkChoices: null, heartPieces: 0, heartPiecesCollected: new Set<string>() }),
   notify: () => set((s) => ({ version: s.version + 1 })),
-  clear: () => set({ character: null, version: 0, companion: null, perks: [], pendingPerkChoices: null }),
+  clear: () => set({ character: null, version: 0, companion: null, perks: [], pendingPerkChoices: null, heartPieces: 0, heartPiecesCollected: new Set<string>() }),
 
   giveGold: (amount) => {
     const c = get().character;
@@ -102,4 +109,21 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
 
   hireCompanion: (key) => set({ companion: key }),
   dismissCompanion: () => set({ companion: null }),
+
+  collectHeartPiece: (id) => {
+    const { heartPiecesCollected, heartPieces } = get();
+    if (heartPiecesCollected.has(id)) return;
+    const nextCollected = new Set(heartPiecesCollected);
+    nextCollected.add(id);
+    const nextCount = heartPieces + 1;
+    // Every 4 pieces = +5 max HP
+    if (nextCount % 4 === 0) {
+      window.dispatchEvent(new CustomEvent('gameMessage', { detail: 'Max HP increased by 5!' }));
+    }
+    set({ heartPieces: nextCount, heartPiecesCollected: nextCollected, version: get().version + 1 });
+  },
 }));
+
+export function getHeartPieceHpBonus(pieces: number): number {
+  return Math.floor(pieces / 4) * 5;
+}

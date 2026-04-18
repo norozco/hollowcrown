@@ -104,6 +104,9 @@ export class BogDungeonF2Scene extends BaseWorldScene {
       gold: 25,
     });
 
+    // ── The Watcher ──
+    this.spawnWatcher(12 * TILE, 3 * TILE);
+
     // ── EXIT UP → Floor 1 (top-center) ──
     this.addExit({
       x: 7 * TILE, y: 0, w: 5 * TILE, h: TILE,
@@ -136,6 +139,14 @@ export class BogDungeonF2Scene extends BaseWorldScene {
     this.add.text(stairX, stairY + 10, "The Warden's Pool", {
       fontFamily: 'Courier New', fontSize: '10px', color: '#504080',
     }).setOrigin(0.5).setDepth(4);
+
+    // ── Breakable wall (south gallery east side) → hidden heart piece ──
+    this.spawnBreakableWall({
+      x: 14 * TILE, y: 16 * TILE, w: TILE, h: TILE * 2,
+      onBreak: () => {
+        this.spawnHeartPiece(15 * TILE, 17 * TILE);
+      },
+    });
   }
 
   protected spawnAt(name: string): { x: number; y: number } {

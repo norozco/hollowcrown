@@ -265,6 +265,9 @@ export class GreenhollowScene extends BaseWorldScene {
       },
     });
 
+    // ── Fairy Fountain (hidden in the far south-west, behind bushes) ──
+    this.spawnFairyFountain({ x: 3 * TILE, y: 20 * TILE });
+
     // Zone marker.
     this.add
       .text(WORLD_W / 2, WORLD_H - TILE * 4, 'GREENHOLLOW WOODS', {
@@ -310,6 +313,12 @@ export class GreenhollowScene extends BaseWorldScene {
       loot: [{ itemKey: 'health_potion', weight: 3 }, { itemKey: 'wolf_pelt', weight: 2 }, { itemKey: 'moonpetal', weight: 1 }],
       gold: 10, spawnChance: 0.2,
     });
+
+    // ── Heart piece #1 — hidden off-path behind bushes (south-west clearing) ──
+    this.spawnHeartPiece(4 * TILE, 14 * TILE);
+
+    // ── Heart piece #8 — secret cave in far south-east corner ──
+    this.spawnHeartPiece(36 * TILE, 20 * TILE);
   }
 
   protected spawnAt(name: string): { x: number; y: number } {

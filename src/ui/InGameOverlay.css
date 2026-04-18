@@ -242,6 +242,23 @@
   font-style: italic;
 }
 
+/* ── Dungeon items row ── */
+.ig__dungeon-items {
+  position: absolute;
+  top: 3.5rem;
+  left: 0.8rem;
+  display: flex;
+  gap: 0.3rem;
+  z-index: 14;
+  pointer-events: auto;
+}
+
+.ig__di {
+  font-size: 1.1rem;
+  filter: drop-shadow(0 1px 2px rgba(0,0,0,0.5));
+  cursor: help;
+}
+
 /* ── Center screen fallback ── */
 .ig__center {
   display: flex;

@@ -1,3 +1,4 @@
+import { usePlayerStore } from '../state/playerStore';
 import { BaseWorldScene, TILE, WORLD_W, WORLD_H } from './BaseWorldScene';
 import { generateTileset, TILE as T, TILE_SIZE } from './tiles/generateTiles';
 
@@ -94,6 +95,12 @@ export class BogDungeonF1Scene extends BaseWorldScene {
       gold: 12, spawnChance: 0.2,
     });
 
+    // ── Fairy Fountain (in the west alcove side room) ──
+    this.spawnFairyFountain({ x: 4 * TILE, y: 14 * TILE });
+
+    // ── The Watcher ──
+    this.spawnWatcher(8 * TILE, 2 * TILE);
+
     // ── EXIT UP → Ashenmere (top-center) ──
     this.addExit({
       x: 7 * TILE, y: 0, w: 5 * TILE, h: TILE,
@@ -120,6 +127,19 @@ export class BogDungeonF1Scene extends BaseWorldScene {
     this.add.text(stairX, stairY + 10, 'The Drowned Gallery', {
       fontFamily: 'Courier New', fontSize: '10px', color: '#306878',
     }).setOrigin(0.5).setDepth(4);
+
+    // ── Breakable wall (west alcove south wall) → fairy fountain (full heal) ──
+    this.spawnBreakableWall({
+      x: 3 * TILE, y: 16 * TILE, w: TILE * 2, h: TILE,
+      onBreak: () => {
+        const char = usePlayerStore.getState().character;
+        if (char) {
+          char.hp = char.derived.maxHp;
+          usePlayerStore.getState().notify();
+        }
+        window.dispatchEvent(new CustomEvent('gameMessage', { detail: 'A hidden spring! Your wounds are healed.' }));
+      },
+    });
   }
 
   protected spawnAt(name: string): { x: number; y: number } {

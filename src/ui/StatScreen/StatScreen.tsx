@@ -1,7 +1,9 @@
-import { usePlayerStore } from '../../state/playerStore';
+import { usePlayerStore, getHeartPieceHpBonus } from '../../state/playerStore';
 import { useInventoryStore } from '../../state/inventoryStore';
 import { useAchievementStore } from '../../state/achievementStore';
 import { useQuestStore } from '../../state/questStore';
+import { useDungeonItemStore } from '../../state/dungeonItemStore';
+import { DUNGEON_ITEMS } from '../../engine/dungeonItems';
 import { getPerkHpBonus, getPerkMpBonus, getPerkCombatBonuses, ALL_PERKS } from '../../engine/perks';
 import { COMPANIONS, companionBonusLabel } from '../../engine/companion';
 import { getCurrentRank } from '../../engine/ranks';
@@ -30,6 +32,8 @@ export function StatScreen({ onClose }: Props) {
   const bossesKilled = useAchievementStore((s) => s.bossesKilled);
   const zonesVisited = useAchievementStore((s) => s.zonesVisited);
   const questActive = useQuestStore((s) => s.active);
+  const heartPieces = usePlayerStore((s) => s.heartPieces);
+  const dungeonItems = useDungeonItemStore((s) => s.found);
 
   if (!character) return null;
 
@@ -95,7 +99,7 @@ export function StatScreen({ onClose }: Props) {
             </div>
             <div className="statscreen__row statscreen__row--highlight">
               <span className="statscreen__row-label">Max HP</span>
-              <span className="statscreen__row-value">{d.maxHp + perkHp + equipBonuses.hp}</span>
+              <span className="statscreen__row-value">{d.maxHp + perkHp + equipBonuses.hp + getHeartPieceHpBonus(heartPieces)}</span>
             </div>
             <div className="statscreen__row statscreen__row--highlight">
               <span className="statscreen__row-label">Max MP</span>
@@ -200,6 +204,41 @@ export function StatScreen({ onClose }: Props) {
               <span className="statscreen__row-value" style={{ color: rank.color }}>[{rank.label}] {rank.name}</span>
             </div>
           </div>
+
+          {/* Heart Pieces */}
+          <div className="statscreen__section" style={{ marginTop: '0.75rem' }}>
+            <h3 className="statscreen__section-title">HEART PIECES</h3>
+            <div className="statscreen__row">
+              <span className="statscreen__row-label">Collected</span>
+              <span className="statscreen__row-value">{heartPieces}/8</span>
+            </div>
+            <div className="statscreen__row">
+              <span className="statscreen__row-label">HP Bonus</span>
+              <span className="statscreen__row-value">+{getHeartPieceHpBonus(heartPieces)}</span>
+            </div>
+            {heartPieces % 4 !== 0 && (
+              <div className="statscreen__row">
+                <span className="statscreen__row-label">Next +5 HP</span>
+                <span className="statscreen__row-value">{4 - (heartPieces % 4)} more</span>
+              </div>
+            )}
+          </div>
+
+          {/* Dungeon Items */}
+          {dungeonItems.size > 0 && (
+            <div className="statscreen__section" style={{ marginTop: '0.75rem' }}>
+              <h3 className="statscreen__section-title">DUNGEON ITEMS</h3>
+              {Array.from(dungeonItems).map(key => {
+                const item = DUNGEON_ITEMS[key];
+                return item ? (
+                  <div key={key} className="statscreen__row">
+                    <span className="statscreen__row-label">{item.icon} {item.name}</span>
+                    <span className="statscreen__row-value" style={{ fontSize: '0.65rem', color: '#8a7a48' }}>{item.description}</span>
+                  </div>
+                ) : null;
+              })}
+            </div>
+          )}
         </div>
       </div>
     </div>

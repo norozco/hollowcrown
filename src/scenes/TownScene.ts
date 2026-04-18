@@ -385,6 +385,9 @@ export class TownScene extends BaseWorldScene {
       },
     });
 
+    // ── Heart piece #6 — near the well, reward for exploration ──
+    this.spawnHeartPiece(14 * TILE, 10 * TILE);
+
   }
 
   protected spawnAt(name: string): { x: number; y: number } {

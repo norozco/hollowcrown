@@ -120,6 +120,9 @@ export class BogDungeonF3Scene extends BaseWorldScene {
     this.spawnEnemy({ monsterKey: 'hollow_knight', x: 11 * TILE, y: 9 * TILE });
     this.spawnEnemy({ monsterKey: 'hollow_knight', x: 19 * TILE, y: 13 * TILE });
 
+    // ── The Watcher ──
+    this.spawnWatcher(18 * TILE, 4 * TILE);
+
     // ── EXIT UP → Floor 2 (top-center) ──
     this.addExit({
       x: 12 * TILE, y: 0, w: 6 * TILE, h: TILE,

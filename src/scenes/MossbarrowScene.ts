@@ -182,6 +182,9 @@ export class MossbarrowScene extends BaseWorldScene {
       },
     });
 
+    // ── Fairy Fountain (near the hollow oak, partially hidden) ──
+    this.spawnFairyFountain({ x: 8 * TILE, y: 9 * TILE });
+
     // Zone marker.
     this.add
       .text(2 * TILE, WORLD_H / 2, 'MOSSBARROW CAIRN', {

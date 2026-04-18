@@ -1,5 +1,6 @@
 import { useInventoryStore } from '../state/inventoryStore';
 import { useLoreStore } from '../state/loreStore';
+import { useDungeonItemStore } from '../state/dungeonItemStore';
 import { BaseWorldScene, TILE, WORLD_W, WORLD_H } from './BaseWorldScene';
 import { generateTileset, TILE as T, TILE_SIZE } from './tiles/generateTiles';
 
@@ -164,6 +165,9 @@ export class MossbarrowDepthsScene extends BaseWorldScene {
     this.spawnEnemy({ monsterKey: 'spider', x: 9 * TILE, y: 10 * TILE });
     this.spawnEnemy({ monsterKey: 'spider', x: 7 * TILE, y: 15 * TILE });
 
+    // ── The Watcher ──
+    this.spawnWatcher(11 * TILE, 3 * TILE);
+
     // ── EXIT UP → Surface (top-center) ──
     this.addExit({
       x: 6 * TILE, y: 0, w: 5 * TILE, h: TILE,
@@ -226,6 +230,31 @@ export class MossbarrowDepthsScene extends BaseWorldScene {
       x: 10 * TILE, y: 8 * TILE,
       loot: [{ itemKey: 'health_potion', weight: 3 }, { itemKey: 'spider_silk', weight: 2 }, { itemKey: 'iron_ore', weight: 1 }],
       gold: 8, spawnChance: 0.2,
+    });
+
+    // ── Lantern dungeon item chest (east alcove, golden trim) ──
+    if (!useDungeonItemStore.getState().has('lantern')) {
+      const diChest = this.add.rectangle(15 * TILE, 6 * TILE, 28, 24, 0x8a6830);
+      diChest.setStrokeStyle(2, 0xe0c040);
+      diChest.setDepth(8);
+      this.add.rectangle(15 * TILE, 6 * TILE - 10, 28, 8, 0xa08040).setStrokeStyle(1, 0xe0c040).setDepth(8);
+      this.add.circle(15 * TILE, 6 * TILE, 18, 0xe0c040, 0.1).setDepth(7);
+      this.spawnInteractable({
+        sprite: diChest as any, label: 'Open golden chest', radius: 24,
+        action: () => {
+          useDungeonItemStore.getState().acquire('lantern');
+          window.dispatchEvent(new CustomEvent('gameMessage', { detail: 'Cairn Lantern acquired! Dark rooms are now lit.' }));
+          diChest.destroy();
+        },
+      });
+    }
+
+    // ── Breakable wall (main hall east side) → hidden heart piece ──
+    this.spawnBreakableWall({
+      x: 12 * TILE, y: 10 * TILE, w: TILE, h: TILE * 2,
+      onBreak: () => {
+        this.spawnHeartPiece(13 * TILE + TILE / 2, 11 * TILE);
+      },
     });
   }
 

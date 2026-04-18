@@ -155,6 +155,9 @@ export class DrownedSanctumF2Scene extends BaseWorldScene {
       },
     });
 
+    // ── The Watcher ──
+    this.spawnWatcher(11 * TILE, 4 * TILE);
+
     // ── EXIT UP → Floor 1 (top-center) ──
     this.addExit({
       x: 8 * TILE, y: 0, w: 4 * TILE, h: TILE,

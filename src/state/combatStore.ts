@@ -14,6 +14,7 @@ import { useQuestStore } from './questStore';
 import { useAchievementStore } from './achievementStore';
 import { useBountyStore } from './bountyStore';
 import { rollPerkChoices, getPerkHpBonus, getPerkMpBonus } from '../engine/perks';
+import { getHeartPieceHpBonus } from './playerStore';
 
 /**
  * Combat store — manages the active battle. Null when not in combat.
@@ -160,7 +161,8 @@ export const useCombatStore = create<CombatStoreState>((set, get) => ({
 
     // Sync playerHp from character after item use (useItem calls char.heal)
     const perkHp = getPerkHpBonus(usePlayerStore.getState().perks);
-    s.playerHp = Math.min(character.derived.maxHp + perkHp, character.hp);
+    const heartHp = getHeartPieceHpBonus(usePlayerStore.getState().heartPieces);
+    s.playerHp = Math.min(character.derived.maxHp + perkHp + heartHp, character.hp);
 
     // Atmospheric log messages per item type
     if (item.effect.healHp && item.effect.healMp) {
@@ -293,7 +295,8 @@ export const useCombatStore = create<CombatStoreState>((set, get) => ({
           character.loseGold(lost);
           const perkHpR = getPerkHpBonus(usePlayerStore.getState().perks);
           const perkMpR = getPerkMpBonus(usePlayerStore.getState().perks);
-          character.hp = character.derived.maxHp + perkHpR;
+          const heartHpR = getHeartPieceHpBonus(usePlayerStore.getState().heartPieces);
+          character.hp = character.derived.maxHp + perkHpR + heartHpR;
           character.mp = character.derived.maxMp + perkMpR;
           player.notify();
         }

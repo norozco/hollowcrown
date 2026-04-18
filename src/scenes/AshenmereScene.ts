@@ -375,6 +375,12 @@ export class AshenmereScene extends BaseWorldScene {
     });
     void teaserSign;
 
+    // ── Fairy Fountain (on a small island in the marsh, south-east) ──
+    this.spawnFairyFountain({ x: 29 * TILE, y: 16 * TILE });
+
+    // ── Heart piece #4 — on the south-east island, hard to reach ──
+    this.spawnHeartPiece(27 * TILE, 17 * TILE);
+
     // Zone marker
     this.add
       .text(WORLD_W / 2, WORLD_H - TILE * 2, 'ASHENMERE MARSHES', {

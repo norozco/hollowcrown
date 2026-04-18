@@ -172,6 +172,9 @@ export class DrownedSanctumF1Scene extends BaseWorldScene {
       },
     });
 
+    // ── The Watcher ──
+    this.spawnWatcher(11 * TILE, 3 * TILE);
+
     // ── EXIT UP → Ashenmere (top-center) ──
     this.addExit({
       x: 8 * TILE, y: 0, w: 4 * TILE, h: TILE,
@@ -205,6 +208,9 @@ export class DrownedSanctumF1Scene extends BaseWorldScene {
       loot: [{ itemKey: 'health_potion', weight: 3 }, { itemKey: 'shadow_essence', weight: 2 }, { itemKey: 'wraith_dust', weight: 2 }],
       gold: 20, spawnChance: 0.2,
     });
+
+    // ── Heart piece #7 — in a flooded alcove (west side, needs exploration) ──
+    this.spawnHeartPiece(6 * TILE + TILE / 2, 10 * TILE);
 
     // ── Quest trigger: entering the sanctum completes the objective ──
     const qs = useQuestStore.getState();

@@ -1,5 +1,6 @@
 import * as Phaser from 'phaser';
 import { usePlayerStore } from '../state/playerStore';
+import { useLoreStore } from '../state/loreStore';
 import { useDialogueStore } from '../state/dialogueStore';
 import { useCombatStore } from '../state/combatStore';
 import { useInventoryStore } from '../state/inventoryStore';
@@ -9,6 +10,7 @@ import { getItem } from '../engine/items';
 import { getNPC } from '../engine/npcs';
 import { saveGame } from '../engine/saveLoad';
 import { useCommissionStore } from '../state/commissionStore';
+import { useDungeonItemStore } from '../state/dungeonItemStore';
 import {
   generateCharacterSprite,
   getNpcPalette,
@@ -117,6 +119,11 @@ export abstract class BaseWorldScene extends Phaser.Scene {
   /** Exit zone the player spawned inside — suppressed until they walk out of it. */
   private suppressedExit: Exit | null = null;
 
+  // ── Dark room system (Lantern dungeon item) ──
+  private darkRT: Phaser.GameObjects.RenderTexture | null = null;
+  private darkBrush: Phaser.GameObjects.Graphics | null = null;
+  private isDarkRoom = false;
+
   // ──────────────────────────────────────────────────────────────
   // Subclass hooks
   // ──────────────────────────────────────────────────────────────
@@ -181,6 +188,15 @@ export abstract class BaseWorldScene extends Phaser.Scene {
     this.cameras.main.setBounds(0, 0, WORLD_W, WORLD_H);
     this.physics.world.setBounds(0, 0, WORLD_W, WORLD_H);
     this.cameras.main.fadeIn(FADE_MS, 0, 0, 0);
+
+    // Dark room — if the scene is marked dark and the player lacks the Lantern,
+    // create a RenderTexture overlay and a brush to erase a circle of light.
+    if (this.isDarkRoom && !useDungeonItemStore.getState().has('lantern')) {
+      this.darkRT = this.add.renderTexture(0, 0, WORLD_W, WORLD_H).setDepth(100);
+      this.darkBrush = this.make.graphics({});
+      this.darkBrush.fillStyle(0xffffff);
+      this.darkBrush.fillCircle(64, 64, 64);
+    }
 
     // Record zone visit for achievements.
     useAchievementStore.getState().recordZoneVisit(this.scene.key);
@@ -254,6 +270,13 @@ export abstract class BaseWorldScene extends Phaser.Scene {
     if (this.combatImmunity <= 0) this.checkEnemyContact();
     this.checkExits();
     this.checkWorldEvents();
+
+    // Dark room overlay — erase a circle of light around the player each frame.
+    if (this.darkRT && this.darkBrush) {
+      this.darkRT.clear();
+      this.darkRT.fill(0x000000, 0.92);
+      this.darkRT.erase(this.darkBrush, this.player.x - 64, this.player.y - 64);
+    }
   }
 
   // ──────────────────────────────────────────────────────────────
@@ -497,6 +520,104 @@ export abstract class BaseWorldScene extends Phaser.Scene {
     }
   }
 
+  /**
+   * Spawn a hidden fairy fountain -- a glowing pool that fully restores
+   * HP and MP on interaction. One use per zone visit.
+   */
+  protected spawnFairyFountain(cfg: { x: number; y: number }): void {
+    // Outer glow
+    const glow = this.add.circle(cfg.x, cfg.y, 24, 0x80c0f0, 0.15);
+    glow.setDepth(5);
+    this.tweens.add({ targets: glow, scale: 1.3, alpha: 0.08, duration: 2000, yoyo: true, repeat: -1 });
+
+    // Inner pool
+    const pool = this.add.circle(cfg.x, cfg.y, 14, 0xa0d0ff, 0.4);
+    pool.setDepth(6);
+
+    // Sparkle particles
+    for (let i = 0; i < 4; i++) {
+      const spark = this.add.circle(
+        cfg.x + Phaser.Math.Between(-12, 12),
+        cfg.y + Phaser.Math.Between(-12, 12),
+        1, 0xffffff, 0.6,
+      ).setDepth(7);
+      this.tweens.add({
+        targets: spark,
+        y: spark.y - 16, alpha: 0, duration: 1500 + i * 300,
+        yoyo: true, repeat: -1, delay: i * 400,
+      });
+    }
+
+    // Label
+    this.add.text(cfg.x, cfg.y - 28, '\u2727', {
+      fontFamily: 'Courier New', fontSize: '16px', color: '#c0e0ff',
+    }).setOrigin(0.5).setDepth(7).setAlpha(0.5);
+
+    this.spawnInteractable({
+      sprite: pool as any,
+      label: 'Fairy Fountain',
+      radius: 22,
+      action: () => {
+        const ps = usePlayerStore.getState();
+        const char = ps.character;
+        if (!char) return;
+        char.hp = char.derived.maxHp;
+        char.mp = char.derived.maxMp;
+        ps.notify();
+        this.cameras.main.flash(300, 200, 230, 255);
+        window.dispatchEvent(new CustomEvent('gameMessage', { detail: 'The light mends you. HP and MP fully restored.' }));
+        pool.destroy();
+        glow.destroy();
+      },
+    });
+  }
+
+  /**
+   * Spawn a Watcher -- a mysterious ghostly figure near dungeon entrances.
+   * Says one cryptic line, registers lore, then vanishes.
+   */
+  protected spawnWatcher(x: number, y: number): void {
+    const watcher = this.add.circle(x, y, 8, 0x8080c0, 0.3);
+    watcher.setDepth(12);
+    const watcherGlow = this.add.circle(x, y, 16, 0x8080c0, 0.08);
+    watcherGlow.setDepth(11);
+
+    const WATCHER_LINES: Record<string, string> = {
+      'MossbarrowDepthsScene': 'I walked this path. The stones remember.',
+      'DepthsFloor2Scene': 'The dead do not rest here. Neither did I.',
+      'DepthsFloor3Scene': 'The crown breaks. But the one who wore it... is not the one you should fear.',
+      'BogDungeonF1Scene': 'The water knows your name. Do not answer.',
+      'BogDungeonF2Scene': 'I found what I sought. I wish I had not.',
+      'BogDungeonF3Scene': 'This warden was my friend. Be kinder than I was.',
+      'DrownedSanctumF1Scene': 'The seal holds. For now.',
+      'DrownedSanctumF2Scene': 'Veyrin understands. You will too, in time.',
+      'IronveilScene': 'Iron remembers the hands that shaped it. Even these.',
+    };
+
+    const line = WATCHER_LINES[this.scene.key];
+    if (line) {
+      this.spawnInteractable({
+        sprite: watcher as any,
+        label: 'Approach the figure',
+        radius: 28,
+        action: () => {
+          window.dispatchEvent(new CustomEvent('gameMessage', { detail: line }));
+          useLoreStore.getState().discover({
+            key: `watcher-${this.scene.key}`,
+            title: 'The Watcher',
+            text: line,
+            location: this.getZoneName() ?? this.scene.key,
+          });
+          this.tweens.add({
+            targets: [watcher, watcherGlow],
+            alpha: 0, duration: 800,
+            onComplete: () => { watcher.destroy(); watcherGlow.destroy(); },
+          });
+        },
+      });
+    }
+  }
+
   /** Spawn a spike trap that damages the player on contact. */
   protected spawnTrap(cfg: { x: number; y: number; damage: number; label?: string }): void {
     const trap = this.add.rectangle(cfg.x, cfg.y, 24, 24, 0x808080, 0.4);
@@ -588,6 +709,81 @@ export abstract class BaseWorldScene extends Phaser.Scene {
         chest.destroy();
         lid.destroy();
         clasp.destroy();
+      },
+    });
+  }
+
+  /** Call from subclass layout() to make this scene dark. */
+  protected setDarkRoom(dark: boolean): void {
+    this.isDarkRoom = dark;
+  }
+
+  /**
+   * Spawn a breakable wall that requires the Pickaxe dungeon item.
+   * On break, the wall is destroyed and an optional callback fires
+   * (used to reveal hidden rooms / items behind the wall).
+   */
+  protected spawnBreakableWall(cfg: {
+    x: number; y: number; w: number; h: number;
+    onBreak?: () => void;
+  }): void {
+    const wall = this.add.rectangle(cfg.x + cfg.w / 2, cfg.y + cfg.h / 2, cfg.w, cfg.h, 0x787068);
+    wall.setStrokeStyle(1, 0x585048);
+    wall.setDepth(5);
+    const cx = cfg.x + cfg.w / 2;
+    const cy = cfg.y + cfg.h / 2;
+    const cracks: Phaser.GameObjects.Line[] = [];
+    for (let i = 0; i < 3; i++) {
+      const crack = this.add.line(0, 0,
+        cx - 8 + i * 6, cy - 6 + i * 3,
+        cx + 4 + i * 4, cy + 8 - i * 2,
+        0x404038).setLineWidth(1).setDepth(6);
+      cracks.push(crack);
+    }
+    this.physics.add.existing(wall, true);
+    this.walls.add(wall);
+
+    const interactZone = this.add.rectangle(cfg.x + cfg.w / 2, cfg.y + cfg.h / 2, cfg.w + 20, cfg.h + 20, 0x000000, 0);
+    this.spawnInteractable({
+      sprite: interactZone as any,
+      label: 'Cracked wall',
+      radius: 28,
+      action: () => {
+        if (!useDungeonItemStore.getState().has('pickaxe')) {
+          window.dispatchEvent(new CustomEvent('gameMessage', { detail: 'The wall is cracked. You need something to break it.' }));
+          return;
+        }
+        wall.destroy();
+        for (const c of cracks) c.destroy();
+        const body = wall.body as Phaser.Physics.Arcade.StaticBody;
+        if (body) body.destroy();
+        this.cameras.main.shake(200, 0.008);
+        window.dispatchEvent(new CustomEvent('gameMessage', { detail: 'The wall crumbles!' }));
+        this.spawnPickupParticles(cfg.x + cfg.w / 2, cfg.y + cfg.h / 2, 0x808070);
+        cfg.onBreak?.();
+      },
+    });
+  }
+
+  /**
+   * Spawn a heart piece pickup. Distinctive red circle with a pulse glow.
+   * One-time per save (tracked by a unique id in playerStore).
+   */
+  protected spawnHeartPiece(x: number, y: number, sceneKey?: string): void {
+    const hpId = `heart_${sceneKey ?? this.scene.key}_${x}_${y}`;
+    if (usePlayerStore.getState().heartPiecesCollected.has(hpId)) return;
+
+    const heart = this.add.circle(x, y, 6, 0xc04040);
+    heart.setStrokeStyle(1, 0xe06060);
+    heart.setDepth(8);
+    this.tweens.add({ targets: heart, scale: 1.2, alpha: 0.7, duration: 800, yoyo: true, repeat: -1 });
+
+    this.spawnInteractable({
+      sprite: heart as any, label: 'Heart Piece', radius: 20,
+      action: () => {
+        usePlayerStore.getState().collectHeartPiece(hpId);
+        window.dispatchEvent(new CustomEvent('gameMessage', { detail: 'Heart Piece collected!' }));
+        heart.destroy();
       },
     });
   }

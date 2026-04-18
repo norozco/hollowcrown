@@ -34,6 +34,20 @@
           "next": "bone-ritual-offer",
           "requires": [{ "type": "quest-not-started", "questId": "bone-ritual" }]
         },
+        {
+          "text": "Why did you stop?",
+          "next": "orric-backstory-2",
+          "requires": [
+            { "type": "quest-complete", "questId": "depths-explorer" }
+          ]
+        },
+        {
+          "text": "You weren't always a forester, were you?",
+          "next": "orric-backstory-1",
+          "requires": [
+            { "type": "quest-complete", "questId": "iron-token" }
+          ]
+        },
         { "text": "Fight alongside me. (50g)", "next": "hire-orric" },
         { "text": "Have you seen an Elven scholar named Veyrin?", "next": "veyrin-seen" },
         { "text": "What is wrong with the woods?", "next": "woods" },
@@ -137,6 +151,36 @@
       "speaker": "orric",
       "expression": "thoughtful",
       "text": "Stay close when the fighting starts. These old arms still swing true.",
+      "next": null
+    },
+
+    "orric-backstory-1": {
+      "id": "orric-backstory-1",
+      "speaker": "orric",
+      "expression": "sad",
+      "text": "I was A-rank once. Guild name: Stonewall. I walked away after Veyrin disappeared the first time — not this time, the time before. Twenty years ago. I told myself the forest needed watching. The truth is I needed to stop.",
+      "next": "orric-backstory-1-close"
+    },
+    "orric-backstory-1-close": {
+      "id": "orric-backstory-1-close",
+      "speaker": "orric",
+      "expression": "neutral",
+      "text": "Now you know. Do not tell Brenna. She has enough weight on her ledger without adding mine.",
+      "next": null
+    },
+
+    "orric-backstory-2": {
+      "id": "orric-backstory-2",
+      "speaker": "orric",
+      "expression": "sad",
+      "text": "Because I killed something in those depths that I should not have. It was not evil — it was lost. And I was too tired to tell the difference. That is when a man should put down his weapon.",
+      "next": "orric-backstory-2-close"
+    },
+    "orric-backstory-2-close": {
+      "id": "orric-backstory-2-close",
+      "speaker": "orric",
+      "expression": "thoughtful",
+      "text": "You are still young enough to see the difference. Hold on to that. It goes faster than you think.",
       "next": null
     }
   }

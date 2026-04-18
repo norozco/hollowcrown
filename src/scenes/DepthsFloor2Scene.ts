@@ -24,6 +24,9 @@ export class DepthsFloor2Scene extends BaseWorldScene {
   protected getZoneName(): string | null { return 'The Catacombs'; }
 
   protected layout(): void {
+    // Mark this floor as a dark room — requires the Cairn Lantern to see fully.
+    this.setDarkRoom(true);
+
     generateTileset(this);
 
     const map = this.make.tilemap({
@@ -204,6 +207,9 @@ export class DepthsFloor2Scene extends BaseWorldScene {
     this.spawnEnemy({ monsterKey: 'wraith', x: 7 * TILE, y: 16 * TILE });
     this.spawnEnemy({ monsterKey: 'wraith', x: 12 * TILE, y: 17 * TILE });
 
+    // ── The Watcher ──
+    this.spawnWatcher(12 * TILE, 3 * TILE);
+
     // ── EXIT UP → Floor 1 (top-center) ──
     this.addExit({
       x: 7 * TILE, y: 0, w: 5 * TILE, h: TILE,
@@ -274,6 +280,15 @@ export class DepthsFloor2Scene extends BaseWorldScene {
       x: 13 * TILE, y: 5 * TILE,
       loot: [{ itemKey: 'mana_potion', weight: 3 }, { itemKey: 'shadow_essence', weight: 2 }, { itemKey: 'wraith_dust', weight: 1 }],
       gold: 15, spawnChance: 0.2,
+    });
+
+    // ── Breakable wall (south chamber west side) → hidden shadow_essence x3 ──
+    this.spawnBreakableWall({
+      x: 4 * TILE, y: 15 * TILE, w: TILE, h: TILE * 2,
+      onBreak: () => {
+        useInventoryStore.getState().addItem('shadow_essence', 3);
+        window.dispatchEvent(new CustomEvent('gameMessage', { detail: 'Found shadow essence x3!' }));
+      },
     });
   }
 
