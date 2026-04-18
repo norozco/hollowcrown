@@ -34,6 +34,13 @@ export const COMPANIONS: Record<string, Companion> = {
     hireCost: 60,
     effect: { healPerTurn: 3 },
   },
+  mira: {
+    key: 'mira',
+    name: 'Mira the Quick',
+    description: 'Fast hands, faster feet. What she lacks in honor she makes up in timing.',
+    hireCost: 0,
+    effect: { bonusDamage: 3 },
+  },
 };
 
 /** Friendly summary of a companion's combat contribution for the HUD/overlay. */

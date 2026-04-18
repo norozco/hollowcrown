@@ -14,6 +14,8 @@ import drownedSanctum from '../data/quests/drowned-sanctum.json';
 import whatRemains from '../data/quests/what-remains.json';
 import bogExplorer from '../data/quests/bog-explorer.json';
 import wardenSlayer from '../data/quests/warden-slayer.json';
+import ashfieldExplorer from '../data/quests/ashfield-explorer.json';
+import deepHook from '../data/quests/deep-hook.json';
 import type { Quest } from './quest';
 
 /**
@@ -38,6 +40,8 @@ const QUESTS: Record<string, Quest> = {
   'what-remains': whatRemains as unknown as Quest,
   'bog-explorer': bogExplorer as unknown as Quest,
   'warden-slayer': wardenSlayer as unknown as Quest,
+  'ashfield-explorer': ashfieldExplorer as unknown as Quest,
+  'deep-hook': deepHook as unknown as Quest,
 };
 
 export function getQuest(id: string): Quest {

@@ -1,0 +1,505 @@
+import * as Phaser from 'phaser';
+import { useInventoryStore } from '../state/inventoryStore';
+import { useLoreStore } from '../state/loreStore';
+import { usePlayerStore } from '../state/playerStore';
+import { BaseWorldScene, TILE, WORLD_W, WORLD_H } from './BaseWorldScene';
+import { generateTileset, TILE as T, TILE_SIZE } from './tiles/generateTiles';
+
+/**
+ * Duskmere Village — a lakeside fishing settlement south of Greenhollow.
+ * Wooden docks reach into dark water. The catch has stopped coming. The
+ * lake is deeper than it should be, and something beneath it is patient.
+ *
+ * Map: 40 tiles wide x 22 tiles tall.
+ */
+
+const MAP_W = 40;
+const MAP_H = 22;
+
+export class DuskmereScene extends BaseWorldScene {
+  constructor() {
+    super({ key: 'DuskmereScene' });
+  }
+
+  protected getZoneName(): string | null { return 'Duskmere Village'; }
+
+  protected getRandomEvents(): Array<() => void> {
+    return [
+      () => {
+        window.dispatchEvent(new CustomEvent('gameMessage', {
+          detail: 'A gull cries overhead, then goes silent. The water does not ripple.',
+        }));
+      },
+      () => {
+        window.dispatchEvent(new CustomEvent('gameMessage', {
+          detail: 'Something dark moves beneath the surface of the lake. Slow. Heavy.',
+        }));
+      },
+      () => {
+        window.dispatchEvent(new CustomEvent('gameMessage', {
+          detail: 'The wind carries the smell of fish and something older.',
+        }));
+      },
+    ];
+  }
+
+  protected layout(): void {
+    generateTileset(this);
+
+    const mapData = buildMapData();
+    const map = this.make.tilemap({
+      data: mapData,
+      tileWidth: TILE_SIZE,
+      tileHeight: TILE_SIZE,
+    });
+    const tileset = map.addTilesetImage('tileset')!;
+    map.createLayer(0, tileset)!;
+
+    // Water tiles block movement.
+    for (let ty = 0; ty < MAP_H; ty++) {
+      for (let tx = 0; tx < MAP_W; tx++) {
+        if (mapData[ty][tx] === T.WATER) {
+          const w = this.add.rectangle(
+            tx * TILE + TILE / 2, ty * TILE + TILE / 2, TILE, TILE, 0x000000, 0);
+          this.physics.add.existing(w, true);
+          this.walls.add(w);
+        }
+      }
+    }
+
+    // ── Buildings ──
+
+    // Dockmaster's Office (small, north-west)
+    this.addBuilding({
+      xTile: 3, yTile: 4, wTile: 5, hTile: 4,
+      color: 0x4a3a20, label: "Dockmaster's Office",
+      doorSide: 'bottom', visual: false,
+    });
+
+    // Lakeshore Inn (medium, south-west)
+    this.addBuilding({
+      xTile: 2, yTile: 12, wTile: 6, hTile: 5,
+      color: 0x3a2a18, label: 'Lakeshore Inn',
+      doorSide: 'right', visual: false,
+    });
+
+    // Fishmonger's Stall (open-air counter near docks)
+    const stallX = 14 * TILE;
+    const stallY = 8 * TILE;
+    const counter = this.add.rectangle(stallX, stallY, 64, 24, 0x5a4020);
+    counter.setStrokeStyle(2, 0x3a2810);
+    counter.setDepth(5);
+    this.physics.add.existing(counter, true);
+    this.walls.add(counter);
+    this.add.text(stallX, stallY - 20, "Fishmonger's Stall", {
+      fontFamily: 'Courier New', fontSize: '11px', color: '#8a7a48',
+    }).setOrigin(0.5).setDepth(8);
+
+    // Shop interactable at the stall counter
+    const shopSprite = this.add.rectangle(stallX, stallY + 20, 64, 16, 0x000000, 0);
+    shopSprite.setDepth(1);
+    this.spawnInteractable({
+      sprite: shopSprite as any, label: 'Browse fish', radius: 28,
+      action: () => { useInventoryStore.getState().openShop(); },
+    });
+    this.add.text(stallX, stallY + 14, 'Shop', {
+      fontFamily: 'Courier New', fontSize: '10px', color: '#d4a968',
+      backgroundColor: 'rgba(10,6,6,0.7)', padding: { x: 4, y: 2 },
+    }).setOrigin(0.5, 0).setDepth(11);
+
+    // ── NPCs (outdoors) ──
+
+    // Nessa — near the dockmaster's office entrance
+    this.spawnNpc({
+      key: 'nessa', dialogueId: 'nessa-greeting',
+      x: 5 * TILE + TILE / 2, y: 9 * TILE,
+    });
+
+    // Torben — behind the fishmonger's counter
+    this.spawnNpc({
+      key: 'torben', dialogueId: 'torben-greeting',
+      x: 14 * TILE, y: 7 * TILE,
+    });
+
+    // Mira — on the far dock (only after the theft event).
+    // She appears if the player has been robbed but hasn't resolved her dialogue.
+    const miraFlag = localStorage.getItem('hollowcrown_mira_theft');
+    const miraResolved = localStorage.getItem('hollowcrown_mira_resolved');
+    if (miraFlag === 'true' && miraResolved !== 'true') {
+      this.spawnNpc({
+        key: 'mira', dialogueId: 'mira-greeting',
+        x: 30 * TILE, y: 10 * TILE,
+      });
+    }
+
+    // ── Mira theft event — first visit trigger ──
+    const visited = localStorage.getItem('hollowcrown_duskmere_visited');
+    if (!visited && miraFlag !== 'true') {
+      localStorage.setItem('hollowcrown_duskmere_visited', 'true');
+      // Delay the theft event slightly so the player sees the zone name first.
+      this.time.delayedCall(2500, () => {
+        const ps = usePlayerStore.getState();
+        const char = ps.character;
+        if (!char) return;
+        const stolen = Math.min(20, Math.floor(char.gold * 0.1));
+        if (stolen > 0) {
+          char.loseGold(stolen);
+          ps.notify();
+        }
+        localStorage.setItem('hollowcrown_mira_theft', 'true');
+        localStorage.setItem('hollowcrown_mira_stolen_amount', String(stolen));
+        window.dispatchEvent(new CustomEvent('gameMessage', {
+          detail: 'Something brushes past you. Your gold pouch feels lighter.',
+        }));
+
+        // Brief visual — a dark circle darts away.
+        const thief = this.add.circle(this.player.x + 20, this.player.y, 6, 0x5a3040, 0.7);
+        thief.setDepth(15);
+        this.tweens.add({
+          targets: thief,
+          x: 30 * TILE, y: 10 * TILE, alpha: 0,
+          duration: 600, ease: 'Quad.easeIn',
+          onComplete: () => thief.destroy(),
+        });
+
+        // Spawn Mira on the dock now.
+        this.time.delayedCall(1200, () => {
+          this.spawnNpc({
+            key: 'mira', dialogueId: 'mira-greeting',
+            x: 30 * TILE, y: 10 * TILE,
+          });
+        });
+      });
+    }
+
+    // ── Docks (wooden planks extending into the water) ──
+
+    // Visual dock planks — drawn as darker rectangles on top of the tilemap.
+    // Dock 1: short dock (cols 18-22, row 10)
+    for (let dx = 18; dx <= 22; dx++) {
+      this.add.rectangle(dx * TILE + TILE / 2, 10 * TILE + TILE / 2, TILE - 2, TILE - 2, 0x5a4828, 0.5).setDepth(2);
+    }
+    // Dock 2: long dock (cols 18-30, row 12-13)
+    for (let dx = 18; dx <= 30; dx++) {
+      this.add.rectangle(dx * TILE + TILE / 2, 12 * TILE + TILE / 2, TILE - 2, TILE - 2, 0x5a4828, 0.5).setDepth(2);
+      this.add.rectangle(dx * TILE + TILE / 2, 13 * TILE + TILE / 2, TILE - 2, TILE - 2, 0x5a4828, 0.5).setDepth(2);
+    }
+    // Dock 3: medium dock (cols 18-26, row 16)
+    for (let dx = 18; dx <= 26; dx++) {
+      this.add.rectangle(dx * TILE + TILE / 2, 16 * TILE + TILE / 2, TILE - 2, TILE - 2, 0x5a4828, 0.5).setDepth(2);
+    }
+
+    // ── Fishing spot interactables (dock ends) ──
+    const fishingSpots = [
+      { x: 22 * TILE, y: 10 * TILE },
+      { x: 30 * TILE, y: 12 * TILE },
+      { x: 26 * TILE, y: 16 * TILE },
+    ];
+    for (const fs of fishingSpots) {
+      const pole = this.add.rectangle(fs.x + 8, fs.y - 6, 2, 18, 0x4a3a18);
+      pole.setDepth(7);
+      const line = this.add.rectangle(fs.x + 12, fs.y + 4, 1, 14, 0x808080, 0.5);
+      line.setDepth(7);
+      this.spawnInteractable({
+        sprite: pole as any, label: 'Fish', radius: 24,
+        action: () => {
+          window.dispatchEvent(new CustomEvent('gameMessage', {
+            detail: 'The water is dark. Nothing bites.',
+          }));
+        },
+      });
+    }
+
+    // ── Water ripple effects ──
+    for (const [rx, ry, del] of [
+      [24, 6, 0], [28, 14, 500], [32, 8, 1000], [36, 18, 300],
+      [22, 18, 700], [26, 4, 1200], [34, 12, 400],
+    ] as [number, number, number][]) {
+      const ripple = this.add.circle(rx * TILE, ry * TILE, 4, 0x4080b0, 0.2);
+      ripple.setDepth(3);
+      this.tweens.add({
+        targets: ripple, scaleX: 2.5, scaleY: 2.5, alpha: 0,
+        duration: 1800, delay: del, repeat: -1, ease: 'Quad.easeOut',
+      });
+    }
+
+    // ── Shadow under the water (foreshadowing) ──
+    const shadow = this.add.ellipse(28 * TILE, 9 * TILE, 80, 30, 0x202040, 0.12);
+    shadow.setDepth(2);
+    this.tweens.add({
+      targets: shadow,
+      x: shadow.x + 40, y: shadow.y + 20,
+      duration: 12000, yoyo: true, repeat: -1, ease: 'Sine.easeInOut',
+    });
+
+    // ── Old boat with carved name ──
+    const boatX = 16 * TILE;
+    const boatY = 14 * TILE;
+    const boat = this.add.ellipse(boatX, boatY, 40, 18, 0x5a4020);
+    boat.setStrokeStyle(1, 0x3a2810);
+    boat.setDepth(5);
+    this.spawnInteractable({
+      sprite: boat as any, label: 'Examine old boat', radius: 22,
+      action: () => {
+        useLoreStore.getState().discover({
+          key: 'old-boat-duskmere',
+          title: 'The Unnamed Boat',
+          text: 'A name carved into the hull, half-sanded away. Only the letters "VEY" remain.',
+          location: 'Duskmere Village',
+        });
+        window.dispatchEvent(new CustomEvent('gameMessage', {
+          detail: 'A name carved into the hull, half-sanded away. Only the letters "VEY" remain.',
+        }));
+      },
+    });
+
+    // ── Notice board about missing fishermen ──
+    const noticeX = 10 * TILE;
+    const noticeY = 6 * TILE;
+    const noticeBoard = this.add.rectangle(noticeX, noticeY, 28, 32, 0x5a4020);
+    noticeBoard.setStrokeStyle(1, 0x3a2810);
+    noticeBoard.setDepth(6);
+    // Papers on the board
+    this.add.rectangle(noticeX - 4, noticeY - 4, 12, 10, 0xd8d0b0, 0.7).setDepth(7);
+    this.add.rectangle(noticeX + 4, noticeY + 2, 10, 8, 0xc8c0a0, 0.6).setDepth(7);
+    this.spawnInteractable({
+      sprite: noticeBoard as any, label: 'Read notice board', radius: 22,
+      action: () => {
+        useLoreStore.getState().discover({
+          key: 'notice-missing-duskmere',
+          title: 'Missing Fishermen',
+          text: 'Three names. Three boats. None returned. The notices are dated weeks apart.',
+          location: 'Duskmere Village',
+        });
+        window.dispatchEvent(new CustomEvent('gameMessage', {
+          detail: 'Three names. Three boats. None returned. The notices are dated weeks apart.',
+        }));
+      },
+    });
+
+    // ── Waypoint stone (village entrance) ──
+    const wpX = 12 * TILE;
+    const wpY = 3 * TILE;
+    const wpStone = this.add.rectangle(wpX, wpY, 28, 28, 0x6080b0);
+    wpStone.setStrokeStyle(2, 0x4060a0);
+    wpStone.setDepth(7);
+    const wpGlow = this.add.circle(wpX, wpY, 20, 0x80a0e0, 0.15);
+    wpGlow.setDepth(6);
+    this.tweens.add({ targets: wpGlow, scale: 1.3, alpha: 0.05, duration: 2000, yoyo: true, repeat: -1 });
+    this.add.text(wpX, wpY - 22, 'Waypoint', {
+      fontFamily: 'Courier New', fontSize: '9px', color: '#80a0e0',
+    }).setOrigin(0.5).setDepth(8);
+    this.spawnInteractable({
+      sprite: wpStone as any, label: 'Use waypoint', radius: 24,
+      action: () => {
+        window.dispatchEvent(new CustomEvent('openFastTravel', { detail: { currentScene: this.scene.key } }));
+      },
+    });
+
+    // ── Heart piece on the end of the long dock ──
+    this.spawnHeartPiece(30 * TILE, 13 * TILE);
+
+    // ── Fairy fountain behind the inn ──
+    this.spawnFairyFountain({ x: 4 * TILE, y: 18 * TILE });
+
+    // ── Enemies (low level — bandits and wolves near edges) ──
+    this.spawnEnemy({ monsterKey: 'bandit', x: 8 * TILE, y: 19 * TILE });
+    this.spawnEnemy({ monsterKey: 'wolf', x: 15 * TILE, y: 20 * TILE });
+    this.spawnEnemy({ monsterKey: 'bandit', x: 3 * TILE, y: 20 * TILE });
+
+    // ── Inn rest interactable (outside — bench near inn door) ──
+    const benchX = 9 * TILE;
+    const benchY = 14 * TILE;
+    const bench = this.add.rectangle(benchX, benchY, 32, 12, 0x5a4020);
+    bench.setStrokeStyle(1, 0x3a2810);
+    bench.setDepth(5);
+    this.spawnInteractable({
+      sprite: bench as any, label: 'Rest at the inn (10g)', radius: 24,
+      action: () => {
+        const ps = usePlayerStore.getState();
+        const ch = ps.character;
+        if (!ch) return;
+        if (ch.gold < 10) {
+          window.dispatchEvent(new CustomEvent('gameMessage', { detail: 'Not enough gold. A bed costs 10g.' }));
+          return;
+        }
+        ch.loseGold(10);
+        ch.hp = ch.derived.maxHp;
+        ch.mp = ch.derived.maxMp;
+        ps.notify();
+        window.dispatchEvent(new CustomEvent('gameMessage', { detail: 'You rest at the inn. HP and MP fully restored. (-10g)' }));
+      },
+    });
+    this.add.text(benchX, benchY - 14, 'Rest (10g)', {
+      fontFamily: 'Courier New', fontSize: '10px', color: '#80a0c0',
+      backgroundColor: 'rgba(10,6,6,0.7)', padding: { x: 4, y: 2 },
+    }).setOrigin(0.5, 1).setDepth(11);
+
+    // ── Loot bag on the dock ──
+    this.spawnLootBag({
+      x: 24 * TILE, y: 12 * TILE,
+      loot: [
+        { itemKey: 'grilled_pike', weight: 3 },
+        { itemKey: 'smoked_eel', weight: 2 },
+        { itemKey: 'health_potion', weight: 2 },
+      ],
+      gold: 15, spawnChance: 0.3,
+    });
+
+    // ── Chest behind the stall ──
+    this.spawnChest({
+      x: 14 * TILE, y: 10 * TILE,
+      loot: [{ itemKey: 'lake_tonic', qty: 2 }, { itemKey: 'smoked_eel' }],
+      gold: 25,
+    });
+
+    // ── Seagull decorations (small white dots drifting) ──
+    for (const [gx, gy, gdx, gdy, gdur] of [
+      [20, 3, 30, -10, 6000],
+      [28, 5, -20, 15, 7000],
+      [34, 2, 25, 8, 5500],
+    ] as [number, number, number, number, number][]) {
+      const gull = this.add.circle(gx * TILE, gy * TILE, 3, 0xf0f0f0, 0.7);
+      gull.setDepth(55);
+      this.tweens.add({
+        targets: gull,
+        x: gull.x + gdx, y: gull.y + gdy,
+        duration: gdur, yoyo: true, repeat: -1, ease: 'Sine.easeInOut',
+      });
+    }
+
+    // Zone label
+    this.add.text(WORLD_W / 2, WORLD_H - TILE * 2, 'DUSKMERE VILLAGE', {
+      fontFamily: 'Courier New', fontSize: '12px', color: '#5a6a7a',
+    }).setOrigin(0.5).setAlpha(0.4).setDepth(15);
+
+    // ── Exits ──
+
+    // North edge → Greenhollow
+    this.addExit({
+      x: 0, y: 0, w: WORLD_W, h: TILE,
+      targetScene: 'GreenhollowScene', targetSpawn: 'fromDuskmere',
+      label: '\u2191 Greenhollow Woods',
+    });
+
+    // South edge → teaser (future zone)
+    const teaserX = WORLD_W / 2;
+    const teaserY = WORLD_H - TILE / 2;
+    this.add.text(teaserX, teaserY, '??? \u2014 The shore continues', {
+      fontFamily: 'Courier New', fontSize: '11px', color: '#5a6a7a',
+    }).setOrigin(0.5).setAlpha(0.5).setDepth(15);
+    const teaserSprite = this.add.rectangle(teaserX, teaserY, WORLD_W / 3, TILE, 0x000000, 0);
+    this.spawnInteractable({
+      sprite: teaserSprite as any, label: 'Look south', radius: 36,
+      action: () => {
+        window.dispatchEvent(new CustomEvent('gameMessage', {
+          detail: 'The lakeshore curves south into mist. The path is not yet clear.',
+        }));
+      },
+    });
+  }
+
+  protected spawnAt(name: string): { x: number; y: number } {
+    switch (name) {
+      case 'fromGreenhollow':
+      case 'default':
+      default:
+        return { x: 12 * TILE, y: 2 * TILE };
+    }
+  }
+}
+
+// ─── Map data ─────────────────────────────────────────────────
+
+const G  = T.GRASS_DARK;
+const g  = T.GRASS_LIGHT;
+const P  = T.PATH;
+const PE = T.PATH_EDGE;
+const FW = T.FLOOR_WOOD;
+const W  = T.WALL_WOOD;
+const D  = T.DOOR;
+const R  = T.ROOF;
+const RE = T.ROOF_EDGE;
+const SH = T.SHADOW;
+const Wa = T.WATER;
+
+function buildMapData(): number[][] {
+  const rows: number[][] = [];
+  for (let y = 0; y < MAP_H; y++) {
+    const row: number[] = [];
+    for (let x = 0; x < MAP_W; x++) row.push(tileAt(x, y));
+    rows.push(row);
+  }
+  return rows;
+}
+
+function tileAt(x: number, y: number): number {
+  // ── Lake: eastern half (cols 22-39) ──
+  if (x >= 22) return Wa;
+
+  // ── Dockmaster's Office: (3,4) to (7,7) ──
+  if (y === 3 && x >= 3 && x < 8) return R;
+  if (y === 4 && x >= 3 && x < 8) return RE;
+  if (inRect(x, y, 3, 5, 5, 3)) {
+    if (x === 3 || x === 7) return W;
+    if (y === 7) {
+      if (x === 5 || x === 6) return D;
+      return W;
+    }
+    return FW;
+  }
+  if (y === 8 && x >= 3 && x < 8) {
+    if (x === 5 || x === 6) return P;
+    return SH;
+  }
+
+  // ── Lakeshore Inn: (2,12) to (7,16) ──
+  if (y === 11 && x >= 2 && x < 8) return R;
+  if (y === 12 && x >= 2 && x < 8) return RE;
+  if (inRect(x, y, 2, 13, 6, 4)) {
+    if (x === 2 || x === 7) return W;
+    if (y === 16) return W;
+    if (y === 14 && x === 7) return D; // right side door
+    return FW;
+  }
+  if (y === 17 && x >= 2 && x < 8) return SH;
+
+  // ── Dock planks over water (cols 18-30, various rows) ──
+  // Dock 1: row 10, cols 18-22
+  if (y === 10 && x >= 18 && x <= 22) return FW;
+  // Dock 2: rows 12-13, cols 18-30
+  if ((y === 12 || y === 13) && x >= 18 && x <= 30) return FW;
+  // Dock 3: row 16, cols 18-26
+  if (y === 16 && x >= 18 && x <= 26) return FW;
+  // Connecting dock strip (col 18, rows 9-17)
+  if (x === 18 && y >= 9 && y <= 17) return FW;
+  if (x === 19 && y >= 9 && y <= 17) return FW;
+
+  // ── Main village path (north-south, cols 10-13) ──
+  if (x >= 11 && x <= 12 && y >= 0 && y <= 20) return P;
+  if ((x === 10 || x === 13) && y >= 0 && y <= 20) return PE;
+
+  // ── East-west path to docks (rows 9-10, cols 12-19) ──
+  if (y === 9 && x >= 12 && x <= 19) return P;
+  if (y === 10 && x >= 12 && x <= 17) return P;
+  if (y === 8 && x >= 14 && x <= 19) return PE;
+  if (y === 11 && x >= 14 && x <= 17) return PE;
+
+  // ── Path to inn (row 14, cols 8-10) ──
+  if (y === 14 && x >= 8 && x <= 10) return P;
+  if (y === 13 && x >= 8 && x <= 10) return PE;
+  if (y === 15 && x >= 8 && x <= 10) return PE;
+
+  // ── Village green areas ──
+  // Light grass near buildings and paths
+  if (x >= 1 && x <= 9 && y >= 1 && y <= 10) return g;
+  if (x >= 1 && x <= 9 && y >= 18 && y <= 20) return g;
+  if (x >= 14 && x <= 17 && y >= 4 && y <= 7) return g;
+
+  // ── Dark grass everywhere else on the land side ──
+  return G;
+}
+
+function inRect(x: number, y: number, rx: number, ry: number, rw: number, rh: number): boolean {
+  return x >= rx && x < rx + rw && y >= ry && y < ry + rh;
+}

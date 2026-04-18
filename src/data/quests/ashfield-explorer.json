@@ -1,0 +1,10 @@
+{
+  "id": "ashfield-explorer",
+  "category": "side",
+  "title": "Through the Ash",
+  "summary": "The Ashfields hold the ruins of an ancient tower. Explore it.",
+  "objectives": [
+    { "id": "reach-mirror", "description": "Reach the Mirror Chamber." }
+  ],
+  "reward": { "gold": 100, "xp": 250 }
+}

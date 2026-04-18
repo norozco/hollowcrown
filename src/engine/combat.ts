@@ -577,6 +577,18 @@ export function enemyAct(
         applyStatus(s.playerStatus, 'poison', 2);
         s.log.push({ text: 'Brackish water burns in the cut.', type: 'system' });
       }
+    } else if (monster.key === 'fire_elemental' && statusRoll <= 35) {
+      applyStatus(s.playerStatus, 'burn', 3);
+      s.log.push({ text: 'The flames lick your skin.', type: 'system' });
+    } else if (monster.key === 'lava_drake' && statusRoll <= 25) {
+      applyStatus(s.playerStatus, 'burn', 3);
+      s.log.push({ text: 'Molten spittle sears you.', type: 'system' });
+    } else if (monster.key === 'ash_wraith' && statusRoll <= 20) {
+      applyStatus(s.playerStatus, 'stun', 1);
+      s.log.push({ text: 'Ash fills your lungs.', type: 'system' });
+    } else if (monster.key === 'ember_knight' && statusRoll <= 25) {
+      applyStatus(s.playerStatus, 'burn', 2);
+      s.log.push({ text: 'The heated blade scorches where it strikes.', type: 'system' });
     } else if (monster.key === 'hollow_king') {
       // Boss has multiple possible effects — enhanced in phase 2
       const stunThresh = s.bossPhase2 ? 30 : 15;

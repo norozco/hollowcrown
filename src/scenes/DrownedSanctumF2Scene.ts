@@ -1,5 +1,6 @@
 import * as Phaser from 'phaser';
 import { useInventoryStore } from '../state/inventoryStore';
+import { useDungeonItemStore } from '../state/dungeonItemStore';
 import { BaseWorldScene, TILE, WORLD_W, WORLD_H } from './BaseWorldScene';
 import { generateTileset, TILE as T, TILE_SIZE } from './tiles/generateTiles';
 
@@ -139,6 +140,35 @@ export class DrownedSanctumF2Scene extends BaseWorldScene {
       ],
       gold: 60,
     });
+
+    // ── Water Charm — golden chest near the altar ──
+    if (!useDungeonItemStore.getState().has('water_charm')) {
+      const wcX = 11 * TILE + TILE / 2;
+      const wcY = 14 * TILE + TILE / 2;
+      const wcChest = this.add.rectangle(wcX, wcY, 28, 24, 0x8a6830);
+      wcChest.setStrokeStyle(2, 0xe0c040);
+      wcChest.setDepth(8);
+      // Gold clasp
+      const wcClasp = this.add.rectangle(wcX, wcY - 4, 8, 8, 0xe0c040);
+      wcClasp.setDepth(9);
+      // Pulsing glow
+      const wcGlow = this.add.circle(wcX, wcY, 22, 0xe0c040, 0.1);
+      wcGlow.setDepth(7);
+      this.tweens.add({ targets: wcGlow, alpha: 0.2, scale: 1.3, duration: 1500, yoyo: true, repeat: -1 });
+
+      this.spawnInteractable({
+        sprite: wcChest as any, label: 'Open golden chest', radius: 24,
+        action: () => {
+          useDungeonItemStore.getState().acquire('water_charm');
+          window.dispatchEvent(new CustomEvent('gameMessage', {
+            detail: 'Water Charm acquired! Shallow water paths are now passable.',
+          }));
+          wcChest.destroy();
+          wcClasp.destroy();
+          wcGlow.destroy();
+        },
+      });
+    }
 
     // ── Material pickups ──
     // Shadow essence near the altar (walkable at 8,11)

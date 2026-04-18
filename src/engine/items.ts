@@ -271,6 +271,27 @@ const ITEMS: Record<string, Item> = {
     buyPrice: 0, description: 'Green-black iron, cold as the water it sat in. Shaped for a lock that does not want to be opened.',
     stackable: false,
   },
+  tower_key: {
+    key: 'tower_key', name: 'Tower Key', type: 'quest', rarity: 'uncommon',
+    buyPrice: 0, description: 'Black iron, still warm. Opens doors that fire has sealed.',
+    stackable: false,
+  },
+  // ── Duskmere fish consumables ──
+  grilled_pike: {
+    key: 'grilled_pike', name: 'Grilled Pike', type: 'consumable', rarity: 'common',
+    buyPrice: 20, description: 'Crispy skin, tender flesh. Smells of smoke and lake water.',
+    effect: { healHp: 20 }, stackable: true,
+  },
+  smoked_eel: {
+    key: 'smoked_eel', name: 'Smoked Eel', type: 'consumable', rarity: 'uncommon',
+    buyPrice: 35, description: 'Dark, oily, and strangely satisfying. Restores body and mind.',
+    effect: { healHp: 15, healMp: 10 }, stackable: true,
+  },
+  lake_tonic: {
+    key: 'lake_tonic', name: 'Lake Tonic', type: 'consumable', rarity: 'uncommon',
+    buyPrice: 40, description: 'Brewed from lakewater and herbs. Clears poison and mends.',
+    effect: { healHp: 10, healMp: 15 }, stackable: true,
+  },
 };
 
 export function getItem(key: string): Item {
@@ -287,4 +308,5 @@ export const SHOP_INVENTORY: string[] = [
   'leather_cap', 'iron_helm', 'leather_armor', 'chainmail',
   'traveler_boots', 'iron_sword', 'steel_sword', 'oak_staff',
   'wooden_shield', 'copper_ring',
+  'grilled_pike', 'smoked_eel', 'lake_tonic',
 ];

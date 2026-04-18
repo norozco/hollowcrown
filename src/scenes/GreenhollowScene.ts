@@ -319,6 +319,23 @@ export class GreenhollowScene extends BaseWorldScene {
 
     // ── Heart piece #8 — secret cave in far south-east corner ──
     this.spawnHeartPiece(36 * TILE, 20 * TILE);
+
+    // ── Shallow water crossing (Water Charm gate) — south-east brook ──
+    // Blocks access to a hidden heart piece cave without the Water Charm.
+    this.spawnShallowWater({ x: 34 * TILE, y: 18 * TILE, w: 3 * TILE, h: 2 * TILE });
+    // Heart piece #9 beyond the shallow water
+    this.spawnHeartPiece(37 * TILE, 16 * TILE);
+
+    // South edge → Duskmere Village
+    this.addExit({
+      x: 8 * TILE,
+      y: WORLD_H - TILE,
+      w: 8 * TILE,
+      h: TILE,
+      targetScene: 'DuskmereScene',
+      targetSpawn: 'fromGreenhollow',
+      label: '\u2193 Duskmere Village [Lv 4-6]',
+    });
   }
 
   protected spawnAt(name: string): { x: number; y: number } {
@@ -331,6 +348,8 @@ export class GreenhollowScene extends BaseWorldScene {
         return { x: WORLD_W - TILE * 3, y: WORLD_H / 2 };
       case 'fromOrricInterior':
         return { x: 33 * TILE, y: 8 * TILE };
+      case 'fromDuskmere':
+        return { x: 12 * TILE, y: WORLD_H - TILE * 3 };
       case 'default':
       default:
         return { x: WORLD_W / 2, y: TILE * 3 };

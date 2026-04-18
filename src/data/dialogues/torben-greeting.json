@@ -1,0 +1,54 @@
+{
+  "id": "torben-greeting",
+  "start": "enter",
+  "nodes": {
+    "enter": {
+      "id": "enter",
+      "speaker": "narrator",
+      "text": "A broad man in a stained apron leans against his counter. He smells of brine and woodsmoke. His hands are scarred from scaling knives, and his smile is the widest thing in this village.",
+      "next": "hello"
+    },
+    "hello": {
+      "id": "hello",
+      "speaker": "torben",
+      "expression": "neutral",
+      "text": "Welcome! Fresh catch \u2014 well, fresh-ish. The lake has been... uncooperative. But what I have is good. Smoked, grilled, or stewed \u2014 your call.",
+      "choices": [
+        { "text": "What do you have?", "next": "shop-talk" },
+        { "text": "What is wrong with the lake?", "next": "lake-trouble" },
+        { "text": "Just passing through.", "next": "farewell" }
+      ]
+    },
+    "shop-talk": {
+      "id": "shop-talk",
+      "speaker": "torben",
+      "expression": "neutral",
+      "text": "Grilled pike \u2014 puts the strength back in you. Smoked eel \u2014 restores body and mind. And my lake tonic, brewed fresh. Clears what ails you. Take a look.",
+      "next": null
+    },
+    "lake-trouble": {
+      "id": "lake-trouble",
+      "speaker": "torben",
+      "expression": "sad",
+      "text": "Between you and me, something down there is eating the fish. Not a fish. Something with hands. I pulled up a net last week with finger marks pressed into the rope. Five fingers. Long ones.",
+      "next": "lake-trouble-2"
+    },
+    "lake-trouble-2": {
+      "id": "lake-trouble-2",
+      "speaker": "torben",
+      "expression": "thoughtful",
+      "text": "Nessa says not to talk about it. Says it scares the last few customers away. She is probably right. But I have been sleeping with a gutting knife under my pillow, and I am not a man who scares easy.",
+      "next": "hello",
+      "effects": [
+        { "type": "give-xp", "amount": 10 }
+      ]
+    },
+    "farewell": {
+      "id": "farewell",
+      "speaker": "torben",
+      "expression": "neutral",
+      "text": "Safe travels. And if you are near the water after dark \u2014 stay away from the edge.",
+      "next": null
+    }
+  }
+}

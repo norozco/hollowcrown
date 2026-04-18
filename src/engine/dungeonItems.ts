@@ -41,4 +41,11 @@ export const DUNGEON_ITEMS: Record<string, DungeonItem> = {
     icon: '\uD83E\uDE9D',
     enables: 'grapple-point',
   },
+  mirror_shard: {
+    key: 'mirror_shard',
+    name: 'Mirror Shard',
+    description: 'A sliver of ancient glass. In its reflection, things hidden become plain.',
+    icon: '\uD83E\uDE9E',
+    enables: 'invisible',
+  },
 };

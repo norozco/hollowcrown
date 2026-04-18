@@ -1,0 +1,9 @@
+{
+  "id": "deep-hook",
+  "title": "The Deep Hook",
+  "summary": "Nessa wants you to fish up strange objects from the lake. Something is surfacing — she needs to know what.",
+  "objectives": [
+    { "id": "fish-objects", "description": "Fish up 3 strange objects from the docks." }
+  ],
+  "reward": { "gold": 40, "xp": 65 }
+}

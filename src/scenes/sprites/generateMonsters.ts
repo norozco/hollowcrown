@@ -36,6 +36,10 @@ export function generateMonsterSprite(scene: Phaser.Scene, key: string, monsterK
     case 'mine_golem': drawMineGolem(ctx); break;
     case 'bog_lurker': drawBogLurker(ctx); break;
     case 'drowned_warden': drawDrownedWarden(ctx); break;
+    case 'fire_elemental': drawFireElemental(ctx); break;
+    case 'lava_drake': drawLavaDrake(ctx); break;
+    case 'ash_wraith': drawAshWraith(ctx); break;
+    case 'ember_knight': drawEmberKnight(ctx); break;
     default: drawWolf(ctx); break;
   }
 
@@ -1816,6 +1820,380 @@ function drawDrownedWarden(c: Ctx) {
   // drips from helmet
   px(c, 14, 12, drip); px(c, 14, 14, dripBr);
   px(c, 32, 12, drip);
+}
+
+// ─── FIRE ELEMENTAL ──────────────────────────────────────────
+// Amorphous flame shape — bright orange/yellow center, red edges,
+// flickering form. No distinct body, just fire shaped vaguely humanoid.
+
+function drawFireElemental(c: Ctx) {
+  const core  = '#f0a020';
+  const mid   = '#e07818';
+  const outer = '#c04010';
+  const edge  = '#801808';
+  const hot   = '#ffe060';
+  const white = '#fff8d0';
+  const eyeY  = '#ffff80';
+
+  // Ground glow
+  bk(c, 10, 42, 28, 6, 'rgba(224,96,32,0.2)');
+
+  // Outer flame body (irregular shape)
+  bk(c, 14, 10, 20, 34, edge);
+  bk(c, 12, 14, 24, 26, outer);
+  bk(c, 16, 8, 16, 36, outer);
+  bk(c, 14, 12, 20, 30, mid);
+  bk(c, 18, 6, 12, 38, mid);
+
+  // Inner core
+  bk(c, 18, 14, 12, 24, core);
+  bk(c, 20, 10, 8, 30, core);
+  bk(c, 22, 8, 4, 34, core);
+
+  // Hottest center
+  bk(c, 20, 18, 8, 14, hot);
+  bk(c, 22, 16, 4, 18, hot);
+  px(c, 23, 20, white); px(c, 24, 22, white); px(c, 23, 24, white);
+
+  // Flame tips (top)
+  bk(c, 20, 2, 6, 8, outer);
+  bk(c, 22, 0, 4, 6, mid);
+  px(c, 23, 0, core);
+  // Side flame tips
+  bk(c, 10, 18, 4, 8, edge);
+  bk(c, 11, 20, 3, 4, outer);
+  bk(c, 34, 16, 4, 10, edge);
+  bk(c, 34, 18, 3, 6, outer);
+  // Top-left wisp
+  bk(c, 16, 4, 4, 6, outer);
+  px(c, 17, 4, mid);
+  // Top-right wisp
+  bk(c, 28, 6, 4, 6, outer);
+  px(c, 30, 6, mid);
+
+  // Flickering edges — dithered embers
+  for (let fy = 12; fy < 42; fy += 3) {
+    px(c, 12 + (fy % 5), fy, outer);
+    px(c, 33 - (fy % 4), fy, outer);
+  }
+  for (let fy = 8; fy < 38; fy += 4) {
+    px(c, 14 + (fy % 3), fy, mid);
+    px(c, 31 - (fy % 3), fy, mid);
+  }
+
+  // Bright yellow eyes
+  bk(c, 19, 18, 3, 3, eyeY);
+  bk(c, 26, 18, 3, 3, eyeY);
+  px(c, 20, 19, white);
+  px(c, 27, 19, white);
+
+  // Ember particles above
+  px(c, 18, 2, core); px(c, 30, 4, hot); px(c, 14, 6, core);
+  px(c, 32, 10, hot); px(c, 10, 12, mid);
+}
+
+// ─── LAVA DRAKE ──────────────────────────────────────────────
+// Small dragon/lizard. Dark red/brown scales, orange underbelly,
+// short wings, long tail. Quadruped stance, embers from mouth.
+
+function drawLavaDrake(c: Ctx) {
+  const scaleDk = '#601808';
+  const scaleMd = '#803010';
+  const scaleLt = '#a04818';
+  const scaleHi = '#b86028';
+  const belly   = '#d08030';
+  const bellyHi = '#e0a048';
+  const wingDk  = '#501008';
+  const wingMd  = '#702010';
+  const wingLt  = '#903020';
+  const eyeDk   = '#c06000';
+  const eyeBr   = '#f0a020';
+  const ember   = '#f0c040';
+  const emberDk = '#e08020';
+
+  // Ground shadow
+  bk(c, 6, 42, 36, 4, 'rgba(0,0,0,0.18)');
+
+  // ── Tail (extends right, curves up) ──
+  bk(c, 34, 28, 6, 4, scaleDk);
+  bk(c, 38, 26, 5, 3, scaleMd);
+  bk(c, 41, 24, 4, 3, scaleLt);
+  bk(c, 43, 22, 3, 3, scaleMd);
+  px(c, 45, 22, scaleDk);
+  // tail ridges
+  px(c, 36, 28, scaleHi); px(c, 40, 26, scaleHi); px(c, 43, 23, scaleHi);
+
+  // ── Hind legs ──
+  bk(c, 28, 36, 4, 8, scaleDk);
+  bk(c, 29, 37, 2, 6, scaleMd);
+  bk(c, 27, 43, 6, 3, scaleDk);
+  bk(c, 28, 43, 4, 2, scaleMd);
+  bk(c, 24, 34, 4, 10, scaleMd);
+  bk(c, 25, 35, 2, 8, scaleLt);
+  bk(c, 23, 43, 6, 3, scaleDk);
+  bk(c, 24, 43, 4, 2, scaleMd);
+
+  // ── Body (broad lizard torso) ──
+  bk(c, 10, 24, 26, 12, scaleDk);
+  bk(c, 12, 25, 22, 10, scaleMd);
+  bk(c, 14, 26, 18, 8, scaleLt);
+  // belly
+  bk(c, 14, 32, 18, 4, belly);
+  bk(c, 16, 33, 14, 2, bellyHi);
+  // dorsal ridge
+  bk(c, 14, 24, 16, 2, scaleHi);
+  px(c, 16, 24, scaleDk); px(c, 20, 24, scaleDk); px(c, 24, 24, scaleDk);
+  // scale texture
+  for (let sx = 14; sx < 32; sx += 3) px(c, sx, 27, scaleDk);
+  for (let sx = 16; sx < 30; sx += 4) px(c, sx, 30, scaleMd);
+
+  // ── Front legs ──
+  bk(c, 14, 34, 3, 9, scaleMd);
+  bk(c, 15, 35, 2, 7, scaleLt);
+  bk(c, 13, 42, 5, 3, scaleDk);
+  bk(c, 10, 33, 4, 10, scaleDk);
+  bk(c, 11, 34, 2, 8, scaleMd);
+  bk(c, 9, 42, 6, 3, scaleDk);
+  bk(c, 10, 42, 4, 2, scaleMd);
+
+  // ── Neck ──
+  bk(c, 6, 22, 8, 8, scaleMd);
+  bk(c, 7, 23, 6, 6, scaleLt);
+  bk(c, 6, 22, 8, 2, scaleHi);
+
+  // ── Head (angular lizard head) ──
+  bk(c, 2, 18, 10, 8, scaleMd);
+  bk(c, 3, 19, 8, 6, scaleLt);
+  bk(c, 2, 18, 10, 2, scaleHi);
+  // snout
+  bk(c, 0, 20, 4, 4, scaleMd);
+  bk(c, 0, 21, 3, 2, scaleLt);
+  // nostrils
+  px(c, 0, 20, scaleDk); px(c, 1, 20, scaleDk);
+  // jaw
+  bk(c, 0, 24, 8, 2, scaleDk);
+  bk(c, 1, 24, 6, 1, scaleMd);
+
+  // ── Eyes (ember-orange) ──
+  bk(c, 4, 19, 3, 2, eyeDk);
+  px(c, 5, 19, eyeBr);
+  bk(c, 8, 19, 3, 2, eyeDk);
+  px(c, 9, 19, eyeBr);
+
+  // ── Wings (short, stubby) ──
+  bk(c, 16, 16, 8, 8, wingDk);
+  bk(c, 17, 17, 6, 6, wingMd);
+  bk(c, 18, 18, 4, 4, wingLt);
+  // wing membrane lines
+  px(c, 17, 17, wingDk); px(c, 19, 19, wingDk);
+  // second wing (behind, partial)
+  bk(c, 22, 18, 6, 6, wingDk);
+  bk(c, 23, 19, 4, 4, wingMd);
+
+  // ── Embers from mouth ──
+  px(c, 0, 22, ember); px(c, -1, 21, emberDk);
+  px(c, -1, 23, ember); px(c, -2, 22, emberDk);
+  px(c, 1, 25, emberDk);
+}
+
+// ─── ASH WRAITH ──────────────────────────────────────────────
+// Like wraith but grey/dark with ember particles. Tattered form,
+// glowing orange eyes. Ash trails at the bottom.
+
+function drawAshWraith(c: Ctx) {
+  const dk     = '#282020';
+  const mid    = '#3a3030';
+  const lite   = '#4a4040';
+  const hi     = '#585050';
+  const tatter = '#201818';
+  const glow   = '#e07020';
+  const glowBr = '#f0a040';
+  const glowDm = '#c05010';
+  const void_  = '#0a0808';
+  const ember  = '#f0a030';
+  const emberDk= '#c06010';
+
+  // ── Ground shadow ──
+  bk(c, 10, 42, 28, 4, 'rgba(0,0,0,0.12)');
+
+  // ── Ash trail at bottom (tattered, dissolving) ──
+  bk(c, 14, 38, 20, 8, tatter);
+  bk(c, 12, 40, 24, 6, dk);
+  // ragged bottom edge
+  for (let tx = 12; tx < 36; tx += 2) {
+    const h = 2 + (tx % 5);
+    bk(c, tx, 46 - h, 2, h, tatter);
+  }
+  // wisps trailing down
+  bk(c, 16, 44, 2, 4, 'rgba(40,32,32,0.5)');
+  bk(c, 24, 44, 2, 4, 'rgba(40,32,32,0.4)');
+  bk(c, 30, 42, 2, 4, 'rgba(40,32,32,0.3)');
+
+  // ── Body / robe (tattered, amorphous) ──
+  bk(c, 14, 14, 20, 26, dk);
+  bk(c, 16, 16, 16, 22, mid);
+  bk(c, 18, 18, 12, 18, lite);
+  // left ragged edge
+  bk(c, 12, 20, 4, 16, tatter);
+  px(c, 11, 24, dk); px(c, 11, 28, dk); px(c, 10, 32, tatter);
+  // right ragged edge
+  bk(c, 32, 18, 4, 18, tatter);
+  px(c, 35, 22, dk); px(c, 36, 26, dk); px(c, 35, 30, tatter);
+  // highlight on upper body
+  bk(c, 16, 14, 10, 2, hi);
+  bk(c, 14, 16, 2, 6, hi);
+
+  // ── Hood ──
+  bk(c, 14, 6, 20, 12, dk);
+  bk(c, 16, 6, 16, 10, mid);
+  bk(c, 14, 4, 14, 2, hi);
+  bk(c, 14, 4, 2, 6, hi);
+  // hood peak
+  bk(c, 20, 2, 8, 4, mid);
+  bk(c, 22, 0, 4, 4, dk);
+  px(c, 22, 0, mid);
+
+  // ── Face void ──
+  bk(c, 18, 8, 12, 6, void_);
+
+  // ── Glowing orange eyes ──
+  bk(c, 20, 9, 3, 3, glow);
+  bk(c, 25, 9, 3, 3, glow);
+  px(c, 21, 10, glowBr);
+  px(c, 26, 10, glowBr);
+  px(c, 21, 9, '#ffe080');
+  px(c, 26, 9, '#ffe080');
+  // eye trails
+  px(c, 19, 10, glowDm);
+  px(c, 18, 10, 'rgba(224,112,32,0.4)');
+  px(c, 28, 10, glowDm);
+  px(c, 29, 10, 'rgba(224,112,32,0.4)');
+
+  // ── Ember particles floating around ──
+  px(c, 12, 8, ember); px(c, 34, 6, emberDk);
+  px(c, 10, 14, ember); px(c, 36, 12, ember);
+  px(c, 8, 22, emberDk); px(c, 38, 20, ember);
+  px(c, 14, 2, emberDk); px(c, 32, 4, ember);
+  px(c, 20, 0, ember); px(c, 28, 2, emberDk);
+  px(c, 11, 30, ember); px(c, 37, 28, emberDk);
+}
+
+// ─── EMBER KNIGHT ────────────────────────────────────────────
+// Armored humanoid glowing red-hot. Like hollow_knight but armor
+// is red/orange, with heat distortion (lighter pixels around edges).
+// Flaming sword.
+
+function drawEmberKnight(c: Ctx) {
+  const armDk  = '#602010';
+  const armMd  = '#804020';
+  const armLt  = '#a05830';
+  const armHi  = '#c07040';
+  const heatHi = '#e0a060';
+  const capeDk = '#281008';
+  const capeMd = '#3a1810';
+  const capeLt = '#4a2818';
+  const visor  = '#100808';
+  const swd    = '#d06020';
+  const swdHi  = '#f0a040';
+  const swdDk  = '#a04010';
+  const glow   = '#f08030';
+  const glowBr = '#ffa050';
+  const flame  = '#ffe040';
+
+  // Ground glow
+  bk(c, 8, 42, 32, 6, 'rgba(224,96,32,0.15)');
+
+  // ── Cape (behind body, tattered) ──
+  bk(c, 16, 20, 18, 26, capeDk);
+  bk(c, 18, 22, 14, 22, capeMd);
+  bk(c, 20, 24, 10, 18, capeLt);
+  // ragged cape bottom
+  for (let cx = 16; cx < 34; cx += 3) {
+    const h = 2 + (cx % 4);
+    bk(c, cx, 46 - h, 2, h, capeDk);
+  }
+
+  // ── Legs (armored) ──
+  bk(c, 16, 34, 5, 10, armDk);
+  bk(c, 17, 35, 3, 8, armMd);
+  px(c, 17, 35, armLt);
+  bk(c, 15, 43, 7, 3, armDk);
+  bk(c, 16, 43, 5, 2, armMd);
+
+  bk(c, 25, 34, 5, 10, armDk);
+  bk(c, 26, 35, 3, 8, armMd);
+  px(c, 26, 35, armLt);
+  bk(c, 24, 43, 7, 3, armDk);
+  bk(c, 25, 43, 5, 2, armMd);
+
+  // ── Torso (glowing armor) ──
+  bk(c, 14, 18, 18, 18, armDk);
+  bk(c, 16, 19, 14, 14, armMd);
+  bk(c, 18, 20, 10, 10, armLt);
+  // chest plate highlight
+  bk(c, 16, 18, 8, 2, armHi);
+  bk(c, 14, 20, 2, 6, armHi);
+  // heat glow on edges
+  px(c, 13, 20, heatHi); px(c, 13, 24, heatHi);
+  px(c, 32, 22, heatHi); px(c, 32, 26, heatHi);
+  px(c, 14, 18, heatHi); px(c, 30, 18, heatHi);
+
+  // ── Arms ──
+  // Left arm (raised with sword)
+  bk(c, 8, 16, 6, 14, armDk);
+  bk(c, 9, 17, 4, 12, armMd);
+  bk(c, 10, 18, 2, 10, armLt);
+  // gauntlet
+  bk(c, 8, 14, 6, 4, armMd);
+  bk(c, 9, 14, 4, 3, armLt);
+
+  // Right arm
+  bk(c, 32, 20, 6, 12, armDk);
+  bk(c, 33, 21, 4, 10, armMd);
+  bk(c, 34, 22, 2, 8, armLt);
+  bk(c, 32, 30, 6, 4, armDk);
+  bk(c, 33, 30, 4, 3, armMd);
+
+  // ── Helmet ──
+  bk(c, 16, 4, 14, 16, armDk);
+  bk(c, 18, 5, 10, 14, armMd);
+  bk(c, 20, 6, 6, 12, armLt);
+  // helmet crest
+  bk(c, 22, 0, 4, 6, armMd);
+  bk(c, 23, 0, 2, 4, armLt);
+  px(c, 23, 0, armHi);
+  // visor slit
+  bk(c, 18, 10, 10, 3, visor);
+  // glowing eyes behind visor
+  bk(c, 19, 10, 3, 2, glow);
+  bk(c, 25, 10, 3, 2, glow);
+  px(c, 20, 10, glowBr);
+  px(c, 26, 10, glowBr);
+  // helmet highlight
+  bk(c, 16, 4, 10, 2, armHi);
+  bk(c, 16, 4, 2, 8, armHi);
+
+  // ── Flaming Sword (left hand, raised) ──
+  // blade
+  bk(c, 9, -4, 3, 20, swd);
+  bk(c, 9, -4, 3, 4, swdHi);
+  px(c, 8, -2, swdHi);
+  bk(c, 12, 2, 1, 12, swdDk);
+  // flames on blade
+  px(c, 8, 0, flame); px(c, 12, -2, flame);
+  px(c, 7, 4, flame); px(c, 13, 2, flame);
+  px(c, 8, 8, flame); px(c, 12, 6, flame);
+  px(c, 7, -4, swdHi); px(c, 13, -2, swdHi);
+  // crossguard
+  bk(c, 6, 14, 10, 3, armMd);
+  bk(c, 7, 14, 8, 2, armLt);
+
+  // ── Heat distortion (lighter pixels around body edges) ──
+  px(c, 12, 16, heatHi); px(c, 34, 18, heatHi);
+  px(c, 14, 34, heatHi); px(c, 30, 36, heatHi);
+  px(c, 6, 18, heatHi); px(c, 38, 24, heatHi);
+  px(c, 16, 2, heatHi); px(c, 28, 2, heatHi);
+  px(c, 10, 12, heatHi); px(c, 36, 14, heatHi);
 }
 
 // ─── OUTLINE ──────────────────────────────────────────────────

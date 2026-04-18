@@ -1,0 +1,72 @@
+{
+  "id": "nessa-greeting",
+  "start": "enter",
+  "nodes": {
+    "enter": {
+      "id": "enter",
+      "speaker": "narrator",
+      "text": "A woman stands at the dock's edge, arms crossed, watching the water the way a soldier watches a gate. She does not turn as you approach. She already knows you are there.",
+      "next": "nessa-look"
+    },
+    "nessa-look": {
+      "id": "nessa-look",
+      "speaker": "nessa",
+      "expression": "neutral",
+      "text": "The docks are not for tourists. But you do not look like a tourist. You look like trouble. Good. We need trouble.",
+      "choices": [
+        { "text": "What is happening here?", "next": "whats-wrong" },
+        { "text": "Can I help?", "next": "help-offer" },
+        { "text": "Tell me about the village.", "next": "village-lore" },
+        { "text": "I will let you be.", "next": "leave" }
+      ]
+    },
+    "whats-wrong": {
+      "id": "whats-wrong",
+      "speaker": "nessa",
+      "expression": "thoughtful",
+      "text": "The fish stopped coming three days ago. The water turned darker. Something is moving down there \u2014 slow, heavy, patient. We lost three boats this month. The nets come up torn, or not at all.",
+      "next": "nessa-look"
+    },
+    "help-offer": {
+      "id": "help-offer",
+      "speaker": "nessa",
+      "expression": "neutral",
+      "text": "Help. Yes. I have been waiting for someone willing to say that word. The deep water off the end dock \u2014 things have been surfacing. Strange things. Fish up three of them for me. I need to know what we are dealing with.",
+      "next": "help-accept",
+      "effects": [
+        { "type": "accept-quest", "questId": "deep-hook" }
+      ]
+    },
+    "help-accept": {
+      "id": "help-accept",
+      "speaker": "nessa",
+      "expression": "neutral",
+      "text": "Use the fishing spots at the ends of the docks. Whatever you pull up, bring it to me. I will be here. I am always here.",
+      "next": null
+    },
+    "village-lore": {
+      "id": "village-lore",
+      "speaker": "nessa",
+      "expression": "thoughtful",
+      "text": "Duskmere was built on old foundations. The first settlers found cut stone under the mud \u2014 doorways, stair wells, things that should not be this far from any city. They built over it. People always build over what they do not understand.",
+      "next": "village-lore-2"
+    },
+    "village-lore-2": {
+      "id": "village-lore-2",
+      "speaker": "nessa",
+      "expression": "sad",
+      "text": "My grandmother said the lake was not always here. That it filled in one night, swallowed whatever was below. I used to think she was trying to frighten me. Now I am not certain.",
+      "next": "nessa-look",
+      "effects": [
+        { "type": "give-xp", "amount": 15 }
+      ]
+    },
+    "leave": {
+      "id": "leave",
+      "speaker": "nessa",
+      "expression": "neutral",
+      "text": "Mind the water. And if you see something move beneath it \u2014 do not look twice.",
+      "next": null
+    }
+  }
+}

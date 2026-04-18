@@ -78,5 +78,32 @@
     "portraitColor": "#2a3048",
     "accentColor": "#a0b8d0",
     "description": "Pale, thin, steady-handed. His eyes have the look of someone who has read too much and slept too little."
+  },
+  "nessa": {
+    "key": "nessa",
+    "name": "Nessa",
+    "title": "Dockmaster",
+    "portraitColor": "#3a5a6a",
+    "accentColor": "#88b0c0",
+    "description": "Practical, hard-jawed, unafraid. Runs Duskmere the way a captain runs a ship in bad water.",
+    "portraits": {}
+  },
+  "torben": {
+    "key": "torben",
+    "name": "Torben",
+    "title": "Fishmonger",
+    "portraitColor": "#6a5a3a",
+    "accentColor": "#c0a868",
+    "description": "Broad-shouldered, stinking of brine, cheerful in the way of men who refuse to think about what frightens them.",
+    "portraits": {}
+  },
+  "mira": {
+    "key": "mira",
+    "name": "Mira",
+    "title": "Thief",
+    "portraitColor": "#5a3040",
+    "accentColor": "#c07898",
+    "description": "Quick hands, quicker feet. Thin as a reed and twice as hard to catch.",
+    "portraits": {}
   }
 }

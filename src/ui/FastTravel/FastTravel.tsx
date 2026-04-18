@@ -7,6 +7,7 @@ const WAYPOINTS: Array<{ sceneKey: string; name: string; spawn: string }> = [
   { sceneKey: 'GreenhollowScene', name: 'Greenhollow Woods', spawn: 'default' },
   { sceneKey: 'MossbarrowScene', name: 'Mossbarrow Cairn', spawn: 'default' },
   { sceneKey: 'AshenmereScene', name: 'Ashenmere Marshes', spawn: 'default' },
+  { sceneKey: 'DuskmereScene', name: 'Duskmere Village', spawn: 'default' },
 ];
 
 export function FastTravel({ onClose }: { onClose: () => void }) {

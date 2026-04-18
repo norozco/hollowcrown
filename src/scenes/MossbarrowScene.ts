@@ -308,6 +308,28 @@ export class MossbarrowScene extends BaseWorldScene {
       loot: [{ itemKey: 'bone_shard', weight: 3 }, { itemKey: 'iron_ore', weight: 2 }, { itemKey: 'health_potion', weight: 2 }, { itemKey: 'shadow_essence', weight: 1 }],
       gold: 12, spawnChance: 0.15,
     });
+
+    // ── Shallow water crossing (Water Charm gate) — south-east pool ──
+    // Blocks a hidden lore object behind a water barrier.
+    this.spawnShallowWater({ x: 34 * TILE, y: 16 * TILE, w: 3 * TILE, h: 2 * TILE });
+    // Lore object beyond the shallow water
+    const ruinedScroll = this.add.rectangle(36 * TILE, 18 * TILE, 14, 10, 0xd8d0b0);
+    ruinedScroll.setStrokeStyle(1, 0xa09868);
+    ruinedScroll.setDepth(8);
+    this.spawnInteractable({
+      sprite: ruinedScroll as any, label: 'Read ruined scroll', radius: 20,
+      action: () => {
+        useLoreStore.getState().discover({
+          key: 'ruined-scroll-mossbarrow',
+          title: 'Ruined Scroll',
+          text: 'Water-damaged parchment. The visible lines read: "...the crown was not taken. It was given. And the one who gave it..."',
+          location: 'Mossbarrow Cairn',
+        });
+        window.dispatchEvent(new CustomEvent('gameMessage', {
+          detail: '"...the crown was not taken. It was given. And the one who gave it..."',
+        }));
+      },
+    });
   }
 
   protected spawnAt(name: string): { x: number; y: number } {

@@ -592,6 +592,9 @@ export abstract class BaseWorldScene extends Phaser.Scene {
       'DrownedSanctumF1Scene': 'The seal holds. For now.',
       'DrownedSanctumF2Scene': 'Veyrin understands. You will too, in time.',
       'IronveilScene': 'Iron remembers the hands that shaped it. Even these.',
+      'AshenTowerF1Scene': 'Fire cleanses. That is what they told themselves. They were wrong.',
+      'AshenTowerF2Scene': 'The forge made weapons for a war that never ended.',
+      'AshenTowerF3Scene': 'I stood before this mirror once. It showed me what I was. I did not look away. I should have.',
     };
 
     const line = WATCHER_LINES[this.scene.key];
@@ -711,6 +714,20 @@ export abstract class BaseWorldScene extends Phaser.Scene {
         clasp.destroy();
       },
     });
+  }
+
+  /**
+   * Spawn a shallow water barrier — a translucent water-like area that
+   * blocks the player UNLESS they have the Water Charm dungeon item.
+   * Used for optional shortcuts and hidden areas.
+   */
+  protected spawnShallowWater(cfg: { x: number; y: number; w: number; h: number }): void {
+    if (useDungeonItemStore.getState().has('water_charm')) return; // passable
+    const barrier = this.add.rectangle(
+      cfg.x + cfg.w / 2, cfg.y + cfg.h / 2, cfg.w, cfg.h, 0x4080b0, 0.3);
+    barrier.setDepth(3);
+    this.physics.add.existing(barrier, true);
+    this.walls.add(barrier);
   }
 
   /** Call from subclass layout() to make this scene dark. */

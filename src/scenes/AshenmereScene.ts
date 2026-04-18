@@ -347,39 +347,26 @@ export class AshenmereScene extends BaseWorldScene {
       label: '← Ashenvale',
     });
 
-    // Eastern teaser exit — shows "coming soon" message, does NOT transition
-    const teaserSign = this.add.text(
-      WORLD_W - 2 * TILE, 11 * TILE, '??? — The path continues',
-      {
-        fontFamily: 'Courier New', fontSize: '11px', color: '#7a6a4a',
-      },
-    ).setOrigin(0.5).setAlpha(0.7).setDepth(15);
-
-    const teaserSprite = this.add.rectangle(WORLD_W - TILE, 11 * TILE, TILE, 3 * TILE, 0x000000, 0);
-    teaserSprite.setDepth(1);
-    this.spawnInteractable({
-      sprite: teaserSprite as any,
-      label: 'Peer into the mist',
-      radius: 36,
-      action: () => {
-        useLoreStore.getState().discover({
-          key: 'eastern-mist-ashenmere',
-          title: 'The Eastern Mist',
-          text: 'The marsh stretches on. Whatever waits beyond is not yet ready to be found.',
-          location: 'Ashenmere Marshes',
-        });
-        window.dispatchEvent(new CustomEvent('gameMessage', {
-          detail: 'The marsh stretches on. Whatever waits beyond is not yet ready to be found.',
-        }));
-      },
+    // Eastern exit → The Ashfields
+    this.addExit({
+      x: WORLD_W - TILE,
+      y: 9 * TILE,
+      w: TILE,
+      h: 4 * TILE,
+      targetScene: 'AshfieldsScene',
+      targetSpawn: 'fromAshenmere',
+      label: '→ The Ashfields [Lv 10-14]',
     });
-    void teaserSign;
 
     // ── Fairy Fountain (on a small island in the marsh, south-east) ──
     this.spawnFairyFountain({ x: 29 * TILE, y: 16 * TILE });
 
     // ── Heart piece #4 — on the south-east island, hard to reach ──
     this.spawnHeartPiece(27 * TILE, 17 * TILE);
+
+    // ── Shallow water shortcut (Water Charm gate) — marsh crossing ──
+    // Creates a shortcut between the west entrance and the central island.
+    this.spawnShallowWater({ x: 12 * TILE, y: 4 * TILE, w: 5 * TILE, h: 2 * TILE });
 
     // Zone marker
     this.add
@@ -395,6 +382,8 @@ export class AshenmereScene extends BaseWorldScene {
         return { x: 15 * TILE, y: 16 * TILE };
       case 'fromBogDungeon':
         return { x: 25 * TILE, y: 16 * TILE };
+      case 'fromAshfields':
+        return { x: 37 * TILE, y: 11 * TILE };
       case 'fromTown':
       case 'default':
         return { x: 3 * TILE, y: 11 * TILE };

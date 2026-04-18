@@ -1,0 +1,112 @@
+{
+  "id": "mira-greeting",
+  "start": "enter",
+  "nodes": {
+    "enter": {
+      "id": "enter",
+      "speaker": "narrator",
+      "text": "A thin figure sits at the dock's end, legs dangling over the dark water. She does not startle when you approach. She was waiting.",
+      "next": "mira-caught"
+    },
+    "mira-caught": {
+      "id": "mira-caught",
+      "speaker": "mira",
+      "expression": "neutral",
+      "text": "You found me. Faster than most. I expected another hour at least.",
+      "choices": [
+        { "text": "Give me back my gold.", "next": "return-half" },
+        { "text": "Why did you steal from me?", "next": "why-steal" },
+        {
+          "text": "Join me. You are quick enough to be useful.",
+          "next": "join-offer",
+          "requires": [
+            { "type": "quest-complete", "questId": "iron-token" }
+          ]
+        }
+      ]
+    },
+    "return-half": {
+      "id": "return-half",
+      "speaker": "mira",
+      "expression": "neutral",
+      "text": "Half. I need the rest more than you do. Take it or leave it.",
+      "next": "return-half-done",
+      "effects": [
+        { "type": "give-gold", "amount": 10 }
+      ]
+    },
+    "return-half-done": {
+      "id": "return-half-done",
+      "speaker": "mira",
+      "expression": "thoughtful",
+      "text": "Do not look at me like that. I have slept under a dock for two weeks. Morality is a luxury that requires a roof.",
+      "choices": [
+        {
+          "text": "Come with me. I could use someone quick.",
+          "next": "join-offer",
+          "requires": [
+            { "type": "quest-complete", "questId": "iron-token" }
+          ]
+        },
+        { "text": "Stay out of my pockets.", "next": "leave-alone" }
+      ]
+    },
+    "why-steal": {
+      "id": "why-steal",
+      "speaker": "mira",
+      "expression": "sad",
+      "text": "Because I am hungry, and you looked rich. You are not rich. I apologize. Here.",
+      "next": "why-steal-done",
+      "effects": [
+        { "type": "give-gold", "amount": 20 }
+      ]
+    },
+    "why-steal-done": {
+      "id": "why-steal-done",
+      "speaker": "mira",
+      "expression": "neutral",
+      "text": "I came south from Ironveil when the mine went silent. No work. No coin. No one hires a girl with fast hands for anything honest. So the hands stay fast.",
+      "choices": [
+        {
+          "text": "Then use those hands for something that matters. Join me.",
+          "next": "join-offer",
+          "requires": [
+            { "type": "quest-complete", "questId": "iron-token" }
+          ]
+        },
+        { "text": "Keep the gold. You need it.", "next": "keep-gold" }
+      ]
+    },
+    "keep-gold": {
+      "id": "keep-gold",
+      "speaker": "mira",
+      "expression": "neutral",
+      "text": "...You are strange. Most people who catch a thief are not kind about it. I will remember this.",
+      "next": null
+    },
+    "join-offer": {
+      "id": "join-offer",
+      "speaker": "mira",
+      "expression": "neutral",
+      "text": "You want a thief at your back. That is either very smart or very stupid. I have not decided which. But I owe you, and debts sit heavier than gold. Fine. I am in.",
+      "next": "join-done",
+      "effects": [
+        { "type": "hire-companion", "companionKey": "mira" }
+      ]
+    },
+    "join-done": {
+      "id": "join-done",
+      "speaker": "mira",
+      "expression": "thoughtful",
+      "text": "One rule. If we find treasure, I get first look. Not first pick \u2014 first look. A girl has to window-shop.",
+      "next": null
+    },
+    "leave-alone": {
+      "id": "leave-alone",
+      "speaker": "mira",
+      "expression": "neutral",
+      "text": "Fair enough. If you change your mind, I will be here. Nowhere else to go.",
+      "next": null
+    }
+  }
+}
