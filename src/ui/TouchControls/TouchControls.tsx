@@ -2,7 +2,12 @@ import { useState, useRef, useCallback, useEffect } from 'react';
 import './TouchControls.css';
 
 function isTouchDevice() {
-  return 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+  // Only show on actual mobile/tablet — not laptops with touchscreens.
+  // Check for coarse pointer (finger) as primary input, not just touch capability.
+  if (typeof matchMedia !== 'undefined') {
+    return matchMedia('(pointer: coarse)').matches && matchMedia('(hover: none)').matches;
+  }
+  return false;
 }
 
 declare global {
