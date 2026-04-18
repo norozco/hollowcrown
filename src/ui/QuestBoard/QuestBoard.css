@@ -46,3 +46,18 @@
   padding: 0.3rem 1rem; font-family: inherit; font-size: 0.9rem; cursor: pointer;
 }
 .qb__accept:hover { background: rgba(140,90,40,0.6); }
+
+/* Bounty Board section */
+.qb__bounty {
+  padding: 0.8rem 1.5rem;
+  border-bottom: 2px solid #5a3a1a;
+  background: rgba(30,18,10,0.4);
+}
+.qb__bounty-heading {
+  margin: 0 0 0.4rem 0; color: #c0a060; font-size: 0.95rem;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.qb__bounty-count { font-size: 0.75rem; color: #8a7a48; font-weight: normal; }
+.qb__bounty-empty { padding: 0.3rem 0; }
+.qb__bounty-active { padding: 0.3rem 0; }
+.qb__bounty-progress { margin: 0.3rem 0 0; color: #c0b080; font-size: 0.85rem; }

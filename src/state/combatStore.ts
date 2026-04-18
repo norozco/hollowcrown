@@ -12,6 +12,7 @@ import { usePlayerStore } from './playerStore';
 import { useInventoryStore } from './inventoryStore';
 import { useQuestStore } from './questStore';
 import { useAchievementStore } from './achievementStore';
+import { useBountyStore } from './bountyStore';
 import { rollPerkChoices, getPerkHpBonus, getPerkMpBonus } from '../engine/perks';
 
 /**
@@ -264,6 +265,9 @@ export const useCombatStore = create<CombatStoreState>((set, get) => ({
           qs.completeObjective('hollow-king-slayer', 'kill-hollow-king');
           msg('The Hollow Crown shatters. The curse lifts.');
         }
+
+        // Bounty kill tracking.
+        useBountyStore.getState().recordKill(monster.key);
 
         // Achievement tracking.
         const achStore = useAchievementStore.getState();

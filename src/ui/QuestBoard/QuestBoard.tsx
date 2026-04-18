@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { useQuestStore } from '../../state/questStore';
 import { usePlayerStore } from '../../state/playerStore';
+import { useBountyStore } from '../../state/bountyStore';
+import { useInventoryStore } from '../../state/inventoryStore';
 import { ALL_QUEST_IDS, getQuest } from '../../engine/quests';
 import { getCurrentRank, getNextRank } from '../../engine/ranks';
 import './QuestBoard.css';
@@ -12,6 +14,11 @@ export function QuestBoard({ onClose }: Props) {
   const accept = useQuestStore((s) => s.accept);
   const character = usePlayerStore((s) => s.character);
   usePlayerStore((s) => s.version);
+  const bounty = useBountyStore((s) => s.active);
+  const bountyKills = useBountyStore((s) => s.killProgress);
+  const bountyTotal = useBountyStore((s) => s.totalCompleted);
+  const bountyAccept = useBountyStore((s) => s.accept);
+  const bountyCheck = useBountyStore((s) => s.checkCompletion);
   const [flash, setFlash] = useState<string | null>(null);
 
   const questsCompleted = Object.values(active).filter((q) => q.turnedIn).length;
@@ -30,6 +37,43 @@ export function QuestBoard({ onClose }: Props) {
     setTimeout(() => setFlash(null), 1000);
   };
 
+  const handleClaimBounty = () => {
+    if (!bounty || !character) return;
+    // For collection bounties, verify inventory at claim time
+    if (bounty.target.type === 'collect') {
+      const inv = useInventoryStore.getState();
+      const owned = inv.slots.find(s => s.item.key === bounty.target.itemKey)?.quantity ?? 0;
+      if (owned < bounty.target.count) return;
+      inv.removeItem(bounty.target.itemKey, bounty.target.count);
+    }
+    character.addGold(bounty.reward.gold);
+    character.gainXp(bounty.reward.xp);
+    usePlayerStore.getState().notify();
+    useBountyStore.setState((s) => ({ totalCompleted: s.totalCompleted + 1 }));
+    bountyAccept(); // roll a new bounty
+    window.dispatchEvent(new CustomEvent('gameMessage', {
+      detail: `Bounty complete. +${bounty.reward.gold}g, +${bounty.reward.xp} XP`,
+    }));
+  };
+
+  // Determine bounty progress
+  const getBountyProgress = (): { current: number; needed: number } | null => {
+    if (!bounty) return null;
+    if (bounty.target.type === 'kill') {
+      return { current: bountyKills, needed: bounty.target.count };
+    }
+    const inv = useInventoryStore.getState();
+    const owned = inv.slots.find(s => s.item.key === bounty.target.itemKey)?.quantity ?? 0;
+    return { current: Math.min(owned, bounty.target.count), needed: bounty.target.count };
+  };
+
+  const bountyProgress = getBountyProgress();
+  const bountyDone = bounty
+    ? bounty.target.type === 'kill'
+      ? bountyCheck()
+      : (bountyProgress?.current ?? 0) >= (bountyProgress?.needed ?? 1)
+    : false;
+
   return (
     <div className="qb" role="dialog" aria-label="Quest Board">
       <div className="qb__header">
@@ -43,6 +87,36 @@ export function QuestBoard({ onClose }: Props) {
           )}
         </span>
         <button type="button" className="qb__close" onClick={onClose}>&#10005;</button>
+      </div>
+      <div className="qb__bounty">
+        <h3 className="qb__bounty-heading">Bounty Board <span className="qb__bounty-count">{bountyTotal} completed</span></h3>
+        {!bounty ? (
+          <div className="qb__bounty-empty">
+            <p className="qb__desc">Repeatable tasks. Gold and experience, no questions asked.</p>
+            <button type="button" className="qb__accept" onClick={bountyAccept}>Accept Bounty</button>
+          </div>
+        ) : (
+          <div className="qb__bounty-active">
+            <div className="qb__quest-header">
+              <h3>{bounty.title}</h3>
+              {bountyDone && <span className="qb__tag qb__tag--complete">Ready</span>}
+              {!bountyDone && <span className="qb__tag qb__tag--active">Active</span>}
+            </div>
+            <p className="qb__desc">{bounty.description}</p>
+            {bountyProgress && (
+              <p className="qb__bounty-progress">
+                {bounty.target.type === 'kill' ? 'Kill' : 'Collect'}{' '}
+                {bountyProgress.current}/{bountyProgress.needed}
+              </p>
+            )}
+            <div className="qb__footer">
+              <span className="qb__reward">{bounty.reward.gold}g · {bounty.reward.xp} XP</span>
+              {bountyDone && (
+                <button type="button" className="qb__accept" onClick={handleClaimBounty}>Claim Reward</button>
+              )}
+            </div>
+          </div>
+        )}
       </div>
       <ul className="qb__list">
         {quests.map(({ quest, state }) => {

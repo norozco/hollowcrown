@@ -599,16 +599,22 @@ export abstract class BaseWorldScene extends Phaser.Scene {
     // If this enemy was killed during the current zone visit, don't respawn it.
     if (useCombatStore.getState().killedEnemies.has(enemyId)) return;
 
+    // Randomize position slightly so each visit feels different.
+    const jitterX = Phaser.Math.Between(-24, 24);
+    const jitterY = Phaser.Math.Between(-24, 24);
+    const finalX = cfg.x + jitterX;
+    const finalY = cfg.y + jitterY;
+
     const spriteKey = `world-${cfg.monsterKey}`;
     generateMonsterSprite(this, spriteKey, cfg.monsterKey);
 
-    const enemy = this.add.sprite(cfg.x, cfg.y, spriteKey, 0);
+    const enemy = this.add.sprite(finalX, finalY, spriteKey, 0);
     enemy.setScale(0.8);
     enemy.setDepth(10);
 
     this.enemies.push({
       sprite: enemy, monsterKey: cfg.monsterKey, id: enemyId,
-      baseX: cfg.x, baseY: cfg.y,
+      baseX: finalX, baseY: finalY,
       patrolDir: Math.random() > 0.5 ? 1 : -1,
       patrolTimer: Math.random() * 3000,
     });
@@ -1035,6 +1041,31 @@ export abstract class BaseWorldScene extends Phaser.Scene {
           },
         ).setOrigin(0.5).setDepth(300).setAlpha(0);
         this.tweens.add({ targets: destText, alpha: 0.7, duration: 200 });
+
+        // Show a random tip during transition.
+        const TIPS = [
+          'Wizards deal fire damage \u2014 effective against undead.',
+          'Rogues strike from shadows \u2014 strong against bandits.',
+          'Defend before a heavy attack to reduce damage.',
+          'Potions can be used mid-combat with the Item button.',
+          'Commission Kael for stronger weapons \u2014 worth the wait.',
+          'Waypoint stones allow fast travel between visited zones.',
+          'Check the Quest Board for bounties \u2014 repeatable gold and XP.',
+          'Spike traps deal more damage on deeper floors.',
+          'The Hollow King has two phases. Prepare accordingly.',
+          'Companions provide passive bonuses in combat.',
+          'Equip crafted gear \u2014 inventory bonuses apply automatically.',
+          'Elemental weaknesses deal 50% more damage.',
+          'Press Q anywhere to check your active quests.',
+          'Antidotes cure poison \u2014 useful against spiders.',
+        ];
+        const tip = TIPS[Math.floor(Math.random() * TIPS.length)];
+        const tipText = this.add.text(WORLD_W / 2, WORLD_H / 2 + 30, tip, {
+          fontFamily: 'Courier New', fontSize: '11px', color: '#8a7a48',
+          stroke: '#000000', strokeThickness: 2,
+          wordWrap: { width: 400 },
+        }).setOrigin(0.5).setDepth(300).setAlpha(0);
+        this.tweens.add({ targets: tipText, alpha: 0.8, duration: 300 });
 
         this.cameras.main.fadeOut(FADE_MS, 0, 0, 0);
         this.cameras.main.once('camerafadeoutcomplete', () => {

@@ -184,7 +184,7 @@ export class TownScene extends BaseWorldScene {
       h: TILE,
       targetScene: 'GreenhollowScene',
       targetSpawn: 'fromAshenvale',
-      label: '→ Greenhollow Woods',
+      label: '→ Greenhollow Woods [Lv 1-3]',
     });
 
     // East-edge exit to Ashenmere Marshes — unlocked after Hollow King.
@@ -197,7 +197,7 @@ export class TownScene extends BaseWorldScene {
         h: 4 * TILE,
         targetScene: 'AshenmereScene',
         targetSpawn: 'fromTown',
-        label: '→ Ashenmere Marshes',
+        label: '→ Ashenmere Marshes [Lv 7+]',
       });
     } else {
       // Blocked path sign on the east edge.

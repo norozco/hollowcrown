@@ -295,7 +295,7 @@ export class GreenhollowScene extends BaseWorldScene {
       h: WORLD_H,
       targetScene: 'MossbarrowScene',
       targetSpawn: 'fromGreenhollow',
-      label: '→ Mossbarrow',
+      label: '→ Mossbarrow [Lv 3-5]',
     });
 
     // ── Hidden treasure chest off the main path ──

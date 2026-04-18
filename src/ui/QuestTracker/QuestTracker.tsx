@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useQuestStore } from '../../state/questStore';
+import { useBountyStore } from '../../state/bountyStore';
+import { useInventoryStore } from '../../state/inventoryStore';
 import { getQuest } from '../../engine/quests';
 import { currentObjective } from '../../engine/quest';
 import './QuestTracker.css';
@@ -10,6 +12,8 @@ import './QuestTracker.css';
  */
 export function QuestTracker() {
   const active = useQuestStore((s) => s.active);
+  const bounty = useBountyStore((s) => s.active);
+  const bountyKills = useBountyStore((s) => s.killProgress);
   const entries = Object.values(active).sort((a, b) => a.acceptedAt - b.acceptedAt);
 
   const seenRef = useRef<Map<string, string>>(new Map());
@@ -38,7 +42,18 @@ export function QuestTracker() {
     }
   }, [entries]);
 
-  if (entries.length === 0) return null;
+  // Bounty progress text
+  const bountyLine = (() => {
+    if (!bounty) return null;
+    if (bounty.target.type === 'kill') {
+      return `${bounty.title}: ${bountyKills}/${bounty.target.count}`;
+    }
+    const inv = useInventoryStore.getState();
+    const owned = inv.slots.find(s => s.item.key === bounty.target.itemKey)?.quantity ?? 0;
+    return `${bounty.title}: ${Math.min(owned, bounty.target.count)}/${bounty.target.count}`;
+  })();
+
+  if (entries.length === 0 && !bounty) return null;
 
   // Separate main story from side quests
   const mainQuests = entries.filter((s) => {
@@ -97,6 +112,11 @@ export function QuestTracker() {
           <h4 className="qt__heading qt__heading--side">Side Quests</h4>
           <ul className="qt__list">{sideQuests.map(renderQuest)}</ul>
         </>
+      )}
+      {bountyLine && (
+        <div className="qt__bounty">
+          <span className="qt__bounty-icon" aria-hidden="true">{'\u2694'}</span> {bountyLine}
+        </div>
       )}
     </aside>
   );
