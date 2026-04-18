@@ -448,11 +448,6 @@ export function InGameOverlay() {
       <QuestTracker />
 
       {gameMsg && <div className="ig__game-msg">{gameMsg}</div>}
-      {showControls && (
-        <p className="ig__controls-hint">
-          WASD move · E interact · I inventory · Q quests · Esc menu
-        </p>
-      )}
 
       {inventoryOpen && <InventoryScreen />}
       {shopOpen && <ShopScreen onClose={closeShop} />}
