@@ -123,6 +123,7 @@ export function InGameOverlay() {
   const [fastTravelOpen, setFastTravelOpen] = useState(false);
   const [gameMsg, setGameMsg] = useState<string | null>(null);
   const [toastKey, setToastKey] = useState<string | null>(null);
+  const [showControls, setShowControls] = useState(true);
 
   // Damage flash: track previous HP to detect decreases.
   const prevHpRef = useRef<number | null>(null);
@@ -132,6 +133,12 @@ export function InGameOverlay() {
   const prevGoldRef = useRef<number | null>(null);
   const [goldGain, setGoldGain] = useState(0);
   const [goldGainKey, setGoldGainKey] = useState(0);
+
+  // Hide controls hint after 30 seconds
+  useEffect(() => {
+    const t = setTimeout(() => setShowControls(false), 30000);
+    return () => clearTimeout(t);
+  }, []);
 
   // Apply stored brightness on mount so it persists across reloads.
   useEffect(() => {
@@ -302,7 +309,7 @@ export function InGameOverlay() {
   return (
     <div className="ig">
       <header className="ig__hud">
-        <div className="ig__hud-block ig__hud-block--identity">
+        <div className="ig__hud-left">
           <div
             className="ig__portrait"
             style={{ background: portraitBg, borderColor: portraitFg, color: portraitFg }}
@@ -313,64 +320,64 @@ export function InGameOverlay() {
           <div className="ig__identity">
             <span className="ig__name">{character.name}</span>
             <span className="ig__sub">
-              Lvl {character.level} {character.race.name} {character.characterClass.name}
-              {character.difficulty === 'hardcore' && <span className="ig__hc"> · ⚠ HC</span>}
-              {' '}<span className="ig__rank" style={{ color: rank.color }}>[{rank.label}] {rank.name}</span>
+              Lv.{character.level} {character.characterClass.name}
+              {character.difficulty === 'hardcore' && <span className="ig__hc"> HC</span>}
+              {' '}<span className="ig__rank" style={{ color: rank.color }}>{rank.name}</span>
             </span>
           </div>
         </div>
-        <div className="ig__hud-block ig__bars">
-          <div className="ig__hp-bar-wrap">
-            <span className={`ig__hp-text${isHit ? ' is-hit' : ''}`}>HP {character.hp}/{effectiveMaxHp}</span>
-            <div className="ig__hp-bar">
-              <div
-                className="ig__hp-fill"
-                style={{
-                  width: `${Math.max(0, (character.hp / effectiveMaxHp) * 100)}%`,
-                  background: character.hp / effectiveMaxHp > 0.5
-                    ? '#40a060'
-                    : character.hp / effectiveMaxHp > 0.25
-                      ? '#c0a040'
-                      : '#c04040',
-                }}
-              />
-            </div>
-          </div>
-          {effectiveMaxMp > 0 && (
-            <div className="ig__hp-bar-wrap">
-              <span className="ig__hp-text">MP {character.mp}/{effectiveMaxMp}</span>
+        <div className="ig__hud-right">
+          <div className="ig__stat-bars">
+            <div className="ig__bar-group">
+              <span className={`ig__bar-label${isHit ? ' is-hit' : ''}`}>HP</span>
               <div className="ig__hp-bar">
                 <div
-                  className="ig__mp-fill"
-                  style={{ width: `${Math.max(0, (character.mp / effectiveMaxMp) * 100)}%` }}
+                  className="ig__hp-fill"
+                  style={{
+                    width: `${Math.max(0, (character.hp / effectiveMaxHp) * 100)}%`,
+                    background: character.hp / effectiveMaxHp > 0.5
+                      ? '#40a060'
+                      : character.hp / effectiveMaxHp > 0.25
+                        ? '#c0a040'
+                        : '#c04040',
+                  }}
                 />
               </div>
+              <span className="ig__bar-val">{character.hp}/{effectiveMaxHp}</span>
             </div>
-          )}
-          {character.level >= MAX_LEVEL ? (
-            <span>XP MAX</span>
-          ) : (
-            <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px' }}>
-              <span>XP {character.xp - xpForLevel(character.level)}/{xpForLevel(character.level + 1) - xpForLevel(character.level)}</span>
-              <span className="ig__xp-bar">
-                <span className="ig__xp-fill" style={{ width: `${Math.min(100, ((character.xp - xpForLevel(character.level)) / (xpForLevel(character.level + 1) - xpForLevel(character.level))) * 100)}%` }} />
-              </span>
-            </span>
-          )}
-          <span className="ig__gold" title="Gold" style={{ position: 'relative' }}>
-            ◆ {character.gold}g
+            {effectiveMaxMp > 0 && (
+              <div className="ig__bar-group">
+                <span className="ig__bar-label">MP</span>
+                <div className="ig__hp-bar">
+                  <div
+                    className="ig__mp-fill"
+                    style={{ width: `${Math.max(0, (character.mp / effectiveMaxMp) * 100)}%` }}
+                  />
+                </div>
+                <span className="ig__bar-val">{character.mp}/{effectiveMaxMp}</span>
+              </div>
+            )}
+            <div className="ig__bar-group">
+              <span className="ig__bar-label">XP</span>
+              {character.level >= MAX_LEVEL ? (
+                <span className="ig__bar-val ig__bar-val--max">MAX</span>
+              ) : (
+                <>
+                  <div className="ig__xp-bar">
+                    <span className="ig__xp-fill" style={{ width: `${Math.min(100, ((character.xp - xpForLevel(character.level)) / (xpForLevel(character.level + 1) - xpForLevel(character.level))) * 100)}%` }} />
+                  </div>
+                  <span className="ig__bar-val">{character.xp - xpForLevel(character.level)}/{xpForLevel(character.level + 1) - xpForLevel(character.level)}</span>
+                </>
+              )}
+            </div>
+          </div>
+          <span className="ig__gold" title="Gold">
+            <span className="ig__gold-icon" />
+            {character.gold}
             {goldGain > 0 && (
-              <span className="ig__gold-gain" key={goldGainKey}>+{goldGain}g</span>
+              <span className="ig__gold-gain" key={goldGainKey}>+{goldGain}</span>
             )}
           </span>
-          <span className="ig__weapon" title={character.weapon.description}>
-            ⚔ {character.weapon.name}
-          </span>
-          {companionKey && COMPANIONS[companionKey] && (
-            <span className="ig__companion" title={COMPANIONS[companionKey].description}>
-              ☻ {COMPANIONS[companionKey].name.split(' ')[0]} ({companionBonusLabel(COMPANIONS[companionKey])})
-            </span>
-          )}
           <button
             type="button"
             className="ig__menu-btn"
@@ -382,6 +389,14 @@ export function InGameOverlay() {
           </button>
         </div>
       </header>
+
+      {companionKey && COMPANIONS[companionKey] && (
+        <div className="ig__companion-bar">
+          <span className="ig__companion-icon">☻</span>
+          {COMPANIONS[companionKey].name.split(' ')[0]}
+          <span className="ig__companion-bonus">{companionBonusLabel(COMPANIONS[companionKey])}</span>
+        </div>
+      )}
 
       {nextObjective && (
         <div className="ig__breadcrumb">
@@ -433,7 +448,11 @@ export function InGameOverlay() {
       <QuestTracker />
 
       {gameMsg && <div className="ig__game-msg">{gameMsg}</div>}
-      <p className="ig__controls-hint">WASD to move · E interact · I inventory · Q quests · Esc menu</p>
+      {showControls && (
+        <p className="ig__controls-hint">
+          WASD move · E interact · I inventory · Q quests · Esc menu
+        </p>
+      )}
 
       {inventoryOpen && <InventoryScreen />}
       {shopOpen && <ShopScreen onClose={closeShop} />}

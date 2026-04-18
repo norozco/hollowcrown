@@ -1,14 +1,12 @@
 .ig {
   position: absolute;
   inset: 0;
-  /* No background — let the Phaser town scene show through. Only the
-     HUD strip at the top darkens. */
   color: #e4d4a0;
   font-family: 'Courier New', 'Lucida Console', monospace;
   pointer-events: none;
 }
 
-/* The HUD and corner menu DO need pointer events. */
+/* Pointer events for interactive elements */
 .ig__hud,
 .ig__menu,
 .ig__menu-btn,
@@ -16,68 +14,64 @@
   pointer-events: auto;
 }
 
-/* Top HUD strip */
+/* ── Top HUD strip ── */
 .ig__hud {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0.55rem 1.5rem;
-  background: rgba(10, 6, 6, 0.85);
-  border-bottom: 1px solid #5a3a1a;
-  gap: 1rem;
+  padding: 0.3rem 0.8rem;
+  background: rgba(10, 6, 6, 0.88);
+  border-bottom: 2px solid #3a2818;
+  gap: 0.8rem;
+  font-size: 0.82rem;
 }
 
-.ig__hud-block {
+.ig__hud-left {
   display: flex;
-  flex-direction: column;
-  gap: 0.15rem;
-  font-size: 0.9rem;
-}
-
-.ig__hud-block--identity {
-  flex-direction: row;
   align-items: center;
-  gap: 0.6rem;
+  gap: 0.5rem;
+  flex-shrink: 0;
 }
 
-.ig__identity {
+.ig__hud-right {
   display: flex;
-  flex-direction: column;
-  gap: 0.15rem;
+  align-items: center;
+  gap: 0.8rem;
 }
 
+/* ── Portrait ── */
 .ig__portrait {
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
   border: 2px solid #d4a968;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.9rem;
+  font-size: 0.8rem;
   font-weight: bold;
   flex-shrink: 0;
   user-select: none;
 }
 
-.ig__bars {
-  flex-direction: row;
-  gap: 1.2rem;
-  font-size: 0.95rem;
-  color: #d4a968;
-  align-items: center;
+/* ── Identity block ── */
+.ig__identity {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  line-height: 1.2;
 }
 
 .ig__name {
   color: #f4d488;
   font-weight: bold;
-  letter-spacing: 0.1rem;
-  font-size: 1.05rem;
+  letter-spacing: 0.08rem;
+  font-size: 0.88rem;
 }
 
 .ig__sub {
   color: #8a7a48;
-  font-size: 0.85rem;
+  font-size: 0.72rem;
 }
 
 .ig__hc {
@@ -87,30 +81,132 @@
 
 .ig__rank {
   font-weight: bold;
-  letter-spacing: 0.05rem;
 }
 
-.ig__weapon {
-  color: #e4d4a0;
-  cursor: help;
+/* ── Stat bars (HP / MP / XP) ── */
+.ig__stat-bars {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
 }
 
-.ig__companion {
-  color: #a0b880;
-  cursor: help;
-  font-style: italic;
+.ig__bar-group {
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
+.ig__bar-label {
+  font-size: 0.65rem;
+  color: #8a7a48;
+  font-weight: bold;
+  width: 1.4em;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.ig__hp-bar,
+.ig__xp-bar {
+  width: 80px;
+  height: 7px;
+  background: #1a1008;
+  border: 1px solid #3a2818;
+  border-radius: 3px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.ig__hp-fill {
+  height: 100%;
+  transition: width 300ms, background 300ms;
+  border-radius: 2px;
+}
+
+.ig__mp-fill {
+  height: 100%;
+  background: #4060c0;
+  transition: width 300ms;
+  border-radius: 2px;
+}
+
+.ig__xp-fill {
+  display: block;
+  height: 100%;
+  background: #a0a0e0;
+  transition: width 300ms;
+  border-radius: 2px;
+}
+
+.ig__bar-val {
+  font-size: 0.62rem;
+  color: #8a7a48;
+  min-width: 2.8em;
+  flex-shrink: 0;
+}
+
+.ig__bar-val--max {
+  color: #d4a968;
+  font-weight: bold;
+}
+
+/* Damage flash on HP label */
+@keyframes hpFlash {
+  0% { color: #c04040; text-shadow: 0 0 8px #c04040; }
+  100% { color: #8a7a48; text-shadow: none; }
+}
+.ig__bar-label.is-hit { animation: hpFlash 400ms ease-out; }
+
+/* ── Gold display ── */
+.ig__gold {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: #d4a968;
+  font-size: 0.82rem;
+  font-weight: bold;
+  position: relative;
+  cursor: default;
+}
+
+.ig__gold-icon {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #f4e488, #c49a28);
+  border: 1px solid #a07820;
+  flex-shrink: 0;
+}
+
+/* Gold gain floating indicator */
+@keyframes goldFloat {
+  0% { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(-14px); }
+}
+.ig__gold-gain {
+  color: #f4d488;
+  font-size: 0.68rem;
+  font-weight: bold;
+  animation: goldFloat 1.5s ease-out forwards;
+  position: absolute;
+  top: -10px;
+  right: 0;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+/* ── Menu button ── */
 .ig__menu-btn {
   background: transparent;
-  border: 1px solid #5a3a1a;
+  border: 1px solid #3a2818;
   color: #d4a968;
-  width: 2rem;
-  height: 2rem;
-  font-size: 1.1rem;
+  width: 1.8rem;
+  height: 1.8rem;
+  font-size: 1rem;
   cursor: pointer;
   font-family: inherit;
+  border-radius: 2px;
   transition: background-color 120ms, border-color 120ms;
+  flex-shrink: 0;
 }
 
 .ig__menu-btn:hover {
@@ -118,7 +214,35 @@
   border-color: #d4a968;
 }
 
-/* Center screen for the "no character" fallback */
+/* ── Companion bar (below HUD) ── */
+.ig__companion-bar {
+  position: absolute;
+  top: 2.5rem;
+  left: 0.8rem;
+  font-family: 'Courier New', monospace;
+  font-size: 0.68rem;
+  color: #a0b880;
+  background: rgba(10, 6, 6, 0.7);
+  padding: 2px 8px;
+  border-radius: 2px;
+  border: 1px solid #2a3a18;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  z-index: 14;
+}
+
+.ig__companion-icon {
+  font-size: 0.75rem;
+}
+
+.ig__companion-bonus {
+  color: #8a9a68;
+  font-style: italic;
+}
+
+/* ── Center screen fallback ── */
 .ig__center {
   display: flex;
   flex-direction: column;
@@ -136,116 +260,96 @@
   margin: 0;
 }
 
-/* Corner pause / menu popover */
+/* ── Pause menu ── */
 .ig__menu {
   position: absolute;
-  top: 4rem;
-  right: 1.5rem;
+  top: 3.2rem;
+  right: 1rem;
   background: rgba(10, 6, 6, 0.98);
-  border: 2px solid #5a3a1a;
-  padding: 1rem;
-  min-width: 240px;
+  border: 2px solid #3a2818;
+  padding: 0.8rem;
+  min-width: 220px;
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.4rem;
   z-index: 15;
-  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.6);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
 }
 
 .ig__menu h3 {
   color: #d4a968;
   letter-spacing: 0.2rem;
-  margin: 0 0 0.3rem 0;
+  margin: 0 0 0.2rem 0;
   text-align: center;
   border-bottom: 1px solid #3a2818;
-  padding-bottom: 0.4rem;
+  padding-bottom: 0.3rem;
+  font-size: 0.9rem;
 }
 
+/* ── Game message (center of screen) ── */
 .ig__game-msg {
   position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  background: rgba(10,6,4,0.92);
+  background: rgba(10, 6, 4, 0.92);
   border: 2px solid #d4a968;
   color: #f4d488;
   font-family: 'Courier New', monospace;
-  font-size: 1.1rem;
-  padding: 0.8rem 1.5rem;
+  font-size: 1.05rem;
+  padding: 0.6rem 1.2rem;
   z-index: 18;
   pointer-events: none;
   text-align: center;
   animation: ig-msg-fade 3s ease-out forwards;
 }
+
 @keyframes ig-msg-fade {
   0% { opacity: 1; }
   70% { opacity: 1; }
   100% { opacity: 0; }
 }
-.ig__xp-bar {
-  width: 80px; height: 4px; background: #2a1810; border-radius: 2px; overflow: hidden;
-}
-.ig__xp-fill {
-  height: 100%; background: #a0a0e0; transition: width 300ms;
-}
 
-/* HP / MP inline bars */
-.ig__hp-bar-wrap { display: flex; flex-direction: column; gap: 1px; }
-.ig__hp-text { font-size: 0.8rem; }
-.ig__hp-bar { width: 80px; height: 4px; background: #2a1810; border-radius: 2px; overflow: hidden; }
-.ig__hp-fill { height: 100%; transition: width 300ms, background 300ms; }
-.ig__mp-fill { height: 100%; background: #4060c0; transition: width 300ms; }
-
-/* Damage flash on HP text */
-@keyframes hpFlash {
-  0% { color: #c04040; text-shadow: 0 0 8px #c04040; }
-  100% { color: inherit; text-shadow: none; }
-}
-.ig__hp-text.is-hit { animation: hpFlash 400ms ease-out; }
-
-/* Gold gain floating indicator */
-@keyframes goldFloat {
-  0% { opacity: 1; transform: translateY(0); }
-  100% { opacity: 0; transform: translateY(-16px); }
-}
-.ig__gold-gain {
-  color: #f4d488;
-  font-size: 0.75rem;
-  font-weight: bold;
-  animation: goldFloat 1.5s ease-out forwards;
-  position: absolute;
-  margin-top: -12px;
-  pointer-events: none;
-  white-space: nowrap;
-}
+/* ── Controls hint (fades after 30s) ── */
 .ig__controls-hint {
   position: absolute;
-  left: 1rem;
-  bottom: 0.8rem;
+  left: 50%;
+  bottom: 0.6rem;
+  transform: translateX(-50%);
   margin: 0;
-  color: #8a7a48;
-  font-size: 0.78rem;
-  letter-spacing: 0.05rem;
-  font-style: italic;
+  color: #6a5a38;
+  font-size: 0.68rem;
+  letter-spacing: 0.04rem;
   pointer-events: none;
+  background: rgba(10, 6, 4, 0.5);
+  padding: 2px 10px;
+  border-radius: 2px;
+  animation: controls-fade 30s ease-out forwards;
 }
 
-/* Next-objective breadcrumb — centered just below the HUD bar */
+@keyframes controls-fade {
+  0% { opacity: 0.8; }
+  80% { opacity: 0.8; }
+  100% { opacity: 0; }
+}
+
+/* ── Next-objective breadcrumb ── */
 .ig__breadcrumb {
   position: absolute;
-  top: 2.8rem;
+  top: 2.5rem;
   left: 50%;
   transform: translateX(-50%);
   font-family: 'Courier New', monospace;
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   color: #8a7a48;
-  background: rgba(10,6,4,0.6);
-  padding: 2px 12px;
-  border-radius: 3px;
+  background: rgba(10, 6, 4, 0.6);
+  padding: 2px 10px;
+  border-radius: 2px;
   pointer-events: none;
   z-index: 14;
   white-space: nowrap;
 }
+
 .ig__breadcrumb-arrow {
   color: #d4a968;
 }
