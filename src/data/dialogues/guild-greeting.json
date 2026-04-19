@@ -33,7 +33,7 @@
           "text": "I found Veyrin. He has a message for you.",
           "next": "what-remains-turnin",
           "requires": [
-            { "type": "quest-active", "questId": "what-remains" },
+            { "type": "quest-complete", "questId": "what-remains" },
             { "type": "quest-not-turned-in", "questId": "what-remains" }
           ]
         },
@@ -97,7 +97,7 @@
           "text": "I reached The Shattered Coast.",
           "next": "final-gate-turnin",
           "requires": [
-            { "type": "quest-active", "questId": "the-final-gate" },
+            { "type": "quest-complete", "questId": "the-final-gate" },
             { "type": "quest-not-turned-in", "questId": "the-final-gate" }
           ]
         },
