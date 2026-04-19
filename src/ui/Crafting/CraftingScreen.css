@@ -1,22 +1,28 @@
 .craft {
   position: absolute;
   inset: 0;
-  background: rgba(10,6,4,0.96);
+  background: linear-gradient(135deg, rgba(30,18,10,0.97), rgba(12,6,3,0.97));
   display: flex;
   flex-direction: column;
   font-family: 'Courier New', monospace;
   color: #e4d4a0;
   z-index: 22;
   pointer-events: auto;
+  box-shadow: inset 0 0 40px rgba(0,0,0,0.4);
 }
 .craft__header {
   display: flex;
   align-items: center;
   padding: 0.8rem 1.5rem;
-  border-bottom: 2px solid #5a3a1a;
-  background: rgba(20,12,8,0.8);
+  border-bottom: 2px solid #3a2818;
+  background: linear-gradient(90deg, rgba(90,58,26,0.35), rgba(20,12,8,0.6));
+  box-shadow: inset 0 -1px 0 rgba(212,169,104,0.08), 0 2px 8px rgba(0,0,0,0.3);
 }
-.craft__header h2 { margin: 0; color: #d4a968; letter-spacing: 0.15rem; flex: 1; }
+.craft__header h2 {
+  margin: 0; color: #d4a968; letter-spacing: 0.15em; flex: 1;
+  text-transform: uppercase; font-size: 0.85rem;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+}
 .craft__gold { color: #f4d488; font-weight: bold; margin-right: 1rem; }
 .craft__close {
   background: none; border: 1px solid #5a3a1a; color: #d4a968;
@@ -27,8 +33,14 @@
   display: flex; flex-direction: column; gap: 0.8rem; overflow-y: auto; flex: 1;
 }
 .craft__recipe {
-  background: rgba(20,12,8,0.5); border: 1px solid #3a2818;
-  padding: 0.8rem 1rem; transition: background 300ms;
+  background: linear-gradient(180deg, rgba(25,15,8,0.5), rgba(15,8,4,0.4));
+  border: 1px solid #3a2818;
+  padding: 0.8rem 1rem; transition: background 300ms, box-shadow 200ms;
+  box-shadow: inset 0 1px 0 rgba(212,169,104,0.04), inset 0 0 8px rgba(0,0,0,0.15);
+}
+.craft__recipe:hover {
+  background: linear-gradient(180deg, rgba(40,25,12,0.6), rgba(20,12,6,0.5));
+  box-shadow: inset 0 1px 0 rgba(212,169,104,0.08), inset 0 0 12px rgba(0,0,0,0.2);
 }
 .craft__recipe.is-locked {
   opacity: 0.5;
@@ -36,7 +48,7 @@
 .craft__recipe-header {
   display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.3rem;
 }
-.craft__recipe-header h3 { margin: 0; color: #d4a968; font-size: 1rem; letter-spacing: 0.05rem; }
+.craft__recipe-header h3 { margin: 0; color: #d4a968; font-size: 1rem; letter-spacing: 0.08em; text-shadow: 0 1px 2px rgba(0,0,0,0.4); }
 .craft__rank-req { font-size: 0.75rem; padding: 0.1rem 0.5rem; color: #c06040; border: 1px solid #5a2a1a; }
 .craft__desc { margin: 0 0 0.5rem 0; color: #a09868; font-size: 0.85rem; font-style: italic; }
 .craft__ingredients {
@@ -45,6 +57,8 @@
 .craft__ingredient {
   font-size: 0.85rem; padding: 0.15rem 0.5rem;
   background: rgba(10,6,4,0.5); border: 1px solid #3a2818;
+  box-shadow: inset 0 1px 2px rgba(0,0,0,0.2);
+  transition: border-color 150ms;
 }
 .craft__ingredient.has-enough { color: #60c060; border-color: #3a5a1a; }
 .craft__ingredient.not-enough { color: #c04040; border-color: #5a2a1a; }
