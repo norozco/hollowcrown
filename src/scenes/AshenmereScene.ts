@@ -374,6 +374,17 @@ export class AshenmereScene extends BaseWorldScene {
     // Creates a shortcut between the west entrance and the central island.
     this.spawnShallowWater({ x: 12 * TILE, y: 4 * TILE, w: 5 * TILE, h: 2 * TILE });
 
+    // ── Grapple point — to a distant island with loot ──
+    this.spawnGrapplePoint({
+      fromX: 34 * TILE, fromY: 8 * TILE,
+      toX: 38 * TILE, toY: 6 * TILE,
+    });
+    this.spawnChest({
+      x: 38 * TILE, y: 5 * TILE,
+      loot: [{ itemKey: 'wraith_dust', qty: 2 }, { itemKey: 'troll_heart' }],
+      gold: 35,
+    });
+
     // Zone marker
     this.add
       .text(WORLD_W / 2, WORLD_H - TILE * 2, 'ASHENMERE MARSHES', {

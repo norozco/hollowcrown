@@ -57,6 +57,9 @@ interface PlayerState {
   /** Ancient coin tracking. Collecting all 12 unlocks the Crownless Blade. */
   ancientCoins: Set<string>;
   collectCoin: (coinId: string) => void;
+
+  /** Whether this playthrough is a New Game+ run. */
+  newGamePlus: boolean;
 }
 
 export const usePlayerStore = create<PlayerState>((set, get) => ({
@@ -68,6 +71,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   heartPieces: 0,
   heartPiecesCollected: new Set<string>(),
   ancientCoins: new Set<string>(),
+  newGamePlus: false,
 
   choosePerk: (perkKey) => {
     const { pendingPerkChoices, character, perks } = get();
@@ -83,9 +87,9 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
     });
   },
 
-  create: (init) => set({ character: new Character(init), version: 1, perks: [], pendingPerkChoices: null, heartPieces: 0, heartPiecesCollected: new Set<string>(), ancientCoins: new Set<string>() }),
+  create: (init) => set({ character: new Character(init), version: 1, perks: [], pendingPerkChoices: null, heartPieces: 0, heartPiecesCollected: new Set<string>(), ancientCoins: new Set<string>(), newGamePlus: false }),
   notify: () => set((s) => ({ version: s.version + 1 })),
-  clear: () => set({ character: null, version: 0, companion: null, perks: [], pendingPerkChoices: null, heartPieces: 0, heartPiecesCollected: new Set<string>(), ancientCoins: new Set<string>() }),
+  clear: () => set({ character: null, version: 0, companion: null, perks: [], pendingPerkChoices: null, heartPieces: 0, heartPiecesCollected: new Set<string>(), ancientCoins: new Set<string>(), newGamePlus: false }),
 
   giveGold: (amount) => {
     const c = get().character;

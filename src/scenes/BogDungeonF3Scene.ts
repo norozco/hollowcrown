@@ -137,6 +137,12 @@ export class BogDungeonF3Scene extends BaseWorldScene {
     // ── Quest: bog-explorer — reaching this floor completes the objective ──
     useQuestStore.getState().completeObjective('bog-explorer', 'reach-warden-pool');
 
+    // ── Ancient Coin #11 — arena corner, behind the boss platform ──
+    this.spawnAncientCoin({
+      x: 4 * TILE, y: 18 * TILE,
+      coinId: 'coin_bog', inscription: 'Eleven given to the warden. He did not understand.',
+    });
+
     // ── Victory chest: spawns if the Drowned Warden has been killed ──
     const killed = useCombatStore.getState().killedEnemies;
     const wardenKilled = Array.from(killed).some(id => id.includes('drowned_warden'));

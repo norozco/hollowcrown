@@ -1,4 +1,5 @@
 import { useInventoryStore } from '../state/inventoryStore';
+import { useQuestStore } from '../state/questStore';
 import { useLoreStore } from '../state/loreStore';
 import { BaseWorldScene, TILE, WORLD_W, WORLD_H } from './BaseWorldScene';
 import { generateTileset, TILE as T, TILE_SIZE } from './tiles/generateTiles';
@@ -332,6 +333,28 @@ export class GreenhollowScene extends BaseWorldScene {
       coinId: 'coin_2', inscription: 'The second was minted in blood.',
     });
 
+    // ── The Forgotten Cave entrance (post-game) ──
+    // Only appears after the crownless_one quest is turned in.
+    const crownlessQuestDone = useQuestStore.getState().active['crownless_one']?.turnedIn;
+    if (crownlessQuestDone) {
+      this.spawnBreakableWall({
+        x: 6 * TILE, y: 19 * TILE, w: TILE * 2, h: TILE,
+        onBreak: () => {
+          // Reveal cave entrance exit
+          this.addExit({
+            x: 6 * TILE, y: 19 * TILE,
+            w: TILE * 2, h: TILE,
+            targetScene: 'ForgottenCaveScene',
+            targetSpawn: 'fromGreenhollow',
+            label: '\u25BC The Forgotten Cave',
+          });
+          window.dispatchEvent(new CustomEvent('gameMessage', {
+            detail: 'A passage opens beneath the rubble. Darkness yawns below.',
+          }));
+        },
+      });
+    }
+
     // South edge → Duskmere Village
     this.addExit({
       x: 8 * TILE,
@@ -356,6 +379,8 @@ export class GreenhollowScene extends BaseWorldScene {
         return { x: 33 * TILE, y: 8 * TILE };
       case 'fromDuskmere':
         return { x: 12 * TILE, y: WORLD_H - TILE * 3 };
+      case 'fromForgottenCave':
+        return { x: 7 * TILE, y: 18 * TILE };
       case 'default':
       default:
         return { x: WORLD_W / 2, y: TILE * 3 };

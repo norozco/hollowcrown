@@ -1,4 +1,5 @@
 import { useInventoryStore } from '../state/inventoryStore';
+import { useDungeonItemStore } from '../state/dungeonItemStore';
 import { BaseWorldScene, TILE, WORLD_W, WORLD_H } from './BaseWorldScene';
 import { generateTileset, TILE as T, TILE_SIZE } from './tiles/generateTiles';
 
@@ -103,6 +104,31 @@ export class BogDungeonF2Scene extends BaseWorldScene {
       loot: [{ itemKey: 'mana_potion', qty: 2 }, { itemKey: 'shadow_essence' }],
       gold: 25,
     });
+
+    // ── Golden chest — Grapple Hook dungeon item ──
+    if (!useDungeonItemStore.getState().has('grapple_hook')) {
+      const ghX = 14 * TILE + TILE / 2;
+      const ghY = 8 * TILE + TILE / 2;
+      const ghChest = this.add.rectangle(ghX, ghY, 26, 22, 0x8a6820);
+      ghChest.setStrokeStyle(2, 0xe0c040);
+      ghChest.setDepth(8);
+      const ghLid = this.add.rectangle(ghX, ghY - 9, 26, 6, 0xa08030);
+      ghLid.setStrokeStyle(1, 0xe0c040);
+      ghLid.setDepth(8);
+      this.tweens.add({ targets: ghChest, alpha: 0.7, duration: 1200, yoyo: true, repeat: -1 });
+      this.spawnInteractable({
+        sprite: ghChest as any,
+        label: 'Open golden chest',
+        radius: 24,
+        action: () => {
+          useDungeonItemStore.getState().add('grapple_hook');
+          window.dispatchEvent(new CustomEvent('gameMessage', { detail: 'Found the Grapple Hook! Iron claw on a chain. It reaches where you cannot.' }));
+          this.spawnPickupParticles(ghX, ghY, 0xe0c060);
+          ghChest.destroy();
+          ghLid.destroy();
+        },
+      });
+    }
 
     // ── The Watcher ──
     this.spawnWatcher(12 * TILE, 3 * TILE);

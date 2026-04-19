@@ -254,6 +254,12 @@ export class DepthsFloor3Scene extends BaseWorldScene {
       loot: [{ itemKey: 'shadow_essence', weight: 2 }, { itemKey: 'troll_heart', weight: 2 }, { itemKey: 'steel_sword', weight: 1 }, { itemKey: 'chainmail', weight: 1 }],
       gold: 30, spawnChance: 0.3,
     });
+
+    // ── Ancient Coin #10 — near the throne, behind a pillar ──
+    this.spawnAncientCoin({
+      x: 22 * TILE, y: 18 * TILE,
+      coinId: 'coin_depths', inscription: 'Ten placed on the throne. It fell through.',
+    });
   }
 
   protected spawnAt(name: string): { x: number; y: number } {

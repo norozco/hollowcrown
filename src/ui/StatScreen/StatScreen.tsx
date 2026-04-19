@@ -33,6 +33,7 @@ export function StatScreen({ onClose }: Props) {
   const zonesVisited = useAchievementStore((s) => s.zonesVisited);
   const questActive = useQuestStore((s) => s.active);
   const heartPieces = usePlayerStore((s) => s.heartPieces);
+  const ancientCoins = usePlayerStore((s) => s.ancientCoins);
   const dungeonItems = useDungeonItemStore((s) => s.found);
 
   if (!character) return null;
@@ -203,6 +204,21 @@ export function StatScreen({ onClose }: Props) {
               <span className="statscreen__row-label">Current Rank</span>
               <span className="statscreen__row-value" style={{ color: rank.color }}>[{rank.label}] {rank.name}</span>
             </div>
+          </div>
+
+          {/* Ancient Coins */}
+          <div className="statscreen__section" style={{ marginTop: '0.75rem' }}>
+            <h3 className="statscreen__section-title">ANCIENT COINS</h3>
+            <div className="statscreen__row">
+              <span className="statscreen__row-label">Collected</span>
+              <span className="statscreen__row-value">{ancientCoins.size}/12</span>
+            </div>
+            {ancientCoins.size >= 12 && (
+              <div className="statscreen__row statscreen__row--highlight">
+                <span className="statscreen__row-label">Reward</span>
+                <span className="statscreen__row-value" style={{ color: '#e0c060' }}>The Crownless Blade</span>
+              </div>
+            )}
           </div>
 
           {/* Heart Pieces */}

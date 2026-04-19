@@ -126,6 +126,7 @@ export function InGameOverlay() {
   const perks = usePlayerStore((s) => s.perks);
   const heartPieces = usePlayerStore((s) => s.heartPieces);
   const dungeonItems = useDungeonItemStore((s) => s.found);
+  const newGamePlus = usePlayerStore((s) => s.newGamePlus);
 
   const checkAchievements = useAchievementStore((s) => s.checkAchievements);
   const resetAchievements = useAchievementStore((s) => s.reset);
@@ -351,6 +352,7 @@ export function InGameOverlay() {
               Lv.{character.level} {character.characterClass.name}
               {character.difficulty === 'hardcore' && <span className="ig__hc"> HC</span>}
               {' '}<span className="ig__rank" style={{ color: rank.color }}>{rank.name}</span>
+              {newGamePlus && <span className="ig__ngplus">NG+</span>}
             </span>
           </div>
         </div>

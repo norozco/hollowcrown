@@ -844,6 +844,31 @@ export abstract class BaseWorldScene extends Phaser.Scene {
   }
 
   /**
+   * Spawn a grapple point that teleports the player across a gap when
+   * they possess the Grapple Hook dungeon item.
+   */
+  protected spawnGrapplePoint(cfg: { fromX: number; fromY: number; toX: number; toY: number }): void {
+    const hasHook = useDungeonItemStore.getState().has('grapple_hook');
+    const hook = this.add.circle(cfg.fromX, cfg.fromY, 6, hasHook ? 0xc0a040 : 0x808080, hasHook ? 1 : 0.4);
+    hook.setStrokeStyle(1, hasHook ? 0xe0c060 : 0x606060);
+    hook.setDepth(7);
+    if (hasHook) this.tweens.add({ targets: hook, scale: 1.3, alpha: 0.6, duration: 1000, yoyo: true, repeat: -1 });
+
+    this.spawnInteractable({
+      sprite: hook as any, label: hasHook ? 'Use grapple hook' : 'Metal ring (need hook)', radius: 22,
+      action: () => {
+        if (!useDungeonItemStore.getState().has('grapple_hook')) {
+          window.dispatchEvent(new CustomEvent('gameMessage', { detail: 'A metal ring in the wall. You need something to grab it.' }));
+          return;
+        }
+        this.cameras.main.flash(200, 200, 200, 200);
+        this.player.setPosition(cfg.toX, cfg.toY);
+        window.dispatchEvent(new CustomEvent('gameMessage', { detail: 'You swing across.' }));
+      },
+    });
+  }
+
+  /**
    * Spawn a heart piece pickup. Distinctive red circle with a pulse glow.
    * One-time per save (tracked by a unique id in playerStore).
    */
@@ -1353,5 +1378,5 @@ export abstract class BaseWorldScene extends Phaser.Scene {
 
 /** Returns true for dungeon floor scene keys (Depths, Sanctum, BogDungeon). */
 function isDungeonScene(key: string): boolean {
-  return key.includes('Depths') || key.includes('Floor') || key.includes('Sanctum') || key.includes('BogDungeon') || key.includes('ThroneBeneath') || key.includes('FrozenHollow');
+  return key.includes('Depths') || key.includes('Floor') || key.includes('Sanctum') || key.includes('BogDungeon') || key.includes('ThroneBeneath') || key.includes('FrozenHollow') || key.includes('ForgottenCave');
 }

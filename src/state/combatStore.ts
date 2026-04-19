@@ -278,6 +278,7 @@ export const useCombatStore = create<CombatStoreState>((set, get) => ({
         if (monster.key === 'crownless_one') {
           qs.completeObjective('the-crownless-one', 'defeat-crownless-one');
           msg('The Crownless One falls. The throne is empty. It always was.');
+          localStorage.setItem('hc_game_complete', '1');
           window.dispatchEvent(new CustomEvent('gameEnding'));
         }
 

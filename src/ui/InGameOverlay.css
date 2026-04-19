@@ -370,3 +370,15 @@
 .ig__breadcrumb-arrow {
   color: #d4a968;
 }
+
+/* ── NG+ Badge ── */
+.ig__ngplus {
+  color: #e0a020;
+  font-size: 0.7rem;
+  font-weight: bold;
+  background: rgba(90, 58, 26, 0.4);
+  padding: 1px 6px;
+  border-radius: 3px;
+  border: 1px solid #d4a968;
+  margin-left: 0.3rem;
+}

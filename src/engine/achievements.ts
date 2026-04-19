@@ -37,4 +37,5 @@ export const ACHIEVEMENTS: Achievement[] = [
   { key: 'companion',        name: 'Not Alone',          description: 'Hire a companion.',                 icon: '🤝', check: (c) => c.companionHired },
   { key: 'treasure-hunter',  name: 'Treasure Hunter',    description: 'Open 3 chests.',                   icon: '🏆', check: (c) => c.chestsOpened >= 3 },
   { key: 'deep-diver',       name: 'Into the Abyss',     description: 'Reach the Drowned Sanctum.',       icon: '🌊', check: (c) => c.zonesVisited.has('DrownedSanctumF1Scene') },
+  { key: 'true-end',         name: 'The True End',       description: 'Defeat The Forgotten.',            icon: '🕳', check: (c) => c.bossesKilled.includes('the_forgotten') },
 ];

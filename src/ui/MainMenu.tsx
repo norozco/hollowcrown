@@ -2,6 +2,13 @@ import { useState } from 'react';
 import { useUIStore } from '../state/uiStore';
 import { useCharacterCreationStore } from '../state/characterCreationStore';
 import { usePlayerStore } from '../state/playerStore';
+import { useQuestStore } from '../state/questStore';
+import { useInventoryStore } from '../state/inventoryStore';
+import { useCombatStore } from '../state/combatStore';
+import { useAchievementStore } from '../state/achievementStore';
+import { useLoreStore } from '../state/loreStore';
+import { useCommissionStore } from '../state/commissionStore';
+import { useBountyStore } from '../state/bountyStore';
 import { rollRandomCharacter } from '../engine/random-character';
 import { loadGame, getSaveSlots, type SaveSlotInfo } from '../engine/saveLoad';
 import './MainMenu.css';
@@ -18,6 +25,8 @@ export function MainMenu() {
 
   const [loadPanelOpen, setLoadPanelOpen] = useState(false);
   const [saveSlots, setSaveSlots] = useState<SaveSlotInfo[]>([]);
+
+  const gameComplete = typeof localStorage !== 'undefined' && localStorage.getItem('hc_game_complete') === '1';
 
   const onNewGame = () => {
     resetCreation(); // start with a clean slate
@@ -47,6 +56,56 @@ export function MainMenu() {
     } else {
       alert('Failed to load save.');
     }
+  };
+
+  const onNewGamePlus = () => {
+    // Load autosave to carry over character progression
+    if (!loadGame('autosave')) {
+      alert('No autosave found. Complete the game first.');
+      return;
+    }
+
+    // Keep: character (level, stats, gold), perks, heartPieces, ancientCoins, dungeonItems, equipment
+    // Reset: quests, inventory (except equipped), killedEnemies, lore, commissions, bounties
+    // Achievements: keep zonesVisited, reset the rest
+
+    // Reset quests
+    useQuestStore.getState().reset();
+
+    // Reset inventory but preserve equipped items
+    const inv = useInventoryStore.getState();
+    const equipped = { ...inv.equipment };
+    inv.reset();
+    // Re-add equipped items
+    for (const item of Object.values(equipped)) {
+      if (item) {
+        inv.addItem(item.key);
+        inv.equip(item.key);
+      }
+    }
+
+    // Reset killed enemies
+    useCombatStore.getState().killedEnemies.clear();
+
+    // Reset lore
+    useLoreStore.getState().reset();
+
+    // Reset commissions
+    useCommissionStore.getState().reset();
+
+    // Reset bounties
+    useBountyStore.getState().reset();
+
+    // Reset achievements but keep zonesVisited
+    const achState = useAchievementStore.getState();
+    const zonesKept = achState.zonesVisited;
+    achState.reset();
+    useAchievementStore.setState({ zonesVisited: zonesKept });
+
+    // Set NG+ flag
+    usePlayerStore.setState({ newGamePlus: true });
+
+    setScreen('game');
   };
 
   const formatDate = (ts: number) => {
@@ -81,6 +140,8 @@ export function MainMenu() {
                     <span className="main-menu__load-slot-detail">
                       Lvl {s.level} · {s.raceName} {s.className}
                       {s.questCount != null && s.questCount > 0 ? ` · ${s.questCount} quests` : ''}
+                      {s.dungeonItemCount != null && s.dungeonItemCount > 0 ? ` · ${s.dungeonItemCount} relics` : ''}
+                      {s.heartPieces != null && s.heartPieces > 0 ? ` · ${s.heartPieces} hearts` : ''}
                       {s.newGamePlus ? ' · NG+' : ''}
                     </span>
                     <span className="main-menu__load-slot-date">{formatDate(s.timestamp)}</span>
@@ -116,6 +177,11 @@ export function MainMenu() {
           <button type="button" onClick={onOpenLoadPanel}>
             Load Game
           </button>
+          {gameComplete && (
+            <button type="button" onClick={onNewGamePlus} className="main-menu__ngplus-btn">
+              New Game+
+            </button>
+          )}
           <button
             type="button"
             onClick={() => alert('Options: coming in Milestone 14')}

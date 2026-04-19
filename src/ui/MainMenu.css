@@ -184,3 +184,15 @@
   color: #d4a968;
   border-color: #5a3a1a;
 }
+
+/* ── New Game+ button ── */
+.main-menu__ngplus-btn {
+  color: #e0a020 !important;
+  border-color: #a07020 !important;
+  text-shadow: 0 0 8px rgba(224, 160, 32, 0.3);
+}
+
+.main-menu__ngplus-btn:hover {
+  background: rgba(160, 112, 32, 0.3) !important;
+  border-color: #e0a020 !important;
+}

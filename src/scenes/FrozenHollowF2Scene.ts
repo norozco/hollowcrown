@@ -147,6 +147,19 @@ export class FrozenHollowF2Scene extends BaseWorldScene {
     // ── The Watcher ──
     this.spawnWatcher(12 * TILE, 3 * TILE);
 
+    // ── Ice wall blocking shortcut / hidden room ──
+    this.spawnIceWall({
+      x: 14 * TILE, y: 10 * TILE, w: TILE, h: TILE * 2,
+      onMelt: () => {
+        this.spawnChest({
+          x: 15 * TILE, y: 11 * TILE,
+          loot: [{ itemKey: 'health_potion', qty: 3 }, { itemKey: 'shadow_essence' }],
+          gold: 30,
+        });
+        this.spawnHeartPiece(16 * TILE, 11 * TILE);
+      },
+    });
+
     // ── EXIT UP → Floor 1 ──
     this.addExit({
       x: 7 * TILE, y: 0, w: 5 * TILE, h: TILE,

@@ -241,6 +241,25 @@ export class FrosthollowScene extends BaseWorldScene {
       ],
       gold: 25, spawnChance: 0.2,
     });
+
+    // ── Ancient Coin #8 — frozen lake edge, partly buried in frost ──
+    this.spawnAncientCoin({
+      x: 30 * TILE, y: 16 * TILE,
+      coinId: 'coin_frosthollow', inscription: 'Eight frozen. The cold only made it sharper.',
+    });
+
+    // ── Ice wall blocking hidden area with heart piece + chest ──
+    this.spawnIceWall({
+      x: 34 * TILE, y: 14 * TILE, w: TILE * 2, h: TILE,
+      onMelt: () => {
+        this.spawnHeartPiece(36 * TILE, 16 * TILE);
+        this.spawnChest({
+          x: 37 * TILE, y: 16 * TILE,
+          loot: [{ itemKey: 'wraith_dust', qty: 2 }, { itemKey: 'mana_potion', qty: 2 }],
+          gold: 40,
+        });
+      },
+    });
   }
 
   protected spawnAt(name: string): { x: number; y: number } {

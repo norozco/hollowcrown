@@ -114,6 +114,12 @@ export class ThroneBeneathF2Scene extends BaseWorldScene {
       }
     }
 
+    // ── Ancient Coin #12 — Hall of Names, the final coin ──
+    this.spawnAncientCoin({
+      x: 20 * TILE, y: 8 * TILE,
+      coinId: 'coin_throne', inscription: 'Twelve. The last. The one that completes the circle.',
+    });
+
     // ── Chest ──
     this.spawnChest({
       x: 4 * TILE, y: 18 * TILE,

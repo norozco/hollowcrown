@@ -220,8 +220,11 @@ export function initCombat(player: Character, monster: Monster): CombatState {
   // relevant as the player grows. Scaling starts above level 3 for HP
   // and level 5 for damage to keep early game accessible.
   const levelScale = 1 + Math.max(0, player.level - 3) * 0.08; // +8% per level above 3
-  const scaledHp = Math.round(monster.maxHp * levelScale);
-  const scaledDamage = Math.round(monster.baseDamage * (1 + Math.max(0, player.level - 5) * 0.05));
+  const ngPlus = usePlayerStore.getState().newGamePlus;
+  const ngPlusHpScale = ngPlus ? 1.5 : 1;
+  const ngPlusDmgScale = ngPlus ? 1.25 : 1;
+  const scaledHp = Math.round(monster.maxHp * levelScale * ngPlusHpScale);
+  const scaledDamage = Math.round(monster.baseDamage * (1 + Math.max(0, player.level - 5) * 0.05) * ngPlusDmgScale);
 
   return {
     phase: playerFirst ? 'player_turn' : 'enemy_turn',
@@ -457,6 +460,14 @@ export function enemyAct(
     return s;
   }
 
+  // ── The Forgotten phase 2 transition ──
+  if (monster.key === 'the_forgotten' && !s.bossPhase2 && s.monsterHp <= monster.maxHp * 0.3) {
+    s.bossPhase2 = true;
+    s.log.push({ text: 'The void deepens. Reality bends.', type: 'system' });
+    s.monsterHp = Math.min(monster.maxHp, s.monsterHp + 50);
+    s.monsterStatus = { ...EMPTY_STATUS };
+  }
+
   // ── Crownless One phase 2 transition ──
   if (monster.key === 'crownless_one' && !s.bossPhase2 && s.monsterHp <= monster.maxHp * 0.5) {
     s.bossPhase2 = true;
@@ -503,13 +514,21 @@ export function enemyAct(
   } else {
   // ── Normal attack ──
 
-  // Determine number of attacks — boss phase 2 has 50% double attack
+  // Determine number of attacks — boss phase 2 has 50% double attack; Forgotten phase 2 has 50% triple
   const isKingPhase2 = monster.key === 'hollow_king' && s.bossPhase2;
   const isWardenPhase2 = monster.key === 'drowned_warden' && s.bossPhase2;
   const isCrownlessPhase2 = monster.key === 'crownless_one' && s.bossPhase2;
-  const attackCount = (isKingPhase2 || isWardenPhase2 || isCrownlessPhase2) && dice.d(100) <= 50 ? 2 : 1;
-  if (attackCount === 2) {
-    if (isCrownlessPhase2) {
+  const isForgottenPhase2 = monster.key === 'the_forgotten' && s.bossPhase2;
+  let attackCount = 1;
+  if (isForgottenPhase2 && dice.d(100) <= 50) {
+    attackCount = 3;
+  } else if ((isKingPhase2 || isWardenPhase2 || isCrownlessPhase2) && dice.d(100) <= 50) {
+    attackCount = 2;
+  }
+  if (attackCount >= 2) {
+    if (isForgottenPhase2) {
+      s.log.push({ text: 'The void fractures into three. Each one strikes.', type: 'system' });
+    } else if (isCrownlessPhase2) {
       s.log.push({ text: 'The Crownless One strikes twice — fractured and furious.', type: 'system' });
     } else if (isWardenPhase2) {
       s.log.push({ text: 'The Warden swings twice — faster now.', type: 'system' });
@@ -612,6 +631,21 @@ export function enemyAct(
     } else if (monster.key === 'frost_warden' && statusRoll <= 25) {
       applyStatus(s.playerStatus, 'bleed', 3);
       s.log.push({ text: 'The frozen blade leaves a wound that weeps ice.', type: 'system' });
+    } else if (monster.key === 'the_forgotten') {
+      // Secret superboss — stun/burn/bleed, enhanced in phase 2 (30% each)
+      const stunThresh = s.bossPhase2 ? 30 : 25;
+      const burnThresh = s.bossPhase2 ? 60 : 45;
+      const bleedThresh = s.bossPhase2 ? 90 : 65;
+      if (statusRoll <= stunThresh) {
+        applyStatus(s.playerStatus, 'stun', 1);
+        s.log.push({ text: 'You forget how to move. Your body does not obey.', type: 'system' });
+      } else if (statusRoll <= burnThresh) {
+        applyStatus(s.playerStatus, 'burn', 3);
+        s.log.push({ text: 'Void fire. It burns without heat. It burns without flame.', type: 'system' });
+      } else if (statusRoll <= bleedThresh) {
+        applyStatus(s.playerStatus, 'bleed', 3);
+        s.log.push({ text: 'Something inside you tears. The wound is not physical.', type: 'system' });
+      }
     } else if (monster.key === 'crownless_one') {
       // Final boss — multi-effect status procs, enhanced in phase 2
       const stunThresh = s.bossPhase2 ? 30 : 15;

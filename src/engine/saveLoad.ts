@@ -287,6 +287,8 @@ export interface SaveSlotInfo {
   className: string | null;
   raceName: string | null;
   questCount: number | null;
+  dungeonItemCount: number | null;
+  heartPieces: number | null;
   newGamePlus: boolean;
 }
 
@@ -296,7 +298,7 @@ export function getSaveSlots(): SaveSlotInfo[] {
     const label = slot === 'autosave' ? 'Autosave' : `Slot ${slot.slice(-1)}`;
     try {
       const raw = localStorage.getItem(SAVE_PREFIX + slot);
-      if (!raw) return { slot, label, timestamp: null, characterName: null, level: null, className: null, raceName: null, questCount: null, newGamePlus: false };
+      if (!raw) return { slot, label, timestamp: null, characterName: null, level: null, className: null, raceName: null, questCount: null, dungeonItemCount: null, heartPieces: null, newGamePlus: false };
       const data: SaveData = JSON.parse(raw);
       // Derive human-readable class/race names from keys (capitalize first letter of each word)
       const toTitle = (key: string) =>
@@ -311,10 +313,12 @@ export function getSaveSlots(): SaveSlotInfo[] {
         className: toTitle(data.characterInit.classKey),
         raceName: toTitle(data.characterInit.raceKey),
         questCount,
+        dungeonItemCount: data.dungeonItems?.length ?? null,
+        heartPieces: data.heartPieces ?? null,
         newGamePlus: data.newGamePlus ?? false,
       };
     } catch {
-      return { slot, label, timestamp: null, characterName: null, level: null, className: null, raceName: null, questCount: null, newGamePlus: false };
+      return { slot, label, timestamp: null, characterName: null, level: null, className: null, raceName: null, questCount: null, dungeonItemCount: null, heartPieces: null, newGamePlus: false };
     }
   });
 }

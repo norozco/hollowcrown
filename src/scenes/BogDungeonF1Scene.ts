@@ -128,6 +128,17 @@ export class BogDungeonF1Scene extends BaseWorldScene {
       fontFamily: 'Courier New', fontSize: '10px', color: '#306878',
     }).setOrigin(0.5).setDepth(4);
 
+    // ── Grapple point — across gap to a chest ──
+    this.spawnGrapplePoint({
+      fromX: 6 * TILE, fromY: 8 * TILE,
+      toX: 3 * TILE, toY: 8 * TILE,
+    });
+    this.spawnChest({
+      x: 3 * TILE, y: 7 * TILE,
+      loot: [{ itemKey: 'shadow_essence' }, { itemKey: 'mana_potion', qty: 2 }],
+      gold: 20,
+    });
+
     // ── Breakable wall (west alcove south wall) → fairy fountain (full heal) ──
     this.spawnBreakableWall({
       x: 3 * TILE, y: 16 * TILE, w: TILE * 2, h: TILE,

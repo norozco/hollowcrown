@@ -462,6 +462,28 @@ const MONSTERS: Record<string, Monster> = {
     resistance: 'poison',
     special: { name: 'Unmaking', chance: 0.2, damageMult: 2.5, text: '{name} speaks a word. The word unmakes.' },
   },
+  the_forgotten: {
+    key: 'the_forgotten',
+    name: 'The Forgotten',
+    maxHp: 300,
+    ac: 22,
+    attackBonus: 10,
+    baseDamage: 18,
+    speed: 3,
+    xpReward: 2000,
+    goldReward: 1000,
+    description: 'It has no name. It has no face. It was here before the stones. It will be here after.',
+    color: '#080010',
+    loot: [
+      { itemKey: 'kings_crown', chance: 1.0 },
+      { itemKey: 'shadow_essence', chance: 1.0 },
+      { itemKey: 'shadow_essence', chance: 1.0 },
+      { itemKey: 'troll_heart', chance: 1.0 },
+    ],
+    element: 'shadow',
+    resistance: 'shadow',
+    special: { name: 'Erasure', chance: 0.25, damageMult: 3.0, text: '{name} does not attack. Part of you simply ceases.' },
+  },
 };
 
 export function getMonster(key: string): Monster {

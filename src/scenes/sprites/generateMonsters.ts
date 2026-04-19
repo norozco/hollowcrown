@@ -45,6 +45,7 @@ export function generateMonsterSprite(scene: Phaser.Scene, key: string, monsterK
     case 'blizzard_wraith': drawBlizzardWraith(ctx); break;
     case 'frost_warden': drawFrostWarden(ctx); break;
     case 'crownless_one': drawCrownlessOne(ctx); break;
+    case 'the_forgotten': drawTheForgotten(ctx); break;
     default: drawWolf(ctx); break;
   }
 
@@ -2513,6 +2514,67 @@ function drawFrostWarden(c: Ctx) {
   // Frost particles
   px(c, 12, 16, frost); px(c, 34, 18, frost); px(c, 14, 34, frost);
   px(c, 30, 36, frost); px(c, 6, 18, frost); px(c, 38, 24, frost);
+}
+
+// ─── THE FORGOTTEN ───────────────────────────────────────────
+// Pure void — almost entirely black/dark purple. Faint outline of a
+// humanoid form. Two void eyes (tiny bright purple dots). Minimal
+// detail — the emptiness IS the design. Scattered purple energy.
+
+function drawTheForgotten(c: Ctx) {
+  const voidDk = '#040008';
+  const voidMd = '#0a0018';
+  const voidLt = '#100028';
+  const edge   = '#180040';
+  const energy = '#6020c0';
+  const eyeHi  = '#c060ff';
+  const eye    = '#8030e0';
+
+  // Ground shadow — barely visible
+  bk(c, 10, 44, 28, 4, 'rgba(20,0,40,0.15)');
+
+  // Body mass — near-invisible dark form
+  bk(c, 16, 8, 16, 36, voidDk);
+  bk(c, 14, 12, 20, 28, voidDk);
+  bk(c, 18, 10, 12, 32, voidMd);
+  bk(c, 20, 14, 8, 24, voidLt);
+
+  // Head
+  bk(c, 18, 4, 12, 12, voidDk);
+  bk(c, 20, 5, 8, 10, voidMd);
+  bk(c, 22, 6, 4, 8, voidLt);
+
+  // Shoulders — faint outline
+  bk(c, 10, 14, 6, 8, voidDk);
+  bk(c, 32, 14, 6, 8, voidDk);
+  px(c, 10, 14, edge); px(c, 10, 20, edge);
+  px(c, 37, 14, edge); px(c, 37, 20, edge);
+
+  // Arms — wisps of darkness
+  bk(c, 8, 16, 4, 16, voidDk);
+  bk(c, 36, 16, 4, 16, voidDk);
+  px(c, 8, 16, edge); px(c, 8, 30, edge);
+  px(c, 39, 16, edge); px(c, 39, 30, edge);
+
+  // Eyes — tiny bright purple dots in void
+  bk(c, 21, 8, 2, 2, eye); px(c, 21, 8, eyeHi);
+  bk(c, 27, 8, 2, 2, eye); px(c, 27, 8, eyeHi);
+
+  // Edge highlights — faint humanoid outline
+  px(c, 16, 8, edge); px(c, 31, 8, edge);
+  px(c, 14, 16, edge); px(c, 33, 16, edge);
+  px(c, 14, 24, edge); px(c, 33, 24, edge);
+  px(c, 16, 36, edge); px(c, 31, 36, edge);
+  px(c, 18, 40, edge); px(c, 29, 40, edge);
+  px(c, 18, 4, edge); px(c, 29, 4, edge);
+
+  // Purple energy pixels — scattered at edges
+  px(c, 12, 12, energy); px(c, 36, 10, energy);
+  px(c, 6, 22, energy); px(c, 40, 26, energy);
+  px(c, 14, 34, energy); px(c, 34, 38, energy);
+  px(c, 10, 28, energy); px(c, 38, 18, energy);
+  px(c, 20, 2, energy); px(c, 28, 2, energy);
+  px(c, 16, 42, energy); px(c, 32, 42, energy);
 }
 
 // ─── OUTLINE ──────────────────────────────────────────────────

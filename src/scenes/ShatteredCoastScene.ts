@@ -265,6 +265,23 @@ export class ShatteredCoastScene extends BaseWorldScene {
       label: '\u2190 The Ashfields',
     });
 
+    // ── Ancient Coin #9 — among the wrecked ships, south-east ──
+    this.spawnAncientCoin({
+      x: 34 * TILE, y: 18 * TILE,
+      coinId: 'coin_coast', inscription: 'Nine washed ashore after the ships sank.',
+    });
+
+    // ── Grapple point — across cliff gap to hidden chest ──
+    this.spawnGrapplePoint({
+      fromX: 28 * TILE, fromY: 14 * TILE,
+      toX: 34 * TILE, toY: 14 * TILE,
+    });
+    this.spawnChest({
+      x: 36 * TILE, y: 14 * TILE,
+      loot: [{ itemKey: 'shadow_essence', qty: 2 }, { itemKey: 'steel_sword' }],
+      gold: 50,
+    });
+
     // Zone marker
     this.add
       .text(WORLD_W / 2, WORLD_H - TILE * 2, 'THE SHATTERED COAST', {
