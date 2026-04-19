@@ -1,0 +1,108 @@
+.dungeon-map {
+  position: absolute; inset: 0;
+  background: rgba(0,0,0,0.72);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 40;
+  pointer-events: auto;
+  font-family: 'Courier New', monospace;
+}
+
+.dungeon-map__panel {
+  background: linear-gradient(135deg, rgba(20,12,6,0.97), rgba(14,8,4,0.97));
+  border: 3px solid #5a3a1a;
+  box-shadow:
+    inset 0 0 20px rgba(0,0,0,0.5),
+    0 0 30px rgba(0,0,0,0.8),
+    inset 0 1px 0 rgba(212,169,104,0.15);
+  padding: 1.5rem 2rem;
+  max-width: 90vw;
+  color: #e4d4a0;
+}
+
+.dungeon-map__panel h2 {
+  margin: 0 0 0.2rem 0;
+  color: #d4a968;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  font-size: 1.1rem;
+  text-align: center;
+}
+
+.dungeon-map__subtitle {
+  text-align: center;
+  color: #8a7a48;
+  font-size: 0.82rem;
+  margin: 0 0 1rem 0;
+  letter-spacing: 0.1em;
+}
+
+.dungeon-map__grid {
+  position: relative;
+  background: #0a0606;
+  border: 2px solid #2a1810;
+  box-shadow: inset 0 0 12px rgba(0,0,0,0.6);
+  margin: 0 auto 1rem;
+}
+
+.dungeon-map__cell {
+  position: absolute;
+  background: transparent;
+}
+
+.dungeon-map__cell.is-visited {
+  background: #5a3a1a;
+  box-shadow: inset 0 0 2px rgba(0,0,0,0.4);
+}
+
+.dungeon-map__cell.is-player {
+  background: #f4d488 !important;
+  box-shadow: 0 0 6px #f4d488, 0 0 12px rgba(244,212,136,0.6);
+  animation: map-pulse 1s ease-in-out infinite;
+  z-index: 2;
+}
+
+@keyframes map-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.dungeon-map__legend {
+  display: flex; gap: 1.5rem; justify-content: center;
+  font-size: 0.8rem; color: #8a7a48;
+  margin: 0.5rem 0 1rem 0;
+  letter-spacing: 0.05em;
+}
+
+.dungeon-map__dot {
+  display: inline-block;
+  width: 12px; height: 12px;
+  margin-right: 0.4rem;
+  vertical-align: middle;
+  border: 1px solid #2a1810;
+}
+
+.dungeon-map__dot.is-visited { background: #5a3a1a; }
+.dungeon-map__dot.is-player {
+  background: #f4d488;
+  box-shadow: 0 0 4px #f4d488;
+}
+
+.dungeon-map__close {
+  display: block;
+  margin: 0 auto;
+  background: linear-gradient(to bottom, rgba(90,58,26,0.6), rgba(60,38,16,0.4));
+  border: 2px solid #d4a968;
+  color: #f4d488;
+  padding: 0.5rem 1.5rem;
+  font-family: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  transition: all 150ms;
+}
+
+.dungeon-map__close:hover {
+  background: linear-gradient(to bottom, rgba(140,90,40,0.7), rgba(100,65,30,0.5));
+  box-shadow: 0 0 8px rgba(212,169,104,0.4);
+}

@@ -11,6 +11,7 @@ import { getNPC } from '../engine/npcs';
 import { saveGame } from '../engine/saveLoad';
 import { useCommissionStore } from '../state/commissionStore';
 import { useDungeonItemStore } from '../state/dungeonItemStore';
+import { useDungeonMapStore } from '../state/dungeonMapStore';
 import {
   generateCharacterSprite,
   getNpcPalette,
@@ -222,6 +223,7 @@ export abstract class BaseWorldScene extends Phaser.Scene {
 
     // Expose map data for the React minimap overlay.
     (window as any).__currentMap = {
+      sceneKey: this.scene.key,
       zoneName: this.getZoneName(),
       playerX: spawn.x,
       playerY: spawn.y,
@@ -275,6 +277,15 @@ export abstract class BaseWorldScene extends Phaser.Scene {
       (window as any).__currentMap.playerX = this.player.x;
       (window as any).__currentMap.playerY = this.player.y;
       (window as any).__currentMap.enemies = this.enemies.map((e) => ({ x: e.sprite.x, y: e.sprite.y }));
+    }
+    // Track visited tiles for the dungeon map (3x3 area around player = vision radius).
+    const tx = Math.floor(this.player.x / TILE);
+    const ty = Math.floor(this.player.y / TILE);
+    const mapStore = useDungeonMapStore.getState();
+    for (let dx = -1; dx <= 1; dx++) {
+      for (let dy = -1; dy <= 1; dy++) {
+        mapStore.visit(this.scene.key, tx + dx, ty + dy);
+      }
     }
     this.checkTraps();
     this.updatePlayerLabel();

@@ -36,6 +36,8 @@ import { ItemDiscovery } from './ItemDiscovery/ItemDiscovery';
 import { WorldMap } from './WorldMap/WorldMap';
 import { FastTravel } from './FastTravel/FastTravel';
 import { Ending } from './Ending/Ending';
+import { DungeonMap } from './DungeonMap/DungeonMap';
+import { useDungeonMapStore } from '../state/dungeonMapStore';
 import './InGameOverlay.css';
 
 /**
@@ -130,6 +132,7 @@ export function InGameOverlay() {
 
   const checkAchievements = useAchievementStore((s) => s.checkAchievements);
   const resetAchievements = useAchievementStore((s) => s.reset);
+  const resetDungeonMap = useDungeonMapStore((s) => s.reset);
   const resetLore = useLoreStore((s) => s.reset);
 
   const [menuOpen, setMenuOpen] = useState(false);
@@ -141,6 +144,7 @@ export function InGameOverlay() {
   const [journalOpen, setJournalOpen] = useState(false);
   const [statScreenOpen, setStatScreenOpen] = useState(false);
   const [fastTravelOpen, setFastTravelOpen] = useState(false);
+  const [dungeonMapOpen, setDungeonMapOpen] = useState(false);
   const [endingOpen, setEndingOpen] = useState(false);
   const [gameMsg, setGameMsg] = useState<string | null>(null);
   const [toastKey, setToastKey] = useState<string | null>(null);
@@ -277,6 +281,7 @@ export function InGameOverlay() {
         if (bestiaryOpen) { setBestiaryOpen(false); return; }
         if (statScreenOpen) { setStatScreenOpen(false); return; }
         if (journalOpen) { setJournalOpen(false); return; }
+        if (dungeonMapOpen) { setDungeonMapOpen(false); return; }
         // Nothing open — toggle pause menu
         setMenuOpen((m) => !m);
       }
@@ -287,6 +292,10 @@ export function InGameOverlay() {
       if (e.key === 'q' || e.key === 'Q') {
         e.preventDefault();
         setQuestBoardOpen((v) => !v);
+      }
+      if (e.key === 'm' || e.key === 'M') {
+        e.preventDefault();
+        setDungeonMapOpen((v) => !v);
       }
     };
     window.addEventListener('keydown', onKey);
@@ -316,6 +325,7 @@ export function InGameOverlay() {
     resetInventory();
     resetAchievements();
     resetLore();
+    resetDungeonMap();
     useCommissionStore.getState().reset();
     useDungeonItemStore.getState().reset();
     setMenuOpen(false);
@@ -506,6 +516,7 @@ export function InGameOverlay() {
       {optionsOpen && <OptionsMenu onClose={() => setOptionsOpen(false)} />}
       {achievementsOpen && <AchievementsScreen onClose={() => setAchievementsOpen(false)} />}
       {worldMapOpen && <WorldMap onClose={() => setWorldMapOpen(false)} />}
+      {dungeonMapOpen && <DungeonMap onClose={() => setDungeonMapOpen(false)} />}
       {bestiaryOpen && <Bestiary onClose={() => setBestiaryOpen(false)} />}
       {journalOpen && <Journal onClose={() => setJournalOpen(false)} />}
       {statScreenOpen && <StatScreen onClose={() => setStatScreenOpen(false)} />}
