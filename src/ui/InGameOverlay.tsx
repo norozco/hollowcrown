@@ -265,8 +265,19 @@ export function InGameOverlay() {
       if (useDialogueStore.getState().dialogue) return;
       if (useCombatStore.getState().state) return;
       if (e.key === 'Escape') {
-        if (inventoryOpen) { toggleInventory(); return; }
         e.preventDefault();
+        // Close any open overlay first, in priority order
+        if (inventoryOpen) { toggleInventory(); return; }
+        if (shopOpen) { closeShop(); return; }
+        if (craftingOpen) { closeCrafting(); return; }
+        if (questBoardOpen) { setQuestBoardOpen(false); return; }
+        if (optionsOpen) { setOptionsOpen(false); return; }
+        if (achievementsOpen) { setAchievementsOpen(false); return; }
+        if (worldMapOpen) { setWorldMapOpen(false); return; }
+        if (bestiaryOpen) { setBestiaryOpen(false); return; }
+        if (statScreenOpen) { setStatScreenOpen(false); return; }
+        if (journalOpen) { setJournalOpen(false); return; }
+        // Nothing open — toggle pause menu
         setMenuOpen((m) => !m);
       }
       if (e.key === 'i' || e.key === 'I') {
