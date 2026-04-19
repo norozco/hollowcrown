@@ -339,6 +339,12 @@ export class IronveilScene extends BaseWorldScene {
       });
     }
 
+    // ── Push-block puzzle (push minecart block onto plate → reveal chest) ──
+    this.spawnPushBlock({ tileX: 15, tileY: 8, color: 0x706050 });
+    this.spawnPressurePlate({ tileX: 18, tileY: 8, onActivate: () => {
+      this.spawnChest({ x: 20 * TILE, y: 8 * TILE, loot: [{ itemKey: 'iron_ore', qty: 2 }, { itemKey: 'health_potion', qty: 1 }], gold: 20 });
+    }});
+
     // ── Breakable wall (south cavern east wall) → hidden ore vein room ──
     this.spawnBreakableWall({
       x: 29 * TILE, y: 16 * TILE, w: TILE, h: TILE * 2,

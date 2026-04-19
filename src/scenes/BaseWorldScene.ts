@@ -95,6 +95,18 @@ export abstract class BaseWorldScene extends Phaser.Scene {
   protected npcs: NpcSprite[] = [];
   protected interactables: Interactable[] = [];
   protected traps: Array<{ x: number; y: number; damage: number; cooldown: number }> = [];
+  protected pushBlocks: Array<{
+    sprite: Phaser.GameObjects.Rectangle;
+    diamond: Phaser.GameObjects.Rectangle;
+    tileX: number;
+    tileY: number;
+  }> = [];
+  protected pressurePlates: Array<{
+    tileX: number; tileY: number;
+    sprite: Phaser.GameObjects.Rectangle;
+    activated: boolean;
+    onActivate: () => void;
+  }> = [];
   protected enemies: Array<{
     sprite: Phaser.GameObjects.Arc | Phaser.GameObjects.Sprite;
     monsterKey: string;
@@ -150,6 +162,8 @@ export abstract class BaseWorldScene extends Phaser.Scene {
     this.enemies = [];
     this.exits = [];
     this.traps = [];
+    this.pushBlocks = [];
+    this.pressurePlates = [];
     this.nearbyTarget = null;
     this.transitionLock = false;
     this.combatImmunity = 0;
@@ -841,6 +855,111 @@ export abstract class BaseWorldScene extends Phaser.Scene {
         cfg.onMelt?.();
       },
     });
+  }
+
+  /**
+   * Spawn a pushable block. Press E near it to shove it one tile in
+   * the direction the player is facing. Used for pressure-plate puzzles.
+   */
+  protected spawnPushBlock(cfg: { tileX: number; tileY: number; color?: number }): void {
+    const bx = cfg.tileX * TILE + TILE / 2;
+    const by = cfg.tileY * TILE + TILE / 2;
+
+    const block = this.add.rectangle(bx, by, TILE - 2, TILE - 2, cfg.color ?? 0x686060);
+    block.setStrokeStyle(2, 0x484040);
+    block.setDepth(8);
+    const diamond = this.add.rectangle(bx, by, 10, 10, 0x585050);
+    diamond.setDepth(9);
+    diamond.setAngle(45);
+
+    // Solid — collides with the player
+    this.physics.add.existing(block, true);
+    this.walls.add(block);
+
+    const blockData = { sprite: block, diamond, tileX: cfg.tileX, tileY: cfg.tileY };
+    this.pushBlocks.push(blockData);
+
+    this.spawnInteractable({
+      sprite: block as any,
+      label: 'Push',
+      radius: 20,
+      action: () => {
+        const dx = block.x - this.player.x;
+        const dy = block.y - this.player.y;
+        let pushDirX = 0;
+        let pushDirY = 0;
+        if (Math.abs(dx) > Math.abs(dy)) {
+          pushDirX = dx > 0 ? 1 : -1;
+        } else {
+          pushDirY = dy > 0 ? 1 : -1;
+        }
+
+        const newTX = blockData.tileX + pushDirX;
+        const newTY = blockData.tileY + pushDirY;
+
+        // Bounds check
+        if (newTX < 0 || newTX >= Math.floor(WORLD_W / TILE) || newTY < 0 || newTY >= Math.floor(WORLD_H / TILE)) return;
+
+        // Blocked by another push block?
+        if (this.pushBlocks.some(b => b !== blockData && b.tileX === newTX && b.tileY === newTY)) return;
+
+        const targetX = newTX * TILE + TILE / 2;
+        const targetY = newTY * TILE + TILE / 2;
+
+        blockData.tileX = newTX;
+        blockData.tileY = newTY;
+
+        const staticBody = block.body as Phaser.Physics.Arcade.StaticBody;
+
+        this.tweens.add({
+          targets: [block, diamond],
+          x: targetX,
+          y: targetY,
+          duration: 200,
+          ease: 'Power2',
+          onComplete: () => {
+            staticBody.setPosition(targetX - (TILE - 2) / 2, targetY - (TILE - 2) / 2);
+            staticBody.updateFromGameObject();
+            this.checkPressurePlates();
+          },
+        });
+
+        this.cameras.main.shake(50, 0.003);
+      },
+    });
+  }
+
+  /**
+   * Spawn a pressure plate. When a push block is moved onto it, the
+   * plate activates and fires its callback (reveal chest, open path, etc.).
+   */
+  protected spawnPressurePlate(cfg: { tileX: number; tileY: number; onActivate: () => void }): void {
+    const px = cfg.tileX * TILE + TILE / 2;
+    const py = cfg.tileY * TILE + TILE / 2;
+
+    const plate = this.add.rectangle(px, py, TILE - 8, TILE - 8, 0xa09040, 0.6);
+    plate.setStrokeStyle(1, 0xc0b050);
+    plate.setDepth(3);
+
+    this.pressurePlates.push({
+      tileX: cfg.tileX, tileY: cfg.tileY,
+      sprite: plate, activated: false,
+      onActivate: cfg.onActivate,
+    });
+  }
+
+  private checkPressurePlates(): void {
+    for (const plate of this.pressurePlates) {
+      if (plate.activated) continue;
+      const blockOnPlate = this.pushBlocks.some(b => b.tileX === plate.tileX && b.tileY === plate.tileY);
+      if (blockOnPlate) {
+        plate.activated = true;
+        plate.sprite.setFillStyle(0x60c060, 0.8);
+        this.cameras.main.shake(100, 0.005);
+        window.dispatchEvent(new CustomEvent('gameMessage', { detail: 'Click. Something opens.' }));
+        plate.onActivate();
+      }
+    }
   }
 
   /**

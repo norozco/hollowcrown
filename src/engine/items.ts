@@ -302,6 +302,42 @@ const ITEMS: Record<string, Item> = {
     buyPrice: 40, description: 'Brewed from lakewater and herbs. Clears poison and mends.',
     effect: { healHp: 10, healMp: 15 }, stackable: true,
   },
+  golden_carp: {
+    key: 'golden_carp', name: 'Golden Carp', type: 'consumable', rarity: 'rare',
+    buyPrice: 100, description: 'Scales like coins. Restores everything and then some.',
+    effect: { healHp: 50, healMp: 30 }, stackable: true,
+  },
+  // Late-game rare equipment
+  void_edge: {
+    key: 'void_edge', name: 'Void Edge', type: 'weapon', rarity: 'epic',
+    buyPrice: 0, description: 'The blade is not there. The cut is.',
+    equipSlot: 'mainHand', statBonus: { attack: 4, damage: 6 },
+  },
+  frost_plate: {
+    key: 'frost_plate', name: 'Frost Plate', type: 'armor', rarity: 'epic',
+    buyPrice: 0, description: 'Armor of ice that does not melt. It numbs what it protects.',
+    equipSlot: 'chest', statBonus: { ac: 6, hp: 10 },
+  },
+  ember_crown: {
+    key: 'ember_crown', name: 'Ember Crown', type: 'armor', rarity: 'epic',
+    buyPrice: 0, description: 'Iron that still glows. It burned the last three people who wore it. The fourth was ready.',
+    equipSlot: 'head', statBonus: { ac: 3, mp: 15 },
+  },
+  warden_shield: {
+    key: 'warden_shield', name: "Warden's Shield", type: 'armor', rarity: 'epic',
+    buyPrice: 0, description: 'Barnacled iron. The arm that held it did not let go. Neither will yours.',
+    equipSlot: 'offHand', statBonus: { ac: 4, hp: 8 },
+  },
+  shadow_cloak: {
+    key: 'shadow_cloak', name: 'Shadow Cloak', type: 'armor', rarity: 'rare',
+    buyPrice: 0, description: 'Wraith dust woven into cloth. You are harder to find.',
+    equipSlot: 'chest', statBonus: { ac: 3, damage: 2 },
+  },
+  ring_of_the_deep: {
+    key: 'ring_of_the_deep', name: 'Ring of the Deep', type: 'armor', rarity: 'epic',
+    buyPrice: 0, description: 'Cold metal. The finger it was on dissolved long ago. The ring endures.',
+    equipSlot: 'ring1', statBonus: { hp: 15, mp: 10 },
+  },
 };
 
 export function getItem(key: string): Item {

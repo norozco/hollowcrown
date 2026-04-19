@@ -2,6 +2,8 @@ import * as Phaser from 'phaser';
 import { useInventoryStore } from '../state/inventoryStore';
 import { useLoreStore } from '../state/loreStore';
 import { usePlayerStore } from '../state/playerStore';
+import { useQuestStore } from '../state/questStore';
+import { getItem } from '../engine/items';
 import { BaseWorldScene, TILE, WORLD_W, WORLD_H } from './BaseWorldScene';
 import { generateTileset, TILE as T, TILE_SIZE } from './tiles/generateTiles';
 
@@ -200,12 +202,60 @@ export class DuskmereScene extends BaseWorldScene {
       pole.setDepth(7);
       const line = this.add.rectangle(fs.x + 12, fs.y + 4, 1, 14, 0x808080, 0.5);
       line.setDepth(7);
+      const fishSpotX = fs.x;
+      const fishSpotY = fs.y;
       this.spawnInteractable({
         sprite: pole as any, label: 'Fish', radius: 24,
         action: () => {
-          window.dispatchEvent(new CustomEvent('gameMessage', {
-            detail: 'The water is dark. Nothing bites.',
-          }));
+          window.dispatchEvent(new CustomEvent('gameMessage', { detail: 'Fishing...' }));
+
+          const delay = 2000 + Math.random() * 2000;
+          const biteTimeout = this.time.delayedCall(delay, () => {
+            window.dispatchEvent(new CustomEvent('gameMessage', { detail: '! Press E!' }));
+
+            let caught = false;
+            const catchWindow = this.time.delayedCall(1000, () => {
+              if (!caught) {
+                window.dispatchEvent(new CustomEvent('gameMessage', { detail: 'The fish got away.' }));
+                window.removeEventListener('keydown', catchHandler);
+              }
+            });
+
+            const catchHandler = (e: KeyboardEvent) => {
+              if (e.key === 'e' || e.key === 'E') {
+                caught = true;
+                catchWindow.destroy();
+                window.removeEventListener('keydown', catchHandler);
+
+                const catches =   ['grilled_pike', 'smoked_eel', 'lake_tonic', 'health_potion', 'iron_ore', 'golden_carp'];
+                const weights =   [4,               3,             2,            2,               1,          1];
+                const total = weights.reduce((a, b) => a + b, 0);
+                let roll = Math.random() * total;
+                let item = catches[0];
+                for (let i = 0; i < catches.length; i++) {
+                  roll -= weights[i];
+                  if (roll <= 0) { item = catches[i]; break; }
+                }
+
+                useInventoryStore.getState().addItem(item);
+                const name = getItem(item).name;
+                window.dispatchEvent(new CustomEvent('gameMessage', { detail: `Caught a ${name}!` }));
+                this.spawnPickupParticles(fishSpotX, fishSpotY, 0x4080b0);
+
+                // Advance deep-hook quest fishing counter
+                const fishCount = parseInt(localStorage.getItem('hollowcrown_fish_caught') ?? '0', 10) + 1;
+                localStorage.setItem('hollowcrown_fish_caught', String(fishCount));
+                if (fishCount >= 3) {
+                  useQuestStore.getState().completeObjective('deep-hook', 'fish-objects');
+                }
+              }
+            };
+            window.addEventListener('keydown', catchHandler);
+
+            // Safety cleanup
+            this.time.delayedCall(1200, () => window.removeEventListener('keydown', catchHandler));
+          });
+          void biteTimeout;
         },
       });
     }

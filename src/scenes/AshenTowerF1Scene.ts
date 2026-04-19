@@ -76,6 +76,12 @@ export class AshenTowerF1Scene extends BaseWorldScene {
       gold: 20,
     });
 
+    // ── Push-block puzzle (heated stone onto plate → reveal chest) ──
+    this.spawnPushBlock({ tileX: 8, tileY: 12, color: 0xa06030 });
+    this.spawnPressurePlate({ tileX: 8, tileY: 16, onActivate: () => {
+      this.spawnChest({ x: 10 * TILE, y: 16 * TILE, loot: [{ itemKey: 'shadow_essence' }], gold: 15 });
+    }});
+
     // ── Breakable wall → hidden room with loot ──
     this.spawnBreakableWall({
       x: 14 * TILE, y: 10 * TILE, w: TILE, h: TILE * 2,

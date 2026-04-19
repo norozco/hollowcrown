@@ -154,6 +154,7 @@ export class BogDungeonF3Scene extends BaseWorldScene {
           { itemKey: 'chainmail', qty: 1 },
           { itemKey: 'health_potion', qty: 3 },
           { itemKey: 'shadow_essence', qty: 2 },
+          { itemKey: 'warden_shield' },
         ],
         gold: 120,
       });

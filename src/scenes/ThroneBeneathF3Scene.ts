@@ -119,6 +119,8 @@ export class ThroneBeneathF3Scene extends BaseWorldScene {
         { itemKey: 'shadow_essence', qty: 3 },
         { itemKey: 'troll_heart', qty: 2 },
         { itemKey: 'health_potion', qty: 5 },
+        { itemKey: 'void_edge' },
+        { itemKey: 'ring_of_the_deep' },
       ],
       gold: 300,
     });

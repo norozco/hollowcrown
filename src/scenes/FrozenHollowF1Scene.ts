@@ -82,6 +82,12 @@ export class FrozenHollowF1Scene extends BaseWorldScene {
       gold: 25,
     });
 
+    // ── Push-block puzzle (ice block onto plate → fairy fountain) ──
+    this.spawnPushBlock({ tileX: 12, tileY: 10, color: 0x80b0d0 });
+    this.spawnPressurePlate({ tileX: 14, tileY: 10, onActivate: () => {
+      this.spawnFairyFountain({ x: 14 * TILE, y: 8 * TILE });
+    }});
+
     // ── Breakable wall → hidden room with frost_key ──
     this.spawnBreakableWall({
       x: 15 * TILE, y: 10 * TILE, w: TILE, h: TILE * 2,

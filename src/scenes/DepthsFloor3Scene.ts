@@ -243,6 +243,7 @@ export class DepthsFloor3Scene extends BaseWorldScene {
           { itemKey: 'health_potion', qty: 3 },
           { itemKey: 'mana_potion', qty: 2 },
           { itemKey: 'shadow_essence', qty: 2 },
+          { itemKey: 'shadow_cloak' },
         ],
         gold: 100,
       });
