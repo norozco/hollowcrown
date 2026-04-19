@@ -131,8 +131,9 @@ export class DrownedSanctumF1Scene extends BaseWorldScene {
     });
 
     // ── Locked door before stairs down (requires sanctum_key) ──
+    // Door spans full south chamber (cols 5-14 = 10 tiles)
     this.spawnLockedDoor({
-      x: 8 * TILE, y: 18 * TILE, w: 4 * TILE, h: 6,
+      x: 5 * TILE, y: 18 * TILE, w: 10 * TILE, h: TILE,
       keyItem: 'sanctum_key', label: 'Sealed gate',
     });
 

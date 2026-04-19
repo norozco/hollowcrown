@@ -241,8 +241,9 @@ export class DepthsFloor2Scene extends BaseWorldScene {
     });
 
     // ── Locked door before stairs to Floor 3 (requires Warden Key from wraiths) ──
+    // Door spans the full south chamber width (cols 4-15 = 12 tiles)
     this.spawnLockedDoor({
-      x: 7 * TILE, y: 18 * TILE, w: 5 * TILE, h: 6,
+      x: 4 * TILE, y: 18 * TILE, w: 12 * TILE, h: TILE,
       keyItem: 'boss_key', label: 'Sealed gate',
     });
 

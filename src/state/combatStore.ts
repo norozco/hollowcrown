@@ -309,13 +309,8 @@ export const useCombatStore = create<CombatStoreState>((set, get) => ({
           player.notify();
         }
         // Enemy NOT marked as killed — it survives if player dies.
-        // If the player has a dungeon checkpoint, respawn there instead of town.
-        const checkpoint = get().dungeonCheckpoint;
-        if (checkpoint) {
-          set({ returnScene: checkpoint.sceneKey, returnX: 0, returnY: 0 });
-        } else {
-          set({ returnScene: 'TownScene', returnX: 0, returnY: 0 });
-        }
+        // Always respawn at town on death (classic Zelda style).
+        set({ returnScene: 'TownScene', returnX: 0, returnY: 0, dungeonCheckpoint: null });
       } else if (state.phase === 'fled') {
         character.hp = state.playerHp;
         player.notify();

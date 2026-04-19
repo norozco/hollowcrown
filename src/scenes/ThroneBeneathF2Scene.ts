@@ -72,8 +72,9 @@ export class ThroneBeneathF2Scene extends BaseWorldScene {
     });
 
     // ── Locked door to F3 ──
+    // Door blocks the full hall at row 18 (cols 4-26 = 23 tiles wide)
     this.spawnLockedDoor({
-      x: 14 * TILE, y: 19 * TILE, w: TILE * 2, h: TILE * 0.5,
+      x: 4 * TILE, y: 18 * TILE, w: 23 * TILE, h: TILE,
       keyItem: 'dungeon_key',
       label: 'Locked door (needs Throne Key)',
     });

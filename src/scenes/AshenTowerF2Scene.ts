@@ -104,8 +104,9 @@ export class AshenTowerF2Scene extends BaseWorldScene {
     }
 
     // ── Locked door (blocks path to stairs down, requires tower_key) ──
+    // Door spans the full hall (cols 6-13 = 8 tiles)
     this.spawnLockedDoor({
-      x: 8 * TILE, y: 17 * TILE, w: TILE * 3, h: TILE,
+      x: 6 * TILE, y: 17 * TILE, w: 8 * TILE, h: TILE,
       keyItem: 'tower_key', label: 'Sealed door (Tower Key)',
     });
 

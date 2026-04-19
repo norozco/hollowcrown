@@ -145,8 +145,9 @@ export class BogDungeonF2Scene extends BaseWorldScene {
     }).setOrigin(0.5).setDepth(4);
 
     // ── Locked door before stairs to Floor 3 (requires gallery_key) ──
+    // Door spans the full south gallery (cols 5-14 = 10 tiles)
     this.spawnLockedDoor({
-      x: 7 * TILE, y: 18 * TILE, w: 5 * TILE, h: 6,
+      x: 5 * TILE, y: 18 * TILE, w: 10 * TILE, h: TILE,
       keyItem: 'gallery_key', label: 'Gallery gate',
     });
 

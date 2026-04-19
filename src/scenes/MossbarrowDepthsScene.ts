@@ -198,8 +198,9 @@ export class MossbarrowDepthsScene extends BaseWorldScene {
     });
 
     // ── Locked door before stairs down (requires Rusty Key from spiders) ──
+    // Door spans the full hall width (cols 5-12 = 8 tiles)
     this.spawnLockedDoor({
-      x: 6 * TILE, y: 18 * TILE, w: 5 * TILE, h: 6,
+      x: 5 * TILE, y: 18 * TILE, w: 8 * TILE, h: TILE,
       keyItem: 'dungeon_key', label: 'Locked gate',
     });
 
