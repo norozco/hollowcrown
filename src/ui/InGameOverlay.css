@@ -389,3 +389,49 @@
   cursor: help;
   opacity: 0.8;
 }
+
+/* Rank Up fanfare overlay */
+@keyframes rankup-appear {
+  0% { opacity: 0; transform: translate(-50%, -60%) scale(0.8); }
+  20% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
+  30% { transform: translate(-50%, -50%) scale(1); }
+  80% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, -40%) scale(1); }
+}
+.ig__rankup {
+  position: absolute;
+  top: 45%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: linear-gradient(135deg, rgba(40,25,10,0.95), rgba(25,15,5,0.95));
+  border: 3px solid #d4a968;
+  box-shadow: 0 0 30px rgba(212,169,104,0.6), inset 0 0 20px rgba(0,0,0,0.5);
+  padding: 1.5rem 3rem;
+  font-family: 'Courier New', monospace;
+  text-align: center;
+  z-index: 50;
+  pointer-events: none;
+  animation: rankup-appear 4s ease-out forwards;
+}
+.ig__rankup-banner {
+  display: flex; justify-content: center; gap: 0.8rem;
+  color: #d4a968; font-size: 0.9rem;
+  letter-spacing: 0.4em;
+  margin-bottom: 0.5rem;
+}
+.ig__rankup-change {
+  display: flex; justify-content: center; align-items: center;
+  gap: 1rem; margin: 0.3rem 0;
+}
+.ig__rankup-old { color: #8a7a48; font-size: 2rem; font-weight: bold; }
+.ig__rankup-arrow { color: #d4a968; font-size: 1.5rem; }
+.ig__rankup-new {
+  color: #f4d488; font-size: 2.8rem; font-weight: bold;
+  text-shadow: 0 0 10px rgba(244,212,136,0.8);
+}
+.ig__rankup-name {
+  color: #d4a968; font-size: 1rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  margin-top: 0.3rem;
+}

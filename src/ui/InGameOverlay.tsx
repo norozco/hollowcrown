@@ -342,6 +342,23 @@ export function InGameOverlay() {
   const questsCompleted = Object.values(questActive).filter((q) => q.turnedIn).length;
   const rank = getCurrentRank(questsCompleted, character.level);
 
+  // Rank-up fanfare: track previous rank and show celebration when it changes.
+  const prevRankRef = useRef<string | null>(null);
+  const [rankUpShown, setRankUpShown] = useState<null | { oldRank: string; newRank: string; newName: string }>(null);
+  useEffect(() => {
+    if (prevRankRef.current && prevRankRef.current !== rank.key) {
+      setRankUpShown({
+        oldRank: prevRankRef.current,
+        newRank: rank.key,
+        newName: rank.name,
+      });
+      const t = setTimeout(() => setRankUpShown(null), 4000);
+      prevRankRef.current = rank.key;
+      return () => clearTimeout(t);
+    }
+    prevRankRef.current = rank.key;
+  }, [rank.key, rank.name]);
+
   // Portrait palette derived from the character's race (matches StepPortrait palettes)
   const portraitPalettes: Array<[string, string]> = [
     ['#7a4a30', '#d4a968'],
@@ -534,6 +551,21 @@ export function InGameOverlay() {
       <Minimap />
       <TouchControls />
       <AchievementToast achievementKey={toastKey} onDone={() => setToastKey(null)} />
+      {rankUpShown && (
+        <div className="ig__rankup">
+          <div className="ig__rankup-banner">
+            <span className="ig__rankup-icon">✦</span>
+            <span className="ig__rankup-text">RANK UP</span>
+            <span className="ig__rankup-icon">✦</span>
+          </div>
+          <div className="ig__rankup-change">
+            <span className="ig__rankup-old">{rankUpShown.oldRank}</span>
+            <span className="ig__rankup-arrow">→</span>
+            <span className="ig__rankup-new">{rankUpShown.newRank}</span>
+          </div>
+          <div className="ig__rankup-name">{rankUpShown.newName}</div>
+        </div>
+      )}
     </div>
   );
 }
