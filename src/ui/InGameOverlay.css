@@ -382,3 +382,10 @@
   border: 1px solid #d4a968;
   margin-left: 0.3rem;
 }
+
+.ig__time {
+  margin-left: 0.5rem;
+  font-size: 0.85rem;
+  cursor: help;
+  opacity: 0.8;
+}

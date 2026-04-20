@@ -12,6 +12,7 @@ import { saveGame } from '../engine/saveLoad';
 import { useCommissionStore } from '../state/commissionStore';
 import { useDungeonItemStore } from '../state/dungeonItemStore';
 import { useDungeonMapStore } from '../state/dungeonMapStore';
+import { useTimeStore, getPhaseTint } from '../state/timeStore';
 import {
   generateCharacterSprite,
   getNpcPalette,
@@ -232,6 +233,20 @@ export abstract class BaseWorldScene extends Phaser.Scene {
       exits: this.exits.map((e) => ({ x: e.x + e.w / 2, y: e.y + e.h / 2 })),
       enemies: this.enemies.map((e) => ({ x: e.sprite.x, y: e.sprite.y })),
     };
+
+    // Day/night tint overlay — outdoor zones only
+    const OUTDOOR_SCENES = new Set([
+      'TownScene', 'GreenhollowScene', 'MossbarrowScene', 'IronveilScene',
+      'DuskmereScene', 'AshenmereScene', 'AshfieldsScene', 'FrosthollowScene',
+      'ShatteredCoastScene',
+    ]);
+    if (OUTDOOR_SCENES.has(this.scene.key)) {
+      const tint = getPhaseTint(useTimeStore.getState().phase);
+      if (tint) {
+        this.add.rectangle(WORLD_W / 2, WORLD_H / 2, WORLD_W, WORLD_H, tint.color, tint.alpha)
+          .setDepth(99);
+      }
+    }
 
     // Zone name reveal (Souls-style)
     const zoneName = this.getZoneName();
@@ -1438,6 +1453,9 @@ export abstract class BaseWorldScene extends Phaser.Scene {
 
       if (inside) {
         this.transitionLock = true;
+
+        // Day/night cycle — advance time on every zone transition.
+        useTimeStore.getState().tick();
 
         // Commission system — advance the zone-transition clock.
         const commStore = useCommissionStore.getState();

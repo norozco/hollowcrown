@@ -10,6 +10,7 @@ import { useCombatStore } from '../state/combatStore';
 import { useAchievementStore } from '../state/achievementStore';
 import { useBountyStore } from '../state/bountyStore';
 import { useCommissionStore } from '../state/commissionStore';
+import { useTimeStore, type TimePhase } from '../state/timeStore';
 import { useLoreStore } from '../state/loreStore';
 import { useDungeonItemStore } from '../state/dungeonItemStore';
 import type { CharacterInit, Gender } from './character';
@@ -65,6 +66,10 @@ interface SaveData {
   } | null;
   /** New Game+ flag (added post-v1, optional for compat). */
   newGamePlus?: boolean;
+  time?: {
+    phase: TimePhase;
+    transitionsSincePhase: number;
+  };
 }
 
 const SAVE_PREFIX = 'hollowcrown_save_';
@@ -134,6 +139,10 @@ export function saveGame(slot: string, currentScene = 'TownScene'): boolean {
       totalCompleted: bountyState.totalCompleted,
     } : null,
     newGamePlus: playerState.newGamePlus ?? false,
+    time: {
+      phase: useTimeStore.getState().phase,
+      transitionsSincePhase: useTimeStore.getState().transitionsSincePhase,
+    },
   };
 
   try {
@@ -270,6 +279,13 @@ export function loadGame(slot: string): boolean {
     // Restore New Game+ flag
     if (data.newGamePlus) {
       usePlayerStore.setState({ newGamePlus: true });
+    }
+
+    if (data.time) {
+      useTimeStore.setState({
+        phase: data.time.phase,
+        transitionsSincePhase: data.time.transitionsSincePhase,
+      });
     }
 
     return true;

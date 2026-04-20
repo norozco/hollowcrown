@@ -38,6 +38,7 @@ import { FastTravel } from './FastTravel/FastTravel';
 import { Ending } from './Ending/Ending';
 import { DungeonMap } from './DungeonMap/DungeonMap';
 import { useDungeonMapStore } from '../state/dungeonMapStore';
+import { useTimeStore, getPhaseIcon } from '../state/timeStore';
 import './InGameOverlay.css';
 
 /**
@@ -133,6 +134,8 @@ export function InGameOverlay() {
   const checkAchievements = useAchievementStore((s) => s.checkAchievements);
   const resetAchievements = useAchievementStore((s) => s.reset);
   const resetDungeonMap = useDungeonMapStore((s) => s.reset);
+  const resetTime = useTimeStore((s) => s.reset);
+  const timePhase = useTimeStore((s) => s.phase);
   const resetLore = useLoreStore((s) => s.reset);
 
   const [menuOpen, setMenuOpen] = useState(false);
@@ -326,6 +329,7 @@ export function InGameOverlay() {
     resetAchievements();
     resetLore();
     resetDungeonMap();
+    resetTime();
     useCommissionStore.getState().reset();
     useDungeonItemStore.getState().reset();
     setMenuOpen(false);
@@ -374,6 +378,7 @@ export function InGameOverlay() {
               {character.difficulty === 'hardcore' && <span className="ig__hc"> HC</span>}
               {' '}<span className="ig__rank" style={{ color: rank.color }}>{rank.name}</span>
               {newGamePlus && <span className="ig__ngplus">NG+</span>}
+              <span className="ig__time" title={`Time: ${timePhase}`}>{getPhaseIcon(timePhase)}</span>
             </span>
           </div>
         </div>
