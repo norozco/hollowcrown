@@ -133,12 +133,26 @@ export function DialogueScene() {
     advance();
   };
 
+  // Name tag — the Persona 5 style banner above the speech bubble
+  const nameTagName = showingPlayerLine && character
+    ? character.name
+    : (isNarrator ? '' : speakerName);
+  const isPlayerTag = showingPlayerLine;
+
   return (
     <div
       className="dlg"
       role="dialog"
       aria-label={`Dialogue with ${speakerName || 'narrator'}`}
     >
+      {nameTagName && !isNarrator && (
+        <div
+          className={`dlg__name-tag${isPlayerTag ? ' dlg__name-tag--player' : ''}`}
+          key={`tag-${nameTagName}-${node.id}-${pendingChoice ?? ''}`}
+        >
+          <span className="dlg__name-tag-inner">{nameTagName}</span>
+        </div>
+      )}
       {/* key = who's speaking + which node; changes force remount so the
           CSS pop-in animation replays on every new line. */}
       <div

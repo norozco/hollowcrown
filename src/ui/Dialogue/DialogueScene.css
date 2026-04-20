@@ -1,406 +1,403 @@
 /* ============================================================
- * Dialogue overlay. Sits above the in-game overlay but below
- * hard modals like pause. Persona-ish layout:
- *   - Portraits upper area (speaker large, player small)
- *   - Textbox bottom quarter
+ * Persona 5-inspired dialogue UI.
+ *   - Large frameless portrait in bottom-left, cut off at edge
+ *   - Tilted white speech bubble with jagged tail pointing to speaker
+ *   - Angled name tag banner above the bubble
+ *   - Bold black/white typography, punk-zine energy
  * ============================================================ */
 
 .dlg {
   position: absolute;
   inset: 0;
-  display: grid;
-  grid-template-rows: 1fr auto;
-  background: radial-gradient(
-    ellipse at 50% 35%,
-    rgba(10, 6, 6, 0.55) 0%,
-    rgba(10, 6, 6, 0.92) 85%
-  );
-  font-family: 'Courier New', 'Lucida Console', monospace;
-  color: #e4d4a0;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.2));
   z-index: 20;
   pointer-events: auto;
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+  overflow: hidden;
 }
 
-/* --------- Portrait region --------- */
-
+/* Portrait area — bottom-left, frameless, cut off at edge */
 .dlg__portraits {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 42%;
+  height: 72%;
+  pointer-events: none;
+  animation: dlg-portrait-slide 280ms cubic-bezier(.2, .8, .2, 1);
+}
+
+@keyframes dlg-portrait-slide {
+  from { transform: translateX(-8%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+/* Speaker portrait (large, cut off at screen edge) */
+.dlg__portraits .dlg-portrait--large {
+  position: absolute;
+  bottom: -3%;
+  left: -3%;
+  width: 92%;
+  height: 100%;
   display: flex;
   align-items: flex-end;
-  justify-content: space-between;
-  padding: 1.5rem 3rem 0 3rem;
-  gap: 1rem;
+  justify-content: flex-start;
+  margin: 0;
 }
 
+/* Listener portrait (small, dim, tucked behind) */
+.dlg__portraits .dlg-portrait--small {
+  position: absolute;
+  bottom: 6%;
+  left: 38%;
+  width: 26%;
+  height: 36%;
+  opacity: 0.25;
+  filter: grayscale(0.7) brightness(0.6);
+  margin: 0;
+}
+
+/* Portrait base reset */
 .dlg-portrait {
+  margin: 0;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 0.5rem;
-  margin: 0;
-  position: relative;
-  transition: transform 220ms, opacity 220ms;
+  align-items: flex-start;
+  justify-content: flex-end;
+  height: 100%;
+  width: 100%;
 }
-
-/* Every portrait animates in when it mounts (container key changes on
- * each new speaker/line, forcing a remount). Large portraits get a
- * bigger entrance; small portraits get a subtler fade. */
-@keyframes dlg-portrait-pop-large {
-  0% {
-    opacity: 0;
-    transform: scale(0.7) translateY(18px);
-  }
-  55% {
-    opacity: 1;
-    transform: scale(1.08) translateY(-3px);
-  }
-  100% {
-    opacity: 1;
-    transform: scale(1) translateY(0);
-  }
-}
-
-@keyframes dlg-portrait-fade-small {
-  from {
-    opacity: 0;
-    transform: translateX(18px) scale(0.88);
-  }
-  to {
-    opacity: 0.5;
-    transform: translateX(0) scale(0.92);
-  }
-}
-
-.dlg-portrait--large {
-  animation: dlg-portrait-pop-large 320ms cubic-bezier(0.2, 1.1, 0.3, 1);
-}
-
-.dlg-portrait--small.is-dim {
-  animation: dlg-portrait-fade-small 320ms ease-out;
-}
-
-/* The "speaking" state: add a warm glow + a slow pulsing ring so even
- * the placeholder circle feels alive when it's the voice on screen. */
-@keyframes dlg-portrait-pulse {
-  0%,
-  100% {
-    box-shadow:
-      0 0 36px rgba(212, 169, 104, 0.38),
-      0 10px 32px rgba(0, 0, 0, 0.55);
-  }
-  50% {
-    box-shadow:
-      0 0 56px rgba(212, 169, 104, 0.6),
-      0 10px 32px rgba(0, 0, 0, 0.55);
-  }
-}
-
-.dlg-portrait.is-speaking .dlg-portrait__circle {
-  border-color: rgba(212, 169, 104, 0.7);
-  animation: dlg-portrait-pulse 1800ms ease-in-out infinite;
-}
-
-/* Art-mode portraits do NOT get the box-shadow pulse (it creates a
-   visible rectangle). They get filter-based glow instead — see the
-   .dlg-portrait--art.is-speaking rule below. */
-
-/* --- Real anime portraits (image mode — frameless, Persona-style) --- */
 
 .dlg-portrait__frame {
-  position: relative;
-  overflow: visible;
-  /* No border, no background — the character sits directly on the
-     dialogue overlay like in Persona 5. The AI-generated painterly
-     background blends with the dark overlay gradient; future
-     alpha-cut portraits will sit even cleaner. */
-  border: none;
-  background: transparent;
-  filter: drop-shadow(0 6px 20px rgba(0, 0, 0, 0.7));
-}
-
-.dlg-portrait--large .dlg-portrait__frame {
-  width: 14rem;
-  height: 18rem;
-  /* Let the portrait overlap into the text-box area slightly for
-     a more grounded, Persona-like composition. */
-  margin-bottom: -2rem;
-}
-
-.dlg-portrait--small .dlg-portrait__frame {
-  width: 7rem;
-  height: 9rem;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-start;
+  border: none !important;
+  background: transparent !important;
+  overflow: hidden;
 }
 
 .dlg-portrait__img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: top center;
-  display: block;
-  border-radius: 0;
-  /* Soft radial mask fades the image edges into the overlay gradient
-     so the portrait doesn't end at a hard rectangle — matches the
-     Persona 5 "character just exists in the space" look. */
-  -webkit-mask-image: radial-gradient(
-    ellipse 85% 90% at 50% 40%,
-    black 50%,
-    transparent 100%
-  );
-  mask-image: radial-gradient(
-    ellipse 85% 90% at 50% 40%,
-    black 50%,
-    transparent 100%
-  );
+  max-height: 100%;
+  max-width: 100%;
+  object-fit: contain;
+  object-position: bottom left;
+  image-rendering: -webkit-optimize-contrast;
+  /* Thick black offset silhouette shadow for P5 pop */
+  filter:
+    drop-shadow(5px 0 0 #000)
+    drop-shadow(-3px 0 0 #000)
+    drop-shadow(0 5px 0 #000)
+    drop-shadow(0 -3px 0 #000)
+    drop-shadow(0 0 24px rgba(0, 0, 0, 0.7));
 }
 
-.dlg-portrait.is-dim .dlg-portrait__frame {
-  opacity: 0.45;
-  transform: scale(0.88);
-  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.6)) brightness(0.7);
+/* Speaking portrait pulse */
+.dlg-portrait.is-speaking .dlg-portrait__img {
+  animation: dlg-portrait-breathe 2.4s ease-in-out infinite;
 }
 
-/* The speaking glow for art mode uses drop-shadow instead of box-shadow
-   since there's no border to glow against. */
-.dlg-portrait--art.is-speaking .dlg-portrait__frame {
-  filter: drop-shadow(0 0 28px rgba(212, 169, 104, 0.45))
-    drop-shadow(0 8px 24px rgba(0, 0, 0, 0.6));
+@keyframes dlg-portrait-breathe {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.015); }
 }
 
-.dlg-portrait--large .dlg-portrait__circle {
-  width: 12rem;
-  height: 12rem;
-  font-size: 5rem;
-}
-
-.dlg-portrait--small .dlg-portrait__circle {
-  width: 7rem;
-  height: 7rem;
-  font-size: 3rem;
-}
-
+/* Placeholder circle — only used when no real portrait exists */
 .dlg-portrait__circle {
+  width: 220px;
+  height: 220px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: bold;
-  border: 3px solid rgba(0, 0, 0, 0.4);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.55);
+  border: 6px solid #000;
+  box-shadow: 8px 8px 0 #000, 0 0 32px rgba(0, 0, 0, 0.7);
+  margin-bottom: 2rem;
 }
 
-.dlg-portrait.is-dim {
-  opacity: 0.5;
-  transform: scale(0.92);
+.dlg-portrait__initial {
+  font-size: 6rem;
+  font-weight: 900;
+  font-family: Impact, 'Arial Black', sans-serif;
 }
 
-.dlg-portrait__name {
-  color: #d4a968;
-  font-size: 0.9rem;
-  letter-spacing: 0.12rem;
-}
-
-.dlg-portrait--small .dlg-portrait__name {
-  font-size: 0.75rem;
-  color: #8a7a48;
-}
-
+/* Hide duplicate name/expression labels (they're in the name tag now) */
+.dlg-portrait__name,
 .dlg-portrait__expression {
-  position: absolute;
-  top: -0.3rem;
-  right: -0.3rem;
-  background: rgba(10, 6, 6, 0.85);
-  border: 1px solid #5a3a1a;
-  color: #d4a968;
-  padding: 0.15rem 0.5rem;
-  font-size: 0.7rem;
-  letter-spacing: 0.05rem;
-  border-radius: 2px;
+  display: none;
 }
 
-/* --------- Textbox --------- */
+/* Name tag — angled yellow/white banner above speech bubble */
+.dlg__name-tag {
+  position: absolute;
+  bottom: calc(6% + 150px);
+  left: 33%;
+  background: #fff;
+  color: #0a0a0a;
+  font-family: Impact, 'Arial Black', 'Helvetica', sans-serif;
+  font-size: 1.5rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  padding: 0.4rem 1.8rem 0.4rem 1.2rem;
+  transform: rotate(-4deg) skewX(-14deg);
+  box-shadow:
+    0 0 0 4px #000,
+    8px 7px 0 4px #000,
+    12px 12px 28px rgba(0, 0, 0, 0.55);
+  z-index: 3;
+  animation: dlg-name-pop 380ms cubic-bezier(.2, 1.6, .3, 1);
+  white-space: nowrap;
+  text-transform: uppercase;
+  pointer-events: none;
+}
 
+.dlg__name-tag-inner {
+  display: inline-block;
+  transform: skewX(14deg);
+}
+
+@keyframes dlg-name-pop {
+  0% { transform: rotate(-4deg) skewX(-14deg) scale(0.4); opacity: 0; }
+  60% { transform: rotate(-4deg) skewX(-14deg) scale(1.12); opacity: 1; }
+  100% { transform: rotate(-4deg) skewX(-14deg) scale(1); opacity: 1; }
+}
+
+.dlg__name-tag--player {
+  background: #ffd43a;
+  left: auto;
+  right: 8%;
+  transform: rotate(4deg) skewX(12deg);
+}
+
+.dlg__name-tag--player .dlg__name-tag-inner {
+  transform: skewX(-12deg);
+}
+
+@keyframes dlg-name-pop-player {
+  0% { transform: rotate(4deg) skewX(12deg) scale(0.4); opacity: 0; }
+  60% { transform: rotate(4deg) skewX(12deg) scale(1.12); opacity: 1; }
+  100% { transform: rotate(4deg) skewX(12deg) scale(1); opacity: 1; }
+}
+
+.dlg__name-tag--player {
+  animation-name: dlg-name-pop-player;
+}
+
+/* Speech bubble */
 .dlg__textbox {
-  background: rgba(10, 6, 6, 0.94);
-  border-top: 2px solid #5a3a1a;
-  padding: 1rem 2rem 1.2rem 2rem;
-  min-height: 10rem;
+  position: absolute;
+  bottom: 6%;
+  left: 32%;
+  right: 5%;
+  background: #fff;
+  color: #0a0a0a;
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+  font-size: 1.15rem;
+  line-height: 1.5;
+  font-weight: 600;
+  padding: 1.4rem 1.9rem 1.1rem 1.9rem;
+  box-shadow:
+    0 0 0 4px #000,
+    12px 12px 0 #000,
+    18px 18px 32px rgba(0, 0, 0, 0.45);
+  transform: rotate(-0.6deg);
   cursor: pointer;
+  z-index: 1;
+  min-height: 140px;
+  animation: dlg-bubble-in 280ms cubic-bezier(.2, .8, .2, 1);
   outline: none;
 }
 
-.dlg__textbox[role='button']:hover {
-  background: rgba(16, 10, 10, 0.97);
+@keyframes dlg-bubble-in {
+  from { transform: rotate(-4deg) scale(0.94); opacity: 0; }
+  to { transform: rotate(-0.6deg) scale(1); opacity: 1; }
 }
 
-.dlg__textbox:focus-visible {
-  outline: 2px solid #d4a968;
-  outline-offset: -4px;
+.dlg__textbox:hover { background: #fafafa; }
+
+/* Jagged tail pointing to portrait — black border layer + white fill */
+.dlg__textbox::before {
+  content: '';
+  position: absolute;
+  left: -32px;
+  top: 42%;
+  width: 0;
+  height: 0;
+  border-top: 20px solid transparent;
+  border-bottom: 20px solid transparent;
+  border-right: 42px solid #000;
+  transform: rotate(-6deg);
+  z-index: -1;
 }
 
-.dlg__speaker-line {
-  display: flex;
-  align-items: baseline;
-  gap: 0.8rem;
-  border-bottom: 1px solid #3a2818;
-  padding-bottom: 0.4rem;
-  margin-bottom: 0.6rem;
+.dlg__textbox::after {
+  content: '';
+  position: absolute;
+  left: -22px;
+  top: 45%;
+  width: 0;
+  height: 0;
+  border-top: 14px solid transparent;
+  border-bottom: 14px solid transparent;
+  border-right: 30px solid #fff;
+  transform: rotate(-6deg);
 }
 
-.dlg__speaker-name {
-  color: #f4d488;
-  letter-spacing: 0.15rem;
-  font-size: 1.1rem;
-  font-weight: bold;
-}
-
-.dlg__speaker-title {
-  color: #7a6848;
+/* Narrator — dark scroll style (no tail, centered) */
+.dlg__textbox--narrator {
+  left: 10%;
+  right: 10%;
+  bottom: 12%;
+  background: #1a1008;
+  color: #e4d4a0;
   font-style: italic;
-  font-size: 0.85rem;
+  font-family: 'Georgia', serif;
+  font-size: 1.05rem;
+  transform: rotate(0);
+  box-shadow:
+    0 0 0 4px #5a3a1a,
+    0 10px 34px rgba(0, 0, 0, 0.7);
+  min-height: 80px;
 }
 
+.dlg__textbox--narrator::before,
+.dlg__textbox--narrator::after {
+  display: none;
+}
+
+/* Player line — yellow tinted, tail on the right */
+.dlg__textbox--player-line {
+  left: 15%;
+  right: 5%;
+  bottom: 8%;
+  transform: rotate(0.6deg);
+  background: #fffce8;
+}
+
+.dlg__textbox--player-line::before {
+  left: auto;
+  right: -32px;
+  border-right: none;
+  border-left: 42px solid #000;
+  transform: rotate(6deg);
+}
+
+.dlg__textbox--player-line::after {
+  left: auto;
+  right: -22px;
+  border-right: none;
+  border-left: 30px solid #fffce8;
+  transform: rotate(6deg);
+}
+
+/* Speaker line inside bubble — hidden (name is in tag above) */
+.dlg__speaker-line { display: none; }
+
+/* Main text */
 .dlg__text {
   margin: 0;
-  color: #e4d4a0;
-  font-size: 1.1rem;
+  font-size: 1.15rem;
   line-height: 1.5;
-  min-height: 3rem;
-}
-
-/* Narrator lines read like prose — no speaker label, dimmer italic text
- * so they feel distinct from spoken dialogue. */
-.dlg__textbox--narrator {
-  background: rgba(10, 6, 6, 0.88);
-  border-top-color: #3a2818;
+  color: #0a0a0a;
+  font-weight: 600;
+  letter-spacing: 0.005em;
 }
 
 .dlg__textbox--narrator .dlg__text {
-  font-style: italic;
-  color: #b89868;
-  font-size: 1rem;
-  line-height: 1.6;
-  letter-spacing: 0.02rem;
+  color: #e4d4a0;
+  font-weight: 400;
+  font-size: 1.05rem;
 }
 
-/* Player-line textbox briefly flares warm to signal "your voice". */
-@keyframes dlg-textbox-flash {
-  0% {
-    background: rgba(90, 58, 26, 0.55);
-    border-top-color: #d4a968;
-  }
-  100% {
-    background: rgba(10, 6, 6, 0.94);
-    border-top-color: #5a3a1a;
-  }
-}
-
-.dlg__textbox--player-line {
-  animation: dlg-textbox-flash 450ms ease-out;
-  border-left: 3px solid #d4a968;
-}
-
-.dlg__textbox--player-line .dlg__speaker-name {
-  color: #f4d488;
-}
-
-/* Text itself eases in on every new line. */
-@keyframes dlg-text-in {
-  from {
-    opacity: 0;
-    transform: translateY(6px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.dlg__textbox .dlg__text {
-  animation: dlg-text-in 260ms ease-out;
-}
-
-.dlg__textbox .dlg__speaker-line {
-  animation: dlg-text-in 260ms ease-out;
-}
-
+/* Advance hint */
 .dlg__advance-hint {
-  margin: 0.8rem 0 0 0;
-  color: #6a5838;
-  font-size: 0.8rem;
-  font-style: italic;
-  letter-spacing: 0.05rem;
+  margin: 0.8rem 0 0;
+  font-size: 0.78rem;
+  color: #888;
+  font-weight: 700;
+  letter-spacing: 0.08em;
   text-align: right;
+  font-style: italic;
+  animation: dlg-pulse 1.2s ease-in-out infinite;
+  text-transform: uppercase;
 }
 
-/* --------- Choices --------- */
+.dlg__textbox--narrator .dlg__advance-hint {
+  color: #8a7a48;
+}
 
+@keyframes dlg-pulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 1; }
+}
+
+/* Choice buttons */
 .dlg__choices {
   list-style: none;
-  margin: 1rem 0 0 0;
+  margin: 1.1rem 0 0;
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
+  gap: 0.55rem;
 }
 
 .dlg__choice {
-  width: 100%;
-  text-align: left;
-  background: rgba(20, 12, 8, 0.7);
-  border: 1px solid #3a2818;
-  color: #d4a968;
-  font-family: inherit;
-  font-size: 1rem;
-  padding: 0.6rem 0.9rem;
-  cursor: pointer;
   display: flex;
-  align-items: baseline;
-  gap: 0.7rem;
-  transition: background-color 120ms, border-color 120ms, transform 120ms;
+  align-items: center;
+  gap: 0.8rem;
+  width: 100%;
+  background: #fff;
+  color: #000;
+  border: 3px solid #000;
+  padding: 0.55rem 0.9rem;
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  text-align: left;
+  transform: skewX(-6deg);
+  transition: transform 110ms ease, background 110ms ease;
+  box-shadow: 5px 5px 0 #000;
 }
 
 .dlg__choice:hover {
-  background: rgba(90, 58, 26, 0.3);
-  border-color: #d4a968;
-  transform: translateX(2px);
-}
-
-.dlg__choice:focus-visible {
-  outline: 2px solid #d4a968;
-  outline-offset: 2px;
+  background: #ffd43a;
+  transform: skewX(-6deg) translateX(6px) translateY(-2px);
 }
 
 .dlg__choice-num {
   display: inline-flex;
-  width: 1.4rem;
-  height: 1.4rem;
   align-items: center;
   justify-content: center;
-  background: #5a3a1a;
-  color: #f4d488;
-  font-weight: bold;
-  font-size: 0.8rem;
+  width: 1.9rem;
+  height: 1.9rem;
+  background: #000;
+  color: #ffd43a;
+  font-weight: 900;
+  font-size: 1rem;
   flex-shrink: 0;
+  transform: skewX(6deg);
 }
 
 .dlg__choice-text {
+  transform: skewX(6deg);
   flex: 1;
 }
 
-@media (max-width: 900px) {
-  .dlg__portraits {
-    padding: 1rem 1rem 0 1rem;
-  }
-  .dlg-portrait--large .dlg-portrait__circle {
-    width: 8rem;
-    height: 8rem;
-    font-size: 3.5rem;
-  }
-  .dlg-portrait--small .dlg-portrait__circle {
-    width: 5rem;
-    height: 5rem;
-    font-size: 2.2rem;
-  }
-  .dlg__textbox {
-    padding: 0.8rem 1rem 1rem 1rem;
-  }
+.dlg__textbox--narrator .dlg__choice {
+  background: rgba(90, 58, 26, 0.3);
+  color: #f4d488;
+  border-color: #d4a968;
+  box-shadow: 5px 5px 0 #5a3a1a;
+}
+
+.dlg__textbox--narrator .dlg__choice:hover {
+  background: rgba(140, 90, 40, 0.5);
+}
+
+.dlg__textbox--narrator .dlg__choice-num {
+  background: #d4a968;
+  color: #1a1008;
 }

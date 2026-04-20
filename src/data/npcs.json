@@ -61,7 +61,13 @@
     "title": "Blacksmith",
     "portraitColor": "#4a2a1a",
     "accentColor": "#e08040",
-    "description": "Arms like oak roots. Speaks little, hammers much. The anvil answers for him."
+    "description": "Arms like oak roots. Speaks little, hammers much. The anvil answers for him.",
+    "portraits": {
+      "neutral": "portraits/kael/neutral.png",
+      "thoughtful": "portraits/kael/thoughtful.png",
+      "sad": "portraits/kael/sad.png",
+      "angry": "portraits/kael/angry.png"
+    }
   },
   "hermit": {
     "key": "hermit",
@@ -69,7 +75,13 @@
     "title": "Marsh Dweller",
     "portraitColor": "#3a4830",
     "accentColor": "#8a9868",
-    "description": "Thin as a reed and twice as patient. Lives where no one else would choose to."
+    "description": "Thin as a reed and twice as patient. Lives where no one else would choose to.",
+    "portraits": {
+      "neutral": "portraits/hermit/neutral.png",
+      "thoughtful": "portraits/hermit/thoughtful.png",
+      "sad": "portraits/hermit/sad.png",
+      "angry": "portraits/hermit/angry.png"
+    }
   },
   "veyrin": {
     "key": "veyrin",
@@ -77,7 +89,13 @@
     "title": "Elven Scholar",
     "portraitColor": "#2a3048",
     "accentColor": "#a0b8d0",
-    "description": "Pale, thin, steady-handed. His eyes have the look of someone who has read too much and slept too little."
+    "description": "Pale, thin, steady-handed. His eyes have the look of someone who has read too much and slept too little.",
+    "portraits": {
+      "neutral": "portraits/veyrin/neutral.png",
+      "thoughtful": "portraits/veyrin/thoughtful.png",
+      "sad": "portraits/veyrin/sad.png",
+      "angry": "portraits/veyrin/angry.png"
+    }
   },
   "nessa": {
     "key": "nessa",
@@ -86,7 +104,12 @@
     "portraitColor": "#3a5a6a",
     "accentColor": "#88b0c0",
     "description": "Practical, hard-jawed, unafraid. Runs Duskmere the way a captain runs a ship in bad water.",
-    "portraits": {}
+    "portraits": {
+      "neutral": "portraits/nessa/neutral.png",
+      "thoughtful": "portraits/nessa/thoughtful.png",
+      "sad": "portraits/nessa/sad.png",
+      "angry": "portraits/nessa/angry.png"
+    }
   },
   "torben": {
     "key": "torben",
@@ -95,7 +118,12 @@
     "portraitColor": "#6a5a3a",
     "accentColor": "#c0a868",
     "description": "Broad-shouldered, stinking of brine, cheerful in the way of men who refuse to think about what frightens them.",
-    "portraits": {}
+    "portraits": {
+      "neutral": "portraits/torben/neutral.png",
+      "thoughtful": "portraits/torben/thoughtful.png",
+      "sad": "portraits/torben/sad.png",
+      "angry": "portraits/torben/angry.png"
+    }
   },
   "mira": {
     "key": "mira",
@@ -104,6 +132,11 @@
     "portraitColor": "#5a3040",
     "accentColor": "#c07898",
     "description": "Quick hands, quicker feet. Thin as a reed and twice as hard to catch.",
-    "portraits": {}
+    "portraits": {
+      "neutral": "portraits/mira/neutral.png",
+      "thoughtful": "portraits/mira/thoughtful.png",
+      "sad": "portraits/mira/sad.png",
+      "angry": "portraits/mira/angry.png"
+    }
   }
 }
