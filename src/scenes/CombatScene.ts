@@ -393,6 +393,140 @@ export class CombatScene extends Phaser.Scene {
               },
             });
           }
+
+          // ── Enemy special ability animations ──
+          const pX = this.playerBaseX;
+          const pY = this.playerSprite.y;
+          const eX = this.enemyBaseX;
+          const eY = this.enemySprite.y;
+
+          // Fire: flame cone / breath
+          if (entry.text.includes('flame') || entry.text.includes('Flame') || entry.text.includes('fire') || entry.text.includes('burns')) {
+            for (let i = 0; i < 10; i++) {
+              const t = i / 10;
+              const fx = eX + (pX - eX) * t + Phaser.Math.Between(-12, 12);
+              const fy = eY + (pY - eY) * t + Phaser.Math.Between(-12, 12);
+              const color = [0xf08020, 0xf0c040, 0xf04020, 0xe06020][i % 4];
+              const flame = this.add.circle(fx, fy, Phaser.Math.Between(3, 7), color).setDepth(16);
+              this.tweens.add({
+                targets: flame, alpha: 0, scale: 2,
+                duration: 400, delay: i * 30,
+                onComplete: () => flame.destroy(),
+              });
+            }
+            this.cameras.main.shake(150, 0.005);
+          }
+
+          // Ice / frost: crystal shards + white flash
+          if (entry.text.includes('Frost') || entry.text.includes('frost') || entry.text.includes('cold') || entry.text.includes('Glacial')) {
+            for (let i = 0; i < 8; i++) {
+              const crystal = this.add.triangle(
+                pX + Phaser.Math.Between(-30, 30),
+                pY + Phaser.Math.Between(-30, 30),
+                0, -6, 4, 0, -4, 0,
+                0xa0d0f0,
+              ).setDepth(16);
+              this.tweens.add({
+                targets: crystal, alpha: 0, scale: 2, duration: 500,
+                onComplete: () => crystal.destroy(),
+              });
+            }
+          }
+
+          // Avalanche: falling ice shards + big shake
+          if (entry.text.includes('Avalanche') || entry.text.includes('mountain')) {
+            this.cameras.main.shake(400, 0.015);
+            for (let i = 0; i < 15; i++) {
+              const x = Phaser.Math.Between(pX - 60, pX + 60);
+              const shard = this.add.triangle(x, -10, 0, 0, 6, -12, 12, 0, 0x80c0e0).setDepth(20);
+              this.tweens.add({
+                targets: shard, y: pY + 20,
+                duration: 400 + i * 30,
+                onComplete: () => shard.destroy(),
+              });
+            }
+          }
+
+          // White Out: full white flash
+          if (entry.text.includes('White') || entry.text.includes('white')) {
+            this.cameras.main.flash(500, 255, 255, 255);
+          }
+
+          // Tidal Slam / water: splash
+          if (entry.text.includes('Tidal') || entry.text.includes('wave') || entry.text.includes('water')) {
+            for (let i = 0; i < 12; i++) {
+              const angle = (i / 12) * Math.PI * 2;
+              const drop = this.add.circle(pX, pY, Phaser.Math.Between(2, 5), 0x4888c0).setDepth(18);
+              this.tweens.add({
+                targets: drop,
+                x: drop.x + Math.cos(angle) * 60,
+                y: drop.y + Math.sin(angle) * 60,
+                alpha: 0, duration: 500,
+                onComplete: () => drop.destroy(),
+              });
+            }
+            this.cameras.main.shake(150, 0.008);
+          }
+
+          // Erasure: dark overlay flash
+          if (entry.text.includes('Erasure') || entry.text.includes('ceases')) {
+            const overlay = this.add.rectangle(640, 360, 1280, 720, 0x000000, 0).setDepth(100);
+            this.tweens.add({
+              targets: overlay, alpha: 0.85,
+              duration: 120, yoyo: true,
+              onComplete: () => overlay.destroy(),
+            });
+            this.cameras.main.shake(300, 0.01);
+          }
+
+          // Unmaking: dark purple vortex
+          if (entry.text.includes('Unmaking') || entry.text.includes('unmakes')) {
+            for (let i = 0; i < 20; i++) {
+              const angle = (i / 20) * Math.PI * 2;
+              const distance = 80;
+              const p = this.add.circle(
+                pX + Math.cos(angle) * distance,
+                pY + Math.sin(angle) * distance,
+                4, 0x8040c0,
+              ).setDepth(17);
+              this.tweens.add({
+                targets: p,
+                x: pX, y: pY,
+                scale: 0, alpha: 0, duration: 600, delay: i * 20,
+                onComplete: () => p.destroy(),
+              });
+            }
+            this.cameras.main.shake(400, 0.008);
+          }
+
+          // Ash Storm: swirling grey
+          if (entry.text.includes('Ash') || entry.text.includes('cinder')) {
+            for (let i = 0; i < 14; i++) {
+              const angle = (i / 14) * Math.PI * 2;
+              const ash = this.add.circle(
+                pX + Math.cos(angle) * 20,
+                pY + Math.sin(angle) * 20,
+                3, 0x606060, 0.7,
+              ).setDepth(16);
+              this.tweens.add({
+                targets: ash,
+                x: pX + Math.cos(angle) * 50,
+                y: pY + Math.sin(angle) * 50,
+                alpha: 0, duration: 700, delay: i * 30,
+                onComplete: () => ash.destroy(),
+              });
+            }
+          }
+
+          // Molten Strike: red-hot slash trail
+          if (entry.text.includes('Molten') || entry.text.includes('scorches') || entry.text.includes('sparks')) {
+            const slash = this.add.line(0, 0, pX - 20, pY - 10, pX + 20, pY + 10, 0xff6020)
+              .setLineWidth(4).setOrigin(0, 0).setDepth(16);
+            this.tweens.add({
+              targets: slash, alpha: 0, duration: 300,
+              onComplete: () => slash.destroy(),
+            });
+          }
         }
       }
     }
