@@ -194,6 +194,62 @@ export class CombatScene extends Phaser.Scene {
 
     // Fade in
     this.cameras.main.fadeIn(300, 0, 0, 0);
+
+    // Boss intro cutscene — dramatic name reveal for bosses
+    const bossKeys: Record<string, { subtitle: string; color: string; glow: number }> = {
+      hollow_king: { subtitle: 'THE GATEKEEPER', color: '#a060c0', glow: 0x8040c0 },
+      drowned_warden: { subtitle: 'THE KEEPER OF THE POOL', color: '#4888c0', glow: 0x4060a0 },
+      crownless_one: { subtitle: 'HE WHO WAS FORGOTTEN', color: '#c040c0', glow: 0x8040c0 },
+      the_forgotten: { subtitle: 'BEFORE THE NAMES', color: '#2a0040', glow: 0x1a0020 },
+    };
+    const bossMonsterKey = useCombatStore.getState().monster?.key;
+    if (bossMonsterKey && bossKeys[bossMonsterKey]) {
+      const info = bossKeys[bossMonsterKey];
+      const bossName = useCombatStore.getState().monster?.name ?? '';
+      // Dark overlay that fades in, then out
+      const darkOverlay = this.add.rectangle(W / 2, H / 2, W, H, 0x000000, 0).setDepth(60);
+      // Name text
+      const nameText = this.add.text(W / 2, H / 2 - 20, bossName.toUpperCase(), {
+        fontFamily: 'Courier New', fontSize: '52px', color: info.color,
+        stroke: '#000000', strokeThickness: 6,
+      }).setOrigin(0.5).setDepth(62).setAlpha(0);
+      // Subtitle
+      const subText = this.add.text(W / 2, H / 2 + 30, info.subtitle, {
+        fontFamily: 'Courier New', fontSize: '16px', color: '#d4a968',
+        stroke: '#000000', strokeThickness: 3,
+      }).setOrigin(0.5).setDepth(62).setAlpha(0);
+      // Glow ring behind the name
+      const glowCircle = this.add.circle(W / 2, H / 2, 0, info.glow, 0.3).setDepth(61);
+
+      // Sequence: darken, show name, hold, fade out
+      this.tweens.add({
+        targets: darkOverlay, alpha: 0.7, duration: 400, ease: 'Sine.easeIn',
+      });
+      this.tweens.add({
+        targets: nameText, alpha: 1, duration: 600, delay: 300, ease: 'Sine.easeOut',
+      });
+      this.tweens.add({
+        targets: subText, alpha: 0.85, duration: 600, delay: 600, ease: 'Sine.easeOut',
+      });
+      this.tweens.add({
+        targets: glowCircle, radius: 200, alpha: 0, duration: 1200, delay: 300, ease: 'Power2',
+      });
+      // Camera shake mid-intro
+      this.time.delayedCall(800, () => this.cameras.main.shake(300, 0.005));
+      // Fade everything out
+      this.time.delayedCall(2400, () => {
+        this.tweens.add({
+          targets: [darkOverlay, nameText, subText],
+          alpha: 0, duration: 500,
+          onComplete: () => {
+            darkOverlay.destroy();
+            nameText.destroy();
+            subText.destroy();
+            glowCircle.destroy();
+          },
+        });
+      });
+    }
   }
 
   update(): void {

@@ -379,6 +379,9 @@ export function InGameOverlay() {
 
   return (
     <div className="ig">
+      {character.hp > 0 && character.hp / effectiveMaxHp < 0.25 && (
+        <div className="ig__low-hp" aria-hidden="true" />
+      )}
       <header className="ig__hud">
         <div className="ig__hud-left">
           <div
