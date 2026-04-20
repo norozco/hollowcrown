@@ -1105,6 +1105,31 @@ export abstract class BaseWorldScene extends Phaser.Scene {
       sprite,
       nameLabel,
     });
+
+    // Idle animation — subtle breathing bob so NPCs feel alive.
+    // 3-4px vertical oscillation every ~2.5 seconds.
+    this.tweens.add({
+      targets: sprite,
+      y: cfg.y - 2,
+      duration: 1200 + Math.random() * 600,
+      yoyo: true,
+      repeat: -1,
+      ease: 'Sine.easeInOut',
+    });
+
+    // Occasional head-turn: cycle through facing frames every 4-8 seconds
+    this.time.addEvent({
+      delay: 4000 + Math.random() * 4000,
+      loop: true,
+      callback: () => {
+        if (!sprite.active) return;
+        // Random facing: 0=down, 1=up, 2=left, 3=right
+        const newFacing = Math.floor(Math.random() * 4);
+        sprite.setFrame(newFacing);
+        if (newFacing === 3) sprite.setFlipX(true);
+        else sprite.setFlipX(false);
+      },
+    });
   }
 
   /**

@@ -2,6 +2,7 @@ import { useDialogueStore } from '../state/dialogueStore';
 import { getDialogue } from '../engine/dialogues';
 import { useInventoryStore } from '../state/inventoryStore';
 import { usePlayerStore } from '../state/playerStore';
+import { useTimeStore } from '../state/timeStore';
 import { BaseWorldScene, TILE, WORLD_W, WORLD_H } from './BaseWorldScene';
 import { generateTileset, TILE as T, TILE_SIZE } from './tiles/generateTiles';
 
@@ -71,7 +72,16 @@ export class InteriorScene extends BaseWorldScene {
       sprite.setDepth(5);
       if (ix.dialogueId === '__shop__') {
         this.spawnInteractable({ sprite, label: ix.label, radius: 24,
-          action: () => { useInventoryStore.getState().openShop(); } });
+          action: () => {
+            const phase = useTimeStore.getState().phase;
+            if (phase === 'night') {
+              window.dispatchEvent(new CustomEvent('gameMessage', {
+                detail: 'The shop is closed for the night. Return at dawn.',
+              }));
+              return;
+            }
+            useInventoryStore.getState().openShop();
+          } });
         // Permanent "Shop" label above the counter
         this.add.text(oX + ix.tileX * TILE + TILE / 2, oY + ix.tileY * TILE - 6, 'Shop', {
           fontFamily: 'Courier New', fontSize: '11px', color: '#d4a968',
@@ -79,7 +89,16 @@ export class InteriorScene extends BaseWorldScene {
         }).setOrigin(0.5, 1).setDepth(11);
       } else if (ix.dialogueId === '__craft__') {
         this.spawnInteractable({ sprite, label: ix.label, radius: 24,
-          action: () => { useInventoryStore.getState().openCrafting(); } });
+          action: () => {
+            const phase = useTimeStore.getState().phase;
+            if (phase === 'night') {
+              window.dispatchEvent(new CustomEvent('gameMessage', {
+                detail: 'The forge is cold. Kael sleeps. Return at dawn.',
+              }));
+              return;
+            }
+            useInventoryStore.getState().openCrafting();
+          } });
         // Permanent "Forge" label above the anvil
         this.add.text(oX + ix.tileX * TILE + TILE / 2, oY + ix.tileY * TILE - 6, 'Forge', {
           fontFamily: 'Courier New', fontSize: '11px', color: '#d4a968',
