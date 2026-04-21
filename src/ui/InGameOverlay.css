@@ -643,3 +643,44 @@
 .ig__fps .is-good { color: #6ae06a; }
 .ig__fps .is-ok { color: #ffd43a; }
 .ig__fps .is-bad { color: #e06a6a; }
+
+/* Photo mode — hide UI chrome for clean screenshots */
+.ig:has(.ig__photo-mode) .ig__hud,
+.ig:has(.ig__photo-mode) .ig__breadcrumb,
+.ig:has(.ig__photo-mode) .ig__fps,
+.ig:has(.ig__photo-mode) .ig__low-hp,
+.ig:has(.ig__photo-mode) .qt,
+.ig:has(.ig__photo-mode) .minimap,
+.ig:has(.ig__photo-mode) .ig__game-msg,
+.ig:has(.ig__photo-mode) .ig__companion-bar {
+  display: none !important;
+}
+
+.ig__photo-mode {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 5;
+}
+
+.ig__photo-mode-hint {
+  position: absolute;
+  top: 1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.7);
+  color: #ffd43a;
+  font-family: 'Courier New', monospace;
+  font-size: 0.75rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  padding: 0.4rem 1rem;
+  border: 2px solid #000;
+  box-shadow: 3px 3px 0 #c81e1e;
+  opacity: 0.4;
+  transition: opacity 150ms;
+}
+
+.ig__photo-mode:hover .ig__photo-mode-hint {
+  opacity: 1;
+}

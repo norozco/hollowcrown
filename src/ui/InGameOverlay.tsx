@@ -38,6 +38,7 @@ import { FastTravel } from './FastTravel/FastTravel';
 import { Ending } from './Ending/Ending';
 import { DungeonMap } from './DungeonMap/DungeonMap';
 import { useDungeonMapStore } from '../state/dungeonMapStore';
+import { DialogueHistory } from './Dialogue/DialogueHistory';
 import { useTimeStore, getPhaseIcon } from '../state/timeStore';
 import { Sfx, unlockAudio, playMusic } from '../engine/audio';
 import { initGamepadSupport } from '../engine/gamepad';
@@ -151,6 +152,8 @@ export function InGameOverlay() {
   const [statScreenOpen, setStatScreenOpen] = useState(false);
   const [fastTravelOpen, setFastTravelOpen] = useState(false);
   const [dungeonMapOpen, setDungeonMapOpen] = useState(false);
+  const [dialogueHistoryOpen, setDialogueHistoryOpen] = useState(false);
+  const [photoMode, setPhotoMode] = useState(false);
   const [endingOpen, setEndingOpen] = useState(false);
   const [gameMsg, setGameMsg] = useState<string | null>(null);
   const [toastKey, setToastKey] = useState<string | null>(null);
@@ -419,6 +422,8 @@ export function InGameOverlay() {
         if (statScreenOpen) { setStatScreenOpen(false); return; }
         if (journalOpen) { setJournalOpen(false); return; }
         if (dungeonMapOpen) { setDungeonMapOpen(false); return; }
+        if (dialogueHistoryOpen) { setDialogueHistoryOpen(false); return; }
+        if (photoMode) { setPhotoMode(false); return; }
         // Nothing open — toggle pause menu
         setMenuOpen((m) => !m);
       }
@@ -433,6 +438,14 @@ export function InGameOverlay() {
       if (e.key === 'm' || e.key === 'M') {
         e.preventDefault();
         setDungeonMapOpen((v) => !v);
+      }
+      if (e.key === 'Tab') {
+        e.preventDefault();
+        setDialogueHistoryOpen((v) => !v);
+      }
+      if (e.key === 'F10') {
+        e.preventDefault();
+        setPhotoMode((v) => !v);
       }
     };
     window.addEventListener('keydown', onKey);
@@ -696,6 +709,12 @@ export function InGameOverlay() {
       {achievementsOpen && <AchievementsScreen onClose={() => setAchievementsOpen(false)} />}
       {worldMapOpen && <WorldMap onClose={() => setWorldMapOpen(false)} />}
       {dungeonMapOpen && <DungeonMap onClose={() => setDungeonMapOpen(false)} />}
+      {dialogueHistoryOpen && <DialogueHistory onClose={() => setDialogueHistoryOpen(false)} />}
+      {photoMode && (
+        <div className="ig__photo-mode" aria-hidden="true">
+          <div className="ig__photo-mode-hint">PHOTO MODE · F12 screenshot · F10 or Esc to exit</div>
+        </div>
+      )}
       {bestiaryOpen && <Bestiary onClose={() => setBestiaryOpen(false)} />}
       {journalOpen && <Journal onClose={() => setJournalOpen(false)} />}
       {statScreenOpen && <StatScreen onClose={() => setStatScreenOpen(false)} />}

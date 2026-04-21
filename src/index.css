@@ -29,3 +29,16 @@ button {
   font: inherit;
   color: inherit;
 }
+
+/* Custom P5-style cursor — red pointer with black outline */
+html, body {
+  cursor:
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='22' height='24' viewBox='0 0 22 24'><path d='M2 2 L2 20 L7 16 L10 22 L13 21 L10 15 L17 15 Z' fill='%23c81e1e' stroke='%23000' stroke-width='1.5' stroke-linejoin='round'/></svg>") 2 2,
+    default;
+}
+
+button, a, [role='button'], .main-menu__load-slot, .cc__btn {
+  cursor:
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'><circle cx='12' cy='12' r='8' fill='%23ffd43a' stroke='%23000' stroke-width='2'/><circle cx='12' cy='12' r='3' fill='%23c81e1e'/></svg>") 12 12,
+    pointer;
+}

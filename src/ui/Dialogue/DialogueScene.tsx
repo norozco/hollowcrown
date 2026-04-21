@@ -8,6 +8,7 @@ import { SpeakerPortrait } from './SpeakerPortrait';
 import { pickPortraitUrl } from './portraitAssets';
 import { useTypewriter } from './useTypewriter';
 import { Sfx } from '../../engine/audio';
+import { useDialogueHistoryStore } from '../../state/dialogueHistoryStore';
 import './DialogueScene.css';
 
 /**
@@ -137,6 +138,19 @@ export function DialogueScene() {
       Sfx.dialogueTick();
     }
   }, [tw.displayed, tw.done]);
+
+  // Push to dialogue history when the line finishes typing.
+  const pushHistory = useDialogueHistoryStore((s) => s.push);
+  useEffect(() => {
+    if (tw.done && activeText) {
+      const speakerLabel = showingPlayerLine
+        ? (character?.name ?? 'You')
+        : isNarrator ? 'Narrator' : speakerName;
+      pushHistory({ speaker: speakerLabel, text: activeText });
+    }
+    // Only fire when the line completes (tw.done flips true)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tw.done, activeText]);
 
   const onClickTextBox = () => {
     // If still typing, click skips the typewriter first

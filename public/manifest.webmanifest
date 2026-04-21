@@ -1,0 +1,22 @@
+{
+  "name": "Hollowcrown",
+  "short_name": "Hollowcrown",
+  "description": "A Dungeon of the Forgotten Repo — a Souls-flavored 2D RPG with dual art identity.",
+  "start_url": "/hollowcrown/",
+  "scope": "/hollowcrown/",
+  "display": "standalone",
+  "orientation": "landscape-primary",
+  "background_color": "#0a0606",
+  "theme_color": "#c81e1e",
+  "icons": [
+    {
+      "src": "favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["games", "entertainment"],
+  "lang": "en",
+  "prefer_related_applications": false
+}
