@@ -16,6 +16,80 @@ import { useBountyStore } from './bountyStore';
 import { rollPerkChoices, getPerkHpBonus, getPerkMpBonus } from '../engine/perks';
 import { getHeartPieceHpBonus } from './playerStore';
 import { DIFFICULTY_SCALES } from '../engine/character';
+import { Sfx } from '../engine/audio';
+
+/** A transient combat event used by the UI to render floating numbers, flashes, etc. */
+export type CombatEventKind = 'damage' | 'heal' | 'miss' | 'crit';
+export interface CombatEvent {
+  id: number;
+  kind: CombatEventKind;
+  target: 'player' | 'enemy';
+  amount: number;       // 0 for miss
+  crit: boolean;
+  /** ms timestamp so the UI can prune */
+  at: number;
+}
+
+let _eventSeq = 0;
+
+/**
+ * Diff two CombatState snapshots and emit juice events (damage/heal/miss/crit).
+ * Also plays the right SFX per event so combat reads as impactful.
+ */
+function emitEventsFromDiff(
+  prev: CombatState,
+  next: CombatState,
+  pushEvent: (e: Omit<CombatEvent, 'id' | 'at'>) => void,
+): void {
+  // New log entries added this tick
+  const newEntries = next.log.slice(prev.log.length);
+
+  // HP deltas
+  const playerDelta = next.playerHp - prev.playerHp;
+  const monsterDelta = next.monsterHp - prev.monsterHp;
+
+  // Crit detection: engine logs "devastating" on roll===20
+  const critOnMonster = newEntries.some(
+    (e) => e.type === 'player_hit' && /devastating/i.test(e.text),
+  );
+  const critOnPlayer = newEntries.some(
+    (e) => e.type === 'enemy_hit' && /devastating|critical/i.test(e.text),
+  );
+
+  if (monsterDelta < 0) {
+    const amt = -monsterDelta;
+    pushEvent({ kind: critOnMonster ? 'crit' : 'damage', target: 'enemy', amount: amt, crit: critOnMonster });
+    if (critOnMonster) Sfx.criticalHit(); else Sfx.attackHit();
+  }
+  if (playerDelta < 0) {
+    const amt = -playerDelta;
+    pushEvent({ kind: critOnPlayer ? 'crit' : 'damage', target: 'player', amount: amt, crit: critOnPlayer });
+    Sfx.takeDamage();
+  } else if (playerDelta > 0) {
+    pushEvent({ kind: 'heal', target: 'player', amount: playerDelta, crit: false });
+    Sfx.spellHeal();
+  }
+
+  // Miss events (no HP change but a miss line was added)
+  for (const entry of newEntries) {
+    if (entry.type === 'player_miss') {
+      pushEvent({ kind: 'miss', target: 'enemy', amount: 0, crit: false });
+      Sfx.attackMiss();
+    } else if (entry.type === 'enemy_miss') {
+      pushEvent({ kind: 'miss', target: 'player', amount: 0, crit: false });
+    }
+  }
+
+  // Fireball / spell indicator: log mentions fireball → play spellFire
+  if (newEntries.some((e) => /fireball|fire damage/i.test(e.text))) {
+    Sfx.spellFire();
+  }
+
+  // Victory / defeat stingers
+  if (prev.phase !== 'victory' && next.phase === 'victory') Sfx.enemyDefeat();
+  if (prev.phase !== 'defeat' && next.phase === 'defeat') Sfx.playerDeath();
+  if (prev.phase !== 'fled' && next.phase === 'fled') Sfx.flee();
+}
 
 /**
  * Combat store — manages the active battle. Null when not in combat.
@@ -33,12 +107,24 @@ interface CombatStoreState {
   returnY: number;
   /** Enemies killed this session (sceneKey-x-y). Persists across scene restarts. */
   killedEnemies: Set<string>;
+  /** Persistent per-monster kill counter used for quest progress. Unlike
+   *  `killedEnemies` (cleared on zone exit so enemies respawn), this
+   *  counter accumulates across the whole save and is never reset, so
+   *  kill-objective quests progress even if the player leaves and re-
+   *  enters the zone between kills. */
+  questKillCounts: Record<string, number>;
   /** ID of the enemy currently being fought — marked killed only on victory. */
   _pendingEnemyId: string;
   /** Items dropped in the last victory — read by CombatOverlay for the results screen. */
   lastLoot: string[];
   /** Dungeon checkpoint — respawn here on death instead of town. */
   dungeonCheckpoint: { sceneKey: string; spawn: string } | null;
+  /** Transient UI events for juice (floating numbers, flashes, shake). */
+  combatEvents: CombatEvent[];
+  /** Push a new event (UI appends, self-prunes after animation). */
+  pushEvent: (e: Omit<CombatEvent, 'id' | 'at'>) => void;
+  /** Remove a consumed event by id. */
+  clearEvent: (id: number) => void;
 
   /** Start combat against a monster key. */
   start: (monsterKey: string, returnScene?: string, playerX?: number, playerY?: number) => void;
@@ -58,9 +144,19 @@ export const useCombatStore = create<CombatStoreState>((set, get) => ({
   returnX: 0,
   returnY: 0,
   killedEnemies: new Set<string>(),
+  questKillCounts: {},
   _pendingEnemyId: '',
   lastLoot: [],
   dungeonCheckpoint: null,
+  combatEvents: [],
+
+  pushEvent: (e) => {
+    const ev: CombatEvent = { ...e, id: ++_eventSeq, at: Date.now() };
+    set((s) => ({ combatEvents: [...s.combatEvents, ev] }));
+  },
+  clearEvent: (id) => {
+    set((s) => ({ combatEvents: s.combatEvents.filter((e) => e.id !== id) }));
+  },
 
   start: (monsterKey, returnScene, playerX, playerY) => {
     const character = usePlayerStore.getState().character;
@@ -80,7 +176,9 @@ export const useCombatStore = create<CombatStoreState>((set, get) => ({
         if (s._enemyActing && s.state && s.monster && s.state.phase === 'enemy_turn') {
           const character2 = usePlayerStore.getState().character;
           if (character2) {
-            set({ state: enemyAct(s.state, character2, s.monster), _enemyActing: false });
+            const after = enemyAct(s.state, character2, s.monster);
+            emitEventsFromDiff(s.state, after, get().pushEvent);
+            set({ state: after, _enemyActing: false });
           } else { set({ _enemyActing: false }); }
         } else { set({ _enemyActing: false }); }
       }, 800);
@@ -100,6 +198,9 @@ export const useCombatStore = create<CombatStoreState>((set, get) => ({
     // Guard: if playerAct returned the exact same object, the action was
     // a no-op (wrong phase). Do NOT re-set state or schedule enemy turn.
     if (next === state) return;
+
+    // Emit juice events from the diff (floating nums, SFX, flash).
+    emitEventsFromDiff(state, next, get().pushEvent);
 
     // Pre-roll loot when victory is decided so the results screen can show it.
     if (next.phase === 'victory') {
@@ -124,6 +225,7 @@ export const useCombatStore = create<CombatStoreState>((set, get) => ({
           const char = usePlayerStore.getState().character;
           if (char) {
             const after = enemyAct(s.state, char, s.monster);
+            emitEventsFromDiff(s.state, after, get().pushEvent);
             if (after.phase === 'victory') {
               const rolled: string[] = [];
               for (const drop of s.monster.loot) {
@@ -163,7 +265,13 @@ export const useCombatStore = create<CombatStoreState>((set, get) => ({
     // Sync playerHp from character after item use (useItem calls char.heal)
     const perkHp = getPerkHpBonus(usePlayerStore.getState().perks);
     const heartHp = getHeartPieceHpBonus(usePlayerStore.getState().heartPieces);
+    const hpBefore = state.playerHp;
     s.playerHp = Math.min(character.derived.maxHp + perkHp + heartHp, character.hp);
+    const healed = s.playerHp - hpBefore;
+    if (healed > 0) {
+      get().pushEvent({ kind: 'heal', target: 'player', amount: healed, crit: false });
+      Sfx.spellHeal();
+    }
 
     // Atmospheric log messages per item type
     if (item.effect.healHp && item.effect.healMp) {
@@ -195,6 +303,7 @@ export const useCombatStore = create<CombatStoreState>((set, get) => ({
         const char = usePlayerStore.getState().character;
         if (char) {
           const after = enemyAct(cur.state, char, cur.monster);
+          emitEventsFromDiff(cur.state, after, get().pushEvent);
           if (after.phase === 'victory') {
             const rolled: string[] = [];
             for (const drop of cur.monster.loot) {
@@ -229,7 +338,7 @@ export const useCombatStore = create<CombatStoreState>((set, get) => ({
             ? 'Training complete. You feel sharper. HP and MP restored.'
             : 'The session ends. HP and MP restored.',
         }));
-        set((s) => ({ state: null, monster: null, _enemyActing: false, killedEnemies: s.killedEnemies, _pendingEnemyId: '', lastLoot: [] }));
+        set((s) => ({ state: null, monster: null, _enemyActing: false, killedEnemies: s.killedEnemies, _pendingEnemyId: '', lastLoot: [], combatEvents: [] }));
         return;
       }
 
@@ -256,20 +365,33 @@ export const useCombatStore = create<CombatStoreState>((set, get) => ({
         const enemyId = get()._pendingEnemyId;
         if (enemyId) get().killedEnemies.add(enemyId);
 
+        // Increment the persistent per-monster quest kill counter. This is
+        // what kill-objective quests read, so progress survives zone exits
+        // (which clear `killedEnemies` to let enemies respawn).
+        const prevCounts = get().questKillCounts;
+        const newCounts: Record<string, number> = {
+          ...prevCounts,
+          [monster.key]: (prevCounts[monster.key] ?? 0) + 1,
+        };
+        set({ questKillCounts: newCounts });
+
         // Check kill-based quest objectives with progress messages.
-        const killed = get().killedEnemies;
         const qs = useQuestStore.getState();
         const msg = (text: string) =>
           window.dispatchEvent(new CustomEvent('gameMessage', { detail: text }));
 
-        // Helper: track kills and show progress / completion.
+        // Helper: use the persistent counter (not the respawn-tracking set)
+        // so quest kills accumulate across zone entries. Accepts an array
+        // of monster keys so species variants can count toward one quest.
         const checkKillQuest = (
-          monsterMatch: string, questId: string, objectiveId: string,
+          monsterKeys: readonly string[], questId: string, objectiveId: string,
           needed: number, questLabel: string,
         ) => {
           const q = qs.active[questId];
           if (!q || q.isComplete) return;
-          const count = Array.from(killed).filter((id) => id.includes(monsterMatch)).length;
+          const count = monsterKeys.reduce(
+            (sum, k) => sum + (newCounts[k] ?? 0), 0,
+          );
           if (count >= needed) {
             qs.completeObjective(questId, objectiveId);
             msg(`${questLabel} — complete.`);
@@ -278,10 +400,10 @@ export const useCombatStore = create<CombatStoreState>((set, get) => ({
           }
         };
 
-        if (monster.key === 'wolf') checkKillQuest('wolf', 'wolf-cull', 'kill-wolves', 3, 'Wolf Cull');
-        if (monster.key === 'skeleton') checkKillQuest('skeleton', 'bone-collector', 'collect-bones', 2, 'Bone Collector');
-        if (monster.key === 'spider') checkKillQuest('spider', 'spider-nest', 'kill-spiders', 3, 'Spider Nest');
-        if (monster.key === 'wraith') checkKillQuest('wraith', 'wraith-hunt', 'kill-wraiths', 2, 'Wraith Hunt');
+        if (monster.key === 'wolf') checkKillQuest(['wolf'], 'wolf-cull', 'kill-wolves', 3, 'Wolf Cull');
+        if (monster.key === 'skeleton') checkKillQuest(['skeleton'], 'bone-collector', 'collect-bones', 2, 'Bone Collector');
+        if (monster.key === 'spider') checkKillQuest(['spider'], 'spider-nest', 'kill-spiders', 3, 'Spider Nest');
+        if (monster.key === 'wraith') checkKillQuest(['wraith'], 'wraith-hunt', 'kill-wraiths', 2, 'Wraith Hunt');
 
         // Hollow King slayer: kill the boss.
         if (monster.key === 'hollow_king') {
@@ -339,6 +461,6 @@ export const useCombatStore = create<CombatStoreState>((set, get) => ({
       }
     }
 
-    set((s) => ({ state: null, monster: null, _enemyActing: false, killedEnemies: s.killedEnemies, _pendingEnemyId: '', lastLoot: [] }));
+    set((s) => ({ state: null, monster: null, _enemyActing: false, killedEnemies: s.killedEnemies, _pendingEnemyId: '', lastLoot: [], combatEvents: [] }));
   },
 }));

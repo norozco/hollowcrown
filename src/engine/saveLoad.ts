@@ -29,6 +29,9 @@ interface SaveData {
   quests: Record<string, QuestState>;
   inventory: { slots: Array<{ itemKey: string; qty: number }>; equipment: Record<string, string | null> };
   killedEnemies: string[];
+  /** Persistent per-monster kill counter used by kill-objective quests
+   *  (added post-v1, optional for backward compat with older saves). */
+  questKillCounts?: Record<string, number>;
   currentScene: string;
   /** Perk keys chosen across level-ups (added post-v1, optional for compat). */
   perks?: string[];
@@ -114,6 +117,7 @@ export function saveGame(slot: string, currentScene = 'TownScene'): boolean {
       ),
     },
     killedEnemies: Array.from(useCombatStore.getState().killedEnemies),
+    questKillCounts: { ...useCombatStore.getState().questKillCounts },
     currentScene,
     perks: playerState.perks,
     heartPieces: playerState.heartPieces,
@@ -224,6 +228,8 @@ export function loadGame(slot: string): boolean {
     for (const id of data.killedEnemies) {
       combat.killedEnemies.add(id);
     }
+    // Restore per-monster quest kill counts (missing on legacy saves).
+    useCombatStore.setState({ questKillCounts: { ...(data.questKillCounts ?? {}) } });
 
     // Restore heart pieces
     if (data.heartPieces != null) {

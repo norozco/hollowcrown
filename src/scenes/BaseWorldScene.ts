@@ -224,10 +224,41 @@ export abstract class BaseWorldScene extends Phaser.Scene {
     // If returning from combat, use the saved position instead of a named spawn.
     let spawn: { x: number; y: number };
     if (data?.spawnPoint === 'combat_return' && data.combatReturnX && data.combatReturnY) {
-      spawn = { x: data.combatReturnX, y: data.combatReturnY };
-      // Grant brief immunity so the player isn't instantly re-engaged
-      // (especially after fleeing — enemy respawns at the same spot).
-      this.combatImmunity = 1200; // ms
+      // Fled/returned-from-combat safety: the enemy respawns at its base
+      // position (with jitter), and the player's saved return position is
+      // right next to it — a plain setPosition would let the contact check
+      // re-trigger combat the moment immunity runs out. So we both (a) push
+      // the player ~2 tiles away from the nearest enemy spawn and (b) hold
+      // a longer immunity window than before.
+      const savedX = data.combatReturnX;
+      const savedY = data.combatReturnY;
+      // Find the closest upcoming enemy spawn so we can shove the player
+      // away from it. layout() has already populated this.enemies above.
+      let nearest: { x: number; y: number; d2: number } | null = null;
+      for (const enemy of this.enemies) {
+        const dx = savedX - enemy.baseX;
+        const dy = savedY - enemy.baseY;
+        const d2 = dx * dx + dy * dy;
+        if (!nearest || d2 < nearest.d2) {
+          nearest = { x: enemy.baseX, y: enemy.baseY, d2 };
+        }
+      }
+      if (nearest && nearest.d2 < (TILE * 3) * (TILE * 3)) {
+        const dx = savedX - nearest.x;
+        const dy = savedY - nearest.y;
+        const len = Math.max(1, Math.hypot(dx, dy));
+        const push = TILE * 2;
+        spawn = { x: savedX + (dx / len) * push, y: savedY + (dy / len) * push };
+      } else {
+        spawn = { x: savedX, y: savedY };
+      }
+      // Clamp to world bounds (stay a tile away from the edge walls).
+      spawn.x = Math.max(TILE, Math.min(WORLD_W - TILE, spawn.x));
+      spawn.y = Math.max(TILE, Math.min(WORLD_H - TILE, spawn.y));
+      // Grant immunity so the player isn't instantly re-engaged while the
+      // fade-in plays. 2000 ms gives them time to react; ticks down in
+      // update().
+      this.combatImmunity = 2000; // ms
     } else {
       spawn = this.spawnAt(data?.spawnPoint ?? 'default');
     }
@@ -732,9 +763,21 @@ export abstract class BaseWorldScene extends Phaser.Scene {
     // Lock icon
     const lock = this.add.circle(cfg.x + cfg.w/2, cfg.y + cfg.h/2, 6, 0xc0a040);
     lock.setDepth(9);
-    // Collision
+    // Collision — main visible door.
     this.physics.add.existing(door, true);
     this.walls.add(door);
+
+    // Invisible end-cap colliders. Belt-and-suspenders: if the hall tiles
+    // adjacent to the gate are walkable for any reason (or a future layout
+    // widens the corridor without widening the gate), players could slip
+    // around the lock. These transparent walls on each side close the gap.
+    // They vanish with the gate so unlocking still opens the path.
+    const capLeft = this.add.rectangle(cfg.x - TILE / 2, cfg.y + cfg.h / 2, TILE, cfg.h, 0x000000, 0);
+    const capRight = this.add.rectangle(cfg.x + cfg.w + TILE / 2, cfg.y + cfg.h / 2, TILE, cfg.h, 0x000000, 0);
+    this.physics.add.existing(capLeft, true);
+    this.physics.add.existing(capRight, true);
+    this.walls.add(capLeft);
+    this.walls.add(capRight);
 
     const doorInteract = this.add.rectangle(cfg.x + cfg.w/2, cfg.y + cfg.h/2, cfg.w + 16, cfg.h + 16, 0x000000, 0);
     doorInteract.setDepth(1);
@@ -748,6 +791,8 @@ export abstract class BaseWorldScene extends Phaser.Scene {
           inv.removeItem(cfg.keyItem);
           door.destroy();
           lock.destroy();
+          capLeft.destroy();
+          capRight.destroy();
           const body = door.body as Phaser.Physics.Arcade.StaticBody;
           if (body) body.destroy();
           window.dispatchEvent(new CustomEvent('gameMessage', { detail: 'Door unlocked.' }));

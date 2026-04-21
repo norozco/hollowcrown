@@ -1,11 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
-import { useCombatStore } from '../../state/combatStore';
+import { useCombatStore, type CombatEvent } from '../../state/combatStore';
 import { usePlayerStore } from '../../state/playerStore';
 import { useInventoryStore } from '../../state/inventoryStore';
 import { CLASS_SKILLS, type StatusEffects } from '../../engine/combat';
 import { COMPANIONS, companionBonusLabel } from '../../engine/companion';
 import { getItem } from '../../engine/items';
 import { xpForLevel } from '../../engine/character';
+import { getPerkHpBonus } from '../../engine/perks';
+import { getHeartPieceHpBonus } from '../../state/playerStore';
 import './CombatOverlay.css';
 
 /**
@@ -36,11 +38,50 @@ export function CombatOverlay() {
   const invSlots = useInventoryStore((s) => s.slots);
   const activeCompanion = companionKey ? COMPANIONS[companionKey] : null;
 
+  const combatEvents = useCombatStore((s) => s.combatEvents);
+  const clearEvent = useCombatStore((s) => s.clearEvent);
+
   const logEndRef = useRef<HTMLDivElement>(null);
   const continueReadyRef = useRef(false);
   const [continueReady, setContinueReady] = useState(false);
   const [itemPopupOpen, setItemPopupOpen] = useState(false);
   const deathMsgRef = useRef<string>('');
+  const [shake, setShake] = useState(false);
+  const [playerHitFlash, setPlayerHitFlash] = useState(0);
+  const [enemyHitFlash, setEnemyHitFlash] = useState(0);
+  const [playerSlash, setPlayerSlash] = useState<{ id: number; crit: boolean } | null>(null);
+  const [enemySlash, setEnemySlash] = useState<{ id: number; crit: boolean } | null>(null);
+
+  // Track which event ids have already been processed so we only react once
+  // per emission even when the events array changes for other reasons.
+  const seenEventIds = useRef<Set<number>>(new Set());
+  useEffect(() => {
+    const fresh = combatEvents.filter((e) => !seenEventIds.current.has(e.id));
+    if (fresh.length === 0) return;
+    for (const ev of fresh) {
+      seenEventIds.current.add(ev.id);
+      // Shake on heavy hits or crits
+      if ((ev.kind === 'damage' && ev.amount >= 10) || ev.kind === 'crit') {
+        setShake(false);
+        requestAnimationFrame(() => setShake(true));
+        window.setTimeout(() => setShake(false), 260);
+      }
+      // Hit flash + slash/star
+      if (ev.kind === 'damage' || ev.kind === 'crit') {
+        if (ev.target === 'enemy') {
+          setEnemyHitFlash((n) => n + 1);
+          setEnemySlash({ id: ev.id, crit: ev.kind === 'crit' });
+          window.setTimeout(() => setEnemySlash((s) => (s?.id === ev.id ? null : s)), 220);
+        } else {
+          setPlayerHitFlash((n) => n + 1);
+          setPlayerSlash({ id: ev.id, crit: ev.kind === 'crit' });
+          window.setTimeout(() => setPlayerSlash((s) => (s?.id === ev.id ? null : s)), 220);
+        }
+      }
+      // Auto-prune after floating-number animation completes
+      window.setTimeout(() => clearEvent(ev.id), 900);
+    }
+  }, [combatEvents, clearEvent]);
 
   // Lock in a death message when defeat phase is first reached.
   useEffect(() => {
@@ -141,8 +182,41 @@ export function CombatOverlay() {
   const isOver = state.phase === 'victory' || state.phase === 'defeat' || state.phase === 'fled';
   const isPlayerTurn = state.phase === 'player_turn';
 
+  // HP bar percentages
+  const perkHpB = getPerkHpBonus(usePlayerStore.getState().perks);
+  const heartHpB = getHeartPieceHpBonus(usePlayerStore.getState().heartPieces);
+  const playerMaxHp = character.derived.maxHp + perkHpB + heartHpB;
+  const playerHpPct = Math.max(0, Math.min(100, (state.playerHp / playerMaxHp) * 100));
+  const enemyHpPct = Math.max(0, Math.min(100, (state.monsterHp / monster.maxHp) * 100));
+
+  const playerEvents = combatEvents.filter((e) => e.target === 'player');
+  const enemyEvents = combatEvents.filter((e) => e.target === 'enemy');
+
   return (
-    <div className="combat">
+    <div className={`combat${shake ? ' combat--shake' : ''}`}>
+      <div className="combat__battlefield">
+        <CombatantPanel
+          side="player"
+          name={character.name}
+          hpPct={playerHpPct}
+          hp={state.playerHp}
+          maxHp={playerMaxHp}
+          flashKey={playerHitFlash}
+          events={playerEvents}
+          slash={playerSlash}
+        />
+        <div className="combat__vs">VS</div>
+        <CombatantPanel
+          side="enemy"
+          name={monster.name}
+          hpPct={enemyHpPct}
+          hp={state.monsterHp}
+          maxHp={monster.maxHp}
+          flashKey={enemyHitFlash}
+          events={enemyEvents}
+          slash={enemySlash}
+        />
+      </div>
       <div className="combat__log">
         {state.log.map((entry, i) => (
           <p key={i} className={`combat__log-entry combat__log--${entry.type}`}>
@@ -289,5 +363,86 @@ export function CombatOverlay() {
         )}
       </div>
     </div>
+  );
+}
+
+/**
+ * Portrait + HP bar + floating-number layer for one combatant.
+ * The HP bar fills are width-transitioned so damage drains smoothly;
+ * a brighter "lag bar" sits underneath and trails the real bar.
+ */
+function CombatantPanel({
+  side, name, hpPct, hp, maxHp, flashKey, events, slash,
+}: {
+  side: 'player' | 'enemy';
+  name: string;
+  hpPct: number;
+  hp: number;
+  maxHp: number;
+  flashKey: number;
+  events: CombatEvent[];
+  slash: { id: number; crit: boolean } | null;
+}) {
+  // "Lag bar" — trails behind the real HP bar on damage for a Persona-5 feel
+  const [lagPct, setLagPct] = useState(hpPct);
+  useEffect(() => {
+    if (hpPct < lagPct) {
+      // Delay, then catch up
+      const t = window.setTimeout(() => setLagPct(hpPct), 200);
+      return () => clearTimeout(t);
+    }
+    setLagPct(hpPct);
+  }, [hpPct, lagPct]);
+
+  return (
+    <div className={`combat__panel combat__panel--${side}`}>
+      <div className="combat__panel-name">{name}</div>
+      <div
+        key={flashKey}
+        className={`combat__portrait combat__portrait--${side}${
+          flashKey > 0 ? ` combat__portrait--hit-${side}` : ''
+        }`}
+      >
+        <span className="combat__portrait-glyph">{side === 'player' ? '\u2020' : '\u2620'}</span>
+        {slash && (
+          slash.crit ? (
+            <span key={slash.id} className="combat__starburst" aria-hidden />
+          ) : (
+            <span key={slash.id} className="combat__slash" aria-hidden />
+          )
+        )}
+        <div className="combat__floats">
+          {events.map((ev) => (
+            <FloatingNumber key={ev.id} ev={ev} />
+          ))}
+        </div>
+      </div>
+      <div className="combat__hp-wrap">
+        <div className="combat__hp-track">
+          <div className="combat__hp-lag" style={{ width: `${lagPct}%` }} />
+          <div className={`combat__hp-fill combat__hp-fill--${side}`} style={{ width: `${hpPct}%` }} />
+        </div>
+        <div className="combat__hp-label">{hp} / {maxHp}</div>
+      </div>
+    </div>
+  );
+}
+
+function FloatingNumber({ ev }: { ev: CombatEvent }) {
+  let cls = 'combat__float';
+  let text = String(ev.amount);
+  if (ev.kind === 'heal') { cls += ' combat__float--heal'; text = `+${ev.amount}`; }
+  else if (ev.kind === 'miss') { cls += ' combat__float--miss'; text = 'MISS'; }
+  else if (ev.kind === 'crit') { cls += ' combat__float--crit'; text = `CRIT! ${ev.amount}`; }
+  else if (ev.target === 'player') { cls += ' combat__float--player-dmg'; text = `-${ev.amount}`; }
+  else { cls += ' combat__float--enemy-dmg'; text = `-${ev.amount}`; }
+
+  // Nudge horizontally so stacked numbers don't overlap perfectly
+  const offset = (ev.id % 5) * 12 - 24;
+  return (
+    <span className={cls} style={{ left: `calc(50% + ${offset}px)` }}>
+      {text}
+      {ev.kind === 'crit' && <span className="combat__crit-star" aria-hidden />}
+    </span>
   );
 }

@@ -126,8 +126,9 @@ export function MainMenu() {
       }
     }
 
-    // Reset killed enemies
+    // Reset killed enemies and quest kill counts
     useCombatStore.getState().killedEnemies.clear();
+    useCombatStore.setState({ questKillCounts: {} });
 
     // Reset lore
     useLoreStore.getState().reset();

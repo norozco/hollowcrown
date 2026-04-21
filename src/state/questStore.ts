@@ -14,6 +14,24 @@ import { getQuest } from '../engine/quests';
  * completing an already-completed objective is a no-op. This means the
  * dialogue effect system can safely re-fire on the same node without
  * corrupting progress.
+ *
+ * ─── QUEST AUDIT (last updated with kill-count fix) ───
+ * Kill-objective quests read `combatStore.questKillCounts[monsterKey]`
+ * (a persistent counter that is NOT cleared on zone exit — unlike
+ * `killedEnemies`, which is cleared so enemies respawn). The mapping
+ * lives in combatStore.finish(). Keep this table in sync when adding
+ * new kill quests:
+ *   wolf-cull         → 3x monster.key 'wolf'      (Greenhollow)
+ *   bone-collector    → 2x monster.key 'skeleton'  (Mossbarrow)
+ *   spider-nest       → 3x monster.key 'spider'    (Mossbarrow Depths)
+ *   wraith-hunt       → 2x monster.key 'wraith'    (Depths Floor 2)
+ *   hollow-king-slayer→ 1x 'hollow_king'           (boss)
+ *   warden-slayer     → 1x 'drowned_warden'        (boss)
+ *   the-crownless-one → 1x 'crownless_one'         (final boss)
+ * Non-kill quests (herb-gathering, iron-delivery, silk-trader, deep-hook,
+ * bone-ritual, iron-token, scholars-trail, the-final-gate, explorer
+ * quests, what-remains) complete via dialogue effects or scene-event
+ * calls to completeObjective — not through combatStore.
  */
 interface QuestStoreState {
   /** questId → state (active or complete). Complete quests stay here so
