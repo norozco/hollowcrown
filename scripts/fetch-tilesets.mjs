@@ -39,6 +39,16 @@ const PACKS = [
     pageUrl: 'https://kenney.nl/assets/tiny-dungeon',
     primary: 'https://kenney.nl/media/pages/assets/tiny-dungeon/b56d7a13e3-1674742415/kenney_tiny-dungeon.zip',
   },
+  {
+    name: 'roguelike-rpg',
+    pageUrl: 'https://kenney.nl/assets/roguelike-rpg-pack',
+    primary: 'https://kenney.nl/media/pages/assets/roguelike-rpg-pack/1cb71b28fb-1677697420/kenney_roguelike-rpg-pack.zip',
+    // The Roguelike/RPG Pack packs its main sheet at a different path.
+    packedCandidates: [
+      'Spritesheet/roguelikeSheet_transparent.png',
+      'Spritesheet/roguelikeSheet_magenta.png',
+    ],
+  },
 ];
 
 async function fetchBuffer(url) {
@@ -54,7 +64,8 @@ async function resolveZipUrl(pack) {
   } catch {
     // Scrape the page for the current zip URL.
     const html = await (await fetch(pack.pageUrl)).text();
-    const re = new RegExp(`https?://[^"'\\s]*${pack.name.replace('-', '[_-]')}[^"'\\s]*\\.zip`, 'i');
+    const nameForRe = pack.name.replace(/-/g, '[_-]');
+    const re = new RegExp(`https?://[^"'\\s]*${nameForRe}[^"'\\s]*\\.zip`, 'i');
     const m = html.match(re);
     if (!m) throw new Error(`Could not find zip URL on ${pack.pageUrl}`);
     const buf = await fetchBuffer(m[0]);
@@ -89,7 +100,13 @@ async function main() {
     await mkdir(outDir, { recursive: true });
     extract(zipPath, outDir);
 
-    const packedSrc = path.join(outDir, 'Tilemap', 'tilemap_packed.png');
+    let packedSrc = path.join(outDir, 'Tilemap', 'tilemap_packed.png');
+    if (pack.packedCandidates) {
+      for (const rel of pack.packedCandidates) {
+        const cand = path.join(outDir, rel);
+        if (existsSync(cand)) { packedSrc = cand; break; }
+      }
+    }
     const licenseSrc = path.join(outDir, 'License.txt');
     const packedDst = path.join(DEST, `${pack.name}_packed.png`);
     const licenseDst = path.join(DEST, `${pack.name}_License.txt`);

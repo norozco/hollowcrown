@@ -21,8 +21,13 @@ export class BootScene extends Phaser.Scene {
 
   preload(): void {
     if (USE_SPRITE_TILES) {
-      // 12 cols × 11 rows of 16×16 CC0 sprite tiles. See tileMap.ts.
-      this.load.spritesheet(TOWN_KEY, TOWN_URL, { frameWidth: 16, frameHeight: 16 });
+      // Kenney Roguelike/RPG Pack: 57×31 tiles of 16×16 with 1px gap.
+      // Kenney Tiny Dungeon: 12×11 tiles of 16×16, no gap.
+      // Note: the tileset overlay pipeline in tiles/generateTiles.ts reads
+      // raw pixels from the source image using SHEET_GEOM, so the
+      // frame-based spritesheet slicing here is only used if anything
+      // later wants to access tiles by frame index.
+      this.load.spritesheet(TOWN_KEY, TOWN_URL, { frameWidth: 16, frameHeight: 16, margin: 0, spacing: 1 });
       this.load.spritesheet(DUNGEON_KEY, DUNGEON_URL, { frameWidth: 16, frameHeight: 16 });
       // Tolerate missing files (offline dev, fresh checkout without npm run fetch-tilesets).
       this.load.on('loaderror', (file: Phaser.Loader.File) => {

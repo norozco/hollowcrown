@@ -4,8 +4,7 @@ import {
   TILE_SPRITE_MAP,
   TOWN_KEY,
   DUNGEON_KEY,
-  KENNEY_COLS,
-  KENNEY_TILE_PX,
+  SHEET_GEOM,
 } from './tileMap';
 
 /**
@@ -105,14 +104,13 @@ function overlaySpriteTiles(scene: Phaser.Scene, ctx: Ctx): void {
     const ref = TILE_SPRITE_MAP[semantic]!;
     const img = ref.sheet === 'town' ? town : dungeon;
     if (!img) continue;
-    const col = ref.index % KENNEY_COLS;
-    const row = Math.floor(ref.index / KENNEY_COLS);
-    const sx = col * KENNEY_TILE_PX;
-    const sy = row * KENNEY_TILE_PX;
+    const geom = SHEET_GEOM[ref.sheet];
+    const sx = ref.col * geom.pitch;
+    const sy = ref.row * geom.pitch;
     // Clear the slot first so procedural art doesn't bleed through
     // transparent Kenney pixels (many dungeon tiles have alpha borders).
     ctx.clearRect(ox(semantic), 0, S, S);
-    ctx.drawImage(img, sx, sy, KENNEY_TILE_PX, KENNEY_TILE_PX, ox(semantic), 0, S, S);
+    ctx.drawImage(img, sx, sy, geom.tilePx, geom.tilePx, ox(semantic), 0, S, S);
   }
 
   ctx.imageSmoothingEnabled = prevSmooth;
