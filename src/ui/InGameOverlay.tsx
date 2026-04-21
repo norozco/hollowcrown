@@ -41,6 +41,7 @@ import { useDungeonMapStore } from '../state/dungeonMapStore';
 import { useTimeStore, getPhaseIcon } from '../state/timeStore';
 import { Sfx, unlockAudio, playMusic } from '../engine/audio';
 import { initGamepadSupport } from '../engine/gamepad';
+import { useGameStatsStore } from '../state/gameStatsStore';
 import './InGameOverlay.css';
 
 /**
@@ -174,6 +175,90 @@ export function InGameOverlay() {
   useEffect(() => {
     applyStoredOptions();
     initGamepadSupport();
+  }, []);
+
+  // FPS counter + game time tick loop.
+  const [fps, setFps] = useState(60);
+  useEffect(() => {
+    let lastTick = performance.now();
+    let frames = 0;
+    let fpsAccum = 0;
+    let rafId = 0;
+    const loop = (now: number) => {
+      const dt = now - lastTick;
+      lastTick = now;
+      frames++;
+      fpsAccum += dt;
+      if (fpsAccum >= 500) {
+        setFps(Math.round((frames / fpsAccum) * 1000));
+        frames = 0;
+        fpsAccum = 0;
+      }
+      // Tick play time (game stats store, paused-aware)
+      useGameStatsStore.getState().tick(dt);
+      rafId = requestAnimationFrame(loop);
+    };
+    rafId = requestAnimationFrame(loop);
+    return () => cancelAnimationFrame(rafId);
+  }, []);
+
+  // Pause when any overlay is open or window loses focus.
+  useEffect(() => {
+    const anyOverlayOpen =
+      menuOpen || inventoryOpen || shopOpen || craftingOpen ||
+      questBoardOpen || optionsOpen || achievementsOpen || worldMapOpen ||
+      bestiaryOpen || journalOpen || statScreenOpen || fastTravelOpen ||
+      dungeonMapOpen;
+    useGameStatsStore.getState().setPaused(anyOverlayOpen);
+
+    // Pause/resume Phaser world scenes so enemies/timers freeze too.
+    const game = (window as { __phaserGame?: { scene?: { scenes: { key: string; sys: { isActive: () => boolean; pause: () => void; resume: () => void } }[] } } }).__phaserGame;
+    if (game?.scene?.scenes) {
+      for (const s of game.scene.scenes) {
+        if (!s.sys.isActive()) continue;
+        if (s.key === 'CombatScene') continue; // combat runs on its own pacing
+        if (anyOverlayOpen) s.sys.pause();
+        else s.sys.resume();
+      }
+    }
+  }, [menuOpen, inventoryOpen, shopOpen, craftingOpen, questBoardOpen,
+      optionsOpen, achievementsOpen, worldMapOpen, bestiaryOpen,
+      journalOpen, statScreenOpen, fastTravelOpen, dungeonMapOpen]);
+
+  // Auto-pause on window blur (Steam expectation).
+  useEffect(() => {
+    const onBlur = () => {
+      if (!menuOpen && !dialogueActive && !combatActive) {
+        setMenuOpen(true);
+      }
+    };
+    window.addEventListener('blur', onBlur);
+    return () => window.removeEventListener('blur', onBlur);
+  }, [menuOpen, dialogueActive, combatActive]);
+
+  // F12 screenshot — capture canvas + UI + save as PNG.
+  useEffect(() => {
+    const onKey = async (e: KeyboardEvent) => {
+      if (e.key !== 'F12' && e.key !== 'PrintScreen') return;
+      e.preventDefault();
+      const canvas = document.querySelector('#phaser-container canvas') as HTMLCanvasElement | null;
+      if (!canvas) return;
+      try {
+        const dataUrl = canvas.toDataURL('image/png');
+        const link = document.createElement('a');
+        const ts = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+        link.download = `hollowcrown-${ts}.png`;
+        link.href = dataUrl;
+        link.click();
+        useGameStatsStore.getState().addScreenshot();
+        Sfx.menuClick();
+        window.dispatchEvent(new CustomEvent('gameMessage', { detail: 'Screenshot saved.' }));
+      } catch {
+        // canvas might be tainted; fail silently
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
   }, []);
 
   // Unlock audio on first user interaction + wire up SFX listeners.
@@ -378,6 +463,7 @@ export function InGameOverlay() {
     resetAchievements();
     resetLore();
     resetDungeonMap();
+    useGameStatsStore.getState().reset();
     resetTime();
     useCommissionStore.getState().reset();
     useDungeonItemStore.getState().reset();
@@ -431,6 +517,11 @@ export function InGameOverlay() {
     <div className="ig">
       {character.hp > 0 && character.hp / effectiveMaxHp < 0.25 && (
         <div className="ig__low-hp" aria-hidden="true" />
+      )}
+      {typeof window !== 'undefined' && window.__showFps && (
+        <div className="ig__fps" aria-hidden="true">
+          <span className={fps >= 55 ? 'is-good' : fps >= 30 ? 'is-ok' : 'is-bad'}>{fps}</span> FPS
+        </div>
       )}
       <header className="ig__hud">
         <div className="ig__hud-left">

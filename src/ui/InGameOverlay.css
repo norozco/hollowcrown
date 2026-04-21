@@ -621,3 +621,25 @@
   z-index: 9;
   animation: low-hp-pulse 1.2s ease-in-out infinite;
 }
+
+/* FPS counter — corner overlay */
+.ig__fps {
+  position: absolute;
+  top: 3.5rem;
+  left: 0.8rem;
+  z-index: 20;
+  background: rgba(0, 0, 0, 0.65);
+  border: 2px solid #000;
+  padding: 2px 8px;
+  font-family: 'Courier New', monospace;
+  font-size: 0.85rem;
+  font-weight: 900;
+  color: #ffd43a;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  box-shadow: 2px 2px 0 #c81e1e;
+  pointer-events: none;
+}
+.ig__fps .is-good { color: #6ae06a; }
+.ig__fps .is-ok { color: #ffd43a; }
+.ig__fps .is-bad { color: #e06a6a; }

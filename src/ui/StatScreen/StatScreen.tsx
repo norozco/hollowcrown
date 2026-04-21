@@ -8,6 +8,7 @@ import { getPerkHpBonus, getPerkMpBonus, getPerkCombatBonuses, ALL_PERKS } from 
 import { COMPANIONS, companionBonusLabel } from '../../engine/companion';
 import { getCurrentRank } from '../../engine/ranks';
 import { modifier, STAT_KEYS } from '../../engine/stats';
+import { useGameStatsStore, formatPlayTime } from '../../state/gameStatsStore';
 import './StatScreen.css';
 
 interface Props { onClose: () => void; }
@@ -31,6 +32,8 @@ export function StatScreen({ onClose }: Props) {
   const totalDeaths = useAchievementStore((s) => s.totalDeaths);
   const bossesKilled = useAchievementStore((s) => s.bossesKilled);
   const zonesVisited = useAchievementStore((s) => s.zonesVisited);
+  const playTimeMs = useGameStatsStore((s) => s.playTimeMs);
+  const screenshotCount = useGameStatsStore((s) => s.screenshotCount);
   const questActive = useQuestStore((s) => s.active);
   const heartPieces = usePlayerStore((s) => s.heartPieces);
   const ancientCoins = usePlayerStore((s) => s.ancientCoins);
@@ -187,6 +190,16 @@ export function StatScreen({ onClose }: Props) {
               <span className="statscreen__row-label">Bosses Slain</span>
               <span className="statscreen__row-value">{bossesKilled.length}</span>
             </div>
+            <div className="statscreen__row">
+              <span className="statscreen__row-label">Time Played</span>
+              <span className="statscreen__row-value">{formatPlayTime(playTimeMs)}</span>
+            </div>
+            {screenshotCount > 0 && (
+              <div className="statscreen__row">
+                <span className="statscreen__row-label">Screenshots</span>
+                <span className="statscreen__row-value">{screenshotCount}</span>
+              </div>
+            )}
           </div>
 
           {/* Exploration */}

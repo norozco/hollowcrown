@@ -8,6 +8,7 @@ import { useQuestStore } from '../state/questStore';
 import { useInventoryStore } from '../state/inventoryStore';
 import { useCombatStore } from '../state/combatStore';
 import { useAchievementStore } from '../state/achievementStore';
+import { useGameStatsStore } from '../state/gameStatsStore';
 import { useBountyStore } from '../state/bountyStore';
 import { useCommissionStore } from '../state/commissionStore';
 import { useTimeStore, type TimePhase } from '../state/timeStore';
@@ -38,6 +39,8 @@ interface SaveData {
   ancientCoins?: string[];
   /** Active companion key (added post-v1, optional for compat). */
   companion?: string | null;
+  /** Total play time in milliseconds (added post-v1). */
+  playTimeMs?: number;
   /** Achievement tracking (added post-v1, optional for compat). */
   achievements?: {
     unlocked: string[];
@@ -117,6 +120,7 @@ export function saveGame(slot: string, currentScene = 'TownScene'): boolean {
     heartPiecesCollected: Array.from(playerState.heartPiecesCollected),
     ancientCoins: Array.from(playerState.ancientCoins),
     companion: playerState.companion,
+    playTimeMs: useGameStatsStore.getState().playTimeMs,
     achievements: {
       unlocked: Array.from(achievementState.unlocked),
       totalKills: achievementState.totalKills,
@@ -252,6 +256,11 @@ export function loadGame(slot: string): boolean {
     // Restore dungeon items
     if (data.dungeonItems) {
       useDungeonItemStore.setState({ found: new Set(data.dungeonItems) });
+    }
+
+    // Restore play time
+    if (typeof data.playTimeMs === 'number') {
+      useGameStatsStore.getState().loadTime(data.playTimeMs);
     }
 
     // Restore lore
