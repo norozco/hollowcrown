@@ -11,6 +11,7 @@ import { useCommissionStore } from '../state/commissionStore';
 import { useBountyStore } from '../state/bountyStore';
 import { rollRandomCharacter } from '../engine/random-character';
 import { loadGame, getSaveSlots, type SaveSlotInfo } from '../engine/saveLoad';
+import { Credits } from './Credits/Credits';
 import './MainMenu.css';
 
 /**
@@ -24,6 +25,7 @@ export function MainMenu() {
   const createPlayer = usePlayerStore((s) => s.create);
 
   const [loadPanelOpen, setLoadPanelOpen] = useState(false);
+  const [creditsOpen, setCreditsOpen] = useState(false);
   const [saveSlots, setSaveSlots] = useState<SaveSlotInfo[]>([]);
   const [attractMode, setAttractMode] = useState(false);
 
@@ -237,9 +239,9 @@ export function MainMenu() {
           )}
           <button
             type="button"
-            onClick={() => alert('Options: coming in Milestone 14')}
+            onClick={() => setCreditsOpen(true)}
           >
-            Options
+            Credits
           </button>
           <button
             type="button"
@@ -252,6 +254,8 @@ export function MainMenu() {
           </button>
         </nav>
       )}
+
+      {creditsOpen && <Credits onClose={() => setCreditsOpen(false)} />}
 
       <p className="main-menu__version">v0.0.1 — milestone 1</p>
     </div>

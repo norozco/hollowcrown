@@ -6,6 +6,8 @@ import { currentNode, meetsAllRequirements } from '../../engine/dialogue';
 import { getNPC } from '../../engine/npcs';
 import { SpeakerPortrait } from './SpeakerPortrait';
 import { pickPortraitUrl } from './portraitAssets';
+import { useTypewriter } from './useTypewriter';
+import { Sfx } from '../../engine/audio';
 import './DialogueScene.css';
 
 /**
@@ -72,13 +74,15 @@ export function DialogueScene() {
       if (pendingChoice !== null) {
         if (e.key === ' ' || e.key === 'Enter') {
           e.preventDefault();
+          // If still typing, skip to end first (don't commit yet)
+          if (!tw.done) { tw.skip(); return; }
           choose(pendingChoice);
           setPendingChoice(null);
         }
         return;
       }
 
-      if (visibleChoices.length > 0) {
+      if (visibleChoices.length > 0 && tw.done) {
         // 1..9 selects by VISIBLE position — translate to the original
         // choice index so we navigate to the right node.
         const n = parseInt(e.key, 10);
@@ -91,6 +95,8 @@ export function DialogueScene() {
 
       if (e.key === ' ' || e.key === 'Enter') {
         e.preventDefault();
+        // If still typing, skip to end first
+        if (!tw.done) { tw.skip(); return; }
         advance();
       }
     };
@@ -121,7 +127,20 @@ export function DialogueScene() {
   const showingPlayerLine = pendingChoice !== null && !!node.choices?.[pendingChoice];
   const stagedChoice = showingPlayerLine ? node.choices![pendingChoice!] : null;
 
+  // Typewriter effect for the current line of text.
+  const activeText = showingPlayerLine ? (stagedChoice?.text ?? '') : node.text;
+  const tw = useTypewriter(activeText);
+
+  // Play a subtle dialogue tick SFX every few characters
+  useEffect(() => {
+    if (!tw.done && tw.displayed.length > 0 && tw.displayed.length % 4 === 0) {
+      Sfx.dialogueTick();
+    }
+  }, [tw.displayed, tw.done]);
+
   const onClickTextBox = () => {
+    // If still typing, click skips the typewriter first
+    if (!tw.done) { tw.skip(); return; }
     if (showingPlayerLine) {
       choose(pendingChoice!);
       setPendingChoice(null);
@@ -225,8 +244,8 @@ export function DialogueScene() {
             <div className="dlg__speaker-line">
               <span className="dlg__speaker-name">{character.name}</span>
             </div>
-            <p className="dlg__text">{stagedChoice!.text}</p>
-            <p className="dlg__advance-hint">▸ Press Space or click to continue</p>
+            <p className="dlg__text">{tw.displayed}{!tw.done && <span className="dlg__caret">▊</span>}</p>
+            {tw.done && <p className="dlg__advance-hint">▸ Press Space or click to continue</p>}
           </>
         ) : (
           <>
@@ -236,9 +255,9 @@ export function DialogueScene() {
                 {speakerTitle && <span className="dlg__speaker-title">{speakerTitle}</span>}
               </div>
             )}
-            <p className="dlg__text">{node.text}</p>
+            <p className="dlg__text">{tw.displayed}{!tw.done && <span className="dlg__caret">▊</span>}</p>
 
-            {visibleChoices.length > 0 ? (
+            {tw.done && visibleChoices.length > 0 ? (
               <ul className="dlg__choices" aria-label="Response options">
                 {visibleChoices.map(({ choice, idx }, pos) => (
                   <li key={idx}>

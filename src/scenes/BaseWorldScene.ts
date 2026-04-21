@@ -13,6 +13,7 @@ import { useCommissionStore } from '../state/commissionStore';
 import { useDungeonItemStore } from '../state/dungeonItemStore';
 import { useDungeonMapStore } from '../state/dungeonMapStore';
 import { useTimeStore, getPhaseTint } from '../state/timeStore';
+import { spawnWeather, getWeatherForScene } from './weather';
 import {
   generateCharacterSprite,
   getNpcPalette,
@@ -215,6 +216,13 @@ export abstract class BaseWorldScene extends Phaser.Scene {
     this.cameras.main.setBounds(0, 0, WORLD_W, WORLD_H);
     this.physics.world.setBounds(0, 0, WORLD_W, WORLD_H);
     this.cameras.main.fadeIn(FADE_MS, 0, 0, 0);
+
+    // Weather — zone-specific ambient particles
+    const weatherKind = getWeatherForScene(this.scene.key);
+    const stopWeather = spawnWeather(this, weatherKind, WORLD_W, WORLD_H);
+    // Clean up on scene shutdown
+    this.events.once('shutdown', stopWeather);
+    this.events.once('destroy', stopWeather);
 
     // Dark room — if the scene is marked dark and the player lacks the Lantern,
     // create a RenderTexture overlay and a brush to erase a circle of light.

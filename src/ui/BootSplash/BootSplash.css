@@ -1,0 +1,97 @@
+.boot-splash {
+  position: absolute;
+  inset: 0;
+  background: #0a0606;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+  color: #fff;
+  overflow: hidden;
+  animation: boot-bg 2.6s ease-in-out;
+}
+
+@keyframes boot-bg {
+  0%   { background: #000; }
+  30%  { background: #0a0606; }
+  100% { background: #000; }
+}
+
+.boot-splash__mark {
+  text-align: center;
+  transform: scale(0.9);
+  opacity: 0;
+  transition: all 800ms cubic-bezier(.2, .8, .2, 1);
+}
+
+.boot-splash.phase-0 .boot-splash__mark {
+  opacity: 0;
+  transform: scale(0.85) translateY(20px);
+}
+
+.boot-splash.phase-1 .boot-splash__mark {
+  opacity: 1;
+  transform: scale(1) translateY(0);
+}
+
+.boot-splash.phase-2 .boot-splash__mark {
+  opacity: 0;
+  transform: scale(1.05) translateY(-10px);
+}
+
+.boot-splash__crown {
+  margin-bottom: 1.5rem;
+  filter: drop-shadow(4px 4px 0 #000) drop-shadow(0 0 24px rgba(200, 30, 30, 0.5));
+  animation: crown-pulse 2s ease-in-out infinite;
+}
+
+@keyframes crown-pulse {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.03); }
+}
+
+.boot-splash__studio {
+  font-family: Impact, 'Arial Black', sans-serif;
+  font-size: 2.2rem;
+  font-weight: 900;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: #fff;
+  transform: skewX(-4deg);
+  text-shadow:
+    3px 3px 0 #c81e1e,
+    6px 6px 0 #000;
+  margin-bottom: 0.5rem;
+}
+
+.boot-splash__tagline {
+  font-family: 'Courier New', monospace;
+  font-size: 0.85rem;
+  color: #ffd43a;
+  letter-spacing: 0.5em;
+  text-transform: uppercase;
+  font-style: italic;
+  transform: rotate(-1deg);
+  margin-top: 1rem;
+  opacity: 0.8;
+}
+
+.boot-splash__skip {
+  position: absolute;
+  bottom: 2rem;
+  right: 2rem;
+  font-family: 'Courier New', monospace;
+  font-size: 0.7rem;
+  color: #666;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  font-style: italic;
+  opacity: 0;
+  animation: skip-fade 1s ease-in 1.5s forwards;
+}
+
+@keyframes skip-fade {
+  to { opacity: 0.6; }
+}
