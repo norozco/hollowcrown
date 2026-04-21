@@ -277,30 +277,195 @@
   margin: 0;
 }
 
-/* ── Pause menu ── */
+/* ── Pause menu — full-screen Persona 5 style ── */
 .ig__menu {
   position: absolute;
-  top: 3.2rem;
-  right: 1rem;
-  background: rgba(10, 6, 6, 0.98);
-  border: 2px solid #3a2818;
-  padding: 0.8rem;
-  min-width: 220px;
+  inset: 0;
+  z-index: 20;
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
-  z-index: 15;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+  align-items: center;
+  justify-content: flex-start;
+  padding: 3rem 2rem 2rem;
+  overflow-y: auto;
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+  animation: ig-menu-fade 240ms ease-out;
 }
 
-.ig__menu h3 {
-  color: #d4a968;
-  letter-spacing: 0.2rem;
-  margin: 0 0 0.2rem 0;
-  text-align: center;
-  border-bottom: 1px solid #3a2818;
-  padding-bottom: 0.3rem;
-  font-size: 0.9rem;
+@keyframes ig-menu-fade { from { opacity: 0; } to { opacity: 1; } }
+
+.ig__menu-bg {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(ellipse at 20% 30%, rgba(200, 30, 30, 0.25) 0%, transparent 55%),
+    radial-gradient(ellipse at 80% 70%, rgba(255, 212, 58, 0.15) 0%, transparent 55%),
+    rgba(10, 6, 6, 0.88);
+}
+
+.ig__menu-bg::before {
+  content: '';
+  position: absolute;
+  top: 12%;
+  left: -20%;
+  right: -20%;
+  height: 180px;
+  background: #000;
+  transform: rotate(-3deg);
+  box-shadow: 0 4px 0 rgba(200, 30, 30, 0.4);
+}
+
+.ig__menu-bg::after {
+  content: '';
+  position: absolute;
+  bottom: 10%;
+  left: -10%;
+  right: -10%;
+  height: 44px;
+  background: linear-gradient(90deg, transparent, #c81e1e 30%, #c81e1e 70%, transparent);
+  transform: rotate(2deg);
+  opacity: 0.6;
+}
+
+.ig__menu-title {
+  position: relative;
+  z-index: 2;
+  margin: 0 0 1.5rem;
+  font-family: Impact, 'Arial Black', sans-serif;
+  font-size: clamp(3rem, 8vw, 5rem);
+  font-weight: 900;
+  color: #fff;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  transform: rotate(-2deg) skewX(-4deg);
+  text-shadow:
+    4px 4px 0 #c81e1e,
+    8px 8px 0 #000,
+    12px 12px 30px rgba(0, 0, 0, 0.85);
+  animation: ig-menu-pop 420ms cubic-bezier(.2, 1.6, .3, 1);
+}
+
+@keyframes ig-menu-pop {
+  from { transform: rotate(-2deg) skewX(-4deg) scale(0.6); opacity: 0; }
+  to   { transform: rotate(-2deg) skewX(-4deg) scale(1); opacity: 1; }
+}
+
+.ig__menu-panel {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(220px, 1fr));
+  gap: 1.2rem;
+  width: min(960px, 95vw);
+  padding: 1.4rem;
+  background: #fff;
+  color: #0a0a0a;
+  border: 4px solid #000;
+  box-shadow: 12px 12px 0 #000;
+  transform: rotate(-0.5deg);
+  animation: ig-menu-panel-in 360ms cubic-bezier(.2, .8, .2, 1) 80ms backwards;
+}
+
+@keyframes ig-menu-panel-in {
+  from { transform: rotate(-4deg) scale(0.9); opacity: 0; }
+  to   { transform: rotate(-0.5deg) scale(1); opacity: 1; }
+}
+
+@media (max-width: 720px) {
+  .ig__menu-panel { grid-template-columns: 1fr; }
+}
+
+.ig__menu-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.ig__menu-group-label {
+  font-family: Impact, 'Arial Black', sans-serif;
+  font-size: 1rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #c81e1e;
+  border-bottom: 3px solid #000;
+  padding-bottom: 0.25rem;
+  margin-bottom: 0.25rem;
+  transform: skewX(-4deg);
+}
+
+.ig__menu-btn2 {
+  background: #fff;
+  color: #0a0a0a;
+  border: 3px solid #000;
+  padding: 0.6rem 1rem 0.6rem 1.4rem;
+  font-family: Impact, 'Arial Black', sans-serif;
+  font-size: 1.05rem;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transform: skewX(-10deg);
+  box-shadow: 5px 5px 0 #000;
+  text-align: left;
+  position: relative;
+  overflow: hidden;
+  transition: transform 120ms ease, background 120ms ease, box-shadow 120ms ease;
+}
+
+.ig__menu-btn2::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 6px;
+  height: 100%;
+  background: #c81e1e;
+}
+
+.ig__menu-btn2:hover,
+.ig__menu-btn2:focus-visible {
+  outline: none;
+  background: #ffd43a;
+  transform: skewX(-10deg) translate(4px, -2px);
+  box-shadow: 8px 8px 0 #000;
+}
+
+.ig__menu-btn2:active {
+  transform: skewX(-10deg) translate(2px, 2px);
+  box-shadow: 2px 2px 0 #000;
+}
+
+.ig__menu-btn2.is-primary {
+  background: #ffd43a;
+  color: #000;
+}
+.ig__menu-btn2.is-primary::before { background: #000; }
+.ig__menu-btn2.is-primary:hover { background: #fff; }
+
+.ig__menu-btn2.is-danger {
+  background: #000;
+  color: #fff;
+  box-shadow: 5px 5px 0 #c81e1e;
+}
+.ig__menu-btn2.is-danger::before { background: #fff; }
+.ig__menu-btn2.is-danger:hover {
+  background: #c81e1e;
+  color: #fff;
+  box-shadow: 8px 8px 0 #000;
+}
+
+.ig__menu-hint {
+  position: relative;
+  z-index: 2;
+  margin-top: 1rem;
+  font-family: 'Courier New', monospace;
+  font-size: 0.78rem;
+  color: #ffd43a;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  transform: rotate(-1deg);
+  font-style: italic;
 }
 
 /* ── Game message (center of screen) ── */

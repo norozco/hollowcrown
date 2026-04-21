@@ -20,7 +20,7 @@ import { useDungeonItemStore } from '../state/dungeonItemStore';
 import { DUNGEON_ITEMS } from '../engine/dungeonItems';
 import { getHeartPieceHpBonus } from '../state/playerStore';
 import { QuestBoard } from './QuestBoard/QuestBoard';
-import { OptionsMenu } from './OptionsMenu/OptionsMenu';
+import { OptionsMenu, applyStoredOptions } from './OptionsMenu/OptionsMenu';
 import { AchievementsScreen } from './Achievements/AchievementsScreen';
 import { AchievementToast } from './AchievementToast/AchievementToast';
 import { Bestiary } from './Bestiary/Bestiary';
@@ -168,19 +168,9 @@ export function InGameOverlay() {
     return () => clearTimeout(t);
   }, []);
 
-  // Apply stored brightness on mount so it persists across reloads.
+  // Apply stored options (brightness, volumes, shake intensity, FPS) on mount.
   useEffect(() => {
-    const stored = localStorage.getItem('hc_brightness');
-    if (stored) {
-      const val = parseFloat(stored);
-      if (val !== 1.0) {
-        const el = document.getElementById('phaser-container');
-        if (el) el.style.filter = `brightness(${val})`;
-      }
-    }
-    // Restore FPS toggle
-    const fpsStored = localStorage.getItem('hc_showFps');
-    if (fpsStored === 'true') window.__showFps = true;
+    applyStoredOptions();
   }, []);
 
   useEffect(() => {
@@ -491,42 +481,55 @@ export function InGameOverlay() {
 
       {menuOpen && (
         <div className="ig__menu" role="dialog" aria-label="Pause menu">
-          <h3>Paused</h3>
-          <button
-            type="button"
-            className="cc__btn cc__btn--primary"
-            onClick={() => setMenuOpen(false)}
-            autoFocus
-          >
-            Resume
-          </button>
-          <button type="button" className="cc__btn" onClick={() => { saveGame('slot1'); setMenuOpen(false); }}>
-            Save (Slot 1)
-          </button>
-          <button type="button" className="cc__btn" onClick={() => { saveGame('slot2'); setMenuOpen(false); }}>
-            Save (Slot 2)
-          </button>
-          <button type="button" className="cc__btn" onClick={() => { setOptionsOpen(true); setMenuOpen(false); }}>
-            Options
-          </button>
-          <button type="button" className="cc__btn" onClick={() => { setAchievementsOpen(true); setMenuOpen(false); }}>
-            Achievements
-          </button>
-          <button type="button" className="cc__btn" onClick={() => { setWorldMapOpen(true); setMenuOpen(false); }}>
-            World Map
-          </button>
-          <button type="button" className="cc__btn" onClick={() => { setBestiaryOpen(true); setMenuOpen(false); }}>
-            Bestiary
-          </button>
-          <button type="button" className="cc__btn" onClick={() => { setJournalOpen(true); setMenuOpen(false); }}>
-            Codex
-          </button>
-          <button type="button" className="cc__btn" onClick={() => { setStatScreenOpen(true); setMenuOpen(false); }}>
-            Stats
-          </button>
-          <button type="button" className="cc__btn" onClick={returnToMenu}>
-            Return to main menu
-          </button>
+          <div className="ig__menu-bg" aria-hidden="true" />
+          <h3 className="ig__menu-title">Paused</h3>
+          <div className="ig__menu-panel">
+            <div className="ig__menu-group">
+              <div className="ig__menu-group-label">Actions</div>
+              <button
+                type="button"
+                className="ig__menu-btn2 is-primary"
+                onClick={() => setMenuOpen(false)}
+                autoFocus
+              >
+                Resume
+              </button>
+              <button type="button" className="ig__menu-btn2" onClick={() => { saveGame('slot1'); setMenuOpen(false); }}>
+                Save — Slot 1
+              </button>
+              <button type="button" className="ig__menu-btn2" onClick={() => { saveGame('slot2'); setMenuOpen(false); }}>
+                Save — Slot 2
+              </button>
+              <button type="button" className="ig__menu-btn2" onClick={() => { setOptionsOpen(true); setMenuOpen(false); }}>
+                Options
+              </button>
+            </div>
+            <div className="ig__menu-group">
+              <div className="ig__menu-group-label">Info</div>
+              <button type="button" className="ig__menu-btn2" onClick={() => { setStatScreenOpen(true); setMenuOpen(false); }}>
+                Stats
+              </button>
+              <button type="button" className="ig__menu-btn2" onClick={() => { setAchievementsOpen(true); setMenuOpen(false); }}>
+                Achievements
+              </button>
+              <button type="button" className="ig__menu-btn2" onClick={() => { setJournalOpen(true); setMenuOpen(false); }}>
+                Journal
+              </button>
+              <button type="button" className="ig__menu-btn2" onClick={() => { setBestiaryOpen(true); setMenuOpen(false); }}>
+                Bestiary
+              </button>
+              <button type="button" className="ig__menu-btn2" onClick={() => { setWorldMapOpen(true); setMenuOpen(false); }}>
+                World Map
+              </button>
+            </div>
+            <div className="ig__menu-group">
+              <div className="ig__menu-group-label">Exit</div>
+              <button type="button" className="ig__menu-btn2 is-danger" onClick={returnToMenu}>
+                Return to Main Menu
+              </button>
+            </div>
+          </div>
+          <div className="ig__menu-hint">Press ESC to resume</div>
         </div>
       )}
 

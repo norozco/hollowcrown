@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useUIStore } from '../state/uiStore';
 import { useCharacterCreationStore } from '../state/characterCreationStore';
 import { usePlayerStore } from '../state/playerStore';
@@ -25,6 +25,46 @@ export function MainMenu() {
 
   const [loadPanelOpen, setLoadPanelOpen] = useState(false);
   const [saveSlots, setSaveSlots] = useState<SaveSlotInfo[]>([]);
+  const [attractMode, setAttractMode] = useState(false);
+
+  // Pre-compute ash particle styles once so they don't jitter on every render.
+  const ashParticles = useMemo(() =>
+    Array.from({ length: 30 }).map(() => ({
+      left: `${Math.random() * 100}%`,
+      animationDelay: `${Math.random() * 8}s`,
+      animationDuration: `${8 + Math.random() * 6}s`,
+      opacity: 0.2 + Math.random() * 0.4,
+    })),
+  []);
+
+  // Attract mode: after 30s of no input, fade in a subtle ambient overlay.
+  // Any mouse or keyboard activity instantly dismisses it.
+  useEffect(() => {
+    let lastActivity = Date.now();
+
+    const checkIdle = () => {
+      if (Date.now() - lastActivity > 30000) {
+        setAttractMode((prev) => (prev ? prev : true));
+      }
+    };
+
+    const onActivity = () => {
+      lastActivity = Date.now();
+      setAttractMode((prev) => (prev ? false : prev));
+    };
+
+    window.addEventListener('mousemove', onActivity);
+    window.addEventListener('keydown', onActivity);
+    window.addEventListener('click', onActivity);
+    const timer = window.setInterval(checkIdle, 1000);
+
+    return () => {
+      window.removeEventListener('mousemove', onActivity);
+      window.removeEventListener('keydown', onActivity);
+      window.removeEventListener('click', onActivity);
+      window.clearInterval(timer);
+    };
+  }, []);
 
   const gameComplete = typeof localStorage !== 'undefined' && localStorage.getItem('hc_game_complete') === '1';
 
@@ -116,6 +156,19 @@ export function MainMenu() {
 
   return (
     <div className="main-menu" role="dialog" aria-label="Main menu">
+      {attractMode && (
+        <div className="main-menu__attract" aria-hidden="true">
+          <div className="main-menu__attract-dim" />
+          {ashParticles.map((style, i) => (
+            <div
+              key={i}
+              className="main-menu__ash"
+              style={style}
+            />
+          ))}
+          <div className="main-menu__shadow-figure" />
+        </div>
+      )}
       <div className="main-menu__title">
         <h1>HOLLOWCROWN</h1>
         <p className="main-menu__subtitle">A Dungeon of the Forgotten Repo</p>

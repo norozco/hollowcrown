@@ -10,6 +10,7 @@ import {
 } from './sprites/generateSprites';
 import { generateMonsterSprite } from './sprites/generateMonsters';
 import { usePlayerStore as _PS } from '../state/playerStore';
+import { shakeScaled } from './BaseWorldScene';
 
 /**
  * Visual battle scene — player sprite on the left, enemy on the right,
@@ -235,7 +236,7 @@ export class CombatScene extends Phaser.Scene {
         targets: glowCircle, radius: 200, alpha: 0, duration: 1200, delay: 300, ease: 'Power2',
       });
       // Camera shake mid-intro
-      this.time.delayedCall(800, () => this.cameras.main.shake(300, 0.005));
+      this.time.delayedCall(800, () => shakeScaled(this, 300, 0.005));
       // Fade everything out
       this.time.delayedCall(2400, () => {
         this.tweens.add({
@@ -470,7 +471,7 @@ export class CombatScene extends Phaser.Scene {
                 onComplete: () => flame.destroy(),
               });
             }
-            this.cameras.main.shake(150, 0.005);
+            shakeScaled(this, 150, 0.005);
           }
 
           // Ice / frost: crystal shards + white flash
@@ -491,7 +492,7 @@ export class CombatScene extends Phaser.Scene {
 
           // Avalanche: falling ice shards + big shake
           if (entry.text.includes('Avalanche') || entry.text.includes('mountain')) {
-            this.cameras.main.shake(400, 0.015);
+            shakeScaled(this, 400, 0.015);
             for (let i = 0; i < 15; i++) {
               const x = Phaser.Math.Between(pX - 60, pX + 60);
               const shard = this.add.triangle(x, -10, 0, 0, 6, -12, 12, 0, 0x80c0e0).setDepth(20);
@@ -521,7 +522,7 @@ export class CombatScene extends Phaser.Scene {
                 onComplete: () => drop.destroy(),
               });
             }
-            this.cameras.main.shake(150, 0.008);
+            shakeScaled(this, 150, 0.008);
           }
 
           // Erasure: dark overlay flash
@@ -532,7 +533,7 @@ export class CombatScene extends Phaser.Scene {
               duration: 120, yoyo: true,
               onComplete: () => overlay.destroy(),
             });
-            this.cameras.main.shake(300, 0.01);
+            shakeScaled(this, 300, 0.01);
           }
 
           // Unmaking: dark purple vortex
@@ -552,7 +553,7 @@ export class CombatScene extends Phaser.Scene {
                 onComplete: () => p.destroy(),
               });
             }
-            this.cameras.main.shake(400, 0.008);
+            shakeScaled(this, 400, 0.008);
           }
 
           // Ash Storm: swirling grey
@@ -636,7 +637,7 @@ export class CombatScene extends Phaser.Scene {
         targets: [arrow, arrowHead], x: eX - 20, duration: 300, ease: 'Linear',
         onComplete: () => {
           arrow.destroy(); arrowHead.destroy();
-          if (hit) this.cameras.main.shake(80, 0.004);
+          if (hit) shakeScaled(this, 80, 0.004);
         },
       });
     } else if (wep === 'staff') {
@@ -650,7 +651,7 @@ export class CombatScene extends Phaser.Scene {
           const flash = this.add.circle(eX - 20, eY, 20, 0xc0a0f0).setAlpha(0.7).setDepth(16);
           this.tweens.add({ targets: flash, alpha: 0, scale: 2, duration: 300, onComplete: () => flash.destroy() });
           bolt.destroy(); glow.destroy();
-          if (hit) this.cameras.main.shake(100, 0.006);
+          if (hit) shakeScaled(this, 100, 0.006);
         },
       });
     } else if (wep === 'dagger') {
@@ -664,7 +665,7 @@ export class CombatScene extends Phaser.Scene {
               .setLineWidth(2).setAlpha(0.8).setDepth(15);
             this.tweens.add({ targets: slash, alpha: 0, duration: 200, delay: i * 50, onComplete: () => slash.destroy() });
           }
-          if (hit) this.cameras.main.shake(60, 0.003);
+          if (hit) shakeScaled(this, 60, 0.003);
         },
       });
     } else if (wep === 'mace' || wep === 'axe') {
@@ -684,7 +685,7 @@ export class CombatScene extends Phaser.Scene {
               alpha: 0, duration: 300, onComplete: () => spark.destroy(),
             });
           }
-          if (hit) this.cameras.main.shake(150, 0.008);
+          if (hit) shakeScaled(this, 150, 0.008);
         },
       });
     } else {
@@ -697,7 +698,7 @@ export class CombatScene extends Phaser.Scene {
           arc.setStrokeStyle(3, 0xffffff);
           arc.setFillStyle(0xffffff, 0);
           this.tweens.add({ targets: arc, alpha: 0, scale: 1.5, duration: 250, onComplete: () => arc.destroy() });
-          if (hit) this.cameras.main.shake(100, 0.005);
+          if (hit) shakeScaled(this, 100, 0.005);
         },
       });
     }

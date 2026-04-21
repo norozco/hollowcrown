@@ -301,6 +301,60 @@
   font-style: italic;
 }
 
+/* Attract mode — idle ambient overlay shown after 30s of no input */
+.main-menu__attract {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  overflow: hidden;
+}
+
+.main-menu__attract-dim {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  animation: attract-fade-in 2s ease-out;
+}
+
+@keyframes attract-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes ash-fall {
+  0% { transform: translateY(-20px) translateX(0); opacity: 0; }
+  10% { opacity: 1; }
+  100% { transform: translateY(110vh) translateX(40px); opacity: 0; }
+}
+
+.main-menu__ash {
+  position: absolute;
+  top: 0;
+  width: 3px;
+  height: 3px;
+  background: #ffd43a;
+  border-radius: 50%;
+  animation: ash-fall linear infinite;
+  box-shadow: 0 0 4px rgba(255, 212, 58, 0.6);
+}
+
+.main-menu__shadow-figure {
+  position: absolute;
+  bottom: 15%;
+  width: 60px;
+  height: 140px;
+  background: rgba(0, 0, 0, 0.8);
+  border-radius: 30px 30px 0 0;
+  animation: shadow-walk 45s linear infinite;
+  opacity: 0.5;
+}
+
+@keyframes shadow-walk {
+  0% { left: -80px; }
+  100% { left: calc(100% + 80px); }
+}
+
 /* "No character" fallback — used inside InGameOverlay */
 .ig__center h2 {
   font-family: Impact, 'Arial Black', sans-serif;

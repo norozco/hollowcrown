@@ -82,6 +82,17 @@ const PLAYER_SPEED = 190;
 const INTERACT_RADIUS = 56;
 const FADE_MS = 250;
 
+/** Screen shake scaled by the user's `hc_shake` preference (0..1+). */
+export function shakeScaled(
+  scene: Phaser.Scene,
+  duration: number,
+  intensity: number,
+): void {
+  const mult = (window as any).__shakeIntensity ?? 1;
+  if (mult <= 0) return;
+  scene.cameras.main.shake(duration, intensity * mult);
+}
+
 export abstract class BaseWorldScene extends Phaser.Scene {
   protected player!: Phaser.GameObjects.Sprite;
   protected playerNameLabel!: Phaser.GameObjects.Text;
@@ -821,7 +832,7 @@ export abstract class BaseWorldScene extends Phaser.Scene {
         for (const c of cracks) c.destroy();
         const body = wall.body as Phaser.Physics.Arcade.StaticBody;
         if (body) body.destroy();
-        this.cameras.main.shake(200, 0.008);
+        shakeScaled(this, 200, 0.008);
         window.dispatchEvent(new CustomEvent('gameMessage', { detail: 'The wall crumbles!' }));
         this.spawnPickupParticles(cfg.x + cfg.w / 2, cfg.y + cfg.h / 2, 0x808070);
         cfg.onBreak?.();
@@ -875,7 +886,7 @@ export abstract class BaseWorldScene extends Phaser.Scene {
         wall.destroy();
         const body = wall.body as Phaser.Physics.Arcade.StaticBody;
         if (body) body.destroy();
-        this.cameras.main.shake(150, 0.006);
+        shakeScaled(this, 150, 0.006);
         window.dispatchEvent(new CustomEvent('gameMessage', { detail: 'The ice melts away.' }));
         this.spawnPickupParticles(cfg.x + cfg.w / 2, cfg.y + cfg.h / 2, 0x80c0e0);
         cfg.onMelt?.();
@@ -950,7 +961,7 @@ export abstract class BaseWorldScene extends Phaser.Scene {
           },
         });
 
-        this.cameras.main.shake(50, 0.003);
+        shakeScaled(this, 50, 0.003);
       },
     });
   }
@@ -981,7 +992,7 @@ export abstract class BaseWorldScene extends Phaser.Scene {
       if (blockOnPlate) {
         plate.activated = true;
         plate.sprite.setFillStyle(0x60c060, 0.8);
-        this.cameras.main.shake(100, 0.005);
+        shakeScaled(this, 100, 0.005);
         window.dispatchEvent(new CustomEvent('gameMessage', { detail: 'Click. Something opens.' }));
         plate.onActivate();
       }
@@ -1410,7 +1421,7 @@ export abstract class BaseWorldScene extends Phaser.Scene {
           char.takeDamage(trap.damage);
           usePlayerStore.getState().notify();
           window.dispatchEvent(new CustomEvent('gameMessage', { detail: `Spike trap! -${trap.damage} HP` }));
-          this.cameras.main.shake(100, 0.005);
+          shakeScaled(this, 100, 0.005);
         }
       }
     }
@@ -1430,7 +1441,9 @@ export abstract class BaseWorldScene extends Phaser.Scene {
         this.enemies.splice(i, 1);
         const currentSceneKey = this.scene.key;
 
-        saveGame('autosave', currentSceneKey);
+        if (localStorage.getItem('hc_autosave_combat') !== 'false') {
+          saveGame('autosave', currentSceneKey);
+        }
         const store = useCombatStore.getState();
         store._pendingEnemyId = enemy.id;
         store.start(enemy.monsterKey, currentSceneKey, px, py);
@@ -1501,20 +1514,45 @@ export abstract class BaseWorldScene extends Phaser.Scene {
         if (isDungeonScene(this.scene.key) && !isDungeonScene(exit.targetScene)) {
           useCombatStore.getState().dungeonCheckpoint = null;
         }
-        saveGame('autosave', this.scene.key);
+        if (localStorage.getItem('hc_autosave_zone') !== 'false') {
+          saveGame('autosave', this.scene.key);
+        }
 
-        // Show destination zone name briefly during the fade-out.
-        const destText = this.add.text(
-          WORLD_W / 2, WORLD_H / 2,
-          exit.targetScene.replace('Scene', ''),
+        // --- Cinematic loading screen overlay ---
+        const cam = this.cameras.main;
+        const W = cam.width;
+        const H = cam.height;
+        const cx = cam.scrollX + W / 2;
+        const cy = cam.scrollY + H / 2;
+
+        // Letterbox bars slide in from off-screen.
+        const topBar = this.add.rectangle(cx, cam.scrollY - 60, W, 120, 0x000000)
+          .setDepth(295);
+        const botBar = this.add.rectangle(cx, cam.scrollY + H + 60, W, 120, 0x000000)
+          .setDepth(295);
+        this.tweens.add({ targets: topBar, y: cam.scrollY + 60, duration: 280, ease: 'Power2' });
+        this.tweens.add({ targets: botBar, y: cam.scrollY + H - 60, duration: 280, ease: 'Power2' });
+
+        // Destination name — big Impact-style with P5 red/black shadow.
+        const destName = this.add.text(
+          cx, cy - 20,
+          zoneDisplayName(exit.targetScene).toUpperCase(),
           {
-            fontFamily: 'Courier New', fontSize: '18px', color: '#d4a968',
-            stroke: '#000000', strokeThickness: 3,
+            fontFamily: 'Impact, Arial Black, sans-serif',
+            fontSize: '54px',
+            color: '#ffffff',
+            stroke: '#c81e1e',
+            strokeThickness: 6,
+            shadow: { offsetX: 4, offsetY: 4, color: '#000000', blur: 0, stroke: true, fill: true },
           },
-        ).setOrigin(0.5).setDepth(300).setAlpha(0);
-        this.tweens.add({ targets: destText, alpha: 0.7, duration: 200 });
+        ).setOrigin(0.5).setDepth(300).setAlpha(0).setRotation(-0.04);
+        this.tweens.add({
+          targets: destName,
+          alpha: 1, y: cy - 30,
+          duration: 400, delay: 200, ease: 'Power2',
+        });
 
-        // Show a random tip during transition.
+        // Random tip during transition.
         const TIPS = [
           'Wizards deal fire damage \u2014 effective against undead.',
           'Rogues strike from shadows \u2014 strong against bandits.',
@@ -1532,15 +1570,33 @@ export abstract class BaseWorldScene extends Phaser.Scene {
           'Antidotes cure poison \u2014 useful against spiders.',
         ];
         const tip = TIPS[Math.floor(Math.random() * TIPS.length)];
-        const tipText = this.add.text(WORLD_W / 2, WORLD_H / 2 + 30, tip, {
-          fontFamily: 'Courier New', fontSize: '11px', color: '#8a7a48',
-          stroke: '#000000', strokeThickness: 2,
-          wordWrap: { width: 400 },
+        const tipText = this.add.text(cx, cy + 40, tip, {
+          fontFamily: 'Courier New, monospace',
+          fontSize: '14px',
+          color: '#ffd43a',
+          fontStyle: 'italic',
+          wordWrap: { width: 600 },
+          align: 'center',
         }).setOrigin(0.5).setDepth(300).setAlpha(0);
-        this.tweens.add({ targets: tipText, alpha: 0.8, duration: 300 });
+        this.tweens.add({ targets: tipText, alpha: 0.9, duration: 400, delay: 400 });
 
-        this.cameras.main.fadeOut(FADE_MS, 0, 0, 0);
-        this.cameras.main.once('camerafadeoutcomplete', () => {
+        // Slim yellow progress bar at the bottom.
+        const progressBg = this.add.rectangle(cx, cam.scrollY + H - 80, 400, 4, 0x333333)
+          .setDepth(300);
+        const progressFill = this.add.rectangle(cx - 200, cam.scrollY + H - 80, 0, 4, 0xffd43a)
+          .setOrigin(0, 0.5).setDepth(301);
+        this.tweens.add({
+          targets: progressFill,
+          width: 400,
+          duration: 700, ease: 'Sine.easeInOut',
+        });
+        void progressBg;
+
+        // Hold ~800ms after the bar fills, then fade and start target scene.
+        this.time.delayedCall(800, () => {
+          cam.fadeOut(FADE_MS, 0, 0, 0);
+        });
+        cam.once('camerafadeoutcomplete', () => {
           this.scene.start(exit.targetScene, { spawnPoint: exit.targetSpawn });
         });
         return;
@@ -1552,4 +1608,50 @@ export abstract class BaseWorldScene extends Phaser.Scene {
 /** Returns true for dungeon floor scene keys (Depths, Sanctum, BogDungeon). */
 function isDungeonScene(key: string): boolean {
   return key.includes('Depths') || key.includes('Floor') || key.includes('Sanctum') || key.includes('BogDungeon') || key.includes('ThroneBeneath') || key.includes('FrozenHollow') || key.includes('ForgottenCave');
+}
+
+/**
+ * Scene-key to human-readable zone name lookup used by the cinematic
+ * loading screen. Mirrors each scene's getZoneName() so we don't need
+ * to construct the target scene just to read its label. Falls back to
+ * a prettified scene-key when a key is not present in the map.
+ */
+const ZONE_DISPLAY_NAMES: Record<string, string> = {
+  TownScene: 'Ashenvale',
+  GreenhollowScene: 'Greenhollow Woods',
+  AshenmereScene: 'Ashenmere Marshes',
+  AshfieldsScene: 'The Ashfields',
+  DuskmereScene: 'Duskmere Village',
+  FrosthollowScene: 'Frosthollow Peaks',
+  IronveilScene: 'Ironveil Mines',
+  MossbarrowScene: 'Mossbarrow Cairn',
+  ShatteredCoastScene: 'The Shattered Coast',
+  MossbarrowDepthsScene: 'Mossbarrow Depths',
+  ForgottenCaveScene: 'The Forgotten Cave',
+  DepthsFloor2Scene: 'The Catacombs',
+  DepthsFloor3Scene: 'The Hollow Throne',
+  DrownedSanctumF1Scene: 'The Drowned Sanctum',
+  DrownedSanctumF2Scene: 'The Sanctum Heart',
+  BogDungeonF1Scene: 'The Sunken Halls',
+  BogDungeonF2Scene: 'The Drowned Gallery',
+  BogDungeonF3Scene: "The Warden's Pool",
+  AshenTowerF1Scene: 'The Burning Halls',
+  AshenTowerF2Scene: 'The Ember Forge',
+  AshenTowerF3Scene: 'The Mirror Chamber',
+  FrozenHollowF1Scene: 'The Ice Caverns',
+  FrozenHollowF2Scene: 'The Frost Vault',
+  FrozenHollowF3Scene: 'The Heart of Winter',
+  ThroneBeneathF1Scene: 'The Descent',
+  ThroneBeneathF2Scene: 'The Hall of Names',
+  ThroneBeneathF3Scene: 'The Forgotten Throne',
+  InteriorScene: 'Interior',
+};
+
+function zoneDisplayName(sceneKey: string): string {
+  if (ZONE_DISPLAY_NAMES[sceneKey]) return ZONE_DISPLAY_NAMES[sceneKey];
+  // Fallback: strip "Scene" suffix and insert spaces before capitals.
+  return sceneKey
+    .replace(/Scene$/, '')
+    .replace(/([a-z])([A-Z])/g, '$1 $2')
+    .replace(/([A-Z]+)([A-Z][a-z])/g, '$1 $2');
 }
