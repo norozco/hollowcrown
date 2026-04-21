@@ -39,6 +39,8 @@ import { Ending } from './Ending/Ending';
 import { DungeonMap } from './DungeonMap/DungeonMap';
 import { useDungeonMapStore } from '../state/dungeonMapStore';
 import { useTimeStore, getPhaseIcon } from '../state/timeStore';
+import { Sfx, unlockAudio, playMusic } from '../engine/audio';
+import { initGamepadSupport } from '../engine/gamepad';
 import './InGameOverlay.css';
 
 /**
@@ -171,6 +173,62 @@ export function InGameOverlay() {
   // Apply stored options (brightness, volumes, shake intensity, FPS) on mount.
   useEffect(() => {
     applyStoredOptions();
+    initGamepadSupport();
+  }, []);
+
+  // Unlock audio on first user interaction + wire up SFX listeners.
+  useEffect(() => {
+    const unlock = () => { unlockAudio(); };
+    window.addEventListener('keydown', unlock, { once: true });
+    window.addEventListener('pointerdown', unlock, { once: true });
+
+    // Game event → SFX mapping
+    const onGameMsg = (e: Event) => {
+      const msg = String((e as CustomEvent).detail ?? '');
+      if (msg.includes('Quest ready') || msg.includes('complete')) Sfx.achievement();
+      else if (msg.includes('Found') || msg.includes('Caught')) Sfx.pickup();
+      else if (msg.includes('Chest') || msg.includes('crumbles') || msg.includes('unlocked')) Sfx.chestOpen();
+      else if (msg.includes('melts') || msg.includes('opens')) Sfx.unlock();
+      else if (msg.includes('trap') || msg.includes('Spike')) Sfx.trap();
+      else if (msg.includes('Heart Piece')) Sfx.rareItem();
+    };
+    const onRare = () => Sfx.rareItem();
+    const onEnding = () => Sfx.achievement();
+    window.addEventListener('gameMessage', onGameMsg);
+    window.addEventListener('rareItemFound', onRare);
+    window.addEventListener('gameEnding', onEnding);
+
+    return () => {
+      window.removeEventListener('keydown', unlock);
+      window.removeEventListener('pointerdown', unlock);
+      window.removeEventListener('gameMessage', onGameMsg);
+      window.removeEventListener('rareItemFound', onRare);
+      window.removeEventListener('gameEnding', onEnding);
+    };
+  }, []);
+
+  // Zone-based music switching
+  useEffect(() => {
+    const interval = window.setInterval(() => {
+      const map = (window as { __currentMap?: { sceneKey?: string } }).__currentMap;
+      const scene = map?.sceneKey;
+      if (!scene) return;
+      const inCombat = useCombatStore.getState().state !== null;
+      const monster = useCombatStore.getState().monster;
+      if (inCombat) {
+        // Boss tracks for named bosses
+        const bossKeys = ['hollow_king', 'drowned_warden', 'crownless_one', 'the_forgotten'];
+        if (monster && bossKeys.includes(monster.key)) playMusic('boss');
+        else playMusic('combat');
+      } else if (scene === 'TownScene' || scene === 'DuskmereScene') {
+        playMusic('town');
+      } else if (scene === 'GreenhollowScene' || scene === 'AshenmereScene') {
+        playMusic('forest');
+      } else {
+        playMusic('dungeon');
+      }
+    }, 2000);
+    return () => window.clearInterval(interval);
   }, []);
 
   useEffect(() => {
@@ -249,6 +307,7 @@ export function InGameOverlay() {
       const gained = character.gold - prevGold;
       setGoldGain(gained);
       setGoldGainKey((k) => k + 1);
+      Sfx.coin();
     }
     prevGoldRef.current = character.gold;
   }, [character?.gold]);
@@ -342,6 +401,7 @@ export function InGameOverlay() {
         newRank: rank.key,
         newName: rank.name,
       });
+      Sfx.rankUp();
       const t = setTimeout(() => setRankUpShown(null), 4000);
       prevRankRef.current = rank.key;
       return () => clearTimeout(t);

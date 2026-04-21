@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { usePlayerStore } from '../../state/playerStore';
 import type { Perk } from '../../engine/perks';
+import { Sfx } from '../../engine/audio';
 import './LevelUpPopup.css';
 
 /**
@@ -23,6 +24,7 @@ export function LevelUpPopup() {
     if (character.level > lastLevel) {
       setShowLevel(character.level);
       setLastLevel(character.level);
+      Sfx.levelUp();
     }
   }, [character, version, lastLevel]);
 

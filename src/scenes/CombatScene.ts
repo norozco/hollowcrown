@@ -11,6 +11,7 @@ import {
 import { generateMonsterSprite } from './sprites/generateMonsters';
 import { usePlayerStore as _PS } from '../state/playerStore';
 import { shakeScaled } from './BaseWorldScene';
+import { Sfx } from '../engine/audio';
 
 /**
  * Visual battle scene — player sprite on the left, enemy on the right,
@@ -206,6 +207,7 @@ export class CombatScene extends Phaser.Scene {
     const bossMonsterKey = useCombatStore.getState().monster?.key;
     if (bossMonsterKey && bossKeys[bossMonsterKey]) {
       const info = bossKeys[bossMonsterKey];
+      Sfx.bossIntro();
       const bossName = useCombatStore.getState().monster?.name ?? '';
       // Dark overlay that fades in, then out
       const darkOverlay = this.add.rectangle(W / 2, H / 2, W, H, 0x000000, 0).setDepth(60);
@@ -279,6 +281,7 @@ export class CombatScene extends Phaser.Scene {
     // "YOU DIED" screen on defeat
     if (state.phase === 'defeat' && !this.deathScreenShown) {
       this.deathScreenShown = true;
+      Sfx.playerDeath();
       const W = 1280, H = 720;
       // Red flash
       this.cameras.main.flash(300, 100, 0, 0);
@@ -324,17 +327,26 @@ export class CombatScene extends Phaser.Scene {
 
       for (const entry of newEntries) {
         if (entry.type === 'player_hit') {
+          if (entry.text.includes('devastating')) Sfx.criticalHit();
+          else Sfx.attackHit();
           this.animatePlayerAttack(true);
           this.showDamageNumber(this.enemyBaseX, eY - eHalfH, entry.text);
         } else if (entry.type === 'player_miss') {
+          Sfx.attackMiss();
           this.animatePlayerAttack(false);
         } else if (entry.type === 'enemy_hit') {
+          Sfx.takeDamage();
           this.animateEnemyAttack();
           this.showDamageNumber(this.playerBaseX, this.playerSprite.y - SPRITE_H, entry.text);
           this.flashSprite(this.playerSprite);
         } else if (entry.type === 'enemy_miss') {
+          Sfx.attackMiss();
           this.animateEnemyAttack();
         } else {
+          // Skill-specific SFX based on text
+          if (entry.text.includes('Fireball') || entry.text.includes('Ignite')) Sfx.spellFire();
+          else if (entry.text.includes('Divine light') || entry.text.includes('mends')) Sfx.spellHeal();
+          else if (entry.text.includes('break away')) Sfx.flee();
           // Status-effect damage numbers
           if (entry.text.includes('Poison burns')) {
             this.showDamageNumber(this.playerBaseX, this.playerSprite.y - SPRITE_H, entry.text, '#60c060');
@@ -347,6 +359,7 @@ export class CombatScene extends Phaser.Scene {
           // Enemy death animation (triggered once when victory log appears)
           if (entry.text.includes('falls') && !this.deathAnimPlayed) {
             this.deathAnimPlayed = true;
+            Sfx.enemyDefeat();
             this.tweens.add({
               targets: this.enemySprite,
               alpha: 0, y: this.enemySprite.y + 30, angle: 15,
