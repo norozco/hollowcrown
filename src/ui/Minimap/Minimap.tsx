@@ -1,5 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { useMapMarkerStore } from '../../state/mapMarkerStore';
+import { useQuestStore } from '../../state/questStore';
+import { OBJECTIVE_TARGETS } from '../WaypointArrow/WaypointArrow';
 import './Minimap.css';
 
 declare global {
@@ -74,6 +76,38 @@ export function Minimap() {
         ctx.closePath();
         ctx.fill();
         ctx.stroke();
+      }
+
+      // Quest objective pin — red pulsing dot (if objective target is this scene)
+      if (map.sceneKey) {
+        const active = useQuestStore.getState().active;
+        let targetScene: string | null = null;
+        for (const state of Object.values(active)) {
+          if (state.turnedIn || state.isComplete) continue;
+          for (const oid of Object.keys(OBJECTIVE_TARGETS)) {
+            const [qid, objId] = oid.split(':');
+            if (state.questId !== qid) continue;
+            if (state.completedObjectiveIds.includes(objId)) continue;
+            targetScene = OBJECTIVE_TARGETS[oid].scene;
+            break;
+          }
+          if (targetScene) break;
+        }
+        if (targetScene && targetScene === map.sceneKey) {
+          // Best-effort: center of the zone (no per-NPC coords available).
+          const qx = W / 2;
+          const qy = H / 2;
+          const qPulse = 0.5 + 0.5 * Math.sin(Date.now() * 0.008);
+          ctx.fillStyle = `rgba(230,60,60,${qPulse})`;
+          ctx.beginPath();
+          ctx.arc(qx, qy, 5 + qPulse * 2, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.strokeStyle = '#ff8080';
+          ctx.lineWidth = 1.5;
+          ctx.beginPath();
+          ctx.arc(qx, qy, 7 + qPulse * 3, 0, Math.PI * 2);
+          ctx.stroke();
+        }
       }
 
       // Player dot — white, pulsing

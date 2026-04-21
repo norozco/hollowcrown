@@ -4,7 +4,7 @@ import './WaypointArrow.css';
 
 // Map each quest objective to its target (scene key to reach, or
 // 'same' if the target is in the current scene — then look up by position)
-const OBJECTIVE_TARGETS: Record<string, { scene: string; label: string }> = {
+export const OBJECTIVE_TARGETS: Record<string, { scene: string; label: string }> = {
   'iron-token:talk-orric': { scene: 'GreenhollowScene', label: 'Orric' },
   'iron-token:find-cairn': { scene: 'MossbarrowScene', label: 'Cairn' },
   'depths-explorer:reach-floor-3': { scene: 'DepthsFloor3Scene', label: 'Depths F3' },

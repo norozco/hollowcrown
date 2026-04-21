@@ -46,6 +46,7 @@ import { useTimeStore, getPhaseIcon } from '../state/timeStore';
 import { Sfx, unlockAudio, playMusic } from '../engine/audio';
 import { initGamepadSupport } from '../engine/gamepad';
 import { useGameStatsStore } from '../state/gameStatsStore';
+import { matchesKey, getKey } from '../state/keybindStore';
 import './InGameOverlay.css';
 
 /**
@@ -165,6 +166,7 @@ export function InGameOverlay() {
   const [toastKey, setToastKey] = useState<string | null>(null);
   const [showControls, setShowControls] = useState(true);
   const [healToast, setHealToast] = useState<{ text: string; key: number } | null>(null);
+  const [goldMilestone, setGoldMilestone] = useState<{ milestone: number; title: string; key: number } | null>(null);
 
   // Damage flash: track previous HP to detect decreases.
   const prevHpRef = useRef<number | null>(null);
@@ -235,6 +237,18 @@ export function InGameOverlay() {
       optionsOpen, achievementsOpen, worldMapOpen, bestiaryOpen,
       journalOpen, statScreenOpen, fastTravelOpen, dungeonMapOpen]);
 
+  // Gold milestone banner listener.
+  useEffect(() => {
+    const onMilestone = (e: Event) => {
+      const detail = (e as CustomEvent).detail as { milestone: number; title: string };
+      setGoldMilestone({ milestone: detail.milestone, title: detail.title, key: Date.now() });
+      Sfx.achievement();
+      setTimeout(() => setGoldMilestone(null), 3000);
+    };
+    window.addEventListener('goldMilestone', onMilestone);
+    return () => window.removeEventListener('goldMilestone', onMilestone);
+  }, []);
+
   // Autosave indicator listeners.
   useEffect(() => {
     const onStart = () => setAutosaving(true);
@@ -261,7 +275,7 @@ export function InGameOverlay() {
   // F12 screenshot — capture canvas + UI + save as PNG.
   useEffect(() => {
     const onKey = async (e: KeyboardEvent) => {
-      if (e.key !== 'F12' && e.key !== 'PrintScreen') return;
+      if (e.key !== getKey('screenshot') && e.key !== 'PrintScreen') return;
       e.preventDefault();
       const canvas = document.querySelector('#phaser-container canvas') as HTMLCanvasElement | null;
       if (!canvas) return;
@@ -447,27 +461,27 @@ export function InGameOverlay() {
         // Nothing open — toggle pause menu
         setMenuOpen((m) => !m);
       }
-      if (e.key === 'i' || e.key === 'I') {
+      if (matchesKey(e.key, 'inventory')) {
         e.preventDefault();
         toggleInventory();
       }
-      if (e.key === 'q' || e.key === 'Q') {
+      if (matchesKey(e.key, 'quests')) {
         e.preventDefault();
         setQuestBoardOpen((v) => !v);
       }
-      if (e.key === 'm' || e.key === 'M') {
+      if (matchesKey(e.key, 'map')) {
         e.preventDefault();
         setDungeonMapOpen((v) => !v);
       }
-      if (e.key === 'Tab') {
+      if (matchesKey(e.key, 'dialogueHistory')) {
         e.preventDefault();
         setDialogueHistoryOpen((v) => !v);
       }
-      if (e.key === 'F10') {
+      if (matchesKey(e.key, 'photoMode')) {
         e.preventDefault();
         setPhotoMode((v) => !v);
       }
-      if (e.key === 'h' || e.key === 'H') {
+      if (matchesKey(e.key, 'heal')) {
         e.preventDefault();
         // Block when any modal/menu is open (combat is allowed — handled separately)
         const anyModalOpen =
@@ -520,7 +534,7 @@ export function InGameOverlay() {
           Sfx.spellHeal();
         }
       }
-      if (e.key === 'l' || e.key === 'L') {
+      if (matchesKey(e.key, 'marker')) {
         e.preventDefault();
         const map = (window as { __currentMap?: { sceneKey?: string; playerX?: number; playerY?: number } }).__currentMap;
         if (map && map.sceneKey) {
@@ -788,6 +802,17 @@ export function InGameOverlay() {
       {gameMsg && <div className="ig__game-msg">{gameMsg}</div>}
       {healToast && (
         <div className="ig__heal-toast" key={healToast.key}>{healToast.text}</div>
+      )}
+      {goldMilestone && (
+        <div className="ig__gold-milestone" key={goldMilestone.key}>
+          <div className="ig__gold-milestone-banner">
+            <span className="ig__gold-milestone-icon">✦</span>
+            <span className="ig__gold-milestone-label">GOLD MILESTONE</span>
+            <span className="ig__gold-milestone-icon">✦</span>
+          </div>
+          <div className="ig__gold-milestone-title">{goldMilestone.title}</div>
+          <div className="ig__gold-milestone-amount">{goldMilestone.milestone.toLocaleString()} gold</div>
+        </div>
       )}
 
       {inventoryOpen && <InventoryScreen />}

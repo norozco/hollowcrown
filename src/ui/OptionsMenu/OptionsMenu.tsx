@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Fragment } from 'react';
+import { useKeybindStore, KEYBIND_LABELS, type KeybindAction } from '../../state/keybindStore';
 import './OptionsMenu.css';
 import './accessibility.css';
 
@@ -266,12 +267,6 @@ export function OptionsMenu({ onClose }: Props) {
             <span className="opts__controls-desc">Move</span>
             <span className="opts__controls-key">E</span>
             <span className="opts__controls-desc">Interact / Attack</span>
-            <span className="opts__controls-key">I</span>
-            <span className="opts__controls-desc">Inventory</span>
-            <span className="opts__controls-key">Q</span>
-            <span className="opts__controls-desc">Quests</span>
-            <span className="opts__controls-key">M</span>
-            <span className="opts__controls-desc">Dungeon Map</span>
             <span className="opts__controls-key">Space / Enter</span>
             <span className="opts__controls-desc">Advance dialogue</span>
             <span className="opts__controls-key">Escape</span>
@@ -281,6 +276,7 @@ export function OptionsMenu({ onClose }: Props) {
             <span className="opts__controls-key">Gamepad</span>
             <span className="opts__controls-desc">Auto-detected</span>
           </div>
+          <KeybindEditor />
         </div>
 
         <button type="button" className="opts__close-btn" onClick={onClose}>
@@ -329,6 +325,72 @@ interface ToggleProps {
   label: string;
   value: boolean;
   onChange: (v: boolean) => void;
+}
+
+function KeybindEditor() {
+  const binds = useKeybindStore((s) => s.binds);
+  const setKey = useKeybindStore((s) => s.setKey);
+  const reset = useKeybindStore((s) => s.reset);
+  const [listening, setListening] = useState<KeybindAction | null>(null);
+
+  useEffect(() => {
+    if (!listening) return;
+    const onKey = (e: KeyboardEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (e.key === 'Escape') {
+        setListening(null);
+        return;
+      }
+      // Ignore modifier-only presses
+      if (e.key === 'Shift' || e.key === 'Control' || e.key === 'Alt' || e.key === 'Meta') return;
+      setKey(listening, e.key);
+      setListening(null);
+    };
+    window.addEventListener('keydown', onKey, true);
+    return () => window.removeEventListener('keydown', onKey, true);
+  }, [listening, setKey]);
+
+  const actions = Object.keys(binds) as KeybindAction[];
+
+  return (
+    <div style={{ marginTop: '0.8rem' }}>
+      <div className="opts__section-title" style={{ fontSize: '0.9rem', marginBottom: '0.4rem' }}>
+        Rebindable Keys
+      </div>
+      <div className="opts__controls-table">
+        {actions.map((action) => (
+          <Fragment key={action}>
+            <span className="opts__controls-desc">{KEYBIND_LABELS[action]}</span>
+            <button
+              type="button"
+              className="opts__controls-key"
+              onClick={() => setListening(action)}
+              style={{
+                cursor: 'pointer',
+                background: listening === action ? '#fce35a' : 'transparent',
+                color: listening === action ? '#1a0a0a' : undefined,
+                border: listening === action ? '1px solid #c52027' : '1px solid #3a2818',
+                padding: '0.2rem 0.5rem',
+                fontFamily: 'inherit',
+              }}
+              title="Click then press a key to rebind. Esc to cancel."
+            >
+              {listening === action ? 'Press a key...' : binds[action]}
+            </button>
+          </Fragment>
+        ))}
+      </div>
+      <button
+        type="button"
+        className="opts__close-btn"
+        style={{ marginTop: '0.6rem', padding: '0.3rem 0.8rem' }}
+        onClick={() => reset()}
+      >
+        Reset to Defaults
+      </button>
+    </div>
+  );
 }
 
 function Toggle({ label, value, onChange }: ToggleProps) {

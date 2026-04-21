@@ -628,6 +628,46 @@
   margin-top: 0.3rem;
 }
 
+/* Gold milestone banner */
+@keyframes gold-milestone-appear {
+  0% { opacity: 0; transform: translate(-50%, -20px) scale(0.9); }
+  15% { opacity: 1; transform: translate(-50%, 0) scale(1.05); }
+  25% { transform: translate(-50%, 0) scale(1); }
+  85% { opacity: 1; transform: translate(-50%, 0) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, -10px) scale(1); }
+}
+.ig__gold-milestone {
+  position: absolute;
+  top: 90px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(135deg, rgba(50,35,10,0.96), rgba(30,20,5,0.96));
+  border: 3px solid #ffd43a;
+  box-shadow: 0 0 30px rgba(255,212,58,0.7), inset 0 0 20px rgba(0,0,0,0.5);
+  padding: 0.9rem 2rem;
+  font-family: 'Courier New', monospace;
+  text-align: center;
+  z-index: 50;
+  pointer-events: none;
+  animation: gold-milestone-appear 3s ease-out forwards;
+}
+.ig__gold-milestone-banner {
+  display: flex; justify-content: center; gap: 0.6rem;
+  color: #ffd43a; font-size: 0.75rem;
+  letter-spacing: 0.35em;
+}
+.ig__gold-milestone-icon { color: #ffd43a; }
+.ig__gold-milestone-label { color: #ffd43a; }
+.ig__gold-milestone-title {
+  color: #fff4a8; font-size: 2rem; font-weight: bold;
+  text-shadow: 0 0 10px rgba(255,212,58,0.8);
+  margin: 0.2rem 0;
+}
+.ig__gold-milestone-amount {
+  color: #ffd43a; font-size: 0.95rem;
+  letter-spacing: 0.15em;
+}
+
 /* Low HP warning — pulsing red vignette around the screen edges */
 @keyframes low-hp-pulse {
   0%, 100% {

@@ -60,7 +60,19 @@ interface PlayerState {
 
   /** Whether this playthrough is a New Game+ run. */
   newGamePlus: boolean;
+
+  /** Gold milestones already announced (prevents re-firing). */
+  goldMilestonesReached: Set<number>;
 }
+
+export const GOLD_MILESTONES: Array<{ amount: number; title: string }> = [
+  { amount: 100, title: 'First Coins' },
+  { amount: 500, title: 'Pocket Change' },
+  { amount: 1000, title: 'Thousandaire' },
+  { amount: 5000, title: 'Merchant' },
+  { amount: 10000, title: 'Baron' },
+  { amount: 50000, title: 'Tycoon' },
+];
 
 export const usePlayerStore = create<PlayerState>((set, get) => ({
   character: null,
@@ -72,6 +84,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   heartPiecesCollected: new Set<string>(),
   ancientCoins: new Set<string>(),
   newGamePlus: false,
+  goldMilestonesReached: new Set<number>(),
 
   choosePerk: (perkKey) => {
     const { pendingPerkChoices, character, perks } = get();
@@ -87,15 +100,32 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
     });
   },
 
-  create: (init) => set({ character: new Character(init), version: 1, perks: [], pendingPerkChoices: null, heartPieces: 0, heartPiecesCollected: new Set<string>(), ancientCoins: new Set<string>(), newGamePlus: false }),
+  create: (init) => set({ character: new Character(init), version: 1, perks: [], pendingPerkChoices: null, heartPieces: 0, heartPiecesCollected: new Set<string>(), ancientCoins: new Set<string>(), newGamePlus: false, goldMilestonesReached: new Set<number>() }),
   notify: () => set((s) => ({ version: s.version + 1 })),
-  clear: () => set({ character: null, version: 0, companion: null, perks: [], pendingPerkChoices: null, heartPieces: 0, heartPiecesCollected: new Set<string>(), ancientCoins: new Set<string>(), newGamePlus: false }),
+  clear: () => set({ character: null, version: 0, companion: null, perks: [], pendingPerkChoices: null, heartPieces: 0, heartPiecesCollected: new Set<string>(), ancientCoins: new Set<string>(), newGamePlus: false, goldMilestonesReached: new Set<number>() }),
 
   giveGold: (amount) => {
     const c = get().character;
     if (!c) return;
+    const before = c.gold;
     c.addGold(amount);
-    set((s) => ({ version: s.version + 1 }));
+    const after = c.gold;
+    const reached = get().goldMilestonesReached;
+    let nextReached: Set<number> | null = null;
+    for (const m of GOLD_MILESTONES) {
+      if (after >= m.amount && before < m.amount && !reached.has(m.amount)) {
+        if (!nextReached) nextReached = new Set(reached);
+        nextReached.add(m.amount);
+        window.dispatchEvent(new CustomEvent('goldMilestone', {
+          detail: { milestone: m.amount, title: m.title },
+        }));
+      }
+    }
+    if (nextReached) {
+      set((s) => ({ version: s.version + 1, goldMilestonesReached: nextReached! }));
+    } else {
+      set((s) => ({ version: s.version + 1 }));
+    }
   },
 
   spendGold: (amount) => {
