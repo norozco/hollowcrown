@@ -64,7 +64,7 @@ function renderComparison(newItem: Item, currentItem: Item | null): JSX.Element 
 }
 
 export function InventoryScreen() {
-  const { slots, equipment, close, useItem, equip, unequip, sell, sortBy, toggleFavorite, favorites } = useInventoryStore();
+  const { slots, equipment, close, useItem, equip, unequip, sell, sortBy, toggleFavorite, favorites, newItems, markSeen } = useInventoryStore();
   const character = usePlayerStore((s) => s.character);
   usePlayerStore((s) => s.version);
   const [tooltip, setTooltip] = useState<InventorySlot | null>(null);
@@ -160,12 +160,34 @@ export function InventoryScreen() {
                 key={`${s.item.key}-${i}`}
                 className={`inv__bag-cell${s.item.equipSlot ? ' inv__bag-cell--equippable' : ''}`}
                 style={{ borderColor: RARITY_BORDER[s.item.rarity] }}
-                onMouseEnter={() => setTooltip(s)}
+                onMouseEnter={() => { setTooltip(s); markSeen(s.item.key); }}
                 onMouseLeave={() => setTooltip(null)}
               >
                 <img src={getItemIcon(s.item.key)} alt={s.item.name} className="inv__icon" />
                 {s.quantity > 1 && <span className="inv__qty">{s.quantity}</span>}
                 {favorites.has(s.item.key) && <span className="inv__fav-mark" title="Favorited (locked from sale)">★</span>}
+                {newItems.has(s.item.key) && (
+                  <span
+                    style={{
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      background: '#fce35a',
+                      color: '#000',
+                      fontFamily: 'Impact, sans-serif',
+                      fontWeight: 'bold',
+                      fontSize: '0.7rem',
+                      padding: '0.05rem 0.3rem',
+                      letterSpacing: '0.06em',
+                      borderBottomRight: '2px solid #c52027',
+                      boxShadow: '1px 1px 0 #c52027',
+                      pointerEvents: 'none',
+                      zIndex: 2,
+                    }}
+                  >
+                    NEW
+                  </span>
+                )}
                 <div className="inv__cell-actions">
                   {s.item.type === 'consumable' && (
                     <button type="button" onClick={() => useItem(s.item.key)}>Use</button>

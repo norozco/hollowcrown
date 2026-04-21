@@ -22,6 +22,10 @@ interface AchievementState {
   recordChest: () => void;
   recordBossKill: (key: string) => void;
   recordZoneVisit: (sceneKey: string) => void;
+  /** Aggregate visit + kill data for a zone. `killsHere` sums kills from all
+   *  monsters whose key contains the zone tag (best-effort, since kills are
+   *  tracked per-monster not per-scene). */
+  getZoneCompletion: (zoneKey: string) => { visited: boolean; killsHere: number };
   /** Build context from store + playerStore + questStore, check each
    *  achievement. Returns the first newly-unlocked key, or null. */
   checkAchievements: () => string | null;
@@ -81,6 +85,17 @@ export const useAchievementStore = create<AchievementState>((set, get) => ({
       next.add(sceneKey);
       return { zonesVisited: next };
     }),
+
+  getZoneCompletion: (zoneKey: string) => {
+    const s = get();
+    const visited = s.zonesVisited.has(zoneKey);
+    const tag = zoneKey.replace(/Scene$/, '').toLowerCase();
+    let killsHere = 0;
+    for (const [monsterKey, rec] of Object.entries(s.monstersEncountered)) {
+      if (monsterKey.toLowerCase().includes(tag)) killsHere += rec.kills;
+    }
+    return { visited, killsHere };
+  },
 
   checkAchievements: () => {
     const s = get();

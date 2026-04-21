@@ -164,6 +164,7 @@ export function InGameOverlay() {
   const [autosaving, setAutosaving] = useState(false);
   const [toastKey, setToastKey] = useState<string | null>(null);
   const [showControls, setShowControls] = useState(true);
+  const [healToast, setHealToast] = useState<{ text: string; key: number } | null>(null);
 
   // Damage flash: track previous HP to detect decreases.
   const prevHpRef = useRef<number | null>(null);
@@ -466,6 +467,59 @@ export function InGameOverlay() {
         e.preventDefault();
         setPhotoMode((v) => !v);
       }
+      if (e.key === 'h' || e.key === 'H') {
+        e.preventDefault();
+        // Block when any modal/menu is open (combat is allowed — handled separately)
+        const anyModalOpen =
+          menuOpen || inventoryOpen || shopOpen || craftingOpen || cookingOpen ||
+          questBoardOpen || optionsOpen || achievementsOpen || worldMapOpen ||
+          bestiaryOpen || journalOpen || statScreenOpen || fastTravelOpen ||
+          dungeonMapOpen || dialogueHistoryOpen || photoMode || endingOpen;
+        if (anyModalOpen) return;
+
+        const inv = useInventoryStore.getState();
+        const player = usePlayerStore.getState();
+        const char = player.character;
+        if (!char) return;
+
+        // Find best healing consumable: prefer cheapest that heals HP; fall
+        // back to any consumable with effect.healHp.
+        const healSlots = inv.slots
+          .map((s) => s.item)
+          .filter((it) => it.type === 'consumable' && it.effect?.healHp && it.effect.healHp > 0);
+        if (healSlots.length === 0) {
+          setHealToast({ text: 'No potions!', key: Date.now() });
+          setTimeout(() => setHealToast(null), 1400);
+          return;
+        }
+        // Sort ascending by buyPrice (cheapest first)
+        healSlots.sort((a, b) => a.buyPrice - b.buyPrice);
+        const chosen = healSlots[0];
+
+        const combat = useCombatStore.getState();
+        const inCombat = combat.state !== null;
+
+        if (inCombat) {
+          // Only valid on player's turn
+          if (combat.state?.phase !== 'player_turn' || combat._enemyActing) return;
+          const hpBefore = char.hp;
+          combat.useItem(chosen.key);
+          // If useItem actually ran, state.phase will have advanced (or HP changed)
+          const healed = char.hp - hpBefore;
+          if (healed > 0) {
+            setHealToast({ text: `+${healed} HP`, key: Date.now() });
+            setTimeout(() => setHealToast(null), 1400);
+            Sfx.spellHeal();
+          }
+        } else {
+          const hpBefore = char.hp;
+          if (!inv.useItem(chosen.key)) return;
+          const healed = char.hp - hpBefore;
+          setHealToast({ text: `+${healed} HP`, key: Date.now() });
+          setTimeout(() => setHealToast(null), 1400);
+          Sfx.spellHeal();
+        }
+      }
       if (e.key === 'l' || e.key === 'L') {
         e.preventDefault();
         const map = (window as { __currentMap?: { sceneKey?: string; playerX?: number; playerY?: number } }).__currentMap;
@@ -732,6 +786,9 @@ export function InGameOverlay() {
       <QuestTracker />
 
       {gameMsg && <div className="ig__game-msg">{gameMsg}</div>}
+      {healToast && (
+        <div className="ig__heal-toast" key={healToast.key}>{healToast.text}</div>
+      )}
 
       {inventoryOpen && <InventoryScreen />}
       {shopOpen && <ShopScreen onClose={closeShop} />}

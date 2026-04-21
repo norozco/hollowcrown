@@ -25,6 +25,11 @@ interface InventoryState {
   favorites: Set<string>;
   toggleFavorite: (itemKey: string) => void;
   isFavorite: (itemKey: string) => boolean;
+  /** Item keys recently acquired and not yet seen in the inventory UI. */
+  newItems: Set<string>;
+  markSeen: (itemKey: string) => void;
+  /** Sell all junk (common materials, not favorited, not quest). Returns gold earned. */
+  sellJunk: () => number;
 
   open: () => void;
   close: () => void;
@@ -96,6 +101,40 @@ export const useInventoryStore = create<InventoryState>((set, get) => ({
   isCraftingOpen: false,
   isCookingOpen: false,
   favorites: new Set<string>(),
+  newItems: new Set<string>(),
+
+  markSeen: (itemKey) => set((s) => {
+    if (!s.newItems.has(itemKey)) return s;
+    const next = new Set(s.newItems);
+    next.delete(itemKey);
+    return { newItems: next };
+  }),
+
+  sellJunk: () => {
+    const { slots, favorites, equipment } = get();
+    const equippedKeys = new Set(
+      Object.values(equipment).filter(Boolean).map((i) => (i as { key: string }).key),
+    );
+    const junk = slots.filter((s) =>
+      s.item.rarity === 'common'
+      && s.item.type === 'material'
+      && !favorites.has(s.item.key)
+      && !equippedKeys.has(s.item.key),
+    );
+    let gold = 0;
+    const player = usePlayerStore.getState();
+    const char = player.character;
+    for (const s of junk) {
+      const price = Math.floor(s.item.buyPrice * 0.5) * s.quantity;
+      gold += price;
+    }
+    if (junk.length === 0 || !char) return 0;
+    const junkKeys = new Set(junk.map((s) => s.item.key));
+    set({ slots: slots.filter((s) => !junkKeys.has(s.item.key)) });
+    char.addGold(gold);
+    player.notify();
+    return gold;
+  },
 
   toggleFavorite: (itemKey) => set((s) => {
     const next = new Set(s.favorites);
@@ -117,20 +156,25 @@ export const useInventoryStore = create<InventoryState>((set, get) => ({
 
   addItem: (itemKey, qty = 1) => {
     const item = getItem(itemKey);
-    const { slots } = get();
+    const { slots, newItems } = get();
+    const nextNew = new Set(newItems);
+    nextNew.add(itemKey);
 
     // Stackable: find existing stack
     if (item.stackable) {
       const existing = slots.find((s) => s.item.key === itemKey);
       if (existing) {
-        set({ slots: slots.map((s) => s.item.key === itemKey ? { ...s, quantity: s.quantity + qty } : s) });
+        set({
+          slots: slots.map((s) => s.item.key === itemKey ? { ...s, quantity: s.quantity + qty } : s),
+          newItems: nextNew,
+        });
         checkCollectionQuests(get, itemKey);
         return true;
       }
     }
 
     if (slots.length >= MAX_SLOTS) return false;
-    set({ slots: [...slots, { item, quantity: qty }] });
+    set({ slots: [...slots, { item, quantity: qty }], newItems: nextNew });
     checkCollectionQuests(get, itemKey);
     if (['rare', 'epic', 'legendary'].includes(item.rarity)) {
       window.dispatchEvent(new CustomEvent('rareItemFound', {
@@ -260,5 +304,5 @@ export const useInventoryStore = create<InventoryState>((set, get) => ({
     }));
   },
 
-  reset: () => set({ slots: [], equipment: { ...EMPTY_EQUIPMENT }, isOpen: false, isShopOpen: false, isCraftingOpen: false, isCookingOpen: false, favorites: new Set<string>() }),
+  reset: () => set({ slots: [], equipment: { ...EMPTY_EQUIPMENT }, isOpen: false, isShopOpen: false, isCraftingOpen: false, isCookingOpen: false, favorites: new Set<string>(), newItems: new Set<string>() }),
 }));

@@ -25,6 +25,24 @@ import {
   SPRITE_H,
 } from './sprites/generateSprites';
 import { generateMonsterSprite } from './sprites/generateMonsters';
+import { Sfx } from '../engine/audio';
+
+/** Pick a footstep SFX based on the current scene key. */
+function playFootstepForScene(sceneKey: string): void {
+  const k = sceneKey.toLowerCase();
+  if (k.includes('drownedsanctum') || k.includes('shatteredcoast') || k.includes('bog')) {
+    Sfx.footstepWater();
+  } else if (k.includes('ashenvale') || k.includes('duskmere') || k.includes('greenhollow') ||
+             k.includes('mossbarrow') || k.includes('ashfields') || k.includes('frosthollow') ||
+             k.includes('ashenmere') || k.includes('ironveil')) {
+    Sfx.footstepGrass();
+  } else if (k.includes('interior')) {
+    Sfx.footstepWood();
+  } else {
+    // Town + all dungeons (throne, ashen tower, frozen hollow, cave, depths) = stone.
+    Sfx.footstepStone();
+  }
+}
 
 /**
  * Shared world-scene infrastructure. Handles player creation & movement,
@@ -98,6 +116,7 @@ export abstract class BaseWorldScene extends Phaser.Scene {
   protected player!: Phaser.GameObjects.Sprite;
   protected playerNameLabel!: Phaser.GameObjects.Text;
   private playerFacing = 0; // 0=down, 1=up, 2=left, 3=right
+  private lastFootstepAt = 0;
   protected cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
   protected keyW!: Phaser.Input.Keyboard.Key;
   protected keyA!: Phaser.Input.Keyboard.Key;
@@ -1297,6 +1316,12 @@ export abstract class BaseWorldScene extends Phaser.Scene {
       // 2-frame walk cycle: alternate idle↔walk every 180ms
       const walkPhase = Math.floor(Date.now() / 180) % 2;
       this.player.setFrame(walkPhase === 0 ? this.playerFacing : this.playerFacing + 4);
+      // Surface-aware footstep SFX (~350ms cadence)
+      const now = Date.now();
+      if (now - this.lastFootstepAt >= 350) {
+        this.lastFootstepAt = now;
+        playFootstepForScene(this.scene.key);
+      }
     } else {
       this.player.setFrame(this.playerFacing);
     }

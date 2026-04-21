@@ -17,6 +17,36 @@ const STAT_LABELS: Record<string, string> = {
   str: 'STR', dex: 'DEX', con: 'CON', int: 'INT', wis: 'WIS', cha: 'CHA',
 };
 
+/** Zones tracked in the Exploration breakdown. */
+const ZONE_LIST: Array<{ key: string; label: string }> = [
+  { key: 'TownScene',            label: 'Hollowcrown Town' },
+  { key: 'MossbarrowScene',      label: 'Mossbarrow' },
+  { key: 'GreenhollowScene',     label: 'Greenhollow' },
+  { key: 'AshenvaleScene',       label: 'Ashenvale' },
+  { key: 'AshenmereScene',       label: 'Ashenmere' },
+  { key: 'DuskmereScene',        label: 'Duskmere' },
+  { key: 'AshfieldsScene',       label: 'Ashfields' },
+  { key: 'FrosthollowScene',     label: 'Frosthollow' },
+  { key: 'ShatteredCoastScene',  label: 'Shattered Coast' },
+  { key: 'IronveilScene',        label: 'Ironveil' },
+  { key: 'ForgottenCaveScene',   label: 'Forgotten Cave' },
+  { key: 'MossbarrowDepthsScene',label: 'Mossbarrow Depths' },
+  { key: 'BogDungeonF1Scene',    label: 'Bog Dungeon F1' },
+  { key: 'BogDungeonF2Scene',    label: 'Bog Dungeon F2' },
+  { key: 'BogDungeonF3Scene',    label: 'Bog Dungeon F3' },
+  { key: 'DrownedSanctumF1Scene',label: 'Drowned Sanctum F1' },
+  { key: 'DrownedSanctumF2Scene',label: 'Drowned Sanctum F2' },
+  { key: 'AshenTowerF1Scene',    label: 'Ashen Tower F1' },
+  { key: 'AshenTowerF2Scene',    label: 'Ashen Tower F2' },
+  { key: 'AshenTowerF3Scene',    label: 'Ashen Tower F3' },
+  { key: 'FrozenHollowF1Scene',  label: 'Frozen Hollow F1' },
+  { key: 'FrozenHollowF2Scene',  label: 'Frozen Hollow F2' },
+  { key: 'FrozenHollowF3Scene',  label: 'Frozen Hollow F3' },
+  { key: 'ThroneBeneathF1Scene', label: 'Throne Beneath F1' },
+  { key: 'ThroneBeneathF2Scene', label: 'Throne Beneath F2' },
+  { key: 'ThroneBeneathF3Scene', label: 'Throne Beneath F3' },
+];
+
 function formatMod(val: number): string {
   const m = modifier(val);
   return m >= 0 ? `+${m}` : `${m}`;
@@ -29,6 +59,7 @@ export function StatScreen({ onClose }: Props) {
   usePlayerStore((s) => s.version);
   const equipment = useInventoryStore((s) => s.equipment);
   const totalKills = useAchievementStore((s) => s.totalKills);
+  const monstersEncountered = useAchievementStore((s) => s.monstersEncountered);
   const totalDeaths = useAchievementStore((s) => s.totalDeaths);
   const bossesKilled = useAchievementStore((s) => s.bossesKilled);
   const zonesVisited = useAchievementStore((s) => s.zonesVisited);
@@ -207,7 +238,7 @@ export function StatScreen({ onClose }: Props) {
             <h3 className="statscreen__section-title">EXPLORATION</h3>
             <div className="statscreen__row">
               <span className="statscreen__row-label">Zones Visited</span>
-              <span className="statscreen__row-value">{zonesVisited.size}</span>
+              <span className="statscreen__row-value">{zonesVisited.size}/{ZONE_LIST.length}</span>
             </div>
             <div className="statscreen__row">
               <span className="statscreen__row-label">Quests Completed</span>
@@ -216,6 +247,27 @@ export function StatScreen({ onClose }: Props) {
             <div className="statscreen__row statscreen__row--highlight">
               <span className="statscreen__row-label">Current Rank</span>
               <span className="statscreen__row-value" style={{ color: rank.color }}>[{rank.label}] {rank.name}</span>
+            </div>
+            <div style={{ marginTop: '0.35rem', borderTop: '1px solid #3a2818', paddingTop: '0.35rem' }}>
+              {ZONE_LIST.map(({ key, label }) => {
+                const visited = zonesVisited.has(key);
+                const tag = key.replace(/Scene$/, '').toLowerCase();
+                let kills = 0;
+                for (const [mk, rec] of Object.entries(monstersEncountered)) {
+                  if (mk.toLowerCase().includes(tag)) kills += rec.kills;
+                }
+                const color = visited ? '#e0c060' : '#a04040';
+                return (
+                  <div key={key} className="statscreen__row">
+                    <span className="statscreen__row-label" style={{ color }}>
+                      {visited ? '\u2714' : '\u2717'} {label}
+                    </span>
+                    <span className="statscreen__row-value" style={{ color: visited ? '#c0a048' : '#6a5038' }}>
+                      {kills > 0 ? `${kills} kills` : visited ? 'seen' : '—'}
+                    </span>
+                  </div>
+                );
+              })}
             </div>
           </div>
 

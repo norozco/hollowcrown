@@ -177,6 +177,33 @@
   flex-shrink: 0;
 }
 
+/* Heal toast (quick-heal hotkey) */
+@keyframes healToastFloat {
+  0% { opacity: 0; transform: translate(-50%, 10px) scale(0.9); }
+  15% { opacity: 1; transform: translate(-50%, 0) scale(1); }
+  75% { opacity: 1; transform: translate(-50%, -8px) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, -24px) scale(0.95); }
+}
+.ig__heal-toast {
+  position: fixed;
+  left: 50%;
+  top: 38%;
+  transform: translate(-50%, 0);
+  padding: 0.6rem 1.2rem;
+  background: rgba(20, 12, 8, 0.85);
+  border: 1px solid #6ec46e;
+  color: #a8e6a8;
+  font-family: inherit;
+  font-size: 1.3rem;
+  font-weight: bold;
+  letter-spacing: 0.05em;
+  border-radius: 3px;
+  pointer-events: none;
+  z-index: 9000;
+  text-shadow: 0 0 8px rgba(110, 196, 110, 0.6);
+  animation: healToastFloat 1.4s ease-out forwards;
+}
+
 /* Gold gain floating indicator */
 @keyframes goldFloat {
   0% { opacity: 1; transform: translateY(0); }

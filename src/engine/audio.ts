@@ -191,8 +191,16 @@ export const Sfx = {
     playSfx({ freq: 988, type: 'sine', duration: 0.2, volume: 0.18, delay: 0.1 });
     playSfx({ freq: 1319, type: 'sine', duration: 0.3, volume: 0.15, delay: 0.2 });
   },
-  /** Footstep (quiet). */
+  /** Footstep (quiet, default). */
   footstep: () => playSfx({ freq: 120, type: 'triangle', duration: 0.06, volume: 0.05, noise: 0.15 }),
+  /** Footstep — grass: soft rustle, hi-pass-ish noise, low volume. */
+  footstepGrass: () => playSfx({ freq: 320, type: 'triangle', duration: 0.04, volume: 0.035, noise: 0.35 }),
+  /** Footstep — stone: crisp click. */
+  footstepStone: () => playSfx({ freq: 180, endFreq: 90, type: 'square', duration: 0.04, volume: 0.06, noise: 0.1 }),
+  /** Footstep — water: low-pass wet splash. */
+  footstepWater: () => playSfx({ freq: 90, type: 'sine', duration: 0.06, volume: 0.05, noise: 0.5 }),
+  /** Footstep — wood: dull hollow thump. */
+  footstepWood: () => playSfx({ freq: 140, endFreq: 80, type: 'triangle', duration: 0.05, volume: 0.07, noise: 0.08 }),
   /** Door / gate unlock. */
   unlock: () => {
     playSfx({ freq: 300, type: 'square', duration: 0.08, volume: 0.2 });
