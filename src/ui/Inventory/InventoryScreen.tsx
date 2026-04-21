@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useInventoryStore } from '../../state/inventoryStore';
 import { usePlayerStore } from '../../state/playerStore';
-import type { EquipSlot, InventorySlot, Item } from '../../engine/items';
+import type { EquipSlot, InventorySlot, Item, ItemType } from '../../engine/items';
 import { getItemIcon } from './ItemIcons';
 import './InventoryScreen.css';
 
@@ -68,6 +68,18 @@ export function InventoryScreen() {
   const character = usePlayerStore((s) => s.character);
   usePlayerStore((s) => s.version);
   const [tooltip, setTooltip] = useState<InventorySlot | null>(null);
+  const [filter, setFilter] = useState<'all' | ItemType>('all');
+
+  const TABS: { key: 'all' | ItemType; label: string }[] = [
+    { key: 'all', label: 'All' },
+    { key: 'weapon', label: 'Weapons' },
+    { key: 'armor', label: 'Armor' },
+    { key: 'consumable', label: 'Consumables' },
+    { key: 'material', label: 'Materials' },
+    { key: 'quest', label: 'Quest' },
+  ];
+
+  const filteredSlots = filter === 'all' ? slots : slots.filter((s) => s.item.type === filter);
 
   if (!character) return null;
 
@@ -130,8 +142,20 @@ export function InventoryScreen() {
               <button type="button" className="inv__sort-btn" onClick={() => sortBy('name')}>Name</button>
             </div>
           </div>
+          <div className="inv__tabs">
+            {TABS.map((t) => (
+              <button
+                key={t.key}
+                type="button"
+                className={`inv__tab${filter === t.key ? ' is-active' : ''}`}
+                onClick={() => setFilter(t.key)}
+              >
+                {t.label}
+              </button>
+            ))}
+          </div>
           <div className="inv__bag-grid">
-            {slots.map((s, i) => (
+            {filteredSlots.map((s, i) => (
               <div
                 key={`${s.item.key}-${i}`}
                 className={`inv__bag-cell${s.item.equipSlot ? ' inv__bag-cell--equippable' : ''}`}
@@ -161,7 +185,7 @@ export function InventoryScreen() {
               </div>
             ))}
             {/* Empty slots */}
-            {Array.from({ length: Math.max(0, 30 - slots.length) }).map((_, i) => (
+            {filter === 'all' && Array.from({ length: Math.max(0, 30 - slots.length) }).map((_, i) => (
               <div key={`empty-${i}`} className="inv__bag-cell inv__bag-empty" />
             ))}
           </div>

@@ -647,3 +647,39 @@
   color: #000 !important;
   transform: skewX(-8deg) translate(-1px, -1px);
 }
+
+.inv__tabs {
+  display: flex;
+  gap: 0.3rem;
+  padding: 0.5rem 0.6rem 0;
+  border-bottom: 3px solid #000;
+  flex-wrap: wrap;
+}
+
+.inv__tab {
+  background: #f2f2f2;
+  color: #000;
+  border: 3px solid #000;
+  border-bottom: none;
+  padding: 0.35rem 0.7rem;
+  font-family: Impact, 'Arial Black', sans-serif;
+  font-size: 0.78rem;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transform: skewX(-8deg);
+  box-shadow: 2px 0 0 #000;
+  transition: background 120ms, transform 120ms;
+}
+
+.inv__tab:hover {
+  background: #ffe880;
+}
+
+.inv__tab.is-active {
+  background: #ffd43a;
+  border-color: #c81e1e;
+  box-shadow: 2px 0 0 #c81e1e;
+  transform: skewX(-8deg) translateY(-2px);
+}

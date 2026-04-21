@@ -1,0 +1,43 @@
+.waypoint {
+  position: absolute;
+  z-index: 13;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+  animation: wp-float 1.4s ease-in-out infinite;
+}
+
+@keyframes wp-float {
+  0%, 100% { opacity: 0.55; }
+  50%      { opacity: 0.95; }
+}
+
+.waypoint__arrow {
+  font-size: 2.6rem;
+  color: #ffd43a;
+  font-weight: 900;
+  text-shadow: 3px 3px 0 #000, 0 0 8px rgba(255, 212, 58, 0.5);
+  line-height: 1;
+  font-family: Impact, 'Arial Black', sans-serif;
+}
+
+.waypoint__label {
+  font-family: Impact, 'Arial Black', sans-serif;
+  font-size: 0.75rem;
+  color: #000;
+  background: #ffd43a;
+  padding: 2px 8px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  transform: rotate(-3deg) skewX(-4deg);
+  box-shadow: 2px 2px 0 #000;
+  white-space: nowrap;
+}
+
+.waypoint[style*='rotate(180deg)'] .waypoint__label,
+.waypoint[style*='rotate(-90deg)'] .waypoint__label,
+.waypoint[style*='rotate(90deg)'] .waypoint__label {
+  transform: rotate(0deg) skewX(-4deg);
+}

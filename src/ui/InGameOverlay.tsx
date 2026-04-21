@@ -14,6 +14,7 @@ import { CombatOverlay } from './Combat/CombatOverlay';
 import { InventoryScreen } from './Inventory/InventoryScreen';
 import { ShopScreen } from './Inventory/ShopScreen';
 import { CraftingScreen } from './Crafting/CraftingScreen';
+import { CookingScreen } from './Cooking/CookingScreen';
 import { LevelUpPopup } from './LevelUp/LevelUpPopup';
 import { getPerkHpBonus, getPerkMpBonus } from '../engine/perks';
 import { useDungeonItemStore } from '../state/dungeonItemStore';
@@ -32,6 +33,7 @@ import { saveGame } from '../engine/saveLoad';
 import { COMPANIONS, companionBonusLabel } from '../engine/companion';
 import { TouchControls } from './TouchControls/TouchControls';
 import { Minimap } from './Minimap/Minimap';
+import { WaypointArrow } from './WaypointArrow/WaypointArrow';
 import { ItemDiscovery } from './ItemDiscovery/ItemDiscovery';
 import { WorldMap } from './WorldMap/WorldMap';
 import { FastTravel } from './FastTravel/FastTravel';
@@ -127,6 +129,8 @@ export function InGameOverlay() {
   const closeShop = useInventoryStore((s) => s.closeShop);
   const craftingOpen = useInventoryStore((s) => s.isCraftingOpen);
   const closeCrafting = useInventoryStore((s) => s.closeCrafting);
+  const cookingOpen = useInventoryStore((s) => s.isCookingOpen);
+  const closeCooking = useInventoryStore((s) => s.closeCooking);
   const resetInventory = useInventoryStore((s) => s.reset);
 
   const questActive = useQuestStore((s) => s.active);
@@ -157,6 +161,7 @@ export function InGameOverlay() {
   const [photoMode, setPhotoMode] = useState(false);
   const [endingOpen, setEndingOpen] = useState(false);
   const [gameMsg, setGameMsg] = useState<string | null>(null);
+  const [autosaving, setAutosaving] = useState(false);
   const [toastKey, setToastKey] = useState<string | null>(null);
   const [showControls, setShowControls] = useState(true);
 
@@ -209,7 +214,7 @@ export function InGameOverlay() {
   // Pause when any overlay is open or window loses focus.
   useEffect(() => {
     const anyOverlayOpen =
-      menuOpen || inventoryOpen || shopOpen || craftingOpen ||
+      menuOpen || inventoryOpen || shopOpen || craftingOpen || cookingOpen ||
       questBoardOpen || optionsOpen || achievementsOpen || worldMapOpen ||
       bestiaryOpen || journalOpen || statScreenOpen || fastTravelOpen ||
       dungeonMapOpen;
@@ -225,9 +230,21 @@ export function InGameOverlay() {
         else s.sys.resume();
       }
     }
-  }, [menuOpen, inventoryOpen, shopOpen, craftingOpen, questBoardOpen,
+  }, [menuOpen, inventoryOpen, shopOpen, craftingOpen, cookingOpen, questBoardOpen,
       optionsOpen, achievementsOpen, worldMapOpen, bestiaryOpen,
       journalOpen, statScreenOpen, fastTravelOpen, dungeonMapOpen]);
+
+  // Autosave indicator listeners.
+  useEffect(() => {
+    const onStart = () => setAutosaving(true);
+    const onEnd = () => setAutosaving(false);
+    window.addEventListener('autosaveStart', onStart);
+    window.addEventListener('autosaveEnd', onEnd);
+    return () => {
+      window.removeEventListener('autosaveStart', onStart);
+      window.removeEventListener('autosaveEnd', onEnd);
+    };
+  }, []);
 
   // Auto-pause on window blur (Steam expectation).
   useEffect(() => {
@@ -415,6 +432,7 @@ export function InGameOverlay() {
         if (inventoryOpen) { toggleInventory(); return; }
         if (shopOpen) { closeShop(); return; }
         if (craftingOpen) { closeCrafting(); return; }
+        if (cookingOpen) { closeCooking(); return; }
         if (questBoardOpen) { setQuestBoardOpen(false); return; }
         if (optionsOpen) { setOptionsOpen(false); return; }
         if (achievementsOpen) { setAchievementsOpen(false); return; }
@@ -718,6 +736,13 @@ export function InGameOverlay() {
       {inventoryOpen && <InventoryScreen />}
       {shopOpen && <ShopScreen onClose={closeShop} />}
       {craftingOpen && <CraftingScreen onClose={closeCrafting} />}
+      {cookingOpen && <CookingScreen onClose={closeCooking} />}
+      {autosaving && (
+        <div className="ig__autosave">
+          <span className="ig__autosave-spinner">◐</span>
+          <span>SAVING…</span>
+        </div>
+      )}
       {questBoardOpen && <QuestBoard onClose={() => setQuestBoardOpen(false)} />}
       {optionsOpen && <OptionsMenu onClose={() => setOptionsOpen(false)} />}
       {achievementsOpen && <AchievementsScreen onClose={() => setAchievementsOpen(false)} />}
@@ -739,6 +764,13 @@ export function InGameOverlay() {
       <LevelUpPopup />
       <ItemDiscovery />
       <Minimap />
+      {!menuOpen && !dialogueActive && !combatActive && !inventoryOpen &&
+       !shopOpen && !craftingOpen && !cookingOpen && !questBoardOpen && !optionsOpen &&
+       !achievementsOpen && !worldMapOpen && !bestiaryOpen && !journalOpen &&
+       !statScreenOpen && !fastTravelOpen && !dungeonMapOpen &&
+       !dialogueHistoryOpen && !photoMode && !endingOpen && (
+        <WaypointArrow />
+      )}
       <TouchControls />
       <AchievementToast achievementKey={toastKey} onDone={() => setToastKey(null)} />
       {rankUpShown && (
