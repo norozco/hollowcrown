@@ -32,10 +32,32 @@ export const TILE = {
   // Dungeon hazard & atmosphere tiles
   LAVA: 36, ACID: 37, FLOOR_CRACKED: 38, BONES: 39,
   COBWEB: 40, CHAINS: 41, MOSS_STONE: 42, BLOOD_STONE: 43,
+  // ── Expanded outdoor variants (44+) ──
+  GRASS_FLOWER_RED: 44, GRASS_FLOWER_YELLOW: 45, GRASS_FLOWER_BLUE: 46,
+  GRASS_TUFT: 47, SAND: 48, SAND_EDGE: 49, TEAL_FLOOR: 50,
+  COBBLE: 51, COBBLE_EDGE: 52,
+  PATH_CORNER_NW: 53, PATH_CORNER_NE: 54, PATH_CORNER_SW: 55, PATH_CORNER_SE: 56,
+  PATH_EDGE_W: 57, PATH_EDGE_E: 58, PATH_EDGE_S: 59,
+  WATER_EDGE_N: 60, WATER_EDGE_S: 61, WATER_EDGE_W: 62, WATER_EDGE_E: 63,
+  WATER_ROCK: 64, STAIRS_UP: 65, STAIRS_DOWN: 66,
+  // Flora variants
+  TREE_PINE: 67, TREE_OAK: 68, TREE_DEAD: 69, BUSH_BERRY: 70,
+  ROCK_SMALL: 71, ROCK_LARGE: 72, BOULDER: 73, STUMP: 74,
+  // Architecture variants
+  ROOF_RED: 75, ROOF_BLUE: 76, ROOF_GREEN: 77, ROOF_THATCH: 78,
+  ROOF_EDGE_L: 79, ROOF_EDGE_R: 80, ROOF_PEAK: 81,
+  COLUMN: 82, COLUMN_TOP: 83, COLUMN_BASE: 84,
+  FENCE_H: 85, FENCE_V: 86, FENCE_GATE: 87,
+  SIGN: 88, LAMP_POST: 89, LANTERN: 90,
+  DOOR_IRON: 91, DOOR_ARCH: 92, WINDOW_ROUND: 93, WINDOW_BARRED: 94,
+  // Interior extras
+  FLOOR_PLANK_V: 95, FLOOR_PLANK_H: 96,
+  CARPET_RED: 97, CARPET_BLUE: 98, CARPET_EDGE: 99,
+  TABLE_SMALL: 100, BENCH: 101, CHAIR_WOOD: 102,
 } as const;
 
 export const TILE_SIZE = 32;
-const TILE_COUNT = 44;
+const TILE_COUNT = 103;
 const S = TILE_SIZE;
 
 export function generateTileset(scene: Phaser.Scene): void {
@@ -68,6 +90,11 @@ export function generateTileset(scene: Phaser.Scene): void {
   drawLava(ctx, 36); drawAcid(ctx, 37); drawFloorCracked(ctx, 38);
   drawBones(ctx, 39); drawCobweb(ctx, 40); drawChains(ctx, 41);
   drawMossStone(ctx, 42); drawBloodStone(ctx, 43);
+
+  // Expanded Kenney-backed tiles (44-102). These are ALWAYS overlaid by
+  // the Kenney sprite sheet; we paint a neutral biome-colored fallback
+  // so the frame isn't transparent if the sheet fails to load.
+  drawKenneyFallbacks(ctx);
 
   // CC0 sprite-tile overlay — blits Kenney 16×16 tiles (scaled 2×) over
   // procedural slots listed in TILE_SPRITE_MAP. Any tile not mapped, or any
@@ -122,6 +149,52 @@ function ox(i: number) { return i * S; }
 function px(c: Ctx, i: number, x: number, y: number, col: string) { c.fillStyle = col; c.fillRect(ox(i)+x, y, 1, 1); }
 function blk(c: Ctx, i: number, x: number, y: number, w: number, h: number, col: string) { c.fillStyle = col; c.fillRect(ox(i)+x, y, w, h); }
 function fill(c: Ctx, i: number, col: string) { blk(c, i, 0, 0, S, S, col); }
+
+/**
+ * Fallback fill for the expanded TILE ids (44-102). Each tile is either
+ * grass-green, dirt-brown, stone-grey, water-blue, terracotta-red, or
+ * wood-tan — matched roughly to what the Kenney overlay will paint on
+ * top. If the overlay lands (99% case) these pixels are invisible; if
+ * the sheet fails to load, the fallback still reads as the right biome.
+ */
+function drawKenneyFallbacks(c: Ctx): void {
+  const biome = (id: number, col: string) => fill(c, id, col);
+  const G = '#48a020', D = '#ae8050', K = '#a0a0a0', W = '#69c5cd';
+  const R = '#b65e26', N = '#c8b890', T = '#2a2a2a';
+  // Grass decorations 44-47 — base green.
+  biome(TILE.GRASS_FLOWER_RED, G);    biome(TILE.GRASS_FLOWER_YELLOW, G);
+  biome(TILE.GRASS_FLOWER_BLUE, G);   biome(TILE.GRASS_TUFT, G);
+  // Sand / teal / cobble.
+  biome(TILE.SAND, N); biome(TILE.SAND_EDGE, N);
+  biome(TILE.TEAL_FLOOR, '#37aaa5');
+  biome(TILE.COBBLE, K); biome(TILE.COBBLE_EDGE, K);
+  // Path corners/edges.
+  for (const id of [TILE.PATH_CORNER_NW, TILE.PATH_CORNER_NE, TILE.PATH_CORNER_SW,
+                    TILE.PATH_CORNER_SE, TILE.PATH_EDGE_W, TILE.PATH_EDGE_E, TILE.PATH_EDGE_S]) biome(id, D);
+  // Water edges.
+  for (const id of [TILE.WATER_EDGE_N, TILE.WATER_EDGE_S, TILE.WATER_EDGE_W,
+                    TILE.WATER_EDGE_E, TILE.WATER_ROCK]) biome(id, W);
+  // Stairs — stone.
+  biome(TILE.STAIRS_UP, K); biome(TILE.STAIRS_DOWN, K);
+  // Flora — on grass background.
+  for (const id of [TILE.TREE_PINE, TILE.TREE_OAK, TILE.TREE_DEAD, TILE.BUSH_BERRY,
+                    TILE.ROCK_SMALL, TILE.ROCK_LARGE, TILE.BOULDER, TILE.STUMP]) biome(id, G);
+  // Roofs — red/terracotta base except BLUE/GREEN/THATCH.
+  biome(TILE.ROOF_RED, R); biome(TILE.ROOF_BLUE, '#37aaa5');
+  biome(TILE.ROOF_GREEN, '#3a7848'); biome(TILE.ROOF_THATCH, '#b8a058');
+  biome(TILE.ROOF_EDGE_L, R); biome(TILE.ROOF_EDGE_R, R); biome(TILE.ROOF_PEAK, R);
+  // Columns / signs / lamps — stone/wood.
+  biome(TILE.COLUMN, K); biome(TILE.COLUMN_TOP, K); biome(TILE.COLUMN_BASE, K);
+  biome(TILE.FENCE_H, D); biome(TILE.FENCE_V, D); biome(TILE.FENCE_GATE, D);
+  biome(TILE.SIGN, D); biome(TILE.LAMP_POST, T); biome(TILE.LANTERN, T);
+  biome(TILE.DOOR_IRON, T); biome(TILE.DOOR_ARCH, D);
+  biome(TILE.WINDOW_ROUND, T); biome(TILE.WINDOW_BARRED, T);
+  // Interiors.
+  biome(TILE.FLOOR_PLANK_V, D); biome(TILE.FLOOR_PLANK_H, D);
+  biome(TILE.CARPET_RED, '#8a2020'); biome(TILE.CARPET_BLUE, '#203a8a');
+  biome(TILE.CARPET_EDGE, '#503020');
+  biome(TILE.TABLE_SMALL, D); biome(TILE.BENCH, D); biome(TILE.CHAIR_WOOD, D);
+}
 
 // ═══════════════════════════════════════════════════════════════
 // TERRAIN TILES (0-15) — same ALTTP-quality as before

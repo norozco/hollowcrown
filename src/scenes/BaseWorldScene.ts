@@ -14,6 +14,7 @@ import { useDungeonItemStore } from '../state/dungeonItemStore';
 import { useDungeonMapStore } from '../state/dungeonMapStore';
 import { useTimeStore, getPhaseTint } from '../state/timeStore';
 import { spawnWeather, getWeatherForScene } from './weather';
+import { applyTileVariants } from './tiles/tileMap';
 import {
   generateCharacterSprite,
   getNpcPalette,
@@ -206,6 +207,20 @@ export abstract class BaseWorldScene extends Phaser.Scene {
     this.createWorldBounds();
     this.layout();
 
+    // Per-cell variant cycling — after layout() has created any tilemap
+    // layers, hash (tileId, x, y) to swap grass/path/stone cells for
+    // one of their variant tiles. Makes fields read as hand-placed.
+    // Stable & deterministic so collision-relevant indices never change
+    // unexpectedly across reloads (grass/path aren't solid; all variants
+    // of a biome stay in the same logical class).
+    this.children.each((obj) => {
+      const layer = obj as Phaser.Tilemaps.TilemapLayer;
+      if (layer && typeof (layer as unknown as { forEachTile?: unknown }).forEachTile === 'function') {
+        applyTileVariants(layer as unknown as Parameters<typeof applyTileVariants>[0]);
+      }
+      return null;
+    });
+
     // If returning from combat, use the saved position instead of a named spawn.
     let spawn: { x: number; y: number };
     if (data?.spawnPoint === 'combat_return' && data.combatReturnX && data.combatReturnY) {
@@ -235,6 +250,11 @@ export abstract class BaseWorldScene extends Phaser.Scene {
 
     this.cameras.main.setBounds(0, 0, WORLD_W, WORLD_H);
     this.physics.world.setBounds(0, 0, WORLD_W, WORLD_H);
+    // Render-scale bump — zoom 1.15× and follow the player so tiles
+    // read at ~37 px instead of 32 px on screen. Camera bounds keep
+    // the view clamped to the world rect so edges never show void.
+    this.cameras.main.setZoom(1.15);
+    if (this.player) this.cameras.main.startFollow(this.player, true, 0.15, 0.15);
     this.cameras.main.fadeIn(FADE_MS, 0, 0, 0);
 
     // Weather — zone-specific ambient particles
