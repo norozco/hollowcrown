@@ -1,25 +1,47 @@
+/* Persona 5-inspired Fast Travel modal */
+
 .ft {
   position: absolute;
   top: 50%;
   left: 50%;
-  transform: translate(-50%, -50%);
-  background: rgba(10, 6, 6, 0.96);
-  border: 2px solid #4060a0;
-  padding: 1.2rem 1.6rem;
-  min-width: 260px;
+  transform: translate(-50%, -50%) rotate(-0.8deg);
+  background: #fff;
+  color: #0a0a0a;
+  border: 4px solid #000;
+  box-shadow: 12px 12px 0 #000;
+  padding: 1.3rem 1.5rem 1.2rem;
+  min-width: 320px;
+  max-width: 460px;
   z-index: 20;
   pointer-events: auto;
-  box-shadow: 0 0 40px rgba(80, 120, 200, 0.15);
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+  animation: ft-pop 320ms cubic-bezier(.2, .8, .2, 1);
+}
+@keyframes ft-pop {
+  from { transform: translate(-50%, -50%) rotate(-5deg) scale(0.88); opacity: 0; }
+  to   { transform: translate(-50%, -50%) rotate(-0.8deg) scale(1); opacity: 1; }
+}
+
+.ft::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; bottom: 0;
+  width: 10px;
+  background: #c81e1e;
 }
 
 .ft h3 {
-  color: #80a0e0;
-  letter-spacing: 0.15rem;
-  margin: 0 0 0.8rem 0;
+  margin: 0 0 1rem;
+  font-family: Impact, 'Arial Black', sans-serif;
+  font-size: 1.8rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #fff;
   text-align: center;
-  border-bottom: 1px solid #304060;
+  transform: skewX(-4deg);
+  text-shadow: 3px 3px 0 #c81e1e, 6px 6px 0 #000;
+  border-bottom: 4px solid #000;
   padding-bottom: 0.5rem;
-  font-family: 'Courier New', monospace;
 }
 
 .ft__list {
@@ -28,51 +50,78 @@
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
+  gap: 0.55rem;
 }
 
+/* Zone travel button — skewed P5 card */
 .ft__btn {
   width: 100%;
-  padding: 0.5rem 0.8rem;
-  background: rgba(60, 80, 120, 0.2);
-  border: 1px solid #4060a0;
-  color: #c0d0f0;
-  font-family: 'Courier New', monospace;
-  font-size: 0.95rem;
+  padding: 0.6rem 1rem 0.6rem 1.3rem;
+  background: #fff;
+  color: #0a0a0a;
+  border: 3px solid #000;
+  font-family: Impact, 'Arial Black', sans-serif;
+  font-size: 1.05rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
   cursor: pointer;
-  transition: background-color 120ms, border-color 120ms;
+  transition: background 120ms, transform 120ms, box-shadow 120ms;
   text-align: left;
+  transform: skewX(-8deg);
+  box-shadow: 5px 5px 0 #000;
+  position: relative;
+}
+.ft__btn::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; bottom: 0;
+  width: 6px;
+  background: #c81e1e;
 }
 
 .ft__btn:hover {
-  background: rgba(80, 120, 200, 0.25);
-  border-color: #80a0e0;
-  color: #e0e8ff;
+  background: #ffd43a;
+  transform: skewX(-8deg) translate(-2px, -2px);
+  box-shadow: 8px 8px 0 #000;
+}
+
+.ft__btn:active {
+  transform: skewX(-8deg) translate(1px, 1px);
+  box-shadow: 2px 2px 0 #000;
 }
 
 .ft__empty {
-  color: #6a7a8a;
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+  color: #666;
   font-style: italic;
   text-align: center;
-  padding: 0.5rem 0;
-  font-family: 'Courier New', monospace;
-  font-size: 0.9rem;
+  padding: 0.8rem 0;
+  font-size: 0.95rem;
+  background: #f2f2f2;
+  border: 2px solid #000;
+  box-shadow: 3px 3px 0 #000;
 }
 
 .ft__close {
-  margin-top: 0.8rem;
+  margin-top: 1rem;
   width: 100%;
-  padding: 0.4rem;
-  background: transparent;
-  border: 1px solid #3a2818;
-  color: #8a7a48;
-  font-family: 'Courier New', monospace;
-  font-size: 0.85rem;
+  padding: 0.55rem;
+  background: #000;
+  color: #fff;
+  border: 3px solid #000;
+  font-family: Impact, 'Arial Black', sans-serif;
+  font-size: 1rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
   cursor: pointer;
-  transition: background-color 120ms, color 120ms;
+  transform: skewX(-10deg);
+  box-shadow: 5px 5px 0 #c81e1e;
+  transition: background 120ms, transform 120ms, box-shadow 120ms;
 }
 
 .ft__close:hover {
-  background: rgba(90, 58, 26, 0.2);
-  color: #d4a968;
+  background: #c81e1e;
+  color: #fff;
+  transform: skewX(-10deg) translate(-2px, -2px);
+  box-shadow: 8px 8px 0 #000;
 }
