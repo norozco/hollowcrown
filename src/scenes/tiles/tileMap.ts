@@ -23,9 +23,9 @@ export const KENNEY_COLS = 12;
 export const KENNEY_TILE_PX = 16;
 
 export const TOWN_KEY = 'kenney-tiny-town';
-export const TOWN_URL = '/assets/tilesets/tiny-town_packed.png';
+export const TOWN_URL = `${import.meta.env.BASE_URL}assets/tilesets/tiny-town_packed.png`;
 export const DUNGEON_KEY = 'kenney-tiny-dungeon';
-export const DUNGEON_URL = '/assets/tilesets/tiny-dungeon_packed.png';
+export const DUNGEON_URL = `${import.meta.env.BASE_URL}assets/tilesets/tiny-dungeon_packed.png`;
 
 /** Helper: `rc(row, col)` -> linear tile index in the 12-wide sheet. */
 const rc = (row: number, col: number) => row * KENNEY_COLS + col;
