@@ -1,47 +1,77 @@
+/* Persona 5-inspired Stat Screen / Character Dossier */
+
 .statscreen {
   position: absolute;
   inset: 0;
-  background: rgba(10, 6, 4, 0.96);
-  display: flex;
-  flex-direction: column;
-  font-family: 'Courier New', monospace;
-  color: #e4d4a0;
   z-index: 22;
   pointer-events: auto;
+  background:
+    radial-gradient(ellipse at 20% 30%, rgba(200, 30, 30, 0.22) 0%, transparent 55%),
+    radial-gradient(ellipse at 80% 70%, rgba(255, 212, 58, 0.14) 0%, transparent 55%),
+    rgba(0, 0, 0, 0.85);
+  display: flex;
+  flex-direction: column;
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+  color: #0a0a0a;
+  animation: ss-fade 220ms ease-out;
 }
+@keyframes ss-fade { from { opacity: 0; } to { opacity: 1; } }
 
 .statscreen__header {
   display: flex;
   align-items: center;
-  padding: 0.8rem 1.5rem;
-  border-bottom: 2px solid #5a3a1a;
-  background: rgba(20, 12, 8, 0.8);
   gap: 1rem;
+  padding: 1rem 1.5rem;
+  background: #000;
+  border-bottom: 4px solid #c81e1e;
+  position: relative;
+}
+.statscreen__header::after {
+  content: '';
+  position: absolute;
+  left: 0; right: 0; bottom: -10px;
+  height: 6px;
+  background: #ffd43a;
+  transform: skewY(-0.5deg);
 }
 
 .statscreen__header h2 {
   margin: 0;
   flex: 1;
-  color: #d4a968;
-  letter-spacing: 0.15rem;
+  font-family: Impact, 'Arial Black', sans-serif;
+  font-size: 2rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #fff;
+  transform: skewX(-4deg);
+  text-shadow: 3px 3px 0 #c81e1e, 6px 6px 0 #1a0000, 10px 10px 24px rgba(0,0,0,0.6);
 }
 
 .statscreen__close {
-  background: none;
-  border: 1px solid #5a3a1a;
-  color: #d4a968;
-  width: 2rem;
-  height: 2rem;
+  background: #fff;
+  color: #000;
+  border: 3px solid #000;
+  width: 2.4rem;
+  height: 2.4rem;
   cursor: pointer;
-  font-size: 1rem;
-  font-family: inherit;
+  font-family: Impact, sans-serif;
+  font-size: 1.1rem;
+  font-weight: 900;
+  box-shadow: 4px 4px 0 #c81e1e;
+  transition: background 120ms, transform 120ms, box-shadow 120ms;
+}
+.statscreen__close:hover {
+  background: #ffd43a;
+  transform: translate(-1px, -1px);
+  box-shadow: 6px 6px 0 #000;
 }
 
+/* Two-column dossier body */
 .statscreen__body {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 1.2rem;
-  padding: 1rem 1.5rem;
+  gap: 1.4rem;
+  padding: 1.5rem;
   overflow-y: auto;
   flex: 1;
 }
@@ -52,60 +82,115 @@
   }
 }
 
+/* Section panel — tilted white card */
 .statscreen__section {
-  border: 1px solid #3a2818;
-  background: rgba(20, 12, 8, 0.5);
-  padding: 0.8rem 1rem;
+  background: #fff;
+  color: #0a0a0a;
+  border: 4px solid #000;
+  box-shadow: 8px 8px 0 #000;
+  padding: 1rem 1.1rem;
+  position: relative;
+  transform: rotate(-0.4deg);
+}
+.statscreen__section:nth-child(even) { transform: rotate(0.4deg); }
+
+.statscreen__section::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; bottom: 0;
+  width: 10px;
+  background: #c81e1e;
 }
 
 .statscreen__section-title {
-  margin: 0 0 0.5rem;
-  font-size: 0.9rem;
-  color: #d4a968;
-  letter-spacing: 0.1rem;
-  border-bottom: 1px solid #3a2818;
+  margin: 0 0 0.7rem;
+  font-family: Impact, 'Arial Black', sans-serif;
+  font-size: 1.3rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #c81e1e;
+  border-bottom: 3px solid #000;
   padding-bottom: 0.3rem;
+  transform: skewX(-4deg);
+  padding-left: 0.2rem;
 }
 
 .statscreen__row {
   display: flex;
   justify-content: space-between;
-  font-size: 0.82rem;
-  padding: 0.15rem 0;
-  color: #c0b080;
+  align-items: baseline;
+  gap: 0.6rem;
+  padding: 0.25rem 0;
+  border-bottom: 1px dashed #bbb;
 }
+.statscreen__row:last-child { border-bottom: none; }
 
 .statscreen__row-label {
-  color: #a09060;
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+  font-size: 0.85rem;
+  color: #333;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
 .statscreen__row-value {
-  color: #e4d4a0;
+  font-family: Impact, 'Arial Black', sans-serif;
+  font-size: 1.3rem;
+  color: #000;
+  letter-spacing: 0.05em;
 }
 
+.statscreen__row--highlight {
+  background: #ffd43a;
+  border: 2px solid #000;
+  padding: 0.3rem 0.5rem;
+  margin: 0.3rem 0;
+  box-shadow: 3px 3px 0 #000;
+  border-bottom: 2px solid #000;
+}
 .statscreen__row--highlight .statscreen__row-value {
-  color: #f4d488;
+  color: #c81e1e;
+  font-size: 1.5rem;
+  text-shadow: 2px 2px 0 #000;
+}
+.statscreen__row--highlight .statscreen__row-label {
+  color: #000;
 }
 
 .statscreen__perk-list {
   list-style: none;
   margin: 0;
   padding: 0;
-  font-size: 0.8rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
 }
 
 .statscreen__perk-list li {
-  padding: 0.12rem 0;
-  color: #c0b080;
+  padding: 0.35rem 0.55rem 0.35rem 0.9rem;
+  background: #f2f2f2;
+  color: #0a0a0a;
+  border: 2px solid #000;
+  box-shadow: 3px 3px 0 #000;
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+  font-size: 0.88rem;
+  font-weight: 700;
+  position: relative;
+  transform: skewX(-4deg);
 }
-
 .statscreen__perk-list li::before {
-  content: '- ';
-  color: #a09060;
+  content: '';
+  position: absolute;
+  top: 0; left: 0; bottom: 0;
+  width: 5px;
+  background: #c81e1e;
 }
 
 .statscreen__none {
-  font-size: 0.8rem;
-  color: #6a6a50;
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+  font-size: 0.85rem;
+  color: #777;
   font-style: italic;
+  padding: 0.4rem 0;
 }

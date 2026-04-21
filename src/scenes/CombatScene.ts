@@ -382,6 +382,60 @@ export class CombatScene extends Phaser.Scene {
             }
             // Brief white screen flash
             this.cameras.main.flash(200, 255, 255, 255);
+
+            // Boss victory cutscene — dramatic VANQUISHED banner for defeated bosses
+            const bossMonsterKeys = ['hollow_king', 'drowned_warden', 'crownless_one', 'the_forgotten'];
+            const bossVictoryInfo: Record<string, { subtitle: string; color: string }> = {
+              hollow_king: { subtitle: 'THE GATEKEEPER FALLS', color: '#a060c0' },
+              drowned_warden: { subtitle: 'THE POOL IS STILL', color: '#4888c0' },
+              crownless_one: { subtitle: 'THE THRONE SITS EMPTY', color: '#c040c0' },
+              the_forgotten: { subtitle: 'EVEN THE VOID CAN END', color: '#2a0040' },
+            };
+            const mk = useCombatStore.getState().monster?.key;
+            if (mk && bossMonsterKeys.includes(mk)) {
+              const vInfo = bossVictoryInfo[mk];
+              const bossName = useCombatStore.getState().monster?.name ?? '';
+
+              const victoryOverlay = this.add.rectangle(W / 2, H / 2, W, H, 0x000000, 0).setDepth(80);
+              const vanquished = this.add.text(W / 2, H / 2 - 40, 'VANQUISHED', {
+                fontFamily: 'Impact, Arial Black, sans-serif',
+                fontSize: '86px', color: '#ffd43a',
+                stroke: '#c81e1e', strokeThickness: 8,
+              }).setOrigin(0.5).setDepth(82).setAlpha(0).setAngle(-3);
+
+              const bossSubtitle = this.add.text(W / 2, H / 2 + 30, vInfo.subtitle, {
+                fontFamily: 'Impact, Arial Black, sans-serif',
+                fontSize: '24px', color: '#fff',
+                stroke: '#000', strokeThickness: 4,
+              }).setOrigin(0.5).setDepth(82).setAlpha(0);
+
+              const nameFall = this.add.text(W / 2, H / 2 + 70, bossName.toUpperCase(), {
+                fontFamily: 'Courier New, monospace',
+                fontSize: '16px', color: '#c0c0c0',
+                fontStyle: 'italic',
+              }).setOrigin(0.5).setDepth(82).setAlpha(0);
+
+              this.tweens.add({ targets: victoryOverlay, alpha: 0.6, duration: 300 });
+              this.tweens.add({ targets: vanquished, alpha: 1, scale: { from: 0.6, to: 1 }, duration: 500, delay: 200, ease: 'Back.easeOut' });
+              this.tweens.add({ targets: bossSubtitle, alpha: 1, duration: 400, delay: 600 });
+              this.tweens.add({ targets: nameFall, alpha: 0.8, duration: 400, delay: 800 });
+
+              Sfx.rankUp();
+              this.cameras.main.shake(400, 0.01);
+
+              this.time.delayedCall(3000, () => {
+                this.tweens.add({
+                  targets: [victoryOverlay, vanquished, bossSubtitle, nameFall],
+                  alpha: 0, duration: 500,
+                  onComplete: () => {
+                    victoryOverlay.destroy();
+                    vanquished.destroy();
+                    bossSubtitle.destroy();
+                    nameFall.destroy();
+                  },
+                });
+              });
+            }
           }
 
           // Fireball spell effect

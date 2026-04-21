@@ -1,0 +1,42 @@
+/* Accessibility options — applied globally via body classes */
+
+body.reduce-motion *,
+body.reduce-motion *::before,
+body.reduce-motion *::after {
+  animation-duration: 0.001s !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001s !important;
+}
+
+body.high-contrast {
+  filter: contrast(1.2) brightness(1.05);
+}
+
+/* Text scaling — default 1.0, overridable by --text-scale CSS var */
+:root {
+  --text-scale: 1;
+}
+
+/* Controls reference table styling */
+.opts__controls-table {
+  display: grid;
+  grid-template-columns: minmax(140px, max-content) 1fr;
+  gap: 6px 16px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 6px;
+  padding: 10px 14px;
+  font-size: 13px;
+  color: #e8e8e8;
+}
+
+.opts__controls-table .opts__controls-key {
+  font-family: 'Courier New', monospace;
+  font-weight: 700;
+  color: #ffd43a;
+  white-space: nowrap;
+}
+
+.opts__controls-table .opts__controls-desc {
+  color: #d0d0d0;
+}
