@@ -10,14 +10,36 @@ interface Choice {
 
 const CHOICES: Choice[] = [
   {
+    key: 'easy',
+    title: 'Easy',
+    tagline: 'Forgiving. The world yields a little.',
+    bullets: [
+      'Enemies have 30% less HP',
+      'Enemies deal 30% less damage',
+      '+20% gold from victories',
+      'Recommended for story-focused play',
+    ],
+  },
+  {
     key: 'normal',
     title: 'Normal',
-    tagline: 'Forgiving. Death sends you back to your last inn or home.',
+    tagline: 'The intended experience. No hand-holding, no cruelty.',
     bullets: [
-      'Respawn at last rested inn or owned house',
-      'Lose 10% of carried gold on death (stored gold is safe)',
-      'Equipped items are not lost',
-      'Brief XP cooldown to discourage rush-and-die farming',
+      'Balanced enemy stats',
+      'Standard gold and XP gains',
+      'Death loses 10% carried gold',
+      'Equipped items safe',
+    ],
+  },
+  {
+    key: 'hard',
+    title: 'Hard',
+    tagline: 'The cairn watches closer. Every fight matters.',
+    bullets: [
+      'Enemies have 35% more HP',
+      'Enemies deal 25% more damage',
+      '-20% gold, +15% XP',
+      'For players who want a real challenge',
     ],
   },
   {
@@ -25,17 +47,16 @@ const CHOICES: Choice[] = [
     title: 'Hardcore',
     tagline: 'One life. One memorial. One legend.',
     bullets: [
-      'Permanent death — character cannot be resurrected',
-      'Save file converted to a Memorial entry on death',
-      'Hardcore-only leaderboard rankings',
-      'Cosmetic rewards for surviving milestones',
+      'Permadeath — no resurrection',
+      'Hardest enemy scaling',
+      'Save becomes a Memorial on death',
+      'For the brave — or the stubborn',
     ],
   },
 ];
 
 /**
- * Step 0 — pick Normal or Hardcore. Choice is locked for this character
- * (cannot be changed after creation).
+ * Step 0 — pick difficulty. Locked for the character's lifetime.
  */
 export function StepDifficulty() {
   const difficulty = useCharacterCreationStore((s) => s.difficulty);
@@ -46,7 +67,7 @@ export function StepDifficulty() {
       <h2 className="cc__title">Choose your difficulty</h2>
       <p className="cc__hint">This choice is locked for this character — pick wisely.</p>
 
-      <div className="cc__cards cc__cards--two">
+      <div className="cc__cards cc__cards--four">
         {CHOICES.map((c) => {
           const selected = difficulty === c.key;
           return (

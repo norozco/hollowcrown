@@ -64,7 +64,7 @@ function renderComparison(newItem: Item, currentItem: Item | null): JSX.Element 
 }
 
 export function InventoryScreen() {
-  const { slots, equipment, close, useItem, equip, unequip, sell, sortBy } = useInventoryStore();
+  const { slots, equipment, close, useItem, equip, unequip, sell, sortBy, toggleFavorite, favorites } = useInventoryStore();
   const character = usePlayerStore((s) => s.character);
   usePlayerStore((s) => s.version);
   const [tooltip, setTooltip] = useState<InventorySlot | null>(null);
@@ -141,6 +141,7 @@ export function InventoryScreen() {
               >
                 <img src={getItemIcon(s.item.key)} alt={s.item.name} className="inv__icon" />
                 {s.quantity > 1 && <span className="inv__qty">{s.quantity}</span>}
+                {favorites.has(s.item.key) && <span className="inv__fav-mark" title="Favorited (locked from sale)">★</span>}
                 <div className="inv__cell-actions">
                   {s.item.type === 'consumable' && (
                     <button type="button" onClick={() => useItem(s.item.key)}>Use</button>
@@ -148,6 +149,11 @@ export function InventoryScreen() {
                   {s.item.equipSlot && (
                     <button type="button" onClick={() => equip(s.item.key)}>Equip</button>
                   )}
+                  <button type="button" className="inv__fav-btn"
+                    title={favorites.has(s.item.key) ? 'Unlock (allow sale)' : 'Favorite (lock from sale)'}
+                    onClick={() => toggleFavorite(s.item.key)}>
+                    {favorites.has(s.item.key) ? '★' : '☆'}
+                  </button>
                   <button type="button" className="inv__sell-btn" onClick={() => sell(s.item.key)}>
                     {Math.floor(s.item.buyPrice * 0.5)}g
                   </button>

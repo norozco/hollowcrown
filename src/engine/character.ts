@@ -12,8 +12,34 @@ import {
 } from './stats';
 import { pickStartingWeapon, type Weapon } from './weapons';
 
-export type Difficulty = 'normal' | 'hardcore';
+export type Difficulty = 'easy' | 'normal' | 'hard' | 'hardcore';
 export type Gender = 'male' | 'female';
+
+/** Combat scaling multipliers per difficulty. Applied in combat.ts. */
+export const DIFFICULTY_SCALES: Record<Difficulty, {
+  monsterHp: number;
+  monsterDamage: number;
+  goldGain: number;
+  xpGain: number;
+  description: string;
+}> = {
+  easy: {
+    monsterHp: 0.7, monsterDamage: 0.7, goldGain: 1.2, xpGain: 1.0,
+    description: 'Forgiving. Enemies hit softer and drop more gold.',
+  },
+  normal: {
+    monsterHp: 1.0, monsterDamage: 1.0, goldGain: 1.0, xpGain: 1.0,
+    description: 'The intended experience. No hand-holding, no cruelty.',
+  },
+  hard: {
+    monsterHp: 1.35, monsterDamage: 1.25, goldGain: 0.8, xpGain: 1.15,
+    description: 'Enemies hit harder and last longer. More XP, less gold.',
+  },
+  hardcore: {
+    monsterHp: 1.5, monsterDamage: 1.35, goldGain: 0.75, xpGain: 1.2,
+    description: 'Permadeath. The cairn keeps your name when you fall.',
+  },
+};
 
 export const MAX_NAME_LENGTH = 15;
 

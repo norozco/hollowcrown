@@ -15,6 +15,7 @@ import { useAchievementStore } from './achievementStore';
 import { useBountyStore } from './bountyStore';
 import { rollPerkChoices, getPerkHpBonus, getPerkMpBonus } from '../engine/perks';
 import { getHeartPieceHpBonus } from './playerStore';
+import { DIFFICULTY_SCALES } from '../engine/character';
 
 /**
  * Combat store — manages the active battle. Null when not in combat.
@@ -215,8 +216,10 @@ export const useCombatStore = create<CombatStoreState>((set, get) => ({
 
     if (state && monster && character) {
       if (state.phase === 'victory') {
-        character.addGold(monster.goldReward);
-        const levelsGained = character.gainXp(monster.xpReward);
+        // Difficulty scales gold + XP rewards
+        const diff = DIFFICULTY_SCALES[character.difficulty] ?? DIFFICULTY_SCALES.normal;
+        character.addGold(Math.round(monster.goldReward * diff.goldGain));
+        const levelsGained = character.gainXp(Math.round(monster.xpReward * diff.xpGain));
         if (levelsGained === 0) {
           // No level-up — preserve the combat HP (player may have taken damage).
           character.hp = state.playerHp;

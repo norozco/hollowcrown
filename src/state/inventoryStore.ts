@@ -19,6 +19,10 @@ interface InventoryState {
   isShopOpen: boolean;
   /** Is the crafting screen open? */
   isCraftingOpen: boolean;
+  /** Item keys marked as favorite (prevents accidental sale/drop). */
+  favorites: Set<string>;
+  toggleFavorite: (itemKey: string) => void;
+  isFavorite: (itemKey: string) => boolean;
 
   open: () => void;
   close: () => void;
@@ -86,6 +90,15 @@ export const useInventoryStore = create<InventoryState>((set, get) => ({
   isOpen: false,
   isShopOpen: false,
   isCraftingOpen: false,
+  favorites: new Set<string>(),
+
+  toggleFavorite: (itemKey) => set((s) => {
+    const next = new Set(s.favorites);
+    if (next.has(itemKey)) next.delete(itemKey);
+    else next.add(itemKey);
+    return { favorites: next };
+  }),
+  isFavorite: (itemKey) => get().favorites.has(itemKey),
 
   open: () => set({ isOpen: true }),
   close: () => set({ isOpen: false, isShopOpen: false, isCraftingOpen: false }),
@@ -191,6 +204,13 @@ export const useInventoryStore = create<InventoryState>((set, get) => ({
   },
 
   sell: (itemKey) => {
+    // Block sale of favorited items
+    if (get().favorites.has(itemKey)) {
+      window.dispatchEvent(new CustomEvent('gameMessage', {
+        detail: 'This item is favorited. Unlock it first.',
+      }));
+      return false;
+    }
     const item = getItem(itemKey);
     const sellPrice = Math.floor(item.buyPrice * 0.5);
     if (!get().removeItem(itemKey, 1)) return false;
@@ -233,5 +253,5 @@ export const useInventoryStore = create<InventoryState>((set, get) => ({
     }));
   },
 
-  reset: () => set({ slots: [], equipment: { ...EMPTY_EQUIPMENT }, isOpen: false, isShopOpen: false, isCraftingOpen: false }),
+  reset: () => set({ slots: [], equipment: { ...EMPTY_EQUIPMENT }, isOpen: false, isShopOpen: false, isCraftingOpen: false, favorites: new Set<string>() }),
 }));

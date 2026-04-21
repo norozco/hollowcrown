@@ -39,6 +39,7 @@ import { Ending } from './Ending/Ending';
 import { DungeonMap } from './DungeonMap/DungeonMap';
 import { useDungeonMapStore } from '../state/dungeonMapStore';
 import { DialogueHistory } from './Dialogue/DialogueHistory';
+import { useMapMarkerStore } from '../state/mapMarkerStore';
 import { useTimeStore, getPhaseIcon } from '../state/timeStore';
 import { Sfx, unlockAudio, playMusic } from '../engine/audio';
 import { initGamepadSupport } from '../engine/gamepad';
@@ -446,6 +447,19 @@ export function InGameOverlay() {
       if (e.key === 'F10') {
         e.preventDefault();
         setPhotoMode((v) => !v);
+      }
+      if (e.key === 'l' || e.key === 'L') {
+        e.preventDefault();
+        const map = (window as { __currentMap?: { sceneKey?: string; playerX?: number; playerY?: number } }).__currentMap;
+        if (map && map.sceneKey) {
+          useMapMarkerStore.getState().add(
+            map.sceneKey,
+            map.playerX ?? 0,
+            map.playerY ?? 0,
+          );
+          Sfx.pickup();
+          window.dispatchEvent(new CustomEvent('gameMessage', { detail: 'Pin dropped.' }));
+        }
       }
     };
     window.addEventListener('keydown', onKey);

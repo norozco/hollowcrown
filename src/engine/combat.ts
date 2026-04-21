@@ -17,7 +17,7 @@
 
 import { DiceRoller } from './dice';
 import { modifier } from './stats';
-import type { Character } from './character';
+import { type Character, DIFFICULTY_SCALES } from './character';
 import type { Monster } from './monster';
 import { useInventoryStore } from '../state/inventoryStore';
 import { usePlayerStore, getHeartPieceHpBonus } from '../state/playerStore';
@@ -223,8 +223,10 @@ export function initCombat(player: Character, monster: Monster): CombatState {
   const ngPlus = usePlayerStore.getState().newGamePlus;
   const ngPlusHpScale = ngPlus ? 1.5 : 1;
   const ngPlusDmgScale = ngPlus ? 1.25 : 1;
-  const scaledHp = Math.round(monster.maxHp * levelScale * ngPlusHpScale);
-  const scaledDamage = Math.round(monster.baseDamage * (1 + Math.max(0, player.level - 5) * 0.05) * ngPlusDmgScale);
+  // Difficulty scaling from character creation
+  const diffScale = DIFFICULTY_SCALES[player.difficulty] ?? DIFFICULTY_SCALES.normal;
+  const scaledHp = Math.round(monster.maxHp * levelScale * ngPlusHpScale * diffScale.monsterHp);
+  const scaledDamage = Math.round(monster.baseDamage * (1 + Math.max(0, player.level - 5) * 0.05) * ngPlusDmgScale * diffScale.monsterDamage);
 
   return {
     phase: playerFirst ? 'player_turn' : 'enemy_turn',

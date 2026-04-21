@@ -1,9 +1,11 @@
 import { useEffect, useRef } from 'react';
+import { useMapMarkerStore } from '../../state/mapMarkerStore';
 import './Minimap.css';
 
 declare global {
   interface Window {
     __currentMap?: {
+      sceneKey?: string;
       zoneName: string | null;
       playerX: number;
       playerY: number;
@@ -52,6 +54,26 @@ export function Minimap() {
         ctx.beginPath();
         ctx.arc(ex, ey, 2, 0, Math.PI * 2);
         ctx.fill();
+      }
+
+      // Player-placed pins — yellow diamonds
+      const markers = map.sceneKey
+        ? useMapMarkerStore.getState().forScene(map.sceneKey)
+        : [];
+      for (const marker of markers) {
+        const mx = (marker.x / map.worldW) * W;
+        const my = (marker.y / map.worldH) * H;
+        ctx.fillStyle = '#ffd43a';
+        ctx.strokeStyle = '#000';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(mx, my - 4);
+        ctx.lineTo(mx + 3, my);
+        ctx.lineTo(mx, my + 4);
+        ctx.lineTo(mx - 3, my);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
       }
 
       // Player dot — white, pulsing

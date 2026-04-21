@@ -617,3 +617,33 @@
 .inv__act-btn:disabled::before {
   background: #888;
 }
+
+/* Item favorites — star marker + toggle button */
+.inv__fav-mark {
+  position: absolute;
+  top: 2px;
+  right: 4px;
+  color: #ffd43a;
+  font-size: 1rem;
+  text-shadow: 0 0 3px #000, 1px 1px 0 #000;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.inv__fav-btn {
+  color: #ffd43a !important;
+  background: #000 !important;
+  border: 2px solid #000 !important;
+  padding: 0.25rem 0.4rem !important;
+  font-size: 0.95rem !important;
+  font-weight: 900 !important;
+  min-width: 2rem;
+  transform: skewX(-8deg);
+  box-shadow: 3px 3px 0 #c81e1e !important;
+  transition: all 100ms;
+}
+.inv__fav-btn:hover {
+  background: #ffd43a !important;
+  color: #000 !important;
+  transform: skewX(-8deg) translate(-1px, -1px);
+}
