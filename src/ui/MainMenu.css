@@ -61,6 +61,11 @@
   z-index: 3;
   text-align: center;
   margin-bottom: 0.5rem;
+  width: 100%;
+  max-width: 100%;
+  padding: 0 0.5rem;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
 .main-menu__crown {
@@ -81,11 +86,13 @@
 .main-menu__title h1 {
   margin: 0;
   font-family: 'Cinzel', 'Trajan Pro', 'Palatino Linotype', Georgia, serif;
-  font-size: clamp(2.8rem, 9vw, 5.8rem);
+  font-size: clamp(1.8rem, 7.5vw, 5.8rem);
   font-weight: 900;
   color: #d8c078;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
+  white-space: nowrap;
+  max-width: 100%;
   /* Carved-stone bevel */
   text-shadow:
     0 1px 0 #8a7a4a,

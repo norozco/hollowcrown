@@ -1,4 +1,12 @@
 import * as Phaser from 'phaser';
+import {
+  USE_SPRITE_TILES,
+  TILE_SPRITE_MAP,
+  TOWN_KEY,
+  DUNGEON_KEY,
+  KENNEY_COLS,
+  KENNEY_TILE_PX,
+} from './tileMap';
 
 /**
  * Procedural pixel-art tileset — 32 tiles, ALTTP/Pokemon quality target.
@@ -62,21 +70,52 @@ export function generateTileset(scene: Phaser.Scene): void {
   drawBones(ctx, 39); drawCobweb(ctx, 40); drawChains(ctx, 41);
   drawMossStone(ctx, 42); drawBloodStone(ctx, 43);
 
-  // Contrast/saturation pass — edge darkening, subtle dither, a couple accent
-  // pixels. Keeps ALTTP mood without touching shape/collision. Only applied to
-  // outdoor/naturey tiles; interiors already read crisply.
-  enrichTile(ctx, TILE.GRASS_DARK,   { edge: 0.35, dither: 0.12, dark: '#1e4a22', accents: [{x: 18,y:  9, col:'#f0e4b8'}, {x: 25,y: 27, col:'#d0a0a0'}] });
-  enrichTile(ctx, TILE.GRASS_LIGHT,  { edge: 0.28, dither: 0.10, dark: '#244a1a', accents: [{x: 11,y: 21, col:'#f0e4b8'}] });
-  enrichTile(ctx, TILE.PATH,         { edge: 0.32, dither: 0.10, dark: '#3a2a14' });
-  enrichTile(ctx, TILE.PATH_EDGE,    { edge: 0.32, dither: 0.08, dark: '#3a2a14' });
-  enrichTile(ctx, TILE.WALL_STONE,   { edge: 0.40, dither: 0.08, dark: '#302830', accents: [{x: 9, y: 11, col:'#484048'}, {x: 22,y: 27, col:'#484048'}] });
-  enrichTile(ctx, TILE.WATER,        { edge: 0.22, dither: 0.08, dark: '#142838', accents: [{x: 11, y:  4, col:'#a0d0e8'}] });
-  enrichTile(ctx, TILE.FLOOR_STONE,  { edge: 0.30, dither: 0.08, dark: '#303030' });
-  enrichTile(ctx, TILE.MOSS_STONE,   { edge: 0.30, dither: 0.10, dark: '#1e3a20' });
-  enrichTile(ctx, TILE.BUSH,         { edge: 0.28, dither: 0.10, dark: '#1e4a22' });
+  // CC0 sprite-tile overlay — blits Kenney 16×16 tiles (scaled 2×) over
+  // procedural slots listed in TILE_SPRITE_MAP. Any tile not mapped, or any
+  // scene where the Kenney sheets failed to load, keeps the procedural art
+  // underneath as a visual fallback. Collision geometry is untouched.
+  // (Dither/edge pass removed — it was doubling up with the sprite and
+  // making every tile look speckled.)
+  if (USE_SPRITE_TILES) {
+    overlaySpriteTiles(scene, ctx);
+  }
 
   const tex = scene.textures.addCanvas('tileset', canvas);
   if (tex) { for (let i = 0; i < TILE_COUNT; i++) tex.add(i, 0, i * S, 0, S, S); }
+}
+
+/** Copy mapped Kenney tiles onto the procedural strip, 2× upscaled, nearest-neighbor. */
+function overlaySpriteTiles(scene: Phaser.Scene, ctx: Ctx): void {
+  const getImage = (key: string): HTMLImageElement | HTMLCanvasElement | null => {
+    if (!scene.textures.exists(key)) return null;
+    const src = scene.textures.get(key).getSourceImage(0);
+    // Phaser source images are HTMLImageElement or HTMLCanvasElement at runtime.
+    return src as HTMLImageElement | HTMLCanvasElement;
+  };
+  const town = getImage(TOWN_KEY);
+  const dungeon = getImage(DUNGEON_KEY);
+  if (!town && !dungeon) return; // both failed to load — pure procedural fallback
+
+  // Preserve hard pixel edges when scaling 16 -> 32.
+  const prevSmooth = ctx.imageSmoothingEnabled;
+  ctx.imageSmoothingEnabled = false;
+
+  for (const key of Object.keys(TILE_SPRITE_MAP)) {
+    const semantic = Number(key);
+    const ref = TILE_SPRITE_MAP[semantic]!;
+    const img = ref.sheet === 'town' ? town : dungeon;
+    if (!img) continue;
+    const col = ref.index % KENNEY_COLS;
+    const row = Math.floor(ref.index / KENNEY_COLS);
+    const sx = col * KENNEY_TILE_PX;
+    const sy = row * KENNEY_TILE_PX;
+    // Clear the slot first so procedural art doesn't bleed through
+    // transparent Kenney pixels (many dungeon tiles have alpha borders).
+    ctx.clearRect(ox(semantic), 0, S, S);
+    ctx.drawImage(img, sx, sy, KENNEY_TILE_PX, KENNEY_TILE_PX, ox(semantic), 0, S, S);
+  }
+
+  ctx.imageSmoothingEnabled = prevSmooth;
 }
 
 // ─── Helpers ──────────────────────────────────────────────────
@@ -85,56 +124,6 @@ function ox(i: number) { return i * S; }
 function px(c: Ctx, i: number, x: number, y: number, col: string) { c.fillStyle = col; c.fillRect(ox(i)+x, y, 1, 1); }
 function blk(c: Ctx, i: number, x: number, y: number, w: number, h: number, col: string) { c.fillStyle = col; c.fillRect(ox(i)+x, y, w, h); }
 function fill(c: Ctx, i: number, col: string) { blk(c, i, 0, 0, S, S, col); }
-
-/**
- * Post-process a terrain tile to push it toward an ALTTP/Pokemon read:
- *   - deterministic dither noise using a dark overlay
- *   - darker pixels along the bottom + right edges (fake shadow seam)
- *   - optional accent pixels (flowers, cracks, sparkles)
- *
- * Applied AFTER the main drawXxx() so it sits on top of the base pixel art.
- * Deterministic — seed comes from tile index so the same tile renders the
- * same every time.
- */
-type EnrichOpts = {
-  edge?: number;     // 0..1 probability of darkening an edge pixel
-  dither?: number;   // 0..1 probability of placing a dither pixel
-  dark: string;      // dark overlay color
-  accents?: { x: number; y: number; col: string }[];
-};
-function enrichTile(c: Ctx, i: number, opts: EnrichOpts) {
-  // Tiny deterministic PRNG so output is stable across runs.
-  let seed = (i + 1) * 9301 + 49297;
-  const rnd = () => {
-    seed = (seed * 9301 + 49297) % 233280;
-    return seed / 233280;
-  };
-  const edgeP   = opts.edge   ?? 0.3;
-  const ditherP = opts.dither ?? 0.08;
-
-  // Dither noise — scattered single dark pixels for grit/saturation depth.
-  for (let y = 0; y < S; y++) {
-    for (let x = 0; x < S; x++) {
-      if (rnd() < ditherP) px(c, i, x, y, opts.dark);
-    }
-  }
-
-  // Bottom-edge shadow line (2px, probabilistic)
-  for (let x = 0; x < S; x++) {
-    if (rnd() < edgeP) px(c, i, x, S - 1, opts.dark);
-    if (rnd() < edgeP * 0.6) px(c, i, x, S - 2, opts.dark);
-  }
-  // Right-edge shadow line
-  for (let y = 0; y < S; y++) {
-    if (rnd() < edgeP) px(c, i, S - 1, y, opts.dark);
-    if (rnd() < edgeP * 0.6) px(c, i, S - 2, y, opts.dark);
-  }
-
-  // Accent pixels
-  if (opts.accents) {
-    for (const a of opts.accents) px(c, i, a.x, a.y, a.col);
-  }
-}
 
 // ═══════════════════════════════════════════════════════════════
 // TERRAIN TILES (0-15) — same ALTTP-quality as before
