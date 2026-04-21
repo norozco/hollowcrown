@@ -31,6 +31,17 @@ interface DialogueStoreState {
   end: () => void;
 }
 
+/**
+ * Fire a global `dialogueClosed` event whenever a dialogue transitions
+ * from open to closed. Scene code listens for this as a failsafe to clear
+ * any lingering interaction state.
+ */
+function emitClosed(): void {
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('dialogueClosed'));
+  }
+}
+
 function applyEffects(effects: readonly DialogueEffect[] | undefined): void {
   if (!effects || effects.length === 0) return;
   const quests = useQuestStore.getState();
@@ -82,6 +93,7 @@ export const useDialogueStore = create<DialogueStoreState>((set, get) => ({
     const next = advance(dialogue, state);
     if (next === null) {
       set({ dialogue: null, state: null });
+      emitClosed();
     } else {
       applyEffects(currentNode(dialogue, next).effects);
       set({ state: next });
@@ -94,6 +106,7 @@ export const useDialogueStore = create<DialogueStoreState>((set, get) => ({
     const next = choose(dialogue, state, index);
     if (next === null) {
       set({ dialogue: null, state: null });
+      emitClosed();
     } else {
       applyEffects(currentNode(dialogue, next).effects);
       set({ state: next });
@@ -101,6 +114,8 @@ export const useDialogueStore = create<DialogueStoreState>((set, get) => ({
   },
 
   end: () => {
+    const wasOpen = get().dialogue !== null;
     set({ dialogue: null, state: null });
+    if (wasOpen) emitClosed();
   },
 }));

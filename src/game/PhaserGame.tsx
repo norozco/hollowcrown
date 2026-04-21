@@ -34,7 +34,48 @@ export function PhaserGame() {
     // Expose game instance for cross-layer communication (e.g. fast travel).
     (window as any).__phaserGame = gameRef.current;
 
+    // Bug fix: when the window is minimized/hidden, requestAnimationFrame
+    // pauses but the wall-clock keeps moving. On focus, Phaser would try
+    // to catch up with a huge dt, producing a visible stutter/jump.
+    // We pause the loop on hide and reset dt on show so motion resumes
+    // smoothly from the current frame.
+    const onVisibility = () => {
+      const g = gameRef.current;
+      if (!g) return;
+      const loop = (g as any).loop;
+      if (document.hidden) {
+        // Pause the main loop so it stops scheduling rAFs while hidden.
+        if (loop && !loop.running) return;
+        try { g.loop.sleep(); } catch { /* older Phaser */ }
+      } else {
+        // Reset accumulated delta so the next frame starts fresh.
+        try { g.loop.wake(); } catch { /* older Phaser */ }
+        if (loop) {
+          loop.time = performance.now();
+          loop.lastTime = performance.now();
+          loop.startTime = performance.now();
+          loop.delta = 0;
+          loop.rawDelta = 0;
+        }
+      }
+    };
+    const onFocus = () => {
+      const g = gameRef.current;
+      if (!g) return;
+      const loop = (g as any).loop;
+      if (loop) {
+        loop.time = performance.now();
+        loop.lastTime = performance.now();
+        loop.delta = 0;
+        loop.rawDelta = 0;
+      }
+    };
+    document.addEventListener('visibilitychange', onVisibility);
+    window.addEventListener('focus', onFocus);
+
     return () => {
+      document.removeEventListener('visibilitychange', onVisibility);
+      window.removeEventListener('focus', onFocus);
       gameRef.current?.destroy(true);
       gameRef.current = null;
       (window as any).__phaserGame = null;

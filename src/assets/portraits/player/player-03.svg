@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <pattern id="p3stripes" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+      <rect width="6" height="6" fill="#c81e1e"/>
+      <rect width="3" height="6" fill="#7a0a0a"/>
+    </pattern>
+  </defs>
+  <rect width="128" height="128" fill="url(#p3stripes)"/>
+  <polygon points="80,0 128,0 128,50 96,16" fill="#ffd43a" stroke="#000" stroke-width="3"/>
+  <!-- armor shoulders with rivets -->
+  <path d="M 4 128 L 12 96 Q 64 86 116 96 L 124 128 Z" fill="#4a4a4a" stroke="#000" stroke-width="3"/>
+  <circle cx="22" cy="108" r="3" fill="#ffd43a" stroke="#000" stroke-width="1.5"/>
+  <circle cx="106" cy="108" r="3" fill="#ffd43a" stroke="#000" stroke-width="1.5"/>
+  <path d="M 40 100 L 64 110 L 88 100 L 92 128 L 36 128 Z" fill="#8a2020" stroke="#000" stroke-width="2.5"/>
+  <!-- neck -->
+  <rect x="56" y="74" width="16" height="20" fill="#c89070" stroke="#000" stroke-width="2.5"/>
+  <!-- face squarer jaw -->
+  <path d="M 36 48 Q 36 22 64 20 Q 92 22 92 48 L 90 72 Q 86 84 64 88 Q 42 84 38 72 Z" fill="#c89070" stroke="#000" stroke-width="3"/>
+  <!-- scar -->
+  <path d="M 42 56 L 48 66" stroke="#6a3020" stroke-width="2" fill="none" stroke-linecap="round"/>
+  <!-- buzzcut silver hair -->
+  <path d="M 36 44 Q 38 24 64 20 Q 90 24 92 44 L 88 48 Q 64 38 40 48 Z" fill="#b8b8b8" stroke="#000" stroke-width="3"/>
+  <path d="M 42 30 L 44 26 M 52 26 L 54 22 M 62 24 L 64 20 M 72 26 L 74 22 M 82 30 L 84 26" stroke="#000" stroke-width="1.4"/>
+  <!-- eyes narrow -->
+  <path d="M 46 58 Q 54 54 60 58 Q 54 62 46 60 Z" fill="#fff" stroke="#000" stroke-width="2"/>
+  <path d="M 68 58 Q 74 54 82 58 Q 74 62 68 60 Z" fill="#fff" stroke="#000" stroke-width="2"/>
+  <circle cx="54" cy="59" r="1.8" fill="#202020"/>
+  <circle cx="74" cy="59" r="1.8" fill="#202020"/>
+  <!-- heavy brows -->
+  <path d="M 44 50 L 62 48" stroke="#000" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <path d="M 66 48 L 84 50" stroke="#000" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <!-- nose -->
+  <path d="M 64 62 L 60 72 L 68 72 Z" fill="none" stroke="#000" stroke-width="1.8"/>
+  <!-- stern mouth -->
+  <path d="M 54 78 L 74 78" stroke="#000" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+</svg>

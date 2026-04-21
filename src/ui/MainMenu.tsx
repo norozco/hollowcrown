@@ -171,9 +171,53 @@ export function MainMenu() {
           <div className="main-menu__shadow-figure" />
         </div>
       )}
+      {/* Floating light motes */}
+      {['m1','m2','m3','m4','m5','m6','m7','m8'].map((c) => (
+        <span key={c} className={`main-menu__mote ${c}`} aria-hidden="true" />
+      ))}
+
       <div className="main-menu__title">
+        {/* Glowing golden crown with gem */}
+        <svg
+          className="main-menu__crown"
+          viewBox="0 0 120 80"
+          aria-hidden="true"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <defs>
+            <linearGradient id="hc-gold" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#fff2c0" />
+              <stop offset="45%" stopColor="#f0c850" />
+              <stop offset="100%" stopColor="#8a6018" />
+            </linearGradient>
+            <radialGradient id="hc-gem" cx="0.5" cy="0.4" r="0.6">
+              <stop offset="0%" stopColor="#ffb8c8" />
+              <stop offset="50%" stopColor="#d03848" />
+              <stop offset="100%" stopColor="#5a0818" />
+            </radialGradient>
+          </defs>
+          {/* Crown body */}
+          <path
+            d="M10 60 L20 25 L38 45 L60 15 L82 45 L100 25 L110 60 Z"
+            fill="url(#hc-gold)"
+            stroke="#4a3010"
+            strokeWidth="2"
+            strokeLinejoin="round"
+          />
+          {/* Base band */}
+          <rect x="10" y="58" width="100" height="14" fill="url(#hc-gold)" stroke="#4a3010" strokeWidth="2" rx="2" />
+          {/* Band shading stripe */}
+          <rect x="12" y="64" width="96" height="2" fill="#8a6018" opacity="0.6" />
+          {/* Peak orbs */}
+          <circle cx="20" cy="25" r="4" fill="#fff2c0" stroke="#4a3010" strokeWidth="1.5" />
+          <circle cx="100" cy="25" r="4" fill="#fff2c0" stroke="#4a3010" strokeWidth="1.5" />
+          <circle cx="60" cy="15" r="5" fill="#fff2c0" stroke="#4a3010" strokeWidth="1.5" />
+          {/* Central gem */}
+          <ellipse cx="60" cy="65" rx="7" ry="5" fill="url(#hc-gem)" stroke="#4a0818" strokeWidth="1.2" />
+          <ellipse cx="58" cy="63" rx="2" ry="1.2" fill="#ffd8e0" opacity="0.85" />
+        </svg>
         <h1>HOLLOWCROWN</h1>
-        <p className="main-menu__subtitle">A Dungeon of the Forgotten Repo</p>
+        <p className="main-menu__subtitle">A Kingdom of Hollow Echoes</p>
       </div>
 
       {loadPanelOpen ? (

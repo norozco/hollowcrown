@@ -250,16 +250,18 @@
   left: 10%;
   right: 10%;
   bottom: 12%;
-  background: #1a1008;
-  color: #e4d4a0;
+  background: rgba(10, 6, 3, 0.92);
+  color: #f5e9c9;
   font-style: italic;
   font-family: 'Georgia', serif;
-  font-size: 1.05rem;
+  font-size: 1.15rem;
   transform: rotate(0);
+  border: 2px solid #c9a15a;
   box-shadow:
     0 0 0 4px #5a3a1a,
     0 10px 34px rgba(0, 0, 0, 0.7);
   min-height: 80px;
+  text-shadow: 0 2px 0 #000, 0 0 6px rgba(0, 0, 0, 0.8);
 }
 
 .dlg__textbox--narrator::before,
@@ -306,9 +308,10 @@
 }
 
 .dlg__textbox--narrator .dlg__text {
-  color: #e4d4a0;
-  font-weight: 400;
-  font-size: 1.05rem;
+  color: #f5e9c9;
+  font-weight: 500;
+  font-size: 1.15rem;
+  text-shadow: 0 2px 0 #000, 0 0 6px rgba(0, 0, 0, 0.8);
 }
 
 /* Advance hint */

@@ -231,6 +231,7 @@ export abstract class BaseWorldScene extends Phaser.Scene {
 
     this.setupInput();
     this.createPrompt();
+    this.setupInteractionFailsafes();
 
     this.cameras.main.setBounds(0, 0, WORLD_W, WORLD_H);
     this.physics.world.setBounds(0, 0, WORLD_W, WORLD_H);
@@ -286,23 +287,9 @@ export abstract class BaseWorldScene extends Phaser.Scene {
       }
     }
 
-    // Zone name reveal (Souls-style)
-    const zoneName = this.getZoneName();
-    if (zoneName) {
-      const zoneText = this.add.text(WORLD_W / 2, WORLD_H / 2 - 40, zoneName, {
-        fontFamily: 'Courier New', fontSize: '28px', color: '#d4a968',
-        stroke: '#000000', strokeThickness: 4,
-      }).setOrigin(0.5).setDepth(200).setAlpha(0);
-
-      this.tweens.add({
-        targets: zoneText,
-        alpha: { from: 0, to: 1 },
-        duration: 800,
-        hold: 2000,
-        yoyo: true,
-        onComplete: () => zoneText.destroy(),
-      });
-    }
+    // Zone name reveal handled by the P5 Impact banner during scene
+    // transitions (see transition() below) — the plain centered text that
+    // used to live here was redundant, so it has been removed.
   }
 
   update(): void {
@@ -1255,6 +1242,40 @@ export abstract class BaseWorldScene extends Phaser.Scene {
       })
       .setOrigin(0.5, 1)
       .setDepth(11);
+  }
+
+  /**
+   * Failsafes to prevent the player getting "stuck" after an interaction:
+   *  - Listen for `dialogueClosed` and clear any lingering nearby target /
+   *    proximity prompt so the next frame resumes cleanly.
+   *  - Global Esc handler: if for any reason the dialogue store still
+   *    thinks a dialogue is open, force-close it. This is an escape hatch
+   *    — ordinary Esc handling lives in the React overlay.
+   */
+  private setupInteractionFailsafes(): void {
+    const onDialogueClosed = () => {
+      this.nearbyTarget = null;
+      if (this.prompt) this.prompt.setVisible(false);
+    };
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') return;
+      const ds = useDialogueStore.getState();
+      if (ds.dialogue) {
+        // Ordinary flow already handles close; this is a paranoid backstop
+        // if the overlay is somehow unmounted while the store is still set.
+        ds.end();
+      }
+      this.nearbyTarget = null;
+      if (this.prompt) this.prompt.setVisible(false);
+    };
+    window.addEventListener('dialogueClosed', onDialogueClosed);
+    window.addEventListener('keydown', onKeyDown);
+    const cleanup = () => {
+      window.removeEventListener('dialogueClosed', onDialogueClosed);
+      window.removeEventListener('keydown', onKeyDown);
+    };
+    this.events.once('shutdown', cleanup);
+    this.events.once('destroy', cleanup);
   }
 
   private setupInput(): void {

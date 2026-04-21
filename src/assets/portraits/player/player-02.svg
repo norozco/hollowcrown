@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <pattern id="p2stripes" width="10" height="10" patternUnits="userSpaceOnUse" patternTransform="rotate(-30)">
+      <rect width="10" height="10" fill="#c81e1e"/>
+      <rect width="5" height="10" fill="#901414"/>
+    </pattern>
+  </defs>
+  <rect width="128" height="128" fill="url(#p2stripes)"/>
+  <polygon points="0,0 60,0 30,40 0,20" fill="#ffd43a" stroke="#000" stroke-width="3"/>
+  <!-- shoulders -->
+  <path d="M 8 128 L 20 100 Q 64 90 108 100 L 120 128 Z" fill="#1a2a4a" stroke="#000" stroke-width="3"/>
+  <!-- scarf -->
+  <path d="M 36 100 Q 64 108 92 100 L 96 116 Q 64 120 32 116 Z" fill="#ffd43a" stroke="#000" stroke-width="3"/>
+  <!-- neck -->
+  <rect x="56" y="72" width="16" height="20" fill="#e8b48a" stroke="#000" stroke-width="2.5"/>
+  <!-- face -->
+  <path d="M 38 50 Q 38 24 64 22 Q 90 24 90 50 Q 90 80 64 86 Q 38 80 38 50 Z" fill="#e8b48a" stroke="#000" stroke-width="3"/>
+  <!-- long flowing hair -->
+  <path d="M 30 48 Q 26 18 64 14 Q 102 18 98 48 L 104 110 L 92 90 L 90 54 Q 86 38 64 34 Q 42 38 38 54 L 36 90 L 24 110 Z" fill="#d4a010" stroke="#000" stroke-width="3"/>
+  <!-- bangs -->
+  <path d="M 40 48 Q 50 34 60 48 Q 64 38 68 48 Q 78 34 88 48 L 84 56 Q 76 50 68 54 Q 64 46 60 54 Q 52 50 44 56 Z" fill="#d4a010" stroke="#000" stroke-width="2.5"/>
+  <!-- eyes large anime -->
+  <ellipse cx="52" cy="58" rx="5" ry="6.5" fill="#fff" stroke="#000" stroke-width="2"/>
+  <ellipse cx="76" cy="58" rx="5" ry="6.5" fill="#fff" stroke="#000" stroke-width="2"/>
+  <circle cx="52" cy="59" r="2.8" fill="#1a6a3a"/>
+  <circle cx="76" cy="59" r="2.8" fill="#1a6a3a"/>
+  <circle cx="53" cy="57" r="1" fill="#fff"/>
+  <circle cx="77" cy="57" r="1" fill="#fff"/>
+  <!-- brows -->
+  <path d="M 46 49 Q 52 47 58 49" stroke="#000" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+  <path d="M 70 49 Q 76 47 82 49" stroke="#000" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+  <!-- nose -->
+  <path d="M 64 64 L 62 71 Q 64 73 66 71 Z" fill="none" stroke="#000" stroke-width="1.6"/>
+  <!-- small smile -->
+  <path d="M 58 76 Q 64 79 70 76" stroke="#000" stroke-width="2" fill="none" stroke-linecap="round"/>
+</svg>

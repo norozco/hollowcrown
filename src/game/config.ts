@@ -49,6 +49,17 @@ export const gameConfig: Phaser.Types.Core.GameConfig = {
     antialias: false,
     roundPixels: true,
   },
+  // FPS / loop config — smoothStep clamps large dt spikes after the tab was
+  // backgrounded or the window minimized, preventing catch-up stutter.
+  fps: {
+    target: 60,
+    min: 30,
+    smoothStep: true,
+    forceSetTimeOut: false,
+  },
+  // Let Phaser pause its own loop on visibility change so it doesn't
+  // accumulate dt while hidden.
+  disableContextMenu: false,
   // Top-down arcade physics — no gravity, simple collision bodies.
   physics: {
     default: 'arcade',

@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <pattern id="p4stripes" width="12" height="12" patternUnits="userSpaceOnUse" patternTransform="rotate(15)">
+      <rect width="12" height="12" fill="#c81e1e"/>
+      <rect width="6" height="12" fill="#a01010"/>
+    </pattern>
+  </defs>
+  <rect width="128" height="128" fill="url(#p4stripes)"/>
+  <polygon points="0,128 50,128 18,88 0,100" fill="#ffd43a" stroke="#000" stroke-width="3"/>
+  <!-- hooded cloak -->
+  <path d="M 6 128 L 14 94 Q 30 80 64 78 Q 98 80 114 94 L 122 128 Z" fill="#20103a" stroke="#000" stroke-width="3"/>
+  <!-- inner hood -->
+  <path d="M 30 92 Q 64 72 98 92 Q 86 60 64 58 Q 42 60 30 92 Z" fill="#0a0616" stroke="#000" stroke-width="2.5"/>
+  <!-- face shadowed -->
+  <ellipse cx="64" cy="60" rx="22" ry="26" fill="#b88c6a" stroke="#000" stroke-width="3"/>
+  <!-- hair peeking bangs -->
+  <path d="M 44 50 Q 52 42 60 52 Q 64 42 68 52 Q 76 42 84 50 L 82 56 Q 74 52 68 56 Q 64 48 60 56 Q 54 52 46 56 Z" fill="#a030a0" stroke="#000" stroke-width="2.5"/>
+  <!-- glowing eyes -->
+  <ellipse cx="54" cy="62" rx="4.5" ry="5" fill="#ffd43a" stroke="#000" stroke-width="2"/>
+  <ellipse cx="74" cy="62" rx="4.5" ry="5" fill="#ffd43a" stroke="#000" stroke-width="2"/>
+  <circle cx="54" cy="62" r="2" fill="#c81e1e"/>
+  <circle cx="74" cy="62" r="2" fill="#c81e1e"/>
+  <!-- brows -->
+  <path d="M 48 54 L 60 54" stroke="#000" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+  <path d="M 68 54 L 80 54" stroke="#000" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+  <!-- nose -->
+  <path d="M 64 66 L 62 74 L 66 74 Z" fill="none" stroke="#000" stroke-width="1.6"/>
+  <!-- mouth mysterious -->
+  <path d="M 56 80 Q 64 78 72 80" stroke="#000" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+  <!-- cloak clasp -->
+  <circle cx="64" cy="100" r="5" fill="#ffd43a" stroke="#000" stroke-width="2.5"/>
+  <circle cx="64" cy="100" r="2" fill="#c81e1e"/>
+</svg>

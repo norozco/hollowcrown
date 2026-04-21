@@ -168,6 +168,35 @@ export function InGameOverlay() {
   const [healToast, setHealToast] = useState<{ text: string; key: number } | null>(null);
   const [goldMilestone, setGoldMilestone] = useState<{ milestone: number; title: string; key: number } | null>(null);
 
+  // Refs mirror React state so the Esc keydown handler (bound once with []
+  // deps) can read current values without stale closures.
+  const questBoardOpenRef = useRef(questBoardOpen);
+  const optionsOpenRef = useRef(optionsOpen);
+  const achievementsOpenRef = useRef(achievementsOpen);
+  const worldMapOpenRef = useRef(worldMapOpen);
+  const bestiaryOpenRef = useRef(bestiaryOpen);
+  const journalOpenRef = useRef(journalOpen);
+  const statScreenOpenRef = useRef(statScreenOpen);
+  const dungeonMapOpenRef = useRef(dungeonMapOpen);
+  const dialogueHistoryOpenRef = useRef(dialogueHistoryOpen);
+  const photoModeRef = useRef(photoMode);
+  const menuOpenRef = useRef(menuOpen);
+  const fastTravelOpenRef = useRef(fastTravelOpen);
+  const endingOpenRef = useRef(endingOpen);
+  useEffect(() => { questBoardOpenRef.current = questBoardOpen; }, [questBoardOpen]);
+  useEffect(() => { optionsOpenRef.current = optionsOpen; }, [optionsOpen]);
+  useEffect(() => { achievementsOpenRef.current = achievementsOpen; }, [achievementsOpen]);
+  useEffect(() => { worldMapOpenRef.current = worldMapOpen; }, [worldMapOpen]);
+  useEffect(() => { bestiaryOpenRef.current = bestiaryOpen; }, [bestiaryOpen]);
+  useEffect(() => { journalOpenRef.current = journalOpen; }, [journalOpen]);
+  useEffect(() => { statScreenOpenRef.current = statScreenOpen; }, [statScreenOpen]);
+  useEffect(() => { dungeonMapOpenRef.current = dungeonMapOpen; }, [dungeonMapOpen]);
+  useEffect(() => { dialogueHistoryOpenRef.current = dialogueHistoryOpen; }, [dialogueHistoryOpen]);
+  useEffect(() => { photoModeRef.current = photoMode; }, [photoMode]);
+  useEffect(() => { menuOpenRef.current = menuOpen; }, [menuOpen]);
+  useEffect(() => { fastTravelOpenRef.current = fastTravelOpen; }, [fastTravelOpen]);
+  useEffect(() => { endingOpenRef.current = endingOpen; }, [endingOpen]);
+
   // Damage flash: track previous HP to detect decreases.
   const prevHpRef = useRef<number | null>(null);
   const [isHit, setIsHit] = useState(false);
@@ -435,32 +464,45 @@ export function InGameOverlay() {
 
   // Esc opens/closes the corner menu (but not during dialogue — dialogue
   // owns Esc for its own exit).
+  // NOTE: Esc is always hardcoded — it bypasses the rebindable keybind system
+  // so players can never accidentally make menus un-closable.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const tag = (e.target as HTMLElement | null)?.tagName;
       if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
-      if (useDialogueStore.getState().dialogue) return;
-      if (useCombatStore.getState().state) return;
+
+      // Escape must always be able to close a UI overlay, even if a
+      // dialogue/combat somehow started on top. Handle it before the
+      // dialogue/combat early returns below.
       if (e.key === 'Escape') {
         e.preventDefault();
+        // Read zustand state fresh so we don't rely on stale closure values.
+        const inv = useInventoryStore.getState();
         // Close any open overlay first, in priority order
-        if (inventoryOpen) { toggleInventory(); return; }
-        if (shopOpen) { closeShop(); return; }
-        if (craftingOpen) { closeCrafting(); return; }
-        if (cookingOpen) { closeCooking(); return; }
-        if (questBoardOpen) { setQuestBoardOpen(false); return; }
-        if (optionsOpen) { setOptionsOpen(false); return; }
-        if (achievementsOpen) { setAchievementsOpen(false); return; }
-        if (worldMapOpen) { setWorldMapOpen(false); return; }
-        if (bestiaryOpen) { setBestiaryOpen(false); return; }
-        if (statScreenOpen) { setStatScreenOpen(false); return; }
-        if (journalOpen) { setJournalOpen(false); return; }
-        if (dungeonMapOpen) { setDungeonMapOpen(false); return; }
-        if (dialogueHistoryOpen) { setDialogueHistoryOpen(false); return; }
-        if (photoMode) { setPhotoMode(false); return; }
+        if (inv.isOpen) { inv.close(); return; }
+        if (inv.isShopOpen) { inv.closeShop(); return; }
+        if (inv.isCraftingOpen) { inv.closeCrafting(); return; }
+        if (inv.isCookingOpen) { inv.closeCooking(); return; }
+        if (questBoardOpenRef.current) { setQuestBoardOpen(false); return; }
+        if (optionsOpenRef.current) { setOptionsOpen(false); return; }
+        if (achievementsOpenRef.current) { setAchievementsOpen(false); return; }
+        if (worldMapOpenRef.current) { setWorldMapOpen(false); return; }
+        if (bestiaryOpenRef.current) { setBestiaryOpen(false); return; }
+        if (statScreenOpenRef.current) { setStatScreenOpen(false); return; }
+        if (journalOpenRef.current) { setJournalOpen(false); return; }
+        if (dungeonMapOpenRef.current) { setDungeonMapOpen(false); return; }
+        if (dialogueHistoryOpenRef.current) { setDialogueHistoryOpen(false); return; }
+        if (photoModeRef.current) { setPhotoMode(false); return; }
+        // Don't toggle the pause menu while dialogue / combat own Esc.
+        if (useDialogueStore.getState().dialogue) return;
+        if (useCombatStore.getState().state) return;
         // Nothing open — toggle pause menu
         setMenuOpen((m) => !m);
+        return;
       }
+
+      if (useDialogueStore.getState().dialogue) return;
+      if (useCombatStore.getState().state) return;
       if (matchesKey(e.key, 'inventory')) {
         e.preventDefault();
         toggleInventory();
@@ -484,11 +526,16 @@ export function InGameOverlay() {
       if (matchesKey(e.key, 'heal')) {
         e.preventDefault();
         // Block when any modal/menu is open (combat is allowed — handled separately)
+        const invState = useInventoryStore.getState();
         const anyModalOpen =
-          menuOpen || inventoryOpen || shopOpen || craftingOpen || cookingOpen ||
-          questBoardOpen || optionsOpen || achievementsOpen || worldMapOpen ||
-          bestiaryOpen || journalOpen || statScreenOpen || fastTravelOpen ||
-          dungeonMapOpen || dialogueHistoryOpen || photoMode || endingOpen;
+          menuOpenRef.current || invState.isOpen || invState.isShopOpen ||
+          invState.isCraftingOpen || invState.isCookingOpen ||
+          questBoardOpenRef.current || optionsOpenRef.current ||
+          achievementsOpenRef.current || worldMapOpenRef.current ||
+          bestiaryOpenRef.current || journalOpenRef.current ||
+          statScreenOpenRef.current || fastTravelOpenRef.current ||
+          dungeonMapOpenRef.current || dialogueHistoryOpenRef.current ||
+          photoModeRef.current || endingOpenRef.current;
         if (anyModalOpen) return;
 
         const inv = useInventoryStore.getState();
