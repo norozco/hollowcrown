@@ -1,3 +1,5 @@
+/* Persona 5-inspired main menu — bold typography, slanted buttons, hard shadows */
+
 .main-menu {
   position: absolute;
   inset: 0;
@@ -5,194 +7,307 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 3rem;
-  background: radial-gradient(
-    ellipse at center,
-    rgba(26, 14, 14, 0.85) 0%,
-    rgba(10, 6, 6, 0.97) 100%
-  );
+  gap: 2rem;
+  background:
+    radial-gradient(ellipse at 20% 30%, rgba(200, 30, 30, 0.18) 0%, transparent 55%),
+    radial-gradient(ellipse at 80% 70%, rgba(255, 212, 58, 0.12) 0%, transparent 55%),
+    linear-gradient(135deg, #0a0606 0%, #1a0a0a 100%);
+  color: #e4d4a0;
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+  overflow: hidden;
+  padding: 2rem;
 }
 
+/* Diagonal black stripe decoration behind the title */
+.main-menu::before {
+  content: '';
+  position: absolute;
+  top: 10%;
+  left: -20%;
+  right: -20%;
+  height: 280px;
+  background: #000;
+  transform: rotate(-3deg);
+  z-index: 0;
+  box-shadow: 0 4px 0 rgba(200, 30, 30, 0.4);
+}
+
+/* Red accent stripe */
+.main-menu::after {
+  content: '';
+  position: absolute;
+  bottom: 8%;
+  left: -10%;
+  right: -10%;
+  height: 60px;
+  background: linear-gradient(90deg, transparent, #c81e1e 30%, #c81e1e 70%, transparent);
+  transform: rotate(2deg);
+  z-index: 0;
+  opacity: 0.6;
+}
+
+/* Title */
 .main-menu__title {
+  position: relative;
+  z-index: 2;
   text-align: center;
+  margin-bottom: 1rem;
 }
 
 .main-menu__title h1 {
-  font-size: clamp(3rem, 7vw, 6rem);
-  letter-spacing: 0.5rem;
-  color: #d4a968;
-  text-shadow:
-    0 0 24px rgba(212, 169, 104, 0.35),
-    0 4px 8px rgba(0, 0, 0, 0.9);
-  font-family: 'Courier New', monospace;
   margin: 0;
+  font-family: Impact, 'Arial Black', 'Helvetica', sans-serif;
+  font-size: clamp(3rem, 10vw, 6.5rem);
+  font-weight: 900;
+  color: #fff;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  transform: rotate(-2deg) skewX(-4deg);
+  text-shadow:
+    4px 4px 0 #c81e1e,
+    8px 8px 0 #000,
+    12px 12px 30px rgba(0, 0, 0, 0.8);
+  animation: title-pop 500ms cubic-bezier(.2, 1.6, .3, 1);
+}
+
+@keyframes title-pop {
+  from { transform: rotate(-2deg) skewX(-4deg) scale(0.6); opacity: 0; }
+  to { transform: rotate(-2deg) skewX(-4deg) scale(1); opacity: 1; }
 }
 
 .main-menu__subtitle {
-  margin-top: 0.6rem;
-  color: #7a6848;
+  margin: 1rem 0 0;
+  font-family: 'Courier New', monospace;
+  font-size: 0.9rem;
+  color: #ffd43a;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  font-weight: 700;
   font-style: italic;
-  letter-spacing: 0.25rem;
-  font-size: 0.95rem;
+  transform: rotate(-1deg);
 }
 
+/* Button nav container */
 .main-menu__buttons {
+  position: relative;
+  z-index: 2;
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 0.9rem;
+  width: min(360px, 80vw);
+  animation: buttons-in 450ms ease-out 200ms backwards;
 }
 
-.main-menu__buttons button {
-  background: transparent;
-  color: #d4a968;
-  border: 2px solid #5a3a1a;
-  padding: 0.75rem 3rem;
-  font-family: 'Courier New', monospace;
-  font-size: 1.1rem;
-  letter-spacing: 0.1rem;
+@keyframes buttons-in {
+  from { opacity: 0; transform: translateX(-20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+/* Persona-style chunky buttons */
+.main-menu__buttons button,
+.main-menu__load-back {
+  background: #fff;
+  color: #0a0a0a;
+  border: 4px solid #000;
+  padding: 0.8rem 1.4rem;
+  font-family: Impact, 'Arial Black', sans-serif;
+  font-size: 1.35rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
   cursor: pointer;
-  transition: transform 120ms, background-color 120ms, border-color 120ms;
-  min-width: 260px;
+  transform: skewX(-10deg);
+  box-shadow: 7px 7px 0 #000;
+  transition: transform 120ms ease, background 120ms ease, box-shadow 120ms ease;
+  text-align: left;
+  padding-left: 1.8rem;
+  position: relative;
+  overflow: hidden;
 }
 
-.main-menu__buttons button:hover {
-  background: rgba(90, 58, 26, 0.3);
-  border-color: #d4a968;
-  transform: translateY(-1px);
+.main-menu__buttons button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 8px;
+  height: 100%;
+  background: #c81e1e;
+}
+
+.main-menu__buttons button:hover,
+.main-menu__load-back:hover {
+  background: #ffd43a;
+  transform: skewX(-10deg) translateX(8px) translateY(-2px);
+  box-shadow: 10px 10px 0 #000;
 }
 
 .main-menu__buttons button:active {
-  transform: translateY(0);
+  transform: skewX(-10deg) translateX(4px) translateY(4px);
+  box-shadow: 3px 3px 0 #000;
 }
 
 .main-menu__buttons button:focus-visible {
-  outline: 2px solid #d4a968;
-  outline-offset: 3px;
+  outline: none;
+  background: #ffd43a;
 }
 
-.main-menu__version {
-  position: absolute;
-  bottom: 1.4rem;
-  right: 2rem;
-  color: #4a3828;
-  font-size: 0.78rem;
-  letter-spacing: 0.1rem;
+.main-menu__ngplus-btn {
+  background: #ffd43a !important;
+  color: #000;
 }
 
-/* ── Load Game panel ─────────────────────────────────────── */
+.main-menu__ngplus-btn::before {
+  background: #000 !important;
+}
+
+.main-menu__ngplus-btn:hover {
+  background: #fff !important;
+}
+
+/* Load panel */
 .main-menu__load-panel {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1rem;
-  width: 100%;
-  max-width: 420px;
+  position: relative;
+  z-index: 2;
+  width: min(520px, 90vw);
+  background: #fff;
+  color: #0a0a0a;
+  border: 4px solid #000;
+  box-shadow: 12px 12px 0 #000;
+  padding: 1.5rem 1.8rem;
+  transform: rotate(-0.8deg);
+  animation: panel-in 350ms cubic-bezier(.2, .8, .2, 1);
+}
+
+@keyframes panel-in {
+  from { transform: rotate(-4deg) scale(0.9); opacity: 0; }
+  to { transform: rotate(-0.8deg) scale(1); opacity: 1; }
 }
 
 .main-menu__load-title {
-  font-family: 'Courier New', monospace;
-  color: #d4a968;
-  letter-spacing: 0.3rem;
-  font-size: 1.4rem;
-  margin: 0;
+  margin: 0 0 1rem;
+  font-family: Impact, 'Arial Black', sans-serif;
+  font-size: 2rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #0a0a0a;
+  border-bottom: 4px solid #000;
+  padding-bottom: 0.4rem;
 }
 
 .main-menu__load-slots {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
-  width: 100%;
+  gap: 0.6rem;
+  margin-bottom: 1rem;
 }
 
 .main-menu__load-slot {
-  background: rgba(10, 6, 6, 0.7);
-  border: 2px solid #5a3a1a;
-  color: #d4a968;
-  font-family: 'Courier New', monospace;
-  padding: 0.6rem 1rem;
-  cursor: pointer;
   display: flex;
-  align-items: center;
-  gap: 1rem;
-  transition: background-color 120ms, border-color 120ms, transform 120ms;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.2rem;
+  background: #f2f2f2;
+  color: #0a0a0a;
+  border: 3px solid #000;
+  padding: 0.7rem 1rem;
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+  font-weight: 700;
+  cursor: pointer;
   text-align: left;
-  width: 100%;
+  box-shadow: 4px 4px 0 #000;
+  transition: background 120ms, transform 120ms, box-shadow 120ms;
 }
 
 .main-menu__load-slot:hover:not(:disabled) {
-  background: rgba(90, 58, 26, 0.4);
-  border-color: #d4a968;
-  transform: translateX(3px);
+  background: #ffd43a;
+  transform: translateX(4px) translateY(-2px);
+  box-shadow: 6px 6px 0 #000;
 }
 
+.main-menu__load-slot.is-empty,
 .main-menu__load-slot:disabled {
-  opacity: 0.45;
+  background: #e0e0e0;
+  color: #888;
   cursor: not-allowed;
+  font-style: italic;
+  box-shadow: 2px 2px 0 #888;
 }
 
 .main-menu__load-slot-label {
-  font-size: 0.8rem;
-  color: #8a7a48;
-  letter-spacing: 0.1rem;
-  min-width: 60px;
-  flex-shrink: 0;
+  font-family: Impact, sans-serif;
+  font-size: 1.1rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .main-menu__load-slot-info {
   display: flex;
   flex-direction: column;
-  gap: 0.1rem;
-  flex: 1;
+  gap: 0.15rem;
+  width: 100%;
 }
 
 .main-menu__load-slot-name {
   font-size: 1rem;
-  font-weight: bold;
-  color: #f4d488;
+  color: #c81e1e;
+  font-weight: 900;
 }
 
 .main-menu__load-slot-detail {
   font-size: 0.8rem;
-  color: #a89060;
+  color: #333;
+  font-weight: 600;
 }
 
 .main-menu__load-slot-date {
   font-size: 0.72rem;
-  color: #6a5a38;
+  color: #666;
+  font-family: 'Courier New', monospace;
 }
 
 .main-menu__load-slot-empty-label {
   font-size: 0.85rem;
-  color: #5a4a28;
-  font-style: italic;
+  letter-spacing: 0.15em;
 }
 
 .main-menu__load-back {
-  background: transparent;
-  color: #8a7a48;
-  border: 1px solid #3a2818;
-  padding: 0.5rem 2rem;
-  font-family: 'Courier New', monospace;
-  font-size: 0.9rem;
-  letter-spacing: 0.1rem;
-  cursor: pointer;
-  transition: color 120ms, border-color 120ms;
-  margin-top: 0.25rem;
+  font-size: 1rem !important;
+  padding: 0.5rem 1.2rem !important;
+  align-self: flex-start;
+  background: #000 !important;
+  color: #fff !important;
+  box-shadow: 5px 5px 0 #c81e1e !important;
 }
 
 .main-menu__load-back:hover {
-  color: #d4a968;
-  border-color: #5a3a1a;
+  background: #c81e1e !important;
+  color: #fff !important;
+  box-shadow: 7px 7px 0 #000 !important;
 }
 
-/* ── New Game+ button ── */
-.main-menu__ngplus-btn {
-  color: #e0a020 !important;
-  border-color: #a07020 !important;
-  text-shadow: 0 0 8px rgba(224, 160, 32, 0.3);
+/* Version label — tucked in the corner */
+.main-menu__version {
+  position: absolute;
+  bottom: 1rem;
+  right: 1.4rem;
+  margin: 0;
+  z-index: 2;
+  font-family: 'Courier New', monospace;
+  font-size: 0.7rem;
+  color: #666;
+  letter-spacing: 0.1em;
+  transform: rotate(-1deg);
+  font-style: italic;
 }
 
-.main-menu__ngplus-btn:hover {
-  background: rgba(160, 112, 32, 0.3) !important;
-  border-color: #e0a020 !important;
+/* "No character" fallback — used inside InGameOverlay */
+.ig__center h2 {
+  font-family: Impact, 'Arial Black', sans-serif;
+  font-size: 2.2rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #fff;
+  text-shadow: 3px 3px 0 #c81e1e, 6px 6px 0 #000;
+  transform: rotate(-2deg);
 }
