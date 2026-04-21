@@ -21,7 +21,7 @@
 import { TILE } from './generateTiles';
 
 /** Master switch. Set to false to go back to the procedural tileset. */
-export const USE_SPRITE_TILES = true;
+export const USE_SPRITE_TILES = false;
 
 /** Legacy export — kept for the Tiny Dungeon sheet's 12-wide layout. */
 export const KENNEY_COLS = 12;

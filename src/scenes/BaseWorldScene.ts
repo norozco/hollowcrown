@@ -250,10 +250,6 @@ export abstract class BaseWorldScene extends Phaser.Scene {
 
     this.cameras.main.setBounds(0, 0, WORLD_W, WORLD_H);
     this.physics.world.setBounds(0, 0, WORLD_W, WORLD_H);
-    // Render-scale bump — zoom 1.15× and follow the player so tiles
-    // read at ~37 px instead of 32 px on screen. Camera bounds keep
-    // the view clamped to the world rect so edges never show void.
-    this.cameras.main.setZoom(1.15);
     if (this.player) this.cameras.main.startFollow(this.player, true, 0.15, 0.15);
     this.cameras.main.fadeIn(FADE_MS, 0, 0, 0);
 
