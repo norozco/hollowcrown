@@ -1,0 +1,327 @@
+/* Persona 5-inspired cooking screen (matches CraftingScreen aesthetic) */
+
+.cook {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+  color: #0a0a0a;
+  z-index: 22;
+  pointer-events: auto;
+  background:
+    radial-gradient(ellipse at 20% 30%, rgba(200, 30, 30, 0.18) 0%, transparent 55%),
+    radial-gradient(ellipse at 80% 70%, rgba(255, 212, 58, 0.12) 0%, transparent 55%),
+    rgba(0, 0, 0, 0.85);
+  overflow: hidden;
+  animation: cook-fade-in 220ms ease-out;
+}
+
+@keyframes cook-fade-in { from { opacity: 0; } to { opacity: 1; } }
+
+.cook::before {
+  content: '';
+  position: absolute;
+  top: 8%;
+  left: -20%;
+  right: -20%;
+  height: 140px;
+  background: #000;
+  transform: rotate(-3deg);
+  z-index: 0;
+  box-shadow: 0 4px 0 rgba(255, 212, 58, 0.5);
+  pointer-events: none;
+}
+
+.cook::after {
+  content: '';
+  position: absolute;
+  bottom: 4%;
+  left: -10%;
+  right: -10%;
+  height: 40px;
+  background: linear-gradient(90deg, transparent, #ffd43a 30%, #ffd43a 70%, transparent);
+  transform: rotate(2deg);
+  z-index: 0;
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+.cook__header {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.6rem;
+  background: #fff;
+  border-bottom: 4px solid #000;
+  box-shadow: 0 6px 0 #000;
+  margin-bottom: 0.5rem;
+}
+
+.cook__header h2 {
+  margin: 0;
+  flex: 1;
+  font-family: Impact, 'Arial Black', sans-serif;
+  font-size: 2rem;
+  font-weight: 900;
+  color: #fff;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  transform: skewX(-8deg);
+  text-shadow:
+    3px 3px 0 #c81e1e,
+    6px 6px 0 #000;
+  padding-left: 0.4rem;
+}
+
+.cook__gold {
+  margin-right: 1rem;
+  background: #ffd43a;
+  color: #0a0a0a;
+  font-family: Impact, 'Arial Black', sans-serif;
+  font-size: 1.05rem;
+  letter-spacing: 0.1em;
+  padding: 0.25rem 0.8rem;
+  border: 3px solid #000;
+  box-shadow: 4px 4px 0 #c81e1e;
+  transform: skewX(-8deg);
+}
+
+.cook__close {
+  background: #000;
+  color: #fff;
+  border: 3px solid #000;
+  width: 2.4rem;
+  height: 2.4rem;
+  cursor: pointer;
+  font-family: Impact, 'Arial Black', sans-serif;
+  font-size: 1.1rem;
+  font-weight: 900;
+  box-shadow: 4px 4px 0 #c81e1e;
+  transform: skewX(-8deg);
+  transition: background 120ms, transform 120ms, box-shadow 120ms;
+}
+
+.cook__close:hover {
+  background: #c81e1e;
+  transform: skewX(-8deg) translate(2px, -2px);
+  box-shadow: 6px 6px 0 #000;
+}
+
+.cook__list {
+  position: relative;
+  z-index: 2;
+  list-style: none;
+  padding: 1rem 1.6rem;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.cook__recipe {
+  background: #fff;
+  color: #0a0a0a;
+  border: 4px solid #000;
+  box-shadow: 8px 8px 0 #000;
+  padding: 1rem 1.2rem;
+  transform: rotate(-0.3deg);
+  transition: transform 150ms, box-shadow 150ms;
+}
+
+.cook__recipe:nth-child(even) { transform: rotate(0.4deg); }
+
+.cook__recipe:hover {
+  transform: rotate(-0.3deg) translate(-2px, -3px);
+  box-shadow: 12px 12px 0 #000;
+}
+
+.cook__recipe:nth-child(even):hover {
+  transform: rotate(0.4deg) translate(-2px, -3px);
+}
+
+.cook__recipe-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+  border-bottom: 3px solid #000;
+  padding-bottom: 0.4rem;
+}
+
+.cook__recipe-header h3 {
+  margin: 0;
+  font-family: Impact, 'Arial Black', sans-serif;
+  font-size: 1.4rem;
+  color: #c81e1e;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  transform: skewX(-4deg);
+}
+
+.cook__desc {
+  margin: 0 0 0.6rem 0;
+  color: #333;
+  font-size: 0.9rem;
+  font-style: italic;
+}
+
+.cook__ingredients {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-bottom: 0.6rem;
+}
+
+.cook__ingredient {
+  font-family: Impact, 'Arial Black', sans-serif;
+  font-size: 0.82rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 0.2rem 0.6rem 0.2rem 1.6rem;
+  background: #fff;
+  border: 3px solid #000;
+  box-shadow: 3px 3px 0 #000;
+  position: relative;
+}
+
+.cook__ingredient::before {
+  position: absolute;
+  top: 50%;
+  left: 0.45rem;
+  transform: translateY(-50%);
+  font-size: 0.9rem;
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.cook__ingredient.has-enough { color: #fff; background: #4a8a2a; border-color: #000; }
+.cook__ingredient.has-enough::before { content: '✓'; color: #fff; }
+.cook__ingredient.not-enough { color: #fff; background: #c81e1e; border-color: #000; }
+.cook__ingredient.not-enough::before { content: '✕'; color: #fff; }
+
+.cook__footer {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.6rem;
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 2px dashed #000;
+}
+
+.cook__result {
+  color: #0a0a0a;
+  font-family: Impact, 'Arial Black', sans-serif;
+  font-size: 0.95rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.cook__result-desc {
+  display: block;
+  color: #555;
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+  font-style: italic;
+  font-size: 0.85rem;
+  margin-top: 2px;
+  flex-basis: 100%;
+}
+
+.cook__cost {
+  font-family: Impact, 'Arial Black', sans-serif;
+  font-size: 0.95rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  background: #ffd43a;
+  color: #0a0a0a;
+  padding: 0.25rem 0.7rem;
+  border: 3px solid #000;
+  box-shadow: 3px 3px 0 #000;
+  transform: skewX(-8deg);
+}
+
+.cook__cost.not-enough { background: #c81e1e; color: #fff; }
+
+.cook__actions { display: flex; gap: 0.5rem; }
+
+.cook__btn {
+  background: #fff;
+  color: #0a0a0a;
+  border: 3px solid #000;
+  padding: 0.4rem 1.1rem;
+  font-family: Impact, 'Arial Black', sans-serif;
+  font-size: 0.95rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transform: skewX(-10deg);
+  box-shadow: 4px 4px 0 #000;
+  position: relative;
+  overflow: hidden;
+  transition: background 120ms, transform 120ms, box-shadow 120ms;
+}
+
+.cook__btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 6px;
+  height: 100%;
+  background: #ffd43a;
+}
+
+.cook__btn:hover:not(:disabled) {
+  background: #ffd43a;
+  transform: skewX(-10deg) translate(3px, -2px);
+  box-shadow: 6px 6px 0 #000;
+}
+
+.cook__btn:active:not(:disabled) {
+  transform: skewX(-10deg) translate(2px, 2px);
+  box-shadow: 2px 2px 0 #000;
+}
+
+.cook__btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  background: #ddd;
+  color: #666;
+  box-shadow: 2px 2px 0 #999;
+}
+
+.cook__btn:disabled::before { background: #999; }
+
+.cook__flash {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(-2deg) skewX(-4deg);
+  background: #ffd43a;
+  color: #0a0a0a;
+  border: 4px solid #000;
+  font-family: Impact, 'Arial Black', sans-serif;
+  font-size: 1.5rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 1rem 2rem;
+  z-index: 25;
+  pointer-events: none;
+  box-shadow: 10px 10px 0 #000, 10px 10px 0 4px #c81e1e;
+  animation: cook-flash-in 1.5s ease-out forwards;
+}
+
+@keyframes cook-flash-in {
+  0% { opacity: 0; transform: translate(-50%, -50%) rotate(-2deg) skewX(-4deg) scale(0.6); }
+  20% { opacity: 1; transform: translate(-50%, -50%) rotate(-2deg) skewX(-4deg) scale(1.05); }
+  30% { transform: translate(-50%, -50%) rotate(-2deg) skewX(-4deg) scale(1); }
+  70% { opacity: 1; }
+  100% { opacity: 0; }
+}

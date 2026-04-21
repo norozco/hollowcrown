@@ -307,6 +307,27 @@ const ITEMS: Record<string, Item> = {
     buyPrice: 100, description: 'Scales like coins. Restores everything and then some.',
     effect: { healHp: 50, healMp: 30 }, stackable: true,
   },
+  // ── Cooking (Whispering Hollow Inn) ──
+  hearty_stew: {
+    key: 'hearty_stew', name: 'Hearty Stew', type: 'consumable', rarity: 'uncommon',
+    buyPrice: 30, description: 'Warms the blood. +20 HP and a brief stamina boost.',
+    effect: { healHp: 20 }, stackable: true,
+  },
+  bone_broth: {
+    key: 'bone_broth', name: 'Bone Broth', type: 'consumable', rarity: 'uncommon',
+    buyPrice: 35, description: 'Marrow-rich. +15 MP.',
+    effect: { healMp: 15 }, stackable: true,
+  },
+  fishermans_plate: {
+    key: 'fishermans_plate', name: "Fisherman's Plate", type: 'consumable', rarity: 'rare',
+    buyPrice: 50, description: 'Balanced meal. +25 HP, +10 MP.',
+    effect: { healHp: 25, healMp: 10 }, stackable: true,
+  },
+  warrior_feast: {
+    key: 'warrior_feast', name: "Warrior's Feast", type: 'consumable', rarity: 'rare',
+    buyPrice: 70, description: 'Hardens the skin. +30 HP and temporary AC buff.',
+    effect: { healHp: 30, buffAc: 2, duration: 10 }, stackable: true,
+  },
   // Late-game rare equipment
   void_edge: {
     key: 'void_edge', name: 'Void Edge', type: 'weapon', rarity: 'epic',

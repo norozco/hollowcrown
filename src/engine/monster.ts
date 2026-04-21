@@ -48,6 +48,18 @@ export interface Monster {
 }
 
 const MONSTERS: Record<string, Monster> = {
+  training_dummy: {
+    key: 'training_dummy', name: 'Training Dummy', maxHp: 100, ac: 10,
+    attackBonus: 0, baseDamage: 0, speed: 0,
+    xpReward: 0, goldReward: 0,
+    description: 'Straw and burlap. It does not fight back — not really.',
+    color: '#8a6a3a',
+    loot: [],
+    element: 'physical',
+    special: {
+      name: 'Flinch', chance: 0.3, damageMult: 0, text: '{name} wobbles. Nothing more.',
+    },
+  },
   wolf: {
     key: 'wolf',
     name: 'Dire Wolf',

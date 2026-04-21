@@ -19,6 +19,8 @@ interface InventoryState {
   isShopOpen: boolean;
   /** Is the crafting screen open? */
   isCraftingOpen: boolean;
+  /** Is the cooking screen open? */
+  isCookingOpen: boolean;
   /** Item keys marked as favorite (prevents accidental sale/drop). */
   favorites: Set<string>;
   toggleFavorite: (itemKey: string) => void;
@@ -31,6 +33,8 @@ interface InventoryState {
   closeShop: () => void;
   openCrafting: () => void;
   closeCrafting: () => void;
+  openCooking: () => void;
+  closeCooking: () => void;
 
   /** Add an item (by key) to the bag. Returns false if bag is full. */
   addItem: (itemKey: string, qty?: number) => boolean;
@@ -90,6 +94,7 @@ export const useInventoryStore = create<InventoryState>((set, get) => ({
   isOpen: false,
   isShopOpen: false,
   isCraftingOpen: false,
+  isCookingOpen: false,
   favorites: new Set<string>(),
 
   toggleFavorite: (itemKey) => set((s) => {
@@ -101,12 +106,14 @@ export const useInventoryStore = create<InventoryState>((set, get) => ({
   isFavorite: (itemKey) => get().favorites.has(itemKey),
 
   open: () => set({ isOpen: true }),
-  close: () => set({ isOpen: false, isShopOpen: false, isCraftingOpen: false }),
-  toggle: () => set((s) => ({ isOpen: !s.isOpen, isShopOpen: false, isCraftingOpen: false })),
-  openShop: () => set({ isShopOpen: true, isOpen: false, isCraftingOpen: false }),
+  close: () => set({ isOpen: false, isShopOpen: false, isCraftingOpen: false, isCookingOpen: false }),
+  toggle: () => set((s) => ({ isOpen: !s.isOpen, isShopOpen: false, isCraftingOpen: false, isCookingOpen: false })),
+  openShop: () => set({ isShopOpen: true, isOpen: false, isCraftingOpen: false, isCookingOpen: false }),
   closeShop: () => set({ isShopOpen: false }),
-  openCrafting: () => set({ isCraftingOpen: true, isOpen: false, isShopOpen: false }),
+  openCrafting: () => set({ isCraftingOpen: true, isOpen: false, isShopOpen: false, isCookingOpen: false }),
   closeCrafting: () => set({ isCraftingOpen: false }),
+  openCooking: () => set({ isCookingOpen: true, isOpen: false, isShopOpen: false, isCraftingOpen: false }),
+  closeCooking: () => set({ isCookingOpen: false }),
 
   addItem: (itemKey, qty = 1) => {
     const item = getItem(itemKey);
@@ -253,5 +260,5 @@ export const useInventoryStore = create<InventoryState>((set, get) => ({
     }));
   },
 
-  reset: () => set({ slots: [], equipment: { ...EMPTY_EQUIPMENT }, isOpen: false, isShopOpen: false, isCraftingOpen: false, favorites: new Set<string>() }),
+  reset: () => set({ slots: [], equipment: { ...EMPTY_EQUIPMENT }, isOpen: false, isShopOpen: false, isCraftingOpen: false, isCookingOpen: false, favorites: new Set<string>() }),
 }));

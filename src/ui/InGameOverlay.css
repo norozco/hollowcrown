@@ -684,3 +684,44 @@
 .ig__photo-mode:hover .ig__photo-mode-hint {
   opacity: 1;
 }
+
+/* ── Autosave indicator ── */
+.ig__autosave {
+  position: fixed;
+  bottom: 20px;
+  left: 20px;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #0a0a0a;
+  color: #ffd43a;
+  font-family: Impact, 'Arial Black', sans-serif;
+  font-size: 0.9rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 0.4rem 0.9rem;
+  border: 3px solid #000;
+  box-shadow: 4px 4px 0 #c81e1e;
+  transform: skewX(-8deg);
+  pointer-events: none;
+  animation: ig-autosave-in 220ms ease-out;
+}
+
+.ig__autosave > span { display: inline-block; }
+
+.ig__autosave-spinner {
+  display: inline-block;
+  color: #ffd43a;
+  animation: ig-autosave-spin 1s linear infinite;
+}
+
+@keyframes ig-autosave-spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+@keyframes ig-autosave-in {
+  from { opacity: 0; transform: skewX(-8deg) translateY(8px); }
+  to   { opacity: 1; transform: skewX(-8deg) translateY(0); }
+}

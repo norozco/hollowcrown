@@ -151,6 +151,10 @@ export function saveGame(slot: string, currentScene = 'TownScene'): boolean {
 
   try {
     localStorage.setItem(SAVE_PREFIX + slot, JSON.stringify(data));
+    if (slot === 'autosave') {
+      window.dispatchEvent(new CustomEvent('autosaveStart'));
+      setTimeout(() => window.dispatchEvent(new CustomEvent('autosaveEnd')), 700);
+    }
     return true;
   } catch {
     return false;

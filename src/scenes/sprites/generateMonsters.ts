@@ -24,6 +24,7 @@ export function generateMonsterSprite(scene: Phaser.Scene, key: string, monsterK
   const ctx = canvas.getContext('2d')!;
 
   switch (monsterKey) {
+    case 'training_dummy': drawTrainingDummy(ctx); break;
     case 'wolf': drawWolf(ctx); break;
     case 'skeleton': drawSkeleton(ctx); break;
     case 'hollow_knight': drawHollowKnight(ctx); break;
@@ -2575,6 +2576,111 @@ function drawTheForgotten(c: Ctx) {
   px(c, 10, 28, energy); px(c, 38, 18, energy);
   px(c, 20, 2, energy); px(c, 28, 2, energy);
   px(c, 16, 42, energy); px(c, 32, 42, energy);
+}
+
+// ─── TRAINING DUMMY ───────────────────────────────────────────
+// Straw-stuffed burlap figure on a wooden post. A red target on the
+// chest. Stitched cross-shaped eyes and mouth.
+
+function drawTrainingDummy(c: Ctx) {
+  const post   = '#6a4820';
+  const postDk = '#4a2e14';
+  const postHi = '#8a6a3a';
+  const burlap   = '#b89868';
+  const burlapDk = '#7a5a30';
+  const burlapHi = '#d4b888';
+  const straw  = '#e8c868';
+  const strawDk = '#a48838';
+  const stitch = '#3a2010';
+  const target = '#c81e1e';
+  const targetHi = '#ff4040';
+  const targetWhite = '#f0e8d0';
+
+  // Shadow
+  bk(c, 14, 44, 22, 3, 'rgba(0,0,0,0.25)');
+
+  // ── Wooden post (behind body) ──
+  bk(c, 22, 38, 6, 8, postDk);
+  bk(c, 23, 38, 4, 8, post);
+  px(c, 23, 38, postHi);
+  px(c, 24, 39, postHi);
+
+  // ── Cross arm of the stand (sticks out for stability) ──
+  bk(c, 18, 40, 14, 2, postDk);
+  bk(c, 19, 40, 12, 1, post);
+
+  // ── Body (burlap sack torso, barrel shape) ──
+  // Lower torso
+  bk(c, 14, 28, 22, 12, burlapDk);
+  bk(c, 15, 28, 20, 11, burlap);
+  bk(c, 16, 29, 18, 9, burlapHi);
+  // Mid shading seam
+  bk(c, 14, 34, 22, 1, burlapDk);
+
+  // ── Upper torso / shoulders ──
+  bk(c, 16, 18, 18, 11, burlapDk);
+  bk(c, 17, 18, 16, 10, burlap);
+  bk(c, 18, 19, 14, 8, burlapHi);
+
+  // ── Head (round burlap sack) ──
+  bk(c, 19, 8, 12, 11, burlapDk);
+  bk(c, 20, 8, 10, 10, burlap);
+  bk(c, 21, 9, 8, 8, burlapHi);
+  // Top knot (tied sack)
+  bk(c, 23, 5, 4, 4, burlap);
+  bk(c, 24, 4, 2, 2, burlapDk);
+  // Straw poking from top
+  px(c, 22, 5, straw);
+  px(c, 27, 5, strawDk);
+  px(c, 24, 3, straw);
+  px(c, 25, 3, strawDk);
+
+  // ── Stitched cross eyes (X shapes) ──
+  // Left eye
+  px(c, 22, 12, stitch); px(c, 23, 13, stitch);
+  px(c, 23, 12, stitch); px(c, 22, 13, stitch);
+  // Right eye
+  px(c, 26, 12, stitch); px(c, 27, 13, stitch);
+  px(c, 27, 12, stitch); px(c, 26, 13, stitch);
+  // Stitched mouth (small seam)
+  px(c, 23, 15, stitch); px(c, 24, 15, stitch);
+  px(c, 25, 15, stitch); px(c, 26, 15, stitch);
+  px(c, 24, 16, stitch); px(c, 25, 16, stitch);
+
+  // ── Target painted on chest ──
+  // Outer ring (red)
+  bk(c, 21, 22, 8, 8, target);
+  // Inner ring (white/cream)
+  bk(c, 22, 23, 6, 6, targetWhite);
+  // Middle ring (red)
+  bk(c, 23, 24, 4, 4, target);
+  // Bullseye
+  bk(c, 24, 25, 2, 2, targetHi);
+
+  // ── Straw tufts at seams ──
+  // Neck
+  px(c, 19, 18, straw); px(c, 20, 18, strawDk);
+  px(c, 29, 18, strawDk); px(c, 30, 18, straw);
+  // Waist
+  px(c, 14, 36, straw); px(c, 35, 36, strawDk);
+  px(c, 15, 37, strawDk);
+  // Bottom
+  px(c, 15, 39, straw); px(c, 34, 39, straw);
+  px(c, 18, 40, strawDk);
+
+  // ── Arms (small stub arms off shoulders) ──
+  bk(c, 13, 20, 3, 6, burlapDk);
+  bk(c, 14, 21, 2, 4, burlap);
+  bk(c, 34, 20, 3, 6, burlapDk);
+  bk(c, 34, 21, 2, 4, burlap);
+  // Straw at arm ends
+  px(c, 13, 25, straw);
+  px(c, 37, 25, straw);
+
+  // ── Stitched vertical seam down center of body ──
+  px(c, 25, 20, stitch); px(c, 25, 22, stitch);
+  px(c, 25, 30, stitch); px(c, 25, 32, stitch);
+  px(c, 25, 34, stitch); px(c, 25, 36, stitch);
 }
 
 // ─── OUTLINE ──────────────────────────────────────────────────

@@ -215,6 +215,24 @@ export const useCombatStore = create<CombatStoreState>((set, get) => ({
     const character = player.character;
 
     if (state && monster && character) {
+      // Training dummy: safe practice combat — no rewards, no death penalty,
+      // fully restores HP/MP after, and never marked as killed.
+      if (monster.key === 'training_dummy') {
+        const perkHpR = getPerkHpBonus(usePlayerStore.getState().perks);
+        const perkMpR = getPerkMpBonus(usePlayerStore.getState().perks);
+        const heartHpR = getHeartPieceHpBonus(usePlayerStore.getState().heartPieces);
+        character.hp = character.derived.maxHp + perkHpR + heartHpR;
+        character.mp = character.derived.maxMp + perkMpR;
+        player.notify();
+        window.dispatchEvent(new CustomEvent('gameMessage', {
+          detail: state.phase === 'victory'
+            ? 'Training complete. You feel sharper. HP and MP restored.'
+            : 'The session ends. HP and MP restored.',
+        }));
+        set((s) => ({ state: null, monster: null, _enemyActing: false, killedEnemies: s.killedEnemies, _pendingEnemyId: '', lastLoot: [] }));
+        return;
+      }
+
       if (state.phase === 'victory') {
         // Difficulty scales gold + XP rewards
         const diff = DIFFICULTY_SCALES[character.difficulty] ?? DIFFICULTY_SCALES.normal;

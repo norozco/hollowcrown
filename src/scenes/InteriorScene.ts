@@ -3,6 +3,7 @@ import { getDialogue } from '../engine/dialogues';
 import { useInventoryStore } from '../state/inventoryStore';
 import { usePlayerStore } from '../state/playerStore';
 import { useTimeStore } from '../state/timeStore';
+import { useCombatStore } from '../state/combatStore';
 import { BaseWorldScene, TILE, WORLD_W, WORLD_H } from './BaseWorldScene';
 import { generateTileset, TILE as T, TILE_SIZE } from './tiles/generateTiles';
 
@@ -109,6 +110,31 @@ export class InteriorScene extends BaseWorldScene {
           action: () => { window.dispatchEvent(new Event('openQuestBoard')); } });
         this.add.text(oX + ix.tileX * TILE + TILE / 2, oY + ix.tileY * TILE - 6, 'Quest Board', {
           fontFamily: 'Courier New', fontSize: '10px', color: '#d4a968',
+          backgroundColor: 'rgba(10,6,6,0.7)', padding: { x: 4, y: 2 },
+        }).setOrigin(0.5, 1).setDepth(11);
+      } else if (ix.dialogueId === '__training_dummy__') {
+        this.spawnInteractable({ sprite, label: ix.label, radius: 24,
+          action: () => {
+            useCombatStore.getState().start('training_dummy', 'InteriorScene', 0, 0);
+          } });
+        this.add.text(oX + ix.tileX * TILE + TILE / 2, oY + ix.tileY * TILE - 6, 'Training Dummy', {
+          fontFamily: 'Courier New', fontSize: '10px', color: '#d4a968',
+          backgroundColor: 'rgba(10,6,6,0.7)', padding: { x: 4, y: 2 },
+        }).setOrigin(0.5, 1).setDepth(11);
+      } else if (ix.dialogueId === '__cook__') {
+        this.spawnInteractable({ sprite, label: ix.label, radius: 24,
+          action: () => {
+            const phase = useTimeStore.getState().phase;
+            if (phase === 'night') {
+              window.dispatchEvent(new CustomEvent('gameMessage', {
+                detail: 'The hearth is cold. Tomas has turned in for the night. Return at dawn.',
+              }));
+              return;
+            }
+            useInventoryStore.getState().openCooking();
+          } });
+        this.add.text(oX + ix.tileX * TILE + TILE / 2, oY + ix.tileY * TILE - 6, 'Hearth', {
+          fontFamily: 'Courier New', fontSize: '11px', color: '#d4a968',
           backgroundColor: 'rgba(10,6,6,0.7)', padding: { x: 4, y: 2 },
         }).setOrigin(0.5, 1).setDepth(11);
       } else if (ix.dialogueId === '__rest__') {
@@ -230,7 +256,10 @@ function guildLayout(): InteriorLayout {
     name: "Adventurers' Guild", roomW: 20, roomH: 16, tiles,
     solidTiles: SOLID,
     npcs: [{ key: 'brenna', dialogueId: 'guild-greeting', tileX: 10, tileY: 3 }],
-    interactables: [{ tileX: 14, tileY: 1, label: 'Check the quest board', dialogueId: '__questboard__' }],
+    interactables: [
+      { tileX: 14, tileY: 1, label: 'Check the quest board', dialogueId: '__questboard__' },
+      { tileX: 2, tileY: 4, label: 'Spar with the training dummy', dialogueId: '__training_dummy__' },
+    ],
     exitScene: 'TownScene', exitSpawn: 'fromGuildInterior',
   };
 }
@@ -263,7 +292,10 @@ function innLayout(): InteriorLayout {
     name: 'Whispering Hollow Inn', roomW: 18, roomH: 14, tiles,
     solidTiles: SOLID,
     npcs: [{ key: 'tomas', dialogueId: 'tomas-greeting', tileX: 6, tileY: 3 }],
-    interactables: [{ tileX: 14, tileY: 5, label: 'Rest at the inn (10g)', dialogueId: '__rest__' }],
+    interactables: [
+      { tileX: 14, tileY: 5, label: 'Rest at the inn (10g)', dialogueId: '__rest__' },
+      { tileX: 7, tileY: 3, label: 'Cook at the hearth', dialogueId: '__cook__' },
+    ],
     exitScene: 'TownScene', exitSpawn: 'fromInnInterior',
   };
 }
