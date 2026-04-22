@@ -3,7 +3,7 @@ import { useQuestStore } from '../state/questStore';
 import { useLoreStore } from '../state/loreStore';
 import { useDungeonItemStore } from '../state/dungeonItemStore';
 import { useAchievementStore } from '../state/achievementStore';
-import { BaseWorldScene, TILE, WORLD_W, WORLD_H } from './BaseWorldScene';
+import { BaseWorldScene, TILE, WORLD_W } from './BaseWorldScene';
 import { generateTileset, TILE as T, TILE_SIZE } from './tiles/generateTiles';
 
 /**
@@ -16,7 +16,7 @@ const MAP_W = 30;
 const MAP_H = 22;
 
 /** Tiles the player cannot walk through */
-const SOLID_TILES = new Set([T.WALL_STONE, T.CHAINS, T.LAVA]);
+const SOLID_TILES = new Set<number>([T.WALL_STONE, T.CHAINS, T.LAVA]);
 
 export class DepthsFloor3Scene extends BaseWorldScene {
   constructor() {

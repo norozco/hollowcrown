@@ -61,15 +61,16 @@ describe('validateName()', () => {
 });
 
 describe('xpForLevel()', () => {
+  // Curve rebalanced in Agent 7 — see src/engine/character.ts XP_TABLE.
   it.each([
     [1, 0],
-    [2, 300],
-    [3, 900],
-    [4, 2700],
-    [5, 6500],
-    [6, 14000],
-    [10, 64000],
-    [20, 355000],
+    [2, 50],
+    [3, 150],
+    [4, 350],
+    [5, 600],
+    [6, 1000],
+    [10, 6000],
+    [20, 120000],
   ])('xpForLevel(%i) = %i', (lvl, xp) => {
     expect(xpForLevel(lvl)).toBe(xp);
   });
@@ -271,21 +272,22 @@ describe('Character.gold', () => {
 describe('Character.gainXp', () => {
   it('returns 0 levels gained when below threshold', () => {
     const c = new Character(baseInit);
-    expect(c.gainXp(100)).toBe(0);
+    expect(c.gainXp(49)).toBe(0);
     expect(c.level).toBe(1);
   });
 
   it('levels up once when crossing one threshold', () => {
     const c = new Character(baseInit);
-    expect(c.gainXp(300)).toBe(1);
+    // 50 XP crosses level 2 (50) but not level 3 (150).
+    expect(c.gainXp(50)).toBe(1);
     expect(c.level).toBe(2);
   });
 
   it('levels up multiple times when XP greatly exceeds threshold', () => {
     const c = new Character(baseInit);
-    // 1000 XP from level 1 → crosses 300 (lvl 2) and 900 (lvl 3); not 2700.
-    expect(c.gainXp(1000)).toBe(2);
-    expect(c.level).toBe(3);
+    // 400 XP from level 1 → crosses 50 (lvl 2), 150 (lvl 3), 350 (lvl 4); not 600.
+    expect(c.gainXp(400)).toBe(3);
+    expect(c.level).toBe(4);
   });
 
   it('caps at MAX_LEVEL', () => {
@@ -298,7 +300,7 @@ describe('Character.gainXp', () => {
     const c = new Character({ ...baseInit, classKey: 'wizard' });
     c.takeDamage(5);
     c.spendMp(2);
-    c.gainXp(300);
+    c.gainXp(50);
     expect(c.hp).toBe(c.derived.maxHp);
     expect(c.mp).toBe(c.derived.maxMp);
   });

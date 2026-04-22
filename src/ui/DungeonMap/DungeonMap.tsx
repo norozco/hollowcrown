@@ -36,15 +36,7 @@ const SCENE_NAMES: Record<string, string> = {
 
 interface Props { onClose: () => void; }
 
-interface CurrentMap {
-  sceneKey?: string;
-  playerX?: number;
-  playerY?: number;
-}
-
-declare global {
-  interface Window { __currentMap?: CurrentMap; }
-}
+// window.__currentMap is declared in Minimap.tsx.
 
 export function DungeonMap({ onClose }: Props) {
   const [currentScene, setCurrentScene] = useState<string>('');

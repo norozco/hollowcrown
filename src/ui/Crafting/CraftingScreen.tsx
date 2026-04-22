@@ -268,7 +268,6 @@ export function CraftingScreen({ onClose }: Props) {
 
           const commMapping = COMMISSION_MAP[recipe.key];
           const commCost = Math.floor(recipe.goldCost * 1.5);
-          const commAffordable = character.gold >= commCost;
           const commCraftable = commMapping ? canCommission(recipe) : false;
 
           return (

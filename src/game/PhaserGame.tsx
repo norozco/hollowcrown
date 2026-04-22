@@ -13,7 +13,7 @@ import { useDungeonItemStore } from '../state/dungeonItemStore';
 // Enabled in DEV and also on the deployed GitHub Pages build so
 // playtesters can use the console to unblock themselves.
 {
-  const w = window as Record<string, unknown>;
+  const w = window as unknown as Record<string, unknown>;
   w.__playerStore = usePlayerStore;
   w.__combatStore = useCombatStore;
   w.__questStore = useQuestStore;
@@ -129,7 +129,7 @@ import { useDungeonItemStore } from '../state/dungeonItemStore';
         'BogDungeonF2Scene', 'BogDungeonF3Scene', 'ThroneBeneathF1Scene',
         'ThroneBeneathF2Scene', 'ThroneBeneathF3Scene', 'ForgottenCaveScene',
       ];
-      for (const z of zones) ach.visitZone(z);
+      for (const z of zones) ach.recordZoneVisit(z);
       return `revealed ${zones.length} zones`;
     },
     wipe() {

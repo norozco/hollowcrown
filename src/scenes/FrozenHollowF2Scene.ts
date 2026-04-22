@@ -1,6 +1,6 @@
 import { useInventoryStore } from '../state/inventoryStore';
 import { useLoreStore } from '../state/loreStore';
-import { BaseWorldScene, TILE, WORLD_W, WORLD_H } from './BaseWorldScene';
+import { BaseWorldScene, TILE, WORLD_W } from './BaseWorldScene';
 import { generateTileset, TILE as T, TILE_SIZE } from './tiles/generateTiles';
 
 /**
@@ -12,7 +12,7 @@ import { generateTileset, TILE as T, TILE_SIZE } from './tiles/generateTiles';
 const MAP_W = 30;
 const MAP_H = 22;
 
-const SOLID_TILES = new Set([T.WALL_STONE, T.WATER]);
+const SOLID_TILES = new Set<number>([T.WALL_STONE, T.WATER]);
 
 export class FrozenHollowF2Scene extends BaseWorldScene {
   constructor() {
@@ -83,7 +83,7 @@ export class FrozenHollowF2Scene extends BaseWorldScene {
     const doorX = 10 * TILE;
     const doorY = 16 * TILE;
     const inventory = useInventoryStore.getState();
-    const hasFrostKey = inventory.items.some(s => s.item.key === 'frost_key');
+    const hasFrostKey = inventory.slots.some((s) => s.item.key === 'frost_key');
     if (!hasFrostKey) {
       const lockedDoor = this.add.rectangle(doorX, doorY, TILE * 3, TILE, 0x304050);
       lockedDoor.setStrokeStyle(2, 0x6080a0);
@@ -99,7 +99,7 @@ export class FrozenHollowF2Scene extends BaseWorldScene {
         radius: 28,
         action: () => {
           const inv = useInventoryStore.getState();
-          const hasKey = inv.items.some(s => s.item.key === 'frost_key');
+          const hasKey = inv.slots.some((s) => s.item.key === 'frost_key');
           if (hasKey) {
             inv.removeItem('frost_key');
             lockedDoor.destroy();

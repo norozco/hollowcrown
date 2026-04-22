@@ -2,7 +2,7 @@ import * as Phaser from 'phaser';
 import { useCombatStore } from '../state/combatStore';
 import { usePlayerStore } from '../state/playerStore';
 import { type StatusEffects } from '../engine/combat';
-import { generateTileset, TILE_SIZE } from './tiles/generateTiles';
+import { generateTileset } from './tiles/generateTiles';
 import {
   generateCharacterSprite,
   playerPalette,
@@ -423,6 +423,7 @@ export class CombatScene extends Phaser.Scene {
             if (mk && bossMonsterKeys.includes(mk)) {
               const vInfo = bossVictoryInfo[mk];
               const bossName = useCombatStore.getState().monster?.name ?? '';
+              const W = 1280, H = 720;
 
               const victoryOverlay = this.add.rectangle(W / 2, H / 2, W, H, 0x000000, 0).setDepth(80);
               const vanquished = this.add.text(W / 2, H / 2 - 40, 'VANQUISHED', {
@@ -842,8 +843,8 @@ export class CombatScene extends Phaser.Scene {
   }
 
   private drawStatusIcons(x: number, y: number, status: StatusEffects): void {
-    // Colors per effect: poison=green, burn=orange, bleed=red, stun=yellow, marked=blue
-    const effectColors: Record<keyof StatusEffects, number> = {
+    // Colors per visible effect. `stunImmune` is an internal cooldown, not shown.
+    const effectColors: Partial<Record<keyof StatusEffects, number>> = {
       poison: 0x60c060,
       burn:   0xe08030,
       bleed:  0xd04040,
@@ -858,6 +859,7 @@ export class CombatScene extends Phaser.Scene {
     for (const [key, turns] of Object.entries(status) as [keyof StatusEffects, number][]) {
       if (turns <= 0) continue;
       const col = effectColors[key];
+      if (col === undefined) continue;
       this.statusIconsGfx.fillStyle(col, 0.9);
       this.statusIconsGfx.fillCircle(x + offsetX + 5, y + 5, 5);
       this.statusIconsGfx.lineStyle(1, 0x000000, 0.6);

@@ -41,10 +41,11 @@ export function QuestBoard({ onClose }: Props) {
     if (!bounty || !character) return;
     // For collection bounties, verify inventory at claim time
     if (bounty.target.type === 'collect') {
+      const { itemKey, count } = bounty.target;
       const inv = useInventoryStore.getState();
-      const owned = inv.slots.find(s => s.item.key === bounty.target.itemKey)?.quantity ?? 0;
-      if (owned < bounty.target.count) return;
-      inv.removeItem(bounty.target.itemKey, bounty.target.count);
+      const owned = inv.slots.find((s) => s.item.key === itemKey)?.quantity ?? 0;
+      if (owned < count) return;
+      inv.removeItem(itemKey, count);
     }
     character.addGold(bounty.reward.gold);
     character.gainXp(bounty.reward.xp);
@@ -59,12 +60,13 @@ export function QuestBoard({ onClose }: Props) {
   // Determine bounty progress
   const getBountyProgress = (): { current: number; needed: number } | null => {
     if (!bounty) return null;
-    if (bounty.target.type === 'kill') {
-      return { current: bountyKills, needed: bounty.target.count };
+    const target = bounty.target;
+    if (target.type === 'kill') {
+      return { current: bountyKills, needed: target.count };
     }
     const inv = useInventoryStore.getState();
-    const owned = inv.slots.find(s => s.item.key === bounty.target.itemKey)?.quantity ?? 0;
-    return { current: Math.min(owned, bounty.target.count), needed: bounty.target.count };
+    const owned = inv.slots.find((s) => s.item.key === target.itemKey)?.quantity ?? 0;
+    return { current: Math.min(owned, target.count), needed: target.count };
   };
 
   const bountyProgress = getBountyProgress();

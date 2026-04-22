@@ -445,7 +445,6 @@ const R  = T.ROOF;
 const RE = T.ROOF_EDGE;
 const SH = T.SHADOW;
 const BU = T.BUSH;
-const FN = T.FENCE;
 const WL = T.WELL;
 const TO = T.TORCH;
 const PL = T.PLANT;

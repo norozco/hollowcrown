@@ -2,7 +2,7 @@ import * as Phaser from 'phaser';
 import { useInventoryStore } from '../state/inventoryStore';
 import { useLoreStore } from '../state/loreStore';
 import { useDungeonItemStore } from '../state/dungeonItemStore';
-import { BaseWorldScene, TILE, WORLD_W, WORLD_H } from './BaseWorldScene';
+import { BaseWorldScene, TILE, WORLD_W } from './BaseWorldScene';
 import { generateTileset, TILE as T, TILE_SIZE } from './tiles/generateTiles';
 
 /**
@@ -15,7 +15,7 @@ const MAP_W = 30;
 const MAP_H = 22;
 
 /** Tiles the player cannot walk through */
-const SOLID_TILES = new Set([T.WALL_STONE, T.CHAINS]);
+const SOLID_TILES = new Set<number>([T.WALL_STONE, T.CHAINS]);
 
 export class DepthsFloor2Scene extends BaseWorldScene {
   constructor() {

@@ -1,6 +1,6 @@
 import { useInventoryStore } from '../state/inventoryStore';
 import { useDungeonItemStore } from '../state/dungeonItemStore';
-import { BaseWorldScene, TILE, WORLD_W, WORLD_H } from './BaseWorldScene';
+import { BaseWorldScene, TILE, WORLD_W } from './BaseWorldScene';
 import { generateTileset, TILE as T, TILE_SIZE } from './tiles/generateTiles';
 
 /**
@@ -12,7 +12,7 @@ import { generateTileset, TILE as T, TILE_SIZE } from './tiles/generateTiles';
 const MAP_W = 30;
 const MAP_H = 22;
 
-const SOLID_TILES = new Set([T.WALL_STONE, T.WATER]);
+const SOLID_TILES = new Set<number>([T.WALL_STONE, T.WATER]);
 
 export class BogDungeonF2Scene extends BaseWorldScene {
   constructor() {
@@ -121,7 +121,7 @@ export class BogDungeonF2Scene extends BaseWorldScene {
         label: 'Open golden chest',
         radius: 24,
         action: () => {
-          useDungeonItemStore.getState().add('grapple_hook');
+          useDungeonItemStore.getState().acquire('grapple_hook');
           window.dispatchEvent(new CustomEvent('gameMessage', { detail: 'Found the Grapple Hook! Iron claw on a chain. It reaches where you cannot.' }));
           this.spawnPickupParticles(ghX, ghY, 0xe0c060);
           ghChest.destroy();
@@ -190,7 +190,6 @@ export class BogDungeonF2Scene extends BaseWorldScene {
 
 // ─── Map data ──────────────────────────────────────────────────────
 
-const WS = T.WALL_STONE;
 const MS = T.MOSS_STONE;
 const WT = T.WATER;
 const FC = T.FLOOR_CRACKED;

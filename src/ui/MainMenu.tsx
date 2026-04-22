@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useUIStore } from '../state/uiStore';
 import { useCharacterCreationStore } from '../state/characterCreationStore';
 import { usePlayerStore } from '../state/playerStore';
@@ -13,6 +13,15 @@ import { rollRandomCharacter } from '../engine/random-character';
 import { loadGame, getSaveSlots, type SaveSlotInfo } from '../engine/saveLoad';
 import { Credits } from './Credits/Credits';
 import './MainMenu.css';
+
+// Pre-compute ash particle styles at module load so they're stable across
+// re-renders and satisfy react-hooks/purity (Math.random isn't called in render).
+const ASH_PARTICLES = Array.from({ length: 30 }, () => ({
+  left: `${Math.random() * 100}%`,
+  animationDelay: `${Math.random() * 8}s`,
+  animationDuration: `${8 + Math.random() * 6}s`,
+  opacity: 0.2 + Math.random() * 0.4,
+}));
 
 /**
  * Main menu overlay. Rendered above the Phaser canvas via the React UI
@@ -29,15 +38,7 @@ export function MainMenu() {
   const [saveSlots, setSaveSlots] = useState<SaveSlotInfo[]>([]);
   const [attractMode, setAttractMode] = useState(false);
 
-  // Pre-compute ash particle styles once so they don't jitter on every render.
-  const ashParticles = useMemo(() =>
-    Array.from({ length: 30 }).map(() => ({
-      left: `${Math.random() * 100}%`,
-      animationDelay: `${Math.random() * 8}s`,
-      animationDuration: `${8 + Math.random() * 6}s`,
-      opacity: 0.2 + Math.random() * 0.4,
-    })),
-  []);
+  const ashParticles = ASH_PARTICLES;
 
   // Attract mode: after 30s of no input, fade in a subtle ambient overlay.
   // Any mouse or keyboard activity instantly dismisses it.

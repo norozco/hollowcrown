@@ -1,5 +1,5 @@
 import { usePlayerStore } from '../state/playerStore';
-import { BaseWorldScene, TILE, WORLD_W, WORLD_H } from './BaseWorldScene';
+import { BaseWorldScene, TILE, WORLD_W } from './BaseWorldScene';
 import { generateTileset, TILE as T, TILE_SIZE } from './tiles/generateTiles';
 
 /**
@@ -11,7 +11,7 @@ import { generateTileset, TILE as T, TILE_SIZE } from './tiles/generateTiles';
 const MAP_W = 30;
 const MAP_H = 22;
 
-const SOLID_TILES = new Set([T.WALL_STONE, T.WATER]);
+const SOLID_TILES = new Set<number>([T.WALL_STONE, T.WATER]);
 
 export class BogDungeonF1Scene extends BaseWorldScene {
   constructor() {
@@ -167,7 +167,6 @@ export class BogDungeonF1Scene extends BaseWorldScene {
 
 // ─── Map data ──────────────────────────────────────────────────────
 
-const WS = T.WALL_STONE;
 const MS = T.MOSS_STONE;
 const WT = T.WATER;
 const FC = T.FLOOR_CRACKED;

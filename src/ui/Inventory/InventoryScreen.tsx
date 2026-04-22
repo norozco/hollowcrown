@@ -1,3 +1,4 @@
+import * as React from 'react';
 import { useState } from 'react';
 import { useInventoryStore } from '../../state/inventoryStore';
 import { usePlayerStore } from '../../state/playerStore';
@@ -23,7 +24,7 @@ const RARITY_BORDER: Record<string, string> = {
 };
 
 /** Render a stat-delta line with appropriate colour class. */
-function renderComparison(newItem: Item, currentItem: Item | null): JSX.Element {
+function renderComparison(newItem: Item, currentItem: Item | null): React.JSX.Element {
   const newB  = newItem.statBonus     ?? {};
   const curB  = currentItem?.statBonus ?? {};
 
@@ -180,7 +181,7 @@ export function InventoryScreen() {
                       fontSize: '0.7rem',
                       padding: '0.05rem 0.3rem',
                       letterSpacing: '0.06em',
-                      borderBottomRight: '2px solid #c52027',
+                      borderBottomRightRadius: '2px',
                       boxShadow: '1px 1px 0 #c52027',
                       zIndex: 2,
                       cursor: 'help',

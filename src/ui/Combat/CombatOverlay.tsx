@@ -215,7 +215,7 @@ export function CombatOverlay() {
     physical: '⚔',
   };
 
-  const STATUS_ICONS: Record<keyof StatusEffects, string> = {
+  const STATUS_ICONS: Partial<Record<keyof StatusEffects, string>> = {
     poison: '☠',
     burn: '🔥',
     bleed: '🩸',
@@ -224,7 +224,8 @@ export function CombatOverlay() {
   };
 
   function StatusSide({ status, enemy }: { status: StatusEffects; enemy?: boolean }) {
-    const entries = (Object.entries(status) as [keyof StatusEffects, number][]).filter(([, v]) => v > 0);
+    const entries = (Object.entries(status) as [keyof StatusEffects, number][])
+      .filter(([k, v]) => v > 0 && STATUS_ICONS[k] !== undefined);
     return (
       <div className={`combat__status-side${enemy ? ' combat__status-side--enemy' : ''}`}>
         {entries.map(([name, turns]) => (

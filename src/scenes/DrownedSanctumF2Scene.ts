@@ -1,7 +1,7 @@
 import * as Phaser from 'phaser';
 import { useInventoryStore } from '../state/inventoryStore';
 import { useDungeonItemStore } from '../state/dungeonItemStore';
-import { BaseWorldScene, TILE, WORLD_W, WORLD_H } from './BaseWorldScene';
+import { BaseWorldScene, TILE, WORLD_W } from './BaseWorldScene';
 import { generateTileset, TILE as T, TILE_SIZE } from './tiles/generateTiles';
 
 /**
@@ -19,7 +19,7 @@ const MAP_W = 30;
 const MAP_H = 22;
 
 /** Tiles the player cannot walk through */
-const SOLID_TILES = new Set([T.WALL_STONE, T.WATER, T.CHAINS]);
+const SOLID_TILES = new Set<number>([T.WALL_STONE, T.WATER, T.CHAINS]);
 
 export class DrownedSanctumF2Scene extends BaseWorldScene {
   constructor() {
@@ -229,7 +229,6 @@ const FC = T.FLOOR_CRACKED;
 const WT = T.WATER;
 const BS = T.BLOOD_STONE;
 const CH = T.CHAINS;
-const MS = T.MOSS_STONE;
 
 function getSolidPositions(): [number, number][] {
   const positions: [number, number][] = [];

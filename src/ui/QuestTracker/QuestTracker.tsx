@@ -49,12 +49,13 @@ export function QuestTracker() {
   // Bounty progress text
   const bountyLine = (() => {
     if (!bounty) return null;
-    if (bounty.target.type === 'kill') {
-      return `${bounty.title}: ${bountyKills}/${bounty.target.count}`;
+    const target = bounty.target;
+    if (target.type === 'kill') {
+      return `${bounty.title}: ${bountyKills}/${target.count}`;
     }
     const inv = useInventoryStore.getState();
-    const owned = inv.slots.find(s => s.item.key === bounty.target.itemKey)?.quantity ?? 0;
-    return `${bounty.title}: ${Math.min(owned, bounty.target.count)}/${bounty.target.count}`;
+    const owned = inv.slots.find((s) => s.item.key === target.itemKey)?.quantity ?? 0;
+    return `${bounty.title}: ${Math.min(owned, target.count)}/${target.count}`;
   })();
 
   if (entries.length === 0 && !bounty) return null;

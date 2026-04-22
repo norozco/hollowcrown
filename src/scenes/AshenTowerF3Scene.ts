@@ -1,6 +1,6 @@
 import { useQuestStore } from '../state/questStore';
 import { useDungeonItemStore } from '../state/dungeonItemStore';
-import { BaseWorldScene, TILE, WORLD_W, WORLD_H } from './BaseWorldScene';
+import { BaseWorldScene, TILE, WORLD_W } from './BaseWorldScene';
 import { generateTileset, TILE as T, TILE_SIZE } from './tiles/generateTiles';
 
 /**
@@ -13,7 +13,7 @@ import { generateTileset, TILE as T, TILE_SIZE } from './tiles/generateTiles';
 const MAP_W = 30;
 const MAP_H = 22;
 
-const SOLID_TILES = new Set([T.WALL_STONE, T.LAVA]);
+const SOLID_TILES = new Set<number>([T.WALL_STONE, T.LAVA]);
 
 export class AshenTowerF3Scene extends BaseWorldScene {
   constructor() {

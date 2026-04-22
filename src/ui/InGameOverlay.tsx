@@ -169,7 +169,7 @@ export function InGameOverlay() {
   const [gameMsg, setGameMsg] = useState<string | null>(null);
   const [autosaving, setAutosaving] = useState(false);
   const [toastKey, setToastKey] = useState<string | null>(null);
-  const [showControls, setShowControls] = useState(true);
+  const [, setShowControls] = useState(true);
   const [healToast, setHealToast] = useState<{ text: string; key: number } | null>(null);
   const [goldMilestone, setGoldMilestone] = useState<{ milestone: number; title: string; key: number } | null>(null);
 

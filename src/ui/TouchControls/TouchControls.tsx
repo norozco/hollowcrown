@@ -1,3 +1,4 @@
+import * as React from 'react';
 import { useState, useRef, useCallback, useEffect } from 'react';
 import './TouchControls.css';
 
@@ -43,7 +44,7 @@ export function TouchControls() {
     const el = joystickRef.current;
     if (!el) return;
 
-    let touch: Touch | null = null;
+    let touch: React.Touch | null = null;
     for (let i = 0; i < e.changedTouches.length; i++) {
       if (e.changedTouches[i].identifier === touchIdRef.current) {
         touch = e.changedTouches[i];

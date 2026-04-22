@@ -1,3 +1,4 @@
+import * as React from 'react';
 import { useState, useEffect } from 'react';
 import { useInventoryStore } from '../../state/inventoryStore';
 import { usePlayerStore } from '../../state/playerStore';
@@ -10,7 +11,7 @@ const RARITY_COLOR: Record<string, string> = {
 };
 
 /** Stat-delta comparison vs. the player's currently equipped item in that slot. */
-function renderComparison(newItem: Item, currentItem: Item | null): JSX.Element {
+function renderComparison(newItem: Item, currentItem: Item | null): React.JSX.Element {
   const newB = newItem.statBonus ?? {};
   const curB = currentItem?.statBonus ?? {};
 

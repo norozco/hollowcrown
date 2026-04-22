@@ -118,7 +118,7 @@ const GREETING_POOLS: Record<string, GreetingPool> = {
  * the original dialogue or a shallow-cloned version with the greeting
  * node's text rewritten. Never mutates the input.
  */
-export function applyGreetingMemory<T extends { id: string; nodes: Record<string, { text: string } & Record<string, unknown>> }>(
+export function applyGreetingMemory<T extends { id: string; nodes: Record<string, { text: string }> }>(
   dialogue: T,
   count: number,
 ): T {

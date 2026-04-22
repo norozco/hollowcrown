@@ -1353,7 +1353,6 @@ export abstract class BaseWorldScene extends Phaser.Scene {
     }
 
     // Reveal invisible enemies for 2s + cyan outline ping.
-    const now = this.time.now;
     for (const inv of this.invisibleEnemies) {
       if (!inv.sprite.active) continue;
       const d = Math.hypot(inv.sprite.x - px, inv.sprite.y - py);
@@ -1887,7 +1886,8 @@ export abstract class BaseWorldScene extends Phaser.Scene {
           duration: 200,
           ease: 'Power2',
           onComplete: () => {
-            staticBody.setPosition(targetX - (TILE - 2) / 2, targetY - (TILE - 2) / 2);
+            // Block game object is now at (targetX, targetY) from the tween;
+            // updateFromGameObject re-centers the static body on it.
             staticBody.updateFromGameObject();
             this.checkPressurePlates();
           },

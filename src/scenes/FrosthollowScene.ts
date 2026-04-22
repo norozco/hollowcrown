@@ -1,6 +1,6 @@
 import { useInventoryStore } from '../state/inventoryStore';
 import { useLoreStore } from '../state/loreStore';
-import { BaseWorldScene, TILE, WORLD_W, WORLD_H } from './BaseWorldScene';
+import { BaseWorldScene, TILE, WORLD_H } from './BaseWorldScene';
 import { generateTileset, TILE as T, TILE_SIZE } from './tiles/generateTiles';
 
 /**
@@ -277,7 +277,6 @@ export class FrosthollowScene extends BaseWorldScene {
 // ─── Map data ──────────────────────────────────────────────────
 
 const GL = T.GRASS_LIGHT;   // snowy ground
-const FS = T.FLOOR_STONE;
 const FC = T.FLOOR_CRACKED; // icy ground
 const S  = T.WALL_STONE;    // mountain rock
 const W  = T.WATER;         // frozen lake (impassable)

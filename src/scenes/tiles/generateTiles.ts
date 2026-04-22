@@ -354,12 +354,6 @@ function drawWallStone(c: Ctx, i: number) {
   // Row 1 (y=8..14): bricks offset by 8, at x=8, x=24
   // Row 2 (y=16..22): same as row 0
   // Row 3 (y=24..30): same as row 1
-  const brickPositions = [
-    [[0,0],[16,0]],        // row 0
-    [[0,8],[16,8]],        // row 1 (offset by 8 visually via different widths)
-    [[0,16],[16,16]],      // row 2
-    [[0,24],[16,24]],      // row 3
-  ];
   // Each brick: 15w x 7h, offset rows shift by 8px
   for (let r = 0; r < 4; r++) {
     const by = r * 8;

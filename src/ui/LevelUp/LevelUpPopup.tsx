@@ -4,6 +4,13 @@ import type { Perk } from '../../engine/perks';
 import { Sfx } from '../../engine/audio';
 import './LevelUpPopup.css';
 
+const SPARKLE_PARTICLES = Array.from({ length: 18 }, () => ({
+  left: 10 + Math.random() * 80,
+  delay: Math.random() * 1.2,
+  duration: 1.5 + Math.random() * 1.5,
+  size: 3 + Math.random() * 5,
+}));
+
 /**
  * Level-up celebration popup with perk selection. When the player
  * levels up, three random perks are offered — small permanent
@@ -40,26 +47,21 @@ export function LevelUpPopup() {
 
   const d = character.derived;
 
-  // Generate gold sparkle particles
-  const particles = Array.from({ length: 18 }, (_, i) => {
-    const left = 10 + Math.random() * 80;
-    const delay = Math.random() * 1.2;
-    const duration = 1.5 + Math.random() * 1.5;
-    const size = 3 + Math.random() * 5;
-    return (
-      <span
-        key={i}
-        className="lvlup__particle"
-        style={{
-          left: `${left}%`,
-          animationDelay: `${delay}s`,
-          animationDuration: `${duration}s`,
-          width: `${size}px`,
-          height: `${size}px`,
-        }}
-      />
-    );
-  });
+  // Gold sparkle particle positions — generated once at module load so
+  // re-renders don't jitter the positions and the purity rule stays quiet.
+  const particles = SPARKLE_PARTICLES.map((p, i) => (
+    <span
+      key={i}
+      className="lvlup__particle"
+      style={{
+        left: `${p.left}%`,
+        animationDelay: `${p.delay}s`,
+        animationDuration: `${p.duration}s`,
+        width: `${p.size}px`,
+        height: `${p.size}px`,
+      }}
+    />
+  ));
 
   const handleChoose = (perk: Perk) => {
     choosePerk(perk.key);
