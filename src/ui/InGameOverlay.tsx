@@ -473,22 +473,65 @@ export function InGameOverlay() {
     window.addEventListener('openFastTravel', ftOpenHandler);
 
     // Fast travel: perform the scene transition when a destination is chosen.
+    //
+    // Historical bug: clicking a waypoint dispatched `fastTravel` synchronously
+    // while `fastTravelOpen === true`, meaning the pause/resume effect still
+    // had all world scenes PAUSED. scene.stop() + scene.start() would then
+    // race with the modal's onClose → setState → effect re-run, occasionally
+    // leaving the freshly-started destination scene paused (character frozen).
+    // Additionally any lingering non-idle combat/dialogue state from the
+    // source scene would trip the stuck-watchdog's "legitimate lock" check,
+    // masking the real issue. Fix: close the modal FIRST, wait a frame for
+    // React to flush the resume, THEN do the scene swap — and proactively
+    // reset every store that could leave the new scene in a bad state.
     const ftTravelHandler = (e: Event) => {
       const detail = (e as CustomEvent).detail as { sceneKey: string; spawn: string };
-      const game = (window as any).__phaserGame as any;
-      if (game) {
+      // eslint-disable-next-line no-console
+      console.log('[fastTravel] request →', detail.sceneKey, detail.spawn);
+
+      // Reset every store that could hold the new scene in a stuck state.
+      try { useDialogueStore.setState({ dialogue: null }); } catch { /* ignore */ }
+      try {
+        useCombatStore.setState({
+          state: null,
+          monster: null,
+          log: [],
+          combatEvents: [],
+          lastLoot: [],
+          _enemyActing: false,
+          _pendingEnemyId: '',
+        } as Partial<ReturnType<typeof useCombatStore.getState>>);
+      } catch { /* ignore */ }
+      try { useGameStatsStore.getState().setPaused(false); } catch { /* ignore */ }
+
+      // Defer the scene swap one frame so React has time to process the
+      // modal close (onClose was called by FastTravel before dispatching
+      // this event) and flush the pause-effect → resume pass.
+      setTimeout(() => {
+        const game = (window as any).__phaserGame as any;
+        if (!game) {
+          console.warn('[fastTravel] no __phaserGame — bailing');
+          return;
+        }
         const worldScenes = [
           'TownScene', 'GreenhollowScene', 'MossbarrowScene', 'MossbarrowDepthsScene',
           'DepthsFloor2Scene', 'DepthsFloor3Scene', 'AshenmereScene',
           'DrownedSanctumF1Scene', 'DrownedSanctumF2Scene', 'InteriorScene',
           'AshfieldsScene', 'AshenTowerF1Scene', 'AshenTowerF2Scene', 'AshenTowerF3Scene',
           'ShatteredCoastScene', 'ThroneBeneathF1Scene', 'ThroneBeneathF2Scene', 'ThroneBeneathF3Scene',
+          'DuskmereScene', 'FrosthollowScene', 'IronveilScene', 'ForgottenCaveScene',
+          'BogDungeonF1Scene', 'BogDungeonF2Scene', 'BogDungeonF3Scene',
+          'FrozenHollowF1Scene', 'FrozenHollowF2Scene', 'FrozenHollowF3Scene',
         ];
         for (const k of worldScenes) {
-          if (game.scene.isActive(k)) game.scene.stop(k);
+          if (game.scene.isActive(k) || game.scene.isPaused(k)) game.scene.stop(k);
         }
         game.scene.start(detail.sceneKey, { spawnPoint: detail.spawn });
-      }
+        // Explicitly resume in case Phaser's internal state snapshot caught
+        // the scene mid-pause from the previous modal lifecycle.
+        try { game.scene.resume(detail.sceneKey); } catch { /* ignore */ }
+        console.log('[fastTravel] started', detail.sceneKey);
+      }, 0);
     };
     window.addEventListener('fastTravel', ftTravelHandler);
 

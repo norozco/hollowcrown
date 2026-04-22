@@ -15,6 +15,7 @@ import { useWorldStateStore } from '../state/worldStateStore';
 import { getMonster } from '../engine/monster';
 import { useDungeonMapStore } from '../state/dungeonMapStore';
 import { useTimeStore, getPhaseTint } from '../state/timeStore';
+import { useGameStatsStore } from '../state/gameStatsStore';
 import { spawnWeather, getWeatherForScene } from './weather';
 import { applyTileVariants } from './tiles/tileMap';
 import {
@@ -243,8 +244,17 @@ export abstract class BaseWorldScene extends Phaser.Scene {
   /** Paint ground, buildings/trees, spawn NPCs, register exits. */
   protected abstract layout(): void;
 
-  /** Resolve a named spawn point (e.g. "default", "fromGreenhollow"). */
-  protected abstract spawnAt(name: string): { x: number; y: number };
+  /**
+   * Resolve a named spawn point (e.g. "default", "fromGreenhollow").
+   *
+   * Subclasses override this; the base provides a safe center-of-world
+   * fallback so an unknown spawn name cannot produce NaN coordinates
+   * (previously reachable via fast-travel when a scene hadn't registered
+   * the requested spawn — the player would teleport to NaN, NaN and freeze).
+   */
+  protected spawnAt(_name: string): { x: number; y: number } {
+    return { x: WORLD_W / 2, y: WORLD_H / 2 };
+  }
 
   /** Override in subclasses to return the zone's display name. Return null to skip the indicator. */
   protected getZoneName(): string | null { return null; }
@@ -334,6 +344,18 @@ export abstract class BaseWorldScene extends Phaser.Scene {
       this.combatImmunity = 2000; // ms
     } else {
       spawn = this.spawnAt(data?.spawnPoint ?? 'default');
+      // Guard against a subclass returning NaN/undefined from spawnAt.
+      // Previously reachable via fast-travel to a scene that didn't
+      // register the requested spawn name — player froze at NaN coords.
+      if (!Number.isFinite(spawn?.x) || !Number.isFinite(spawn?.y)) {
+        // eslint-disable-next-line no-console
+        console.warn(
+          `[${this.scene.key}] spawnAt('${data?.spawnPoint ?? 'default'}') returned invalid coords`,
+          spawn,
+          '— falling back to world center',
+        );
+        spawn = { x: WORLD_W / 2, y: WORLD_H / 2 };
+      }
     }
     this.createPlayer(spawn.x, spawn.y);
 
@@ -2197,10 +2219,52 @@ export abstract class BaseWorldScene extends Phaser.Scene {
       callback: () => this.runLockWatchdog(),
     });
 
+    // ── Pause-mismatch watchdog ──
+    // Every 2 s, check that the actual Phaser scene pause state matches
+    // what the React modal layer expects. If no modal is open (React
+    // gameStats.paused === false) but the scene is paused, force-resume.
+    // This recovers from any future race condition where scene.start()
+    // happens while an overlay is transiently open, leaving the new scene
+    // paused after the overlay closes.
+    const pauseWatchdog = this.time.addEvent({
+      delay: 2000,
+      loop: true,
+      callback: () => {
+        try {
+          const reactPaused = useGameStatsStore.getState().paused;
+          const sceneKey = this.scene.key;
+          if (!reactPaused && this.scene.isPaused(sceneKey)) {
+            // eslint-disable-next-line no-console
+            console.warn(`[${sceneKey}] pause-mismatch: React says unpaused, scene was paused — force-resuming`);
+            this.scene.resume(sceneKey);
+          }
+          // If combat store has non-null state but no CombatScene is
+          // active anywhere, the store got orphaned by a scene swap —
+          // clear it so the watchdog's lock-check can return to idle.
+          const cs = useCombatStore.getState();
+          const combatActive = !!this.game?.scene?.isActive?.('CombatScene');
+          if (cs.state && !combatActive) {
+            // eslint-disable-next-line no-console
+            console.warn(`[${sceneKey}] orphaned combat state — clearing`);
+            useCombatStore.setState({
+              state: null,
+              monster: null,
+              log: [],
+              combatEvents: [],
+              lastLoot: [],
+              _enemyActing: false,
+              _pendingEnemyId: '',
+            } as Partial<typeof cs>);
+          }
+        } catch { /* watchdog never throws */ }
+      },
+    });
+
     const cleanup = () => {
       window.removeEventListener('dialogueClosed', onDialogueClosed);
       window.removeEventListener('keydown', onKeyDown);
       watchdog.remove(false);
+      pauseWatchdog.remove(false);
       this.stuckHintText?.destroy();
       this.stuckHintText = null;
     };
