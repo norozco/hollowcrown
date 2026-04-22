@@ -14,11 +14,60 @@
       "expression": "neutral",
       "text": "The docks are not for tourists. But you do not look like a tourist. You look like trouble. Good. We need trouble.",
       "choices": [
+        {
+          "text": "I have the three strange objects you wanted.",
+          "next": "turn-in-deep-hook",
+          "requires": [
+            { "type": "quest-complete", "questId": "deep-hook" },
+            { "type": "quest-not-turned-in", "questId": "deep-hook" }
+          ]
+        },
         { "text": "What is happening here?", "next": "whats-wrong" },
-        { "text": "Can I help?", "next": "help-offer" },
+        {
+          "text": "Can I help?",
+          "next": "help-offer",
+          "requires": [
+            { "type": "quest-not-started", "questId": "deep-hook" }
+          ]
+        },
+        {
+          "text": "About those strange objects...",
+          "next": "deep-hook-progress",
+          "requires": [
+            { "type": "quest-active", "questId": "deep-hook" }
+          ]
+        },
         { "text": "I caught a fish. Any use for it?", "next": "fish-advice" },
         { "text": "Tell me about the village.", "next": "village-lore" },
         { "text": "I will let you be.", "next": "leave" }
+      ]
+    },
+    "deep-hook-progress": {
+      "id": "deep-hook-progress",
+      "speaker": "nessa",
+      "expression": "thoughtful",
+      "text": "Fish up three. Use the rod at the end of a dock \u2014 press E when you see the bite warning. Whatever you pull up, bring it to me.",
+      "next": "nessa-look"
+    },
+    "turn-in-deep-hook": {
+      "id": "turn-in-deep-hook",
+      "speaker": "nessa",
+      "expression": "thoughtful",
+      "text": "Show me. \u2026 A corroded clasp. A bone whistle, cracked. A key of black iron. These are not lake things. Someone was down there. Someone is still down there.",
+      "next": "turn-in-deep-hook-reward",
+      "effects": [
+        { "type": "turn-in-quest", "questId": "deep-hook" }
+      ]
+    },
+    "turn-in-deep-hook-reward": {
+      "id": "turn-in-deep-hook-reward",
+      "speaker": "nessa",
+      "expression": "neutral",
+      "text": "Take these coins, and take care. Whatever is beneath us is not sleeping anymore. If you go looking for it \u2014 go armed.",
+      "next": null,
+      "effects": [
+        { "type": "give-gold", "amount": 40 },
+        { "type": "give-xp", "amount": 65 }
       ]
     },
     "whats-wrong": {
