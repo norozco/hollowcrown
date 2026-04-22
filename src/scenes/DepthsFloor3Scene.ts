@@ -26,8 +26,15 @@ export class DepthsFloor3Scene extends BaseWorldScene {
   protected getZoneName(): string | null { return 'The Hollow Throne'; }
 
   protected layout(): void {
-    // Deepest floor — pitch dark without the Cairn Lantern.
-    this.setDarkRoom(true);
+    // Deepest floor — pitch dark BEFORE the boss is killed. Once the
+    // Hollow King falls, the crown shatters and the curse lifts — the
+    // room is permanently lit thereafter. Without this, players returned
+    // from the boss fight to a dark room and couldn't see the victory
+    // chest / echo stone chest / exit — producing the "nothing happens"
+    // glitch after the "curse lifts" dialogue.
+    const killed0 = useCombatStore.getState().killedEnemies;
+    const bossAlreadyKilled = Array.from(killed0).some(id => id.includes('hollow_king'));
+    this.setDarkRoom(!bossAlreadyKilled);
     generateTileset(this);
 
     const map = this.make.tilemap({
