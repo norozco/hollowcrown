@@ -365,6 +365,42 @@ export class GreenhollowScene extends BaseWorldScene {
       targetSpawn: 'fromGreenhollow',
       label: '\u2193 Duskmere Village [Lv 4-6]',
     });
+
+    // ── Obvious signpost pointing the way to Duskmere ──
+    // Players reported the path south was unclear; make it plainly visible.
+    const signX = 12 * TILE;
+    const signY = WORLD_H - TILE * 3;
+    // Post
+    this.add.rectangle(signX, signY + 10, 4, 28, 0x4a3018).setDepth(6);
+    // Board
+    const board = this.add.rectangle(signX, signY, 72, 20, 0x6a4a28);
+    board.setStrokeStyle(2, 0x3a2810);
+    board.setDepth(7);
+    // Arrow + text
+    this.add.text(signX, signY, '\u2192 Duskmere Village', {
+      fontFamily: 'Courier New', fontSize: '10px', color: '#f0e0b0',
+      fontStyle: 'bold',
+    }).setOrigin(0.5).setDepth(8);
+    // Secondary label above the post so it reads even at a glance
+    this.add.text(signX, signY - 20, 'To the lakeshore', {
+      fontFamily: 'Courier New', fontSize: '9px', color: '#a09068',
+    }).setOrigin(0.5).setDepth(8);
+    const signInteract = this.add.rectangle(signX, signY, 80, 40, 0x000000, 0);
+    this.spawnInteractable({
+      sprite: signInteract as any, label: 'Read signpost', radius: 26,
+      action: () => {
+        window.dispatchEvent(new CustomEvent('gameMessage', {
+          detail: 'Signpost: "Duskmere Village \u2014 south, along the lakeshore path."',
+        }));
+      },
+    });
+
+    // Breadcrumb trail of small rocks/markers leading to the south exit so
+    // the path reads clearly even from farther up the map.
+    for (const [mx, myF] of [[12, 0.85], [11, 0.9], [12, 0.95]] as [number, number][]) {
+      this.add.circle(mx * TILE + TILE / 2, WORLD_H * myF, 5, 0xa09068, 0.7).setDepth(3);
+      this.add.circle(mx * TILE + TILE / 2 + 6, WORLD_H * myF - 4, 3, 0x80705a, 0.6).setDepth(3);
+    }
   }
 
   protected spawnAt(name: string): { x: number; y: number } {

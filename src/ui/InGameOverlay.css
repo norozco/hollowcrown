@@ -6,6 +6,11 @@
   pointer-events: none;
 }
 
+@keyframes ig-new-pulse {
+  0%, 100% { transform: scale(1); box-shadow: 2px 2px 0 #c52027, 0 0 10px rgba(252, 227, 90, 0.5); }
+  50%      { transform: scale(1.08); box-shadow: 2px 2px 0 #c52027, 0 0 18px rgba(252, 227, 90, 0.9); }
+}
+
 /* Pointer events for interactive elements */
 .ig__hud,
 .ig__menu,

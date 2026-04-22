@@ -63,7 +63,7 @@ export const CLASS_SKILLS: Record<string, CombatSkill> = {
   rogue:    { name: 'Sneak Attack', mpCost: 0, description: 'Deal bonus damage from the shadows.' },
   wizard:   { name: 'Fireball', mpCost: 8, description: 'Hurl a ball of fire for heavy damage.' },
   cleric:   { name: 'Cure Wounds', mpCost: 6, description: 'Heal yourself with divine light.' },
-  ranger:   { name: "Hunter's Mark", mpCost: 4, description: 'Mark the enemy — your next attacks deal bonus damage.' },
+  ranger:   { name: "Hunter's Mark", mpCost: 0, description: 'Mark the enemy — your next attacks deal bonus damage.' },
   bard:     { name: 'Vicious Mockery', mpCost: 3, description: 'Insult the enemy, reducing their next attack.' },
 };
 
@@ -82,9 +82,12 @@ export interface StatusEffects {
   stun: number;        // turns remaining (can't act)
   bleed: number;       // damage per turn
   marked: number;      // bonus damage taken, turns remaining
+  /** Diminishing-returns flag: set when stun expires, blocks a fresh
+   *  stun application for one subsequent turn. Prevents chain-stuns. */
+  stunImmune: number;
 }
 
-const EMPTY_STATUS: StatusEffects = { poison: 0, burn: 0, stun: 0, bleed: 0, marked: 0 };
+const EMPTY_STATUS: StatusEffects = { poison: 0, burn: 0, stun: 0, bleed: 0, marked: 0, stunImmune: 0 };
 
 export interface CombatState {
   phase: CombatPhase;
@@ -124,10 +127,17 @@ const STATUS_CAPS: Record<keyof StatusEffects, number> = {
   bleed: 5,
   stun: 2,
   marked: 5,
+  stunImmune: 2,
 };
 
-/** Apply a status effect to a StatusEffects object, respecting caps. */
+/** Apply a status effect to a StatusEffects object, respecting caps.
+ *  Stun is special: if the target is stun-immune (was stunned recently),
+ *  the stun is ignored and stunImmune ticks down instead. */
 function applyStatus(status: StatusEffects, effect: keyof StatusEffects, value: number): void {
+  if (effect === 'stun' && status.stunImmune > 0) {
+    // Diminishing returns: consume one tick of immunity, no stun applied.
+    return;
+  }
   status[effect] = Math.min(STATUS_CAPS[effect], status[effect] + value) as never;
 }
 
@@ -195,7 +205,16 @@ function tickStatus(
   if (status.stun > 0) {
     s.log.push({ text: `${name} — Stunned — cannot act`, type: 'system' });
     status.stun--;
+    // When the last stun tick wears off, grant one turn of immunity so
+    // enemies can't chain-stun across consecutive turns.
+    if (status.stun === 0) {
+      status.stunImmune = 2;
+    }
     return true;
+  }
+  // Tick down stun immunity each turn the combatant actually gets to act.
+  if (status.stunImmune > 0) {
+    status.stunImmune--;
   }
   return false;
 }
@@ -287,7 +306,12 @@ export function playerAct(
 
     if (roll === 20 || (roll !== 1 && total >= targetAc)) {
       // Hit!
-      const dmgBase = modifier(player.stats[player.weapon.attackStat]) + 2 + equipBonus.damage; // weapon base + equipment
+      let dmgBase = modifier(player.stats[player.weapon.attackStat]) + 2 + equipBonus.damage; // weapon base + equipment
+      // Ranged weapons get a +30% damage bonus so bow-wielding players can
+      // reliably finish starter monsters at level 1.
+      if (player.weapon.range === 'ranged') {
+        dmgBase = Math.ceil(dmgBase * 1.3);
+      }
       const rawDmg = Math.max(1, roll === 20 ? dmgBase * 2 : dmgBase);
       const dmg = applyElement(rawDmg, getAttackElement(player.characterClass.key, 'attack'), monster, s);
       s.monsterHp = Math.max(0, s.monsterHp - dmg);
@@ -588,7 +612,7 @@ export function enemyAct(
     } else if (monster.key === 'cave_bat' && statusRoll <= 25) {
       applyStatus(s.playerStatus, 'bleed', 2);
       s.log.push({ text: "The bat's claws tear skin.", type: 'system' });
-    } else if (monster.key === 'mine_golem' && statusRoll <= 20) {
+    } else if (monster.key === 'mine_golem' && statusRoll <= 10) {
       applyStatus(s.playerStatus, 'stun', 1);
       s.log.push({ text: 'The impact rattles your bones.', type: 'system' });
     } else if (monster.key === 'bog_lurker' && statusRoll <= 30) {

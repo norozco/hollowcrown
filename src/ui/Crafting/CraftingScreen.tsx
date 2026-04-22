@@ -4,7 +4,7 @@ import { usePlayerStore } from '../../state/playerStore';
 import { useQuestStore } from '../../state/questStore';
 import { useAchievementStore } from '../../state/achievementStore';
 import { useCommissionStore } from '../../state/commissionStore';
-import { RECIPES, COMMISSION_MAP, type CraftingRecipe } from '../../engine/crafting';
+import { RECIPES, COMMISSION_MAP, FULL_LEATHER_SET, type CraftingRecipe } from '../../engine/crafting';
 import { getCurrentRank, RANKS } from '../../engine/ranks';
 import { getItem } from '../../engine/items';
 import './CraftingScreen.css';
@@ -113,6 +113,62 @@ export function CraftingScreen({ onClose }: Props) {
     setTimeout(() => setFlash(null), 2000);
   }
 
+  /** Check whether the full leather set can be crafted. Returns either
+   *  `{ ok: true }` or `{ ok: false, reason: string }` explaining which
+   *  specific piece or resource blocked the craft so the UI can tell
+   *  the player exactly what's missing. */
+  function canCraftFullSet(): { ok: true } | { ok: false; reason: string } {
+    if (character!.gold < FULL_LEATHER_SET.goldCost) {
+      return { ok: false, reason: `Need ${FULL_LEATHER_SET.goldCost}g (have ${character!.gold}g).` };
+    }
+    for (const ing of FULL_LEATHER_SET.ingredients) {
+      const owned = getOwned(ing.itemKey);
+      if (owned < ing.quantity) {
+        const name = getItem(ing.itemKey).name;
+        return { ok: false, reason: `Need ${ing.quantity} ${name} (have ${owned}).` };
+      }
+    }
+    return { ok: true };
+  }
+
+  function doCraftFullSet() {
+    const check = canCraftFullSet();
+    if (!check.ok) {
+      setFlash(check.reason);
+      setTimeout(() => setFlash(null), 2400);
+      return;
+    }
+    // Deduct discounted materials + gold once for the whole set.
+    for (const ing of FULL_LEATHER_SET.ingredients) removeItem(ing.itemKey, ing.quantity);
+    character!.loseGold(FULL_LEATHER_SET.goldCost);
+    usePlayerStore.getState().notify();
+
+    // Add each piece. If the corresponding slot is empty, equip it immediately;
+    // otherwise the piece just goes to the bag so the player can swap later.
+    const inv = useInventoryStore.getState();
+    const failed: string[] = [];
+    const crafted: string[] = [];
+    for (const piece of FULL_LEATHER_SET.pieces) {
+      const added = addItem(piece.resultItemKey, 1);
+      if (!added) {
+        failed.push(getItem(piece.resultItemKey).name);
+        continue;
+      }
+      crafted.push(getItem(piece.resultItemKey).name);
+      // Auto-equip if that slot is free.
+      const current = inv.equipment[piece.equipSlot];
+      if (!current) inv.equip(piece.resultItemKey);
+    }
+    useAchievementStore.getState().recordCraft();
+
+    if (failed.length === 0) {
+      setFlash(`Full set crafted: ${crafted.join(', ')}.`);
+    } else {
+      setFlash(`Crafted ${crafted.length}/4 pieces — bag full for: ${failed.join(', ')}.`);
+    }
+    setTimeout(() => setFlash(null), 3200);
+  }
+
   function collectCommission(id: string) {
     const commission = useCommissionStore.getState().collect(id);
     if (commission) {
@@ -137,6 +193,70 @@ export function CraftingScreen({ onClose }: Props) {
         <span className="craft__gold">&#9670; {character.gold}g</span>
         <button type="button" className="craft__close" onClick={onClose}>&#10005;</button>
       </div>
+      {(() => {
+        const setCheck = canCraftFullSet();
+        const ing = FULL_LEATHER_SET.ingredients[0];
+        const owned = getOwned(ing.itemKey);
+        const rawGold = 12 + 20 + 16 + 10;
+        const rawMats = 1 + 3 + 2 + 1;
+        return (
+          <div
+            style={{
+              margin: '0.6rem 1rem 0.4rem',
+              padding: '0.7rem 0.9rem',
+              background: 'linear-gradient(90deg, rgba(90,58,26,0.55), rgba(30,18,10,0.55))',
+              border: '2px solid #d4a968',
+              boxShadow: '3px 3px 0 #1a0f08',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.9rem',
+              flexWrap: 'wrap',
+            }}
+          >
+            <div style={{ flex: '1 1 260px', minWidth: 240 }}>
+              <div style={{ color: '#f4d488', fontWeight: 'bold', fontSize: '1.05rem' }}>
+                {FULL_LEATHER_SET.name}
+                <span style={{ color: '#60c060', fontSize: '0.75rem', marginLeft: 8 }}>
+                  10% SET DISCOUNT
+                </span>
+              </div>
+              <div style={{ color: '#c9b890', fontSize: '0.82rem', marginTop: 2 }}>
+                {FULL_LEATHER_SET.description}
+              </div>
+              <div style={{ color: '#8a7a48', fontSize: '0.78rem', marginTop: 4 }}>
+                Pieces: Leather Cap · Leather Armor · Leather Leggings · Traveler's Boots
+              </div>
+              <div style={{ marginTop: 6, display: 'flex', gap: 10, flexWrap: 'wrap', fontSize: '0.85rem' }}>
+                <span style={{ color: owned >= ing.quantity ? '#60c060' : '#c04040' }}>
+                  {getItem(ing.itemKey).name} {owned}/{ing.quantity}
+                  <span style={{ color: '#8a7a48', fontSize: '0.75rem', marginLeft: 4 }}>
+                    (was {rawMats})
+                  </span>
+                </span>
+                <span style={{ color: character.gold >= FULL_LEATHER_SET.goldCost ? '#f4d488' : '#c04040' }}>
+                  Cost: {FULL_LEATHER_SET.goldCost}g
+                  <span style={{ color: '#8a7a48', fontSize: '0.75rem', marginLeft: 4 }}>
+                    (was {rawGold}g)
+                  </span>
+                </span>
+              </div>
+            </div>
+            <button
+              type="button"
+              className="craft__btn"
+              disabled={!setCheck.ok}
+              onClick={doCraftFullSet}
+              title={setCheck.ok
+                ? 'Craft all four leather pieces at once. Empty slots are auto-equipped.'
+                : setCheck.reason}
+              style={{ minWidth: 160 }}
+            >
+              Craft Full Set
+            </button>
+          </div>
+        );
+      })()}
+
       <ul className="craft__list">
         {RECIPES.map((recipe) => {
           const rankOk = meetsRank(recipe);

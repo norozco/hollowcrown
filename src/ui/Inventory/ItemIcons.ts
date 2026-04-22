@@ -50,6 +50,9 @@ function drawIcon(c: Ctx, key: string): void {
     // === Boots ===
     case 'traveler_boots': drawBoots(c, '#604020', '#805030', '#a06840', '#402810'); break;
 
+    // === Leggings ===
+    case 'leather_leggings': drawArmor(c, '#50381a', '#6f4a24', '#8a5a2c', '#382814'); break;
+
     // === Weapons ===
     case 'iron_sword': drawSword(c, '#808890', '#909ca8', '#b0b8c0', '#606870', '#8a6828', '#604020'); break;
     case 'steel_sword': drawSword(c, '#98a0b0', '#b0b8c8', '#d0d8e0', '#707880', '#c0a030', '#806010'); break;

@@ -270,9 +270,21 @@ export class CombatScene extends Phaser.Scene {
       const ry = store.returnY || this.savedReturnY;
       // If returning to default (death respawn), use default spawn, not combat_return.
       const spawnPoint = (rx === 0 && ry === 0) ? 'default' : 'combat_return';
+      // Defensive cleanup: kill any lingering tweens/delayed calls from
+      // the boss victory cutscene so they can't fire on a destroyed scene.
+      this.tweens.killAll();
+      this.time.removeAllEvents();
       this.cameras.main.fadeOut(300, 0, 0, 0);
       this.cameras.main.once('camerafadeoutcomplete', () => {
-        this.scene.start(finalReturn, { spawnPoint, combatReturnX: rx, combatReturnY: ry });
+        try {
+          this.scene.start(finalReturn, { spawnPoint, combatReturnX: rx, combatReturnY: ry });
+        } catch (err) {
+          // If the target scene ever throws on create, fall back to Town
+          // instead of leaving the player stuck on a black screen.
+          // eslint-disable-next-line no-console
+          console.warn('[CombatScene] scene.start failed, falling back to TownScene', err);
+          this.scene.start('TownScene', { spawnPoint: 'default' });
+        }
       });
       return;
     }

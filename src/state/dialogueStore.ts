@@ -11,6 +11,7 @@ import {
 import { useQuestStore } from './questStore';
 import { usePlayerStore } from './playerStore';
 import { useInventoryStore } from './inventoryStore';
+import { useDialogueMemoryStore, applyGreetingMemory } from './dialogueMemoryStore';
 
 /**
  * Holds the currently-active dialogue, if any. Null means no dialogue
@@ -82,9 +83,17 @@ export const useDialogueStore = create<DialogueStoreState>((set, get) => ({
   state: null,
 
   start: (dialogue) => {
-    const state = startDialogue(dialogue);
-    applyEffects(currentNode(dialogue, state).effects);
-    set({ dialogue, state });
+    // NPC greetings evolve with familiarity: first meeting uses the
+    // authored opener, subsequent visits swap in casual / "still here"
+    // lines from a small pool. The bump happens AFTER we read the count
+    // so the first visit really does show the authored text.
+    const memory = useDialogueMemoryStore.getState();
+    const priorCount = memory.getCount(dialogue.id);
+    const effectiveDialogue = applyGreetingMemory(dialogue, priorCount);
+    memory.bump(dialogue.id);
+    const state = startDialogue(effectiveDialogue);
+    applyEffects(currentNode(effectiveDialogue, state).effects);
+    set({ dialogue: effectiveDialogue, state });
   },
 
   advance: () => {

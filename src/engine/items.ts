@@ -100,6 +100,11 @@ const ITEMS: Record<string, Item> = {
     buyPrice: 35, description: 'Well-worn soles. They know the road.',
     equipSlot: 'boots', statBonus: { ac: 1 },
   },
+  leather_leggings: {
+    key: 'leather_leggings', name: 'Leather Leggings', type: 'armor', rarity: 'common',
+    buyPrice: 50, description: 'Stitched hide. Keeps your shins in one piece.',
+    equipSlot: 'legs', statBonus: { ac: 1 },
+  },
   // Weapons
   iron_sword: {
     key: 'iron_sword', name: 'Iron Sword', type: 'weapon', rarity: 'common',

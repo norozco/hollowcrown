@@ -56,36 +56,34 @@ function emitEventsFromDiff(
     (e) => e.type === 'enemy_hit' && /devastating|critical/i.test(e.text),
   );
 
+  // NOTE: SFX for hits/misses/spells are fired from CombatScene.ts alongside
+  // their animations. Firing them here too caused double-triggers (audible
+  // as a buzzing/interference during fights). We keep only the event push
+  // here — audio is owned by CombatScene. Dedup in audio.ts is a second line
+  // of defense if anything slips through.
   if (monsterDelta < 0) {
     const amt = -monsterDelta;
     pushEvent({ kind: critOnMonster ? 'crit' : 'damage', target: 'enemy', amount: amt, crit: critOnMonster });
-    if (critOnMonster) Sfx.criticalHit(); else Sfx.attackHit();
   }
   if (playerDelta < 0) {
     const amt = -playerDelta;
     pushEvent({ kind: critOnPlayer ? 'crit' : 'damage', target: 'player', amount: amt, crit: critOnPlayer });
-    Sfx.takeDamage();
   } else if (playerDelta > 0) {
     pushEvent({ kind: 'heal', target: 'player', amount: playerDelta, crit: false });
-    Sfx.spellHeal();
   }
 
   // Miss events (no HP change but a miss line was added)
   for (const entry of newEntries) {
     if (entry.type === 'player_miss') {
       pushEvent({ kind: 'miss', target: 'enemy', amount: 0, crit: false });
-      Sfx.attackMiss();
     } else if (entry.type === 'enemy_miss') {
       pushEvent({ kind: 'miss', target: 'player', amount: 0, crit: false });
     }
   }
 
-  // Fireball / spell indicator: log mentions fireball → play spellFire
-  if (newEntries.some((e) => /fireball|fire damage/i.test(e.text))) {
-    Sfx.spellFire();
-  }
-
-  // Victory / defeat stingers
+  // Victory / defeat / flee stingers — CombatScene also fires these on
+  // their log entry; dedup window in audio.ts collapses the near-simultaneous
+  // pair to one sound.
   if (prev.phase !== 'victory' && next.phase === 'victory') Sfx.enemyDefeat();
   if (prev.phase !== 'defeat' && next.phase === 'defeat') Sfx.playerDeath();
   if (prev.phase !== 'fled' && next.phase === 'fled') Sfx.flee();

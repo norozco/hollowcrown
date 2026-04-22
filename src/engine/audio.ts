@@ -16,6 +16,14 @@ let sfxGain: GainNode | null = null;
 let currentMusicNodes: { osc: OscillatorNode; gain: GainNode }[] = [];
 let currentMusicTrack: string | null = null;
 
+// Voice limiter — count of currently-active SFX oscillators
+let activeOscillators = 0;
+const MAX_ACTIVE_OSCILLATORS = 16;
+
+// Dedup — last time each SFX key fired
+const lastPlayedAt = new Map<string, number>();
+const DEDUP_WINDOW_MS = 50;
+
 function getCtx(): AudioContext | null {
   if (typeof window === 'undefined') return null;
   if (ctx) return ctx;
@@ -78,6 +86,8 @@ interface SfxConfig {
 function playSfx(cfg: SfxConfig): void {
   const c = getCtx();
   if (!c || !sfxGain) return;
+  // Voice limiter — drop if too many oscillators already playing
+  if (activeOscillators >= MAX_ACTIVE_OSCILLATORS) return;
   applyVolumes();
 
   const t = c.currentTime + (cfg.delay ?? 0);
@@ -100,6 +110,12 @@ function playSfx(cfg: SfxConfig): void {
   osc.connect(gain).connect(sfxGain);
   osc.start(t);
   osc.stop(t + dur + 0.05);
+  activeOscillators++;
+  osc.onended = () => {
+    activeOscillators = Math.max(0, activeOscillators - 1);
+    try { osc.disconnect(); } catch { /* already disconnected */ }
+    try { gain.disconnect(); } catch { /* already disconnected */ }
+  };
 
   // Noise overlay
   if (cfg.noise && cfg.noise > 0) {
@@ -118,29 +134,42 @@ function playSfx(cfg: SfxConfig): void {
     noiseSource.connect(noiseGain).connect(sfxGain);
     noiseSource.start(t);
     noiseSource.stop(t + dur + 0.05);
+    noiseSource.onended = () => {
+      try { noiseSource.disconnect(); } catch { /* already disconnected */ }
+      try { noiseGain.disconnect(); } catch { /* already disconnected */ }
+    };
   }
 }
 
-/** Pre-built SFX library. */
+/** Dedup wrapper — skip if same SFX fired within DEDUP_WINDOW_MS. */
+function dedup(key: string, fn: () => void): void {
+  const now = (typeof performance !== 'undefined' ? performance.now() : Date.now());
+  const last = lastPlayedAt.get(key) ?? -Infinity;
+  if (now - last < DEDUP_WINDOW_MS) return;
+  lastPlayedAt.set(key, now);
+  fn();
+}
+
+/** Pre-built SFX library. Each entry is dedup'd to prevent rapid retrigger buzz. */
 export const Sfx = {
   /** Menu UI blip. */
-  menuClick: () => playSfx({ freq: 880, endFreq: 1200, type: 'square', duration: 0.08, volume: 0.18 }),
+  menuClick: () => dedup('menuClick', () => playSfx({ freq: 880, endFreq: 1200, type: 'square', duration: 0.08, volume: 0.18 })),
   /** Menu hover / cursor move. */
-  menuHover: () => playSfx({ freq: 660, type: 'sine', duration: 0.04, volume: 0.08 }),
+  menuHover: () => dedup('menuHover', () => playSfx({ freq: 660, type: 'sine', duration: 0.04, volume: 0.08 })),
   /** Dialogue advance tick. */
-  dialogueTick: () => playSfx({ freq: 1100, type: 'sine', duration: 0.03, volume: 0.06 }),
+  dialogueTick: () => dedup('dialogueTick', () => playSfx({ freq: 1100, type: 'sine', duration: 0.03, volume: 0.06 })),
 
   /** Combat: player attack hit. */
-  attackHit: () => playSfx({ freq: 180, endFreq: 60, type: 'square', duration: 0.15, volume: 0.28, noise: 0.3 }),
+  attackHit: () => dedup('attackHit', () => playSfx({ freq: 180, endFreq: 60, type: 'square', duration: 0.15, volume: 0.28, noise: 0.3 })),
   /** Combat: attack miss / whiff. */
-  attackMiss: () => playSfx({ freq: 600, endFreq: 200, type: 'triangle', duration: 0.12, volume: 0.15, noise: 0.1 }),
+  attackMiss: () => dedup('attackMiss', () => playSfx({ freq: 600, endFreq: 200, type: 'triangle', duration: 0.12, volume: 0.15, noise: 0.1 })),
   /** Combat: critical hit. */
-  criticalHit: () => {
+  criticalHit: () => dedup('criticalHit', () => {
     playSfx({ freq: 120, endFreq: 40, type: 'sawtooth', duration: 0.25, volume: 0.4, noise: 0.4 });
     playSfx({ freq: 1200, endFreq: 400, type: 'square', duration: 0.18, volume: 0.2, delay: 0.02 });
-  },
+  }),
   /** Combat: player takes damage. */
-  takeDamage: () => playSfx({ freq: 300, endFreq: 100, type: 'sawtooth', duration: 0.22, volume: 0.25, noise: 0.5 }),
+  takeDamage: () => dedup('takeDamage', () => playSfx({ freq: 300, endFreq: 100, type: 'sawtooth', duration: 0.22, volume: 0.25, noise: 0.5 })),
   /** Combat: enemy defeated. */
   enemyDefeat: () => {
     playSfx({ freq: 520, endFreq: 80, type: 'sawtooth', duration: 0.5, volume: 0.32 });
@@ -346,21 +375,34 @@ function stopMusic(): void {
   const c = getCtx();
   if (!c) return;
   const now = c.currentTime;
+  // Stop arp scheduler immediately so no new notes spawn into the old graph.
+  if (arpInterval !== null) {
+    clearInterval(arpInterval);
+    arpInterval = null;
+  }
   for (const node of currentMusicNodes) {
+    const { osc, gain } = node;
     try {
-      node.gain.gain.cancelScheduledValues(now);
-      node.gain.gain.setValueAtTime(node.gain.gain.value, now);
-      node.gain.gain.linearRampToValueAtTime(0, now + 0.5);
-      node.osc.stop(now + 0.6);
+      gain.gain.cancelScheduledValues(now);
+      gain.gain.setValueAtTime(gain.gain.value, now);
+      gain.gain.linearRampToValueAtTime(0, now + 0.3);
+      osc.stop(now + 0.35);
     } catch {
       // Already stopped
     }
+    // Disconnect once the oscillator finishes to free the graph.
+    osc.onended = () => {
+      try { osc.disconnect(); } catch { /* already disconnected */ }
+      try { gain.disconnect(); } catch { /* already disconnected */ }
+    };
   }
   currentMusicNodes = [];
   currentMusicTrack = null;
 }
 
 let arpInterval: number | null = null;
+
+let musicToken = 0;
 
 /** Play a music track by key. Crossfades from current track. */
 export function playMusic(trackKey: string): void {
@@ -372,12 +414,9 @@ export function playMusic(trackKey: string): void {
   const track = MUSIC_TRACKS[trackKey];
   if (!track) return;
 
-  // Stop old
+  // Stop old (stopMusic also clears arpInterval)
   stopMusic();
-  if (arpInterval !== null) {
-    clearInterval(arpInterval);
-    arpInterval = null;
-  }
+  const myToken = ++musicToken;
 
   const now = c.currentTime;
   const vol = track.vol ?? 0.12;
@@ -388,9 +427,13 @@ export function playMusic(trackKey: string): void {
   droneOsc.frequency.value = track.drone;
   const droneGain = c.createGain();
   droneGain.gain.setValueAtTime(0, now);
-  droneGain.gain.linearRampToValueAtTime(vol * 0.5, now + 2);
+  droneGain.gain.linearRampToValueAtTime(vol * 0.5, now + 0.5); // 500ms fade-in
   droneOsc.connect(droneGain).connect(musicGain);
   droneOsc.start(now);
+  droneOsc.onended = () => {
+    try { droneOsc.disconnect(); } catch { /* ok */ }
+    try { droneGain.disconnect(); } catch { /* ok */ }
+  };
   currentMusicNodes.push({ osc: droneOsc, gain: droneGain });
 
   // Harmonic layer (fifth above)
@@ -399,9 +442,13 @@ export function playMusic(trackKey: string): void {
   harmOsc.frequency.value = track.drone * 1.5;
   const harmGain = c.createGain();
   harmGain.gain.setValueAtTime(0, now);
-  harmGain.gain.linearRampToValueAtTime(vol * 0.3, now + 2);
+  harmGain.gain.linearRampToValueAtTime(vol * 0.3, now + 0.5);
   harmOsc.connect(harmGain).connect(musicGain);
   harmOsc.start(now);
+  harmOsc.onended = () => {
+    try { harmOsc.disconnect(); } catch { /* ok */ }
+    try { harmGain.disconnect(); } catch { /* ok */ }
+  };
   currentMusicNodes.push({ osc: harmOsc, gain: harmGain });
 
   // Arpeggio layer — scheduled as repeating setInterval
@@ -409,6 +456,8 @@ export function playMusic(trackKey: string): void {
     const arpDur = track.arpDur ?? 0.8;
     let step = 0;
     const playArpNote = () => {
+      // Stale-token guard: if the track was switched, bail.
+      if (myToken !== musicToken) return;
       const cur = getCtx();
       if (!cur || !musicGain) return;
       const note = track.arp![step % track.arp!.length];
@@ -424,13 +473,18 @@ export function playMusic(trackKey: string): void {
       noteOsc.connect(noteGain).connect(musicGain);
       noteOsc.start(ac);
       noteOsc.stop(ac + arpDur);
+      noteOsc.onended = () => {
+        try { noteOsc.disconnect(); } catch { /* ok */ }
+        try { noteGain.disconnect(); } catch { /* ok */ }
+      };
     };
 
-    // Start arp after drone ramps in
+    // Start arp after drone ramps in — guarded by token
     setTimeout(() => {
+      if (myToken !== musicToken) return; // track was switched
       playArpNote();
       arpInterval = window.setInterval(playArpNote, arpDur * 1000);
-    }, 1500);
+    }, 800);
   }
 
   currentMusicTrack = trackKey;

@@ -129,11 +129,14 @@
   display: none;
 }
 
-/* Name tag — angled yellow/white banner above speech bubble */
+/* Name tag — angled yellow/white banner above speech bubble.
+ * Anchored to the TOP of the textbox (not the viewport bottom) so
+ * it never overlaps choice buttons when the bubble grows tall. */
 .dlg__name-tag {
   position: absolute;
-  bottom: calc(6% + 150px);
-  left: 33%;
+  bottom: 100%;
+  left: 4%;
+  margin-bottom: 0.6rem;
   background: #fff;
   color: #0a0a0a;
   font-family: Impact, 'Arial Black', 'Helvetica', sans-serif;
@@ -167,7 +170,7 @@
 .dlg__name-tag--player {
   background: #ffd43a;
   left: auto;
-  right: 8%;
+  right: 4%;
   transform: rotate(4deg) skewX(12deg);
 }
 

@@ -691,6 +691,11 @@ export abstract class BaseWorldScene extends Phaser.Scene {
     /** Optional gold amount included. */
     gold?: number;
   }): void {
+    // Persistent one-time pickup — if already looted this save, never
+    // respawn (prevents the combat_return / zone-return farm exploit).
+    const objectId = `lootbag_${Math.round(cfg.x)}_${Math.round(cfg.y)}`;
+    if (useWorldStateStore.getState().isPicked(this.scene.key, objectId)) return;
+
     if (Math.random() > (cfg.spawnChance ?? 0.5)) return; // bag didn't spawn this visit
 
     // Draw the bag: small brown sack with a tie
@@ -730,6 +735,7 @@ export abstract class BaseWorldScene extends Phaser.Scene {
         }
         this.spawnPickupParticles(cfg.x, cfg.y, 0xf4d488);
         window.dispatchEvent(new CustomEvent('gameMessage', { detail: msg }));
+        useWorldStateStore.getState().markPicked(this.scene.key, objectId);
         bag.destroy();
         tie.destroy();
       },
@@ -757,9 +763,14 @@ export abstract class BaseWorldScene extends Phaser.Scene {
 
   /**
    * Spawn a hidden fairy fountain -- a glowing pool that fully restores
-   * HP and MP on interaction. One use per zone visit.
+   * HP and MP on interaction. One use per save file (persists across
+   * combat_return and zone re-entry; previously respawned every fight,
+   * giving infinite free heals).
    */
   protected spawnFairyFountain(cfg: { x: number; y: number }): void {
+    const objectId = `fountain_${Math.round(cfg.x)}_${Math.round(cfg.y)}`;
+    if (useWorldStateStore.getState().isPicked(this.scene.key, objectId)) return;
+
     // Outer glow
     const glow = this.add.circle(cfg.x, cfg.y, 24, 0x80c0f0, 0.15);
     glow.setDepth(5);
@@ -801,6 +812,7 @@ export abstract class BaseWorldScene extends Phaser.Scene {
         ps.notify();
         this.cameras.main.flash(300, 200, 230, 255);
         window.dispatchEvent(new CustomEvent('gameMessage', { detail: 'The light mends you. HP and MP fully restored.' }));
+        useWorldStateStore.getState().markPicked(this.scene.key, objectId);
         pool.destroy();
         glow.destroy();
       },
@@ -875,11 +887,19 @@ export abstract class BaseWorldScene extends Phaser.Scene {
     this.traps.push({ x: cfg.x, y: cfg.y, damage: cfg.damage, cooldown: 0 });
   }
 
-  /** Spawn a locked door that requires a key item to open. */
+  /** Spawn a locked door that requires a key item to open. Once unlocked,
+   *  the door is remembered in world state and will not reappear on future
+   *  scene entries — the player never spends a second key on the same door. */
   protected spawnLockedDoor(cfg: {
     x: number; y: number; w: number; h: number;
     keyItem: string; label?: string;
+    /** Stable id within the scene. Defaults to a coordinate hash; prefer
+     *  passing an explicit, human-readable id (e.g. 'north_gate'). */
+    doorId?: string;
   }): void {
+    const doorId = cfg.doorId ?? `door_${cfg.x}_${cfg.y}`;
+    // Already unlocked in this save? Don't respawn — treat the door as open.
+    if (useWorldStateStore.getState().isDoorUnlocked(this.scene.key, doorId)) return;
     const door = this.add.rectangle(cfg.x + cfg.w/2, cfg.y + cfg.h/2, cfg.w, cfg.h, 0x6a5030);
     door.setStrokeStyle(2, 0x8a7040);
     door.setDepth(8);
@@ -918,6 +938,9 @@ export abstract class BaseWorldScene extends Phaser.Scene {
           capRight.destroy();
           const body = door.body as Phaser.Physics.Arcade.StaticBody;
           if (body) body.destroy();
+          // Remember this door as permanently unlocked so a second key
+          // is never needed on re-entry or after save/load.
+          useWorldStateStore.getState().unlockDoor(this.scene.key, doorId);
           window.dispatchEvent(new CustomEvent('gameMessage', { detail: 'Door unlocked.' }));
         } else {
           window.dispatchEvent(new CustomEvent('gameMessage', { detail: 'Locked. You need a key.' }));
@@ -926,12 +949,18 @@ export abstract class BaseWorldScene extends Phaser.Scene {
     });
   }
 
-  /** Spawn a treasure chest with guaranteed loot. One-time per visit. */
+  /** Spawn a treasure chest with guaranteed loot. One-time per save file.
+   *  Persisted via `worldStateStore.pickedObjects` — previously the chest
+   *  re-spawned after every combat (scene.create() re-ran layout()), which
+   *  was the root of the infinite-loot farming exploit. */
   protected spawnChest(cfg: {
     x: number; y: number;
     loot: Array<{ itemKey: string; qty?: number }>;
     gold?: number;
   }): void {
+    const objectId = `chest_${Math.round(cfg.x)}_${Math.round(cfg.y)}`;
+    if (useWorldStateStore.getState().isPicked(this.scene.key, objectId)) return;
+
     // Chest body
     const chest = this.add.rectangle(cfg.x, cfg.y, 24, 20, 0x6a4820);
     chest.setStrokeStyle(2, 0xc0a040);
@@ -965,6 +994,7 @@ export abstract class BaseWorldScene extends Phaser.Scene {
         this.spawnPickupParticles(cfg.x, cfg.y, 0xffffff);
         window.dispatchEvent(new CustomEvent('gameMessage', { detail: msg }));
         useAchievementStore.getState().recordChest();
+        useWorldStateStore.getState().markPicked(this.scene.key, objectId);
         chest.destroy();
         lid.destroy();
         clasp.destroy();

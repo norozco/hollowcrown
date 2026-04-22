@@ -128,9 +128,10 @@ export class DuskmereScene extends BaseWorldScene {
     const miraFlag = localStorage.getItem('hollowcrown_mira_theft');
     const miraResolved = localStorage.getItem('hollowcrown_mira_resolved');
     if (miraFlag === 'true' && miraResolved !== 'true') {
+      // On the long dock (cols 18-30, rows 12-13) — walkable floor, not water.
       this.spawnNpc({
         key: 'mira', dialogueId: 'mira-greeting',
-        x: 30 * TILE, y: 10 * TILE,
+        x: 28 * TILE, y: 12 * TILE + TILE / 2,
       });
     }
 
@@ -168,7 +169,7 @@ export class DuskmereScene extends BaseWorldScene {
         this.time.delayedCall(1200, () => {
           this.spawnNpc({
             key: 'mira', dialogueId: 'mira-greeting',
-            x: 30 * TILE, y: 10 * TILE,
+            x: 28 * TILE, y: 12 * TILE + TILE / 2,
           });
         });
       });
@@ -364,13 +365,16 @@ export class DuskmereScene extends BaseWorldScene {
     this.spawnEnemy({ monsterKey: 'bandit', x: 3 * TILE, y: 20 * TILE });
 
     // ── Inn rest interactable (outside — bench near inn door) ──
-    const benchX = 9 * TILE;
-    const benchY = 14 * TILE;
-    const bench = this.add.rectangle(benchX, benchY, 32, 12, 0x5a4020);
+    // Moved OFF the village path (was at 9,14 which is the path the player
+    // walks to reach the inn — the prompt auto-appeared while passing by).
+    // Now placed right next to the inn wall (tile 8,15, adjacent to door at 7,14).
+    const benchX = 8 * TILE + TILE / 2;
+    const benchY = 15 * TILE + TILE / 2;
+    const bench = this.add.rectangle(benchX, benchY, 24, 10, 0x5a4020);
     bench.setStrokeStyle(1, 0x3a2810);
     bench.setDepth(5);
     this.spawnInteractable({
-      sprite: bench as any, label: 'Rest at the inn (10g)', radius: 24,
+      sprite: bench as any, label: 'Rest at the inn (10g)', radius: 14,
       action: () => {
         const ps = usePlayerStore.getState();
         const ch = ps.character;

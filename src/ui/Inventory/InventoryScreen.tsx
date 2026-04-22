@@ -168,6 +168,7 @@ export function InventoryScreen() {
                 {favorites.has(s.item.key) && <span className="inv__fav-mark" title="Favorited (locked from sale)">★</span>}
                 {newItems.has(s.item.key) && (
                   <span
+                    title={`NEW — picked up this session. Hover to mark seen.`}
                     style={{
                       position: 'absolute',
                       top: 0,
@@ -181,8 +182,8 @@ export function InventoryScreen() {
                       letterSpacing: '0.06em',
                       borderBottomRight: '2px solid #c52027',
                       boxShadow: '1px 1px 0 #c52027',
-                      pointerEvents: 'none',
                       zIndex: 2,
+                      cursor: 'help',
                     }}
                   >
                     NEW
@@ -218,6 +219,23 @@ export function InventoryScreen() {
       {tooltip && (
         <div className="inv__tooltip">
           <h4 style={{ color: RARITY_BORDER[tooltip.item.rarity] }}>{tooltip.item.name}</h4>
+          {newItems.has(tooltip.item.key) && (
+            <p
+              style={{
+                background: '#fce35a',
+                color: '#000',
+                fontFamily: 'Impact, sans-serif',
+                fontWeight: 'bold',
+                letterSpacing: '0.05em',
+                padding: '0.15rem 0.4rem',
+                margin: '0.15rem 0',
+                borderLeft: '4px solid #c52027',
+                fontSize: '0.8rem',
+              }}
+            >
+              NEW — picked up during this session
+            </p>
+          )}
           <p className="inv__tt-type">{tooltip.item.rarity} {tooltip.item.type}</p>
           <p className="inv__tt-desc">{tooltip.item.description}</p>
           {tooltip.item.statBonus && (

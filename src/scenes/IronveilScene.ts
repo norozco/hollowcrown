@@ -1,6 +1,7 @@
 import { useInventoryStore } from '../state/inventoryStore';
 import { useLoreStore } from '../state/loreStore';
 import { useDungeonItemStore } from '../state/dungeonItemStore';
+import { useWorldStateStore } from '../state/worldStateStore';
 import { BaseWorldScene, TILE, WORLD_W, WORLD_H } from './BaseWorldScene';
 import { generateTileset, TILE as T, TILE_SIZE } from './tiles/generateTiles';
 
@@ -140,8 +141,10 @@ export class IronveilScene extends BaseWorldScene {
     this.spawnEnemy({ monsterKey: 'mine_golem', x: 26 * TILE, y: 11 * TILE });
     this.spawnEnemy({ monsterKey: 'mine_golem', x: 34 * TILE, y: 11 * TILE });
     // Dead miners risen
-    this.spawnEnemy({ monsterKey: 'skeleton', x: 16 * TILE, y: 6 * TILE });
-    this.spawnEnemy({ monsterKey: 'skeleton', x: 32 * TILE, y: 16 * TILE });
+    // Moved off of wall tiles: (16,6) and (32,16) were both solid rock.
+    // Place them on walkable floor in the north and south caverns.
+    this.spawnEnemy({ monsterKey: 'skeleton', x: 25 * TILE, y: 5 * TILE });
+    this.spawnEnemy({ monsterKey: 'skeleton', x: 35 * TILE, y: 17 * TILE });
 
     // ── Iron ore pickup nodes (it's a mine!) ──
     const orePositions: [number, number][] = [
@@ -150,12 +153,19 @@ export class IronveilScene extends BaseWorldScene {
     for (const [ox, oy] of orePositions) {
       const oreX = ox * TILE;
       const oreY = oy * TILE;
+      // Persistent one-time node. Previously these were ad-hoc interactables
+      // with no tracking, so they respawned every time layout() ran — which
+      // happens after every combat (scene.stop + scene.start). That was the
+      // iron-farming exploit: bump enemy, fight, return, mine node again.
+      const nodeId = `ironore_${ox}_${oy}`;
+      if (useWorldStateStore.getState().isPicked(this.scene.key, nodeId)) continue;
+
       // Ore vein visual — grey rock with glint
       const oreNode = this.add.circle(oreX, oreY, 8, 0x808080);
       oreNode.setStrokeStyle(2, 0x606060);
       oreNode.setDepth(6);
       // Ore glint
-      this.add.circle(oreX + 3, oreY - 3, 2, 0xc0a040, 0.6).setDepth(7);
+      const glint = this.add.circle(oreX + 3, oreY - 3, 2, 0xc0a040, 0.6).setDepth(7);
 
       this.spawnInteractable({
         sprite: oreNode as any, label: 'Mine iron ore', radius: 20,
@@ -163,7 +173,9 @@ export class IronveilScene extends BaseWorldScene {
           this.spawnPickupParticles(oreNode.x, oreNode.y, 0x60c060);
           useInventoryStore.getState().addItem('iron_ore');
           window.dispatchEvent(new CustomEvent('gameMessage', { detail: 'Mined iron ore.' }));
+          useWorldStateStore.getState().markPicked(this.scene.key, nodeId);
           oreNode.destroy();
+          glint.destroy();
         },
       });
     }

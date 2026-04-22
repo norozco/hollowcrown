@@ -135,4 +135,57 @@ export const RECIPES: CraftingRecipe[] = [
     resultQuantity: 1,
     goldCost: 20,
   },
+  {
+    key: 'craft_leather_cap',
+    name: 'Tan Leather Cap',
+    description: 'A scrap of pelt, shaped for the skull.',
+    ingredients: [{ itemKey: 'wolf_pelt', quantity: 1 }],
+    resultItemKey: 'leather_cap',
+    resultQuantity: 1,
+    goldCost: 12,
+  },
+  {
+    key: 'craft_leather_leggings',
+    name: 'Tan Leather Leggings',
+    description: 'Two pelts, stitched along the seam.',
+    ingredients: [{ itemKey: 'wolf_pelt', quantity: 2 }],
+    resultItemKey: 'leather_leggings',
+    resultQuantity: 1,
+    goldCost: 16,
+  },
+  {
+    key: 'craft_traveler_boots',
+    name: 'Cobble Traveler\'s Boots',
+    description: 'Hide wrapped around stubborn feet.',
+    ingredients: [{ itemKey: 'wolf_pelt', quantity: 1 }],
+    resultItemKey: 'traveler_boots',
+    resultQuantity: 1,
+    goldCost: 10,
+  },
 ];
+
+/** The pieces that make up a full leather set. Used by the Smithy
+ *  "Craft Full Set" button so the player can outfit all armor slots
+ *  in a single click for a modest material discount. */
+export const FULL_LEATHER_SET: {
+  name: string;
+  description: string;
+  /** Discounted aggregate material cost (10% off the sum of pieces). */
+  ingredients: Array<{ itemKey: string; quantity: number }>;
+  /** Discounted aggregate gold cost (10% off). */
+  goldCost: number;
+  pieces: Array<{ resultItemKey: string; equipSlot: 'head' | 'chest' | 'legs' | 'boots' }>;
+} = {
+  name: 'Craft Full Leather Set',
+  description: 'Cap, armor, leggings, and boots — crafted as a matched set for a discount.',
+  // Raw sum: 1 + 3 + 2 + 1 = 7 wolf_pelt. 10% off rounds down to 6.
+  // Raw gold sum: 12 + 20 + 16 + 10 = 58. 10% off = 52.
+  ingredients: [{ itemKey: 'wolf_pelt', quantity: 6 }],
+  goldCost: 52,
+  pieces: [
+    { resultItemKey: 'leather_cap',      equipSlot: 'head'  },
+    { resultItemKey: 'leather_armor',    equipSlot: 'chest' },
+    { resultItemKey: 'leather_leggings', equipSlot: 'legs'  },
+    { resultItemKey: 'traveler_boots',   equipSlot: 'boots' },
+  ],
+};

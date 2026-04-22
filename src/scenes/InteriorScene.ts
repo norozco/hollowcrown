@@ -144,11 +144,15 @@ export class InteriorScene extends BaseWorldScene {
             const ch = ps.character;
             if (!ch) return;
             if (ch.gold < 10) { window.dispatchEvent(new CustomEvent('gameMessage', { detail: 'Not enough gold. A bed costs 10g.' })); return; }
-            ch.loseGold(10);
-            ch.hp = ch.derived.maxHp;
-            ch.mp = ch.derived.maxMp;
-            ps.notify();
-            window.dispatchEvent(new CustomEvent('gameMessage', { detail: 'You rest at the inn. HP and MP fully restored. (-10g)' }));
+            // Cinematic rest: fade to black, show "Resting..." with a
+            // moon+Z animation, fade back in with HP/MP restored.
+            this.playRestAnimation(() => {
+              ch.loseGold(10);
+              ch.hp = ch.derived.maxHp;
+              ch.mp = ch.derived.maxMp;
+              ps.notify();
+              window.dispatchEvent(new CustomEvent('gameMessage', { detail: 'You rest at the inn. HP and MP fully restored. (-10g)' }));
+            });
           } });
         this.add.text(oX + ix.tileX * TILE + TILE / 2, oY + ix.tileY * TILE - 6, 'Rest (10g)', {
           fontFamily: 'Courier New', fontSize: '10px', color: '#80a0c0',
@@ -182,6 +186,58 @@ export class InteriorScene extends BaseWorldScene {
     const wall = this.add.rectangle(x + w / 2, y + h / 2, w, h, 0x000000, 0);
     this.physics.add.existing(wall, true);
     this.walls.add(wall);
+  }
+
+  /**
+   * Cinematic inn rest: fade to black (1s), show "Resting..." overlay with
+   * a moon+Z animation for 1.5s, fade back in and fire the given callback
+   * once the fade-in completes so the HP/MP restore feels earned.
+   */
+  private playRestAnimation(onRestored: () => void): void {
+    const depth = 2000;
+    const black = this.add.rectangle(WORLD_W / 2, WORLD_H / 2, WORLD_W, WORLD_H, 0x000000, 0).setDepth(depth);
+    // Fade to black
+    this.tweens.add({
+      targets: black, alpha: 1, duration: 1000,
+      onComplete: () => {
+        // Overlay: moon crescent + stacked Z Z Z
+        const cx = WORLD_W / 2;
+        const cy = WORLD_H / 2;
+        const moon = this.add.text(cx - 40, cy - 10, '\u263D', {
+          fontFamily: 'Courier New', fontSize: '48px', color: '#d9d08a',
+        }).setOrigin(0.5).setDepth(depth + 1);
+        const label = this.add.text(cx, cy + 40, 'Resting...', {
+          fontFamily: 'Courier New', fontSize: '18px', color: '#d4a968',
+        }).setOrigin(0.5).setDepth(depth + 1);
+        const z1 = this.add.text(cx + 10, cy - 20, 'Z', {
+          fontFamily: 'Courier New', fontSize: '18px', color: '#f0e2a0',
+        }).setOrigin(0.5).setAlpha(0).setDepth(depth + 1);
+        const z2 = this.add.text(cx + 22, cy - 34, 'Z', {
+          fontFamily: 'Courier New', fontSize: '22px', color: '#f0e2a0',
+        }).setOrigin(0.5).setAlpha(0).setDepth(depth + 1);
+        const z3 = this.add.text(cx + 36, cy - 50, 'Z', {
+          fontFamily: 'Courier New', fontSize: '26px', color: '#f0e2a0',
+        }).setOrigin(0.5).setAlpha(0).setDepth(depth + 1);
+        // Pulse Z's in sequence
+        this.tweens.add({ targets: z1, alpha: 1, y: z1.y - 6, duration: 400, delay: 100 });
+        this.tweens.add({ targets: z2, alpha: 1, y: z2.y - 6, duration: 400, delay: 400 });
+        this.tweens.add({ targets: z3, alpha: 1, y: z3.y - 6, duration: 400, delay: 700 });
+        // Gentle moon bob
+        this.tweens.add({ targets: moon, y: moon.y - 4, duration: 750, yoyo: true, repeat: 0 });
+
+        this.time.delayedCall(1500, () => {
+          // Fade back in; restore HP/MP once the world reappears
+          this.tweens.add({
+            targets: [black, moon, label, z1, z2, z3], alpha: 0, duration: 800,
+            onComplete: () => {
+              black.destroy(); moon.destroy(); label.destroy();
+              z1.destroy(); z2.destroy(); z3.destroy();
+              onRestored();
+            },
+          });
+        });
+      },
+    });
   }
 }
 

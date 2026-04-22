@@ -178,14 +178,6 @@ export function DialogueScene() {
       role="dialog"
       aria-label={`Dialogue with ${speakerName || 'narrator'}`}
     >
-      {nameTagName && !isNarrator && (
-        <div
-          className={`dlg__name-tag${isPlayerTag ? ' dlg__name-tag--player' : ''}`}
-          key={`tag-${nameTagName}-${node.id}-${pendingChoice ?? ''}`}
-        >
-          <span className="dlg__name-tag-inner">{nameTagName}</span>
-        </div>
-      )}
       {/* key = who's speaking + which node; changes force remount so the
           CSS pop-in animation replays on every new line. */}
       <div
@@ -253,6 +245,14 @@ export function DialogueScene() {
         tabIndex={0}
         key={`tb-${showingPlayerLine ? 'p' : 'n'}-${node.id}-${pendingChoice ?? ''}`}
       >
+        {nameTagName && !isNarrator && (
+          <div
+            className={`dlg__name-tag${isPlayerTag ? ' dlg__name-tag--player' : ''}`}
+            key={`tag-${nameTagName}-${node.id}-${pendingChoice ?? ''}`}
+          >
+            <span className="dlg__name-tag-inner">{nameTagName}</span>
+          </div>
+        )}
         {showingPlayerLine && character ? (
           <>
             <div className="dlg__speaker-line">

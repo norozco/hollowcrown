@@ -62,8 +62,8 @@ interface SaveData {
   activeDungeonItem?: string | null;
   /** Whether the Lantern is currently lit (added post-v1, optional for compat). */
   lanternLit?: boolean;
-  /** Lit torches + mined objects, keyed by scene (added post-v1, optional for compat). */
-  worldState?: { litTorches?: string[]; minedObjects?: string[] };
+  /** Lit torches + mined objects + picked objects + unlocked doors, keyed by scene (added post-v1, optional for compat). */
+  worldState?: { litTorches?: string[]; minedObjects?: string[]; pickedObjects?: string[]; unlockedDoors?: string[] };
   /** Lore entries discovered (added post-v1, optional for compat). */
   lore?: LoreEntry[];
   /** Commission state (added post-v1, optional for compat). */
@@ -148,6 +148,8 @@ export function saveGame(slot: string, currentScene = 'TownScene'): boolean {
     worldState: {
       litTorches: useWorldStateStore.getState().serialize(),
       minedObjects: useWorldStateStore.getState().serializeMined(),
+      pickedObjects: useWorldStateStore.getState().serializePicked(),
+      unlockedDoors: useWorldStateStore.getState().serializeUnlockedDoors(),
     },
     lore: loreState.entries,
     commissions: {
@@ -286,7 +288,12 @@ export function loadGame(slot: string): boolean {
     if (typeof data.lanternLit === 'boolean') {
       usePlayerStore.setState({ lanternLit: data.lanternLit });
     }
-    useWorldStateStore.getState().loadFrom(data.worldState?.litTorches ?? [], data.worldState?.minedObjects ?? []);
+    useWorldStateStore.getState().loadFrom(
+      data.worldState?.litTorches ?? [],
+      data.worldState?.minedObjects ?? [],
+      data.worldState?.pickedObjects ?? [],
+      data.worldState?.unlockedDoors ?? [],
+    );
 
     // Restore play time
     if (typeof data.playTimeMs === 'number') {

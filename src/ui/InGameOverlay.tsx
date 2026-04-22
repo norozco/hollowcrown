@@ -128,6 +128,8 @@ export function InGameOverlay() {
   const inventoryOpen = useInventoryStore((s) => s.isOpen);
   const shopOpen = useInventoryStore((s) => s.isShopOpen);
   const toggleInventory = useInventoryStore((s) => s.toggle);
+  const newItems = useInventoryStore((s) => s.newItems);
+  const openInventory = useInventoryStore((s) => s.open);
   const closeShop = useInventoryStore((s) => s.closeShop);
   const craftingOpen = useInventoryStore((s) => s.isCraftingOpen);
   const closeCrafting = useInventoryStore((s) => s.closeCrafting);
@@ -935,6 +937,51 @@ export function InGameOverlay() {
           </button>
         </div>
       </header>
+
+      {newItems.size > 0 && !inventoryOpen && !shopOpen && !craftingOpen && !cookingOpen && (
+        <button
+          type="button"
+          onClick={() => openInventory()}
+          title={`${newItems.size} new item${newItems.size === 1 ? '' : 's'} in your inventory — click to open`}
+          aria-label={`${newItems.size} new items in inventory`}
+          style={{
+            position: 'fixed',
+            top: 78,
+            right: activeDungeonItem && DUNGEON_ITEMS[activeDungeonItem] ? 68 : 10,
+            background: '#fce35a',
+            color: '#1a0a0a',
+            border: '2px solid #c52027',
+            fontFamily: 'Impact, sans-serif',
+            fontWeight: 'bold',
+            letterSpacing: '0.08em',
+            padding: '0.3rem 0.55rem',
+            cursor: 'pointer',
+            boxShadow: '2px 2px 0 #c52027, 0 0 12px rgba(252,227,90,0.6)',
+            animation: 'ig-new-pulse 1.2s ease-in-out infinite',
+            zIndex: 21,
+            textTransform: 'uppercase',
+            fontSize: '0.85rem',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '0.35rem',
+          }}
+        >
+          <span style={{ fontSize: '0.95rem' }}>NEW!</span>
+          <span
+            style={{
+              background: '#c52027',
+              color: '#fce35a',
+              borderRadius: '999px',
+              padding: '0 0.45rem',
+              fontSize: '0.78rem',
+              minWidth: '1.2rem',
+              textAlign: 'center',
+            }}
+          >
+            {newItems.size}
+          </span>
+        </button>
+      )}
 
       {activeDungeonItem && DUNGEON_ITEMS[activeDungeonItem] && (
         <div
