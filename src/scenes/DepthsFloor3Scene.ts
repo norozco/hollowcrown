@@ -1,8 +1,8 @@
 import { useInventoryStore } from '../state/inventoryStore';
 import { useQuestStore } from '../state/questStore';
-import { useCombatStore } from '../state/combatStore';
 import { useLoreStore } from '../state/loreStore';
 import { useDungeonItemStore } from '../state/dungeonItemStore';
+import { useAchievementStore } from '../state/achievementStore';
 import { BaseWorldScene, TILE, WORLD_W, WORLD_H } from './BaseWorldScene';
 import { generateTileset, TILE as T, TILE_SIZE } from './tiles/generateTiles';
 
@@ -28,13 +28,19 @@ export class DepthsFloor3Scene extends BaseWorldScene {
   protected layout(): void {
     // Deepest floor — pitch dark BEFORE the boss is killed. Once the
     // Hollow King falls, the crown shatters and the curse lifts — the
-    // room is permanently lit thereafter. Without this, players returned
-    // from the boss fight to a dark room and couldn't see the victory
-    // chest / echo stone chest / exit — producing the "nothing happens"
-    // glitch after the "curse lifts" dialogue.
-    const killed0 = useCombatStore.getState().killedEnemies;
-    const bossAlreadyKilled = Array.from(killed0).some(id => id.includes('hollow_king'));
-    this.setDarkRoom(!bossAlreadyKilled);
+    // room is permanently lit thereafter.
+    //
+    // CRITICAL: use the PERSISTENT achievementStore.bossesKilled array
+    // (which saves/loads and resets on new game), NOT the killedEnemies
+    // Set. The Set gets cleared on every zone exit (intentional —
+    // enemies respawn), which caused the boss to keep re-spawning in
+    // the throne room with a stale HP bar showing "3/120" after the
+    // player already defeated him. Playtester reported the boss visible,
+    // quest completed, but fight unavailable — dead end.
+    const bossDefeated =
+      useAchievementStore.getState().bossesKilled.includes('hollow_king') ||
+      localStorage.getItem('hc_hollow_king_defeated') === '1';
+    this.setDarkRoom(!bossDefeated);
     generateTileset(this);
 
     const map = this.make.tilemap({
@@ -204,12 +210,16 @@ export class DepthsFloor3Scene extends BaseWorldScene {
       },
     });
 
-    // Boss enemy — The Hollow King (on walkable tile)
-    this.spawnEnemy({ monsterKey: 'hollow_king', x: 15 * TILE, y: 14 * TILE });
-
-    // Skeleton guards (on walkable tiles)
-    this.spawnEnemy({ monsterKey: 'skeleton', x: 9 * TILE, y: 10 * TILE });
-    this.spawnEnemy({ monsterKey: 'skeleton', x: 21 * TILE, y: 10 * TILE });
+    // Boss enemy — The Hollow King (on walkable tile).
+    // Skip entirely if the persistent-defeat flag is set so the throne
+    // room feels empty-and-won after the fight instead of re-spawning
+    // the boss every zone re-entry.
+    if (!bossDefeated) {
+      this.spawnEnemy({ monsterKey: 'hollow_king', x: 15 * TILE, y: 14 * TILE });
+      // Skeleton guards (on walkable tiles) — also only if boss is alive
+      this.spawnEnemy({ monsterKey: 'skeleton', x: 9 * TILE, y: 10 * TILE });
+      this.spawnEnemy({ monsterKey: 'skeleton', x: 21 * TILE, y: 10 * TILE });
+    }
 
     // ── Spike traps near the boss area ──
     this.spawnTrap({ x: 13 * TILE, y: 12 * TILE, damage: 5 });
@@ -248,10 +258,8 @@ export class DepthsFloor3Scene extends BaseWorldScene {
     // of the chest interactable (which caused the "stuck and glitched"
     // sensation — the player spawned inside the throne-adjacent interact
     // radius and could not move/act correctly).
-    const killed = useCombatStore.getState().killedEnemies;
-    const bossKilled = Array.from(killed).some(id => id.includes('hollow_king'));
-    console.log('[DepthsFloor3] layout', { bossKilled, killedCount: killed.size, hasEcho: useDungeonItemStore.getState().has('echo_stone') });
-    if (bossKilled) {
+    console.log('[DepthsFloor3] layout', { bossDefeated, hasEcho: useDungeonItemStore.getState().has('echo_stone') });
+    if (bossDefeated) {
       this.time.delayedCall(600, () => {
         try {
           this.spawnChest({
@@ -272,7 +280,7 @@ export class DepthsFloor3Scene extends BaseWorldScene {
     // ── Echo Stone chest: dropped by the Hollow King on first victory ──
     // Guard against double-spawn (if somehow acquire was already called)
     // and defer for the same reason as the victory chest.
-    if (bossKilled && !useDungeonItemStore.getState().has('echo_stone')) {
+    if (bossDefeated && !useDungeonItemStore.getState().has('echo_stone')) {
       this.time.delayedCall(600, () => {
         try {
           // Re-check — player might have obtained it via another path.

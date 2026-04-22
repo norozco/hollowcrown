@@ -407,12 +407,20 @@ export const useCombatStore = create<CombatStoreState>((set, get) => ({
         if (monster.key === 'hollow_king') {
           qs.completeObjective('hollow-king-slayer', 'kill-hollow-king');
           msg('The Hollow Crown shatters. The curse lifts.');
+          // Persistent world-state flag — survives zone-exit clearing of
+          // the killedEnemies Set. Without this the boss sprite would
+          // respawn every time the player re-entered DepthsFloor3Scene,
+          // leaving a visible dead boss stuck at low HP. Consumed by
+          // DepthsFloor3Scene.layout() on spawn to skip the boss + lift
+          // darkness + spawn reward chests.
+          localStorage.setItem('hc_hollow_king_defeated', '1');
         }
 
         // Drowned Warden slayer: kill the bog boss.
         if (monster.key === 'drowned_warden') {
           qs.completeObjective('warden-slayer', 'kill-drowned-warden');
           msg('The Warden sinks. The water stills.');
+          localStorage.setItem('hc_drowned_warden_defeated', '1');
         }
 
         // The Crownless One: final boss.
@@ -420,6 +428,7 @@ export const useCombatStore = create<CombatStoreState>((set, get) => ({
           qs.completeObjective('the-crownless-one', 'defeat-crownless-one');
           msg('The Crownless One falls. The throne is empty. It always was.');
           localStorage.setItem('hc_game_complete', '1');
+          localStorage.setItem('hc_crownless_one_defeated', '1');
           window.dispatchEvent(new CustomEvent('gameEnding'));
         }
 
