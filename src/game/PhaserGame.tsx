@@ -7,17 +7,180 @@ import { useCombatStore } from '../state/combatStore';
 import { useQuestStore } from '../state/questStore';
 import { useInventoryStore } from '../state/inventoryStore';
 import { useAchievementStore } from '../state/achievementStore';
+import { useDungeonItemStore } from '../state/dungeonItemStore';
 
-// Dev-only store exposure so automated playtests / debugging can mutate
-// state without running the full UI. Safe because these are the same
-// references imported everywhere else — the window handles are a pure
-// read/write passthrough to zustand.
-if (import.meta.env.DEV) {
-  (window as Record<string, unknown>).__playerStore = usePlayerStore;
-  (window as Record<string, unknown>).__combatStore = useCombatStore;
-  (window as Record<string, unknown>).__questStore = useQuestStore;
-  (window as Record<string, unknown>).__inventoryStore = useInventoryStore;
-  (window as Record<string, unknown>).__achievementStore = useAchievementStore;
+// Store exposure + cheat console for playtesting.
+// Enabled in DEV and also on the deployed GitHub Pages build so
+// playtesters can use the console to unblock themselves.
+{
+  const w = window as Record<string, unknown>;
+  w.__playerStore = usePlayerStore;
+  w.__combatStore = useCombatStore;
+  w.__questStore = useQuestStore;
+  w.__inventoryStore = useInventoryStore;
+  w.__achievementStore = useAchievementStore;
+  w.__dungeonItemStore = useDungeonItemStore;
+
+  // ─── Cheat console ──────────────────────────────────────────────
+  // Type `cheats.help()` in the browser console (F12) for the full list.
+  const cheats = {
+    help() {
+      const lines = [
+        '━━━ HOLLOWCROWN CHEATS ━━━',
+        'cheats.level(n)       — level up to N (1-20)',
+        'cheats.gold(n)        — add gold (default 1000)',
+        'cheats.heal()         — full HP + MP',
+        'cheats.gear()         — full armor set + steel sword + 20 health potions',
+        'cheats.keyItems()     — grant all 4 dungeon items (echo/lantern/pickaxe/charm)',
+        'cheats.beatBoss(k)    — mark a boss defeated (hollow_king / drowned_warden / crownless_one)',
+        'cheats.tp(scene)      — fast travel (e.g. "DepthsFloor3Scene" or "DuskmereScene")',
+        'cheats.god(on)        — toggle 999 HP + 999 damage weapon cheat',
+        'cheats.reveal()       — open all zones on the world map',
+        'cheats.wipe()         — wipe all saves + localStorage (confirm first!)',
+        'cheats.stats()        — print current character stats',
+        'cheats.scenes()       — list all scene keys',
+        'cheats.all()          — level 20 + full gear + all key items + 10k gold + reveal map',
+      ];
+      // eslint-disable-next-line no-console
+      console.log('%c' + lines.join('\n'), 'color: #ffd43a; font-family: monospace;');
+    },
+    level(n: number) {
+      const ps = usePlayerStore.getState();
+      const char = ps.character;
+      if (!char) return 'no character';
+      n = Math.max(1, Math.min(20, Math.floor(n)));
+      while (char.level < n) char.gainXp(10000);
+      char.hp = char.derived.maxHp;
+      char.mp = char.derived.maxMp;
+      ps.notify();
+      return `level → ${char.level}, HP ${char.hp}/${char.derived.maxHp}`;
+    },
+    gold(n = 1000) {
+      const ps = usePlayerStore.getState();
+      const char = ps.character;
+      if (!char) return 'no character';
+      char.addGold(n);
+      ps.notify();
+      return `+${n}g, total ${char.gold}`;
+    },
+    heal() {
+      const ps = usePlayerStore.getState();
+      const char = ps.character;
+      if (!char) return 'no character';
+      char.hp = char.derived.maxHp;
+      char.mp = char.derived.maxMp;
+      ps.notify();
+      return `HP ${char.hp} MP ${char.mp}`;
+    },
+    gear() {
+      const inv = useInventoryStore.getState();
+      const set = ['steel_sword', 'chainmail', 'leather_cap', 'leather_leggings', 'traveler_boots'];
+      let got = 0;
+      for (const key of set) {
+        try { inv.addItem(key); inv.equip(key); got++; } catch { /* item may not exist */ }
+      }
+      try { inv.addItem('health_potion', 20); } catch { /* ignore */ }
+      try { inv.addItem('mana_potion', 10); } catch { /* ignore */ }
+      return `equipped ${got}/${set.length}, potions added`;
+    },
+    keyItems() {
+      const ds = useDungeonItemStore.getState();
+      const items = ['echo_stone', 'lantern', 'pickaxe', 'water_charm'] as const;
+      for (const it of items) { try { ds.acquire(it); } catch { /* ignore */ } }
+      return `have: ${Array.from(ds.found).join(', ')}`;
+    },
+    beatBoss(key: string) {
+      const ach = useAchievementStore.getState();
+      ach.recordBossKill(key);
+      localStorage.setItem(`hc_${key}_defeated`, '1');
+      return `marked ${key} defeated`;
+    },
+    tp(scene: string) {
+      window.dispatchEvent(new CustomEvent('fastTravel', {
+        detail: { sceneKey: scene, spawn: 'default' },
+      }));
+      return `traveling to ${scene}`;
+    },
+    god(on = true) {
+      const ps = usePlayerStore.getState();
+      const char = ps.character;
+      if (!char) return 'no character';
+      if (on) {
+        char.hp = 999;
+        (char as { _godHp?: number })._godHp = 999;
+        // monkey-patch derived.maxHp to 999 for rendering
+        Object.defineProperty(char.derived, 'maxHp', { value: 999, configurable: true });
+        Object.defineProperty(char.derived, 'maxMp', { value: 999, configurable: true });
+        char.mp = 999;
+        // boost weapon damage if possible
+        if (char.weapon) (char.weapon as { damage?: number }).damage = 999;
+        ps.notify();
+        return 'god mode ON';
+      }
+      return 'god mode cannot be cleanly disabled — refresh the page';
+    },
+    reveal() {
+      const ach = useAchievementStore.getState();
+      const zones = [
+        'TownScene', 'GreenhollowScene', 'MossbarrowScene', 'MossbarrowDepthsScene',
+        'DepthsFloor2Scene', 'DepthsFloor3Scene', 'AshenmereScene', 'IronveilScene',
+        'DrownedSanctumF1Scene', 'DrownedSanctumF2Scene', 'DuskmereScene',
+        'AshfieldsScene', 'AshenTowerF1Scene', 'AshenTowerF2Scene', 'AshenTowerF3Scene',
+        'FrosthollowScene', 'FrozenHollowF1Scene', 'FrozenHollowF2Scene',
+        'FrozenHollowF3Scene', 'ShatteredCoastScene', 'BogDungeonF1Scene',
+        'BogDungeonF2Scene', 'BogDungeonF3Scene', 'ThroneBeneathF1Scene',
+        'ThroneBeneathF2Scene', 'ThroneBeneathF3Scene', 'ForgottenCaveScene',
+      ];
+      for (const z of zones) ach.visitZone(z);
+      return `revealed ${zones.length} zones`;
+    },
+    wipe() {
+      // eslint-disable-next-line no-alert
+      if (!confirm('Wipe ALL saves + localStorage? This cannot be undone.')) return 'cancelled';
+      localStorage.clear();
+      sessionStorage.clear();
+      location.reload();
+      return 'wiping...';
+    },
+    stats() {
+      const char = usePlayerStore.getState().character;
+      if (!char) return 'no character';
+      const d = char.derived;
+      return {
+        name: char.name, race: char.race?.key, class: char.characterClass?.key,
+        level: char.level, xp: char.xp,
+        hp: `${char.hp}/${d.maxHp}`, mp: `${char.mp}/${d.maxMp}`,
+        ac: d.ac, gold: char.gold,
+        stats: char.stats, weapon: char.weapon?.name,
+      };
+    },
+    scenes() {
+      const g = (window as { __phaserGame?: { scene?: { scenes: { sys: { settings: { key: string; status: number } } }[] } } }).__phaserGame;
+      return g?.scene?.scenes?.map(s => `${s.sys.settings.key}: ${s.sys.settings.status}`) ?? [];
+    },
+    all() {
+      const msgs: unknown[] = [];
+      msgs.push(cheats.level(20));
+      msgs.push(cheats.gold(10000));
+      msgs.push(cheats.gear());
+      msgs.push(cheats.keyItems());
+      msgs.push(cheats.reveal());
+      msgs.push(cheats.heal());
+      return msgs;
+    },
+  };
+  w.cheats = cheats;
+  // Print welcome on load so testers see the hint.
+  setTimeout(() => {
+    // eslint-disable-next-line no-console
+    console.log(
+      '%c▾ Hollowcrown cheat console loaded ▾\n%cType %ccheats.help()%c for commands.',
+      'color: #ffd43a; font-family: monospace; font-weight: bold;',
+      'color: #aaa; font-family: monospace;',
+      'color: #ff6b6b; font-family: monospace; font-weight: bold;',
+      'color: #aaa; font-family: monospace;',
+    );
+  }, 1500);
 }
 
 /**
