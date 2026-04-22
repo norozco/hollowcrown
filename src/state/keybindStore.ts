@@ -12,7 +12,8 @@ export type KeybindAction =
   | 'photoMode'
   | 'screenshot'
   | 'marker'
-  | 'dialogueHistory';
+  | 'dialogueHistory'
+  | 'keyItem';
 
 export const DEFAULT_KEYBINDS: Record<KeybindAction, string> = {
   inventory: 'i',
@@ -23,6 +24,7 @@ export const DEFAULT_KEYBINDS: Record<KeybindAction, string> = {
   screenshot: 'F12',
   marker: 'l',
   dialogueHistory: 'Tab',
+  keyItem: 'r',
 };
 
 export const KEYBIND_LABELS: Record<KeybindAction, string> = {
@@ -34,6 +36,7 @@ export const KEYBIND_LABELS: Record<KeybindAction, string> = {
   screenshot: 'Screenshot',
   marker: 'Drop Marker',
   dialogueHistory: 'Dialogue History',
+  keyItem: 'Use Key Item',
 };
 
 const STORAGE_KEY = 'hc_keybinds';

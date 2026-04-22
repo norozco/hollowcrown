@@ -2,6 +2,7 @@ import { useInventoryStore } from '../state/inventoryStore';
 import { useQuestStore } from '../state/questStore';
 import { useCombatStore } from '../state/combatStore';
 import { useLoreStore } from '../state/loreStore';
+import { useDungeonItemStore } from '../state/dungeonItemStore';
 import { BaseWorldScene, TILE, WORLD_W, WORLD_H } from './BaseWorldScene';
 import { generateTileset, TILE as T, TILE_SIZE } from './tiles/generateTiles';
 
@@ -246,6 +247,25 @@ export class DepthsFloor3Scene extends BaseWorldScene {
           { itemKey: 'shadow_cloak' },
         ],
         gold: 100,
+      });
+    }
+
+    // ── Echo Stone chest: dropped by the Hollow King on first victory ──
+    if (bossKilled && !useDungeonItemStore.getState().has('echo_stone')) {
+      const esChest = this.add.rectangle(15 * TILE, 16.5 * TILE, 28, 22, 0x3a4a6a);
+      esChest.setStrokeStyle(2, 0x7fe6ff);
+      esChest.setDepth(8);
+      this.add.circle(15 * TILE, 16.5 * TILE, 22, 0x7fe6ff, 0.12).setDepth(7);
+      this.tweens.add({ targets: esChest, scale: 1.08, duration: 900, yoyo: true, repeat: -1 });
+      this.spawnInteractable({
+        sprite: esChest as any, label: 'Open resonant chest', radius: 28,
+        action: () => {
+          useDungeonItemStore.getState().acquire('echo_stone');
+          window.dispatchEvent(new CustomEvent('gameMessage', {
+            detail: 'You found the ECHO STONE! Press R to emit a resonant pulse \u2014 hidden walls and unseen foes will reveal themselves.',
+          }));
+          esChest.destroy();
+        },
       });
     }
 

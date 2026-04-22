@@ -219,6 +219,14 @@ export const Sfx = {
   /** Menu open / close. */
   menuOpen: () => playSfx({ freq: 220, endFreq: 440, type: 'square', duration: 0.08, volume: 0.15 }),
   menuClose: () => playSfx({ freq: 440, endFreq: 220, type: 'square', duration: 0.08, volume: 0.15 }),
+  /** Echo Stone sonar pulse — low rumble + rising tone overlay. */
+  echoPulse: () => {
+    playSfx({ freq: 80, endFreq: 50, type: 'sine', duration: 0.7, volume: 0.22, noise: 0.15 });
+    playSfx({ freq: 400, endFreq: 800, type: 'triangle', duration: 0.4, volume: 0.18, delay: 0.02 });
+    playSfx({ freq: 1200, endFreq: 600, type: 'sine', duration: 0.35, volume: 0.1, delay: 0.25 });
+  },
+  /** Echo Stone on cooldown — short negative blip. */
+  echoDenied: () => playSfx({ freq: 200, endFreq: 100, type: 'triangle', duration: 0.1, volume: 0.12 }),
   /** Coin / gold sound. */
   coin: () => {
     playSfx({ freq: 1320, type: 'square', duration: 0.05, volume: 0.18 });

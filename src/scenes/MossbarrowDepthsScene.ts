@@ -257,6 +257,37 @@ export class MossbarrowDepthsScene extends BaseWorldScene {
         this.spawnHeartPiece(13 * TILE + TILE / 2, 11 * TILE);
       },
     });
+
+    // ── Hollow walls (Echo Stone) — 3 across Floor 1 ──
+    // 1) West hall side, guards a hidden wraith room + coins.
+    this.spawnHollowWall({
+      x: 4 * TILE, y: 6 * TILE, w: TILE, h: TILE * 2,
+      onBreak: () => {
+        // Invisible guard behind the wall.
+        this.spawnInvisibleEnemy({ monsterKey: 'wraith', x: 3 * TILE, y: 7 * TILE });
+        window.dispatchEvent(new CustomEvent('gameMessage', {
+          detail: 'Cold air. Something moves where no shape should be.',
+        }));
+      },
+    });
+    // 2) East alcove back — small loot cache.
+    this.spawnHollowWall({
+      x: 17 * TILE, y: 6 * TILE, w: TILE, h: TILE,
+      onBreak: () => {
+        this.spawnChest({
+          x: 18 * TILE + TILE / 2, y: 6 * TILE + TILE / 2,
+          loot: [{ itemKey: 'mana_potion', qty: 2 }, { itemKey: 'spider_silk', qty: 2 }],
+          gold: 12,
+        });
+      },
+    });
+    // 3) South main-hall dead-end — reveals a heart piece.
+    this.spawnHollowWall({
+      x: 5 * TILE, y: 19 * TILE, w: TILE, h: TILE,
+      onBreak: () => {
+        this.spawnHeartPiece(4 * TILE + TILE / 2, 19 * TILE + TILE / 2);
+      },
+    });
   }
 
   protected spawnAt(name: string): { x: number; y: number } {

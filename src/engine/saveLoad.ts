@@ -57,6 +57,8 @@ interface SaveData {
   };
   /** Dungeon items found (added post-v1, optional for compat). */
   dungeonItems?: string[];
+  /** Active (equipped) key-item slot (added post-v1, optional for compat). */
+  activeDungeonItem?: string | null;
   /** Lore entries discovered (added post-v1, optional for compat). */
   lore?: LoreEntry[];
   /** Commission state (added post-v1, optional for compat). */
@@ -136,6 +138,7 @@ export function saveGame(slot: string, currentScene = 'TownScene'): boolean {
       monstersEncountered: achievementState.monstersEncountered,
     },
     dungeonItems: Array.from(dungeonItemState.found),
+    activeDungeonItem: playerState.activeDungeonItem ?? null,
     lore: loreState.entries,
     commissions: {
       commissions: commissionState.commissions,
@@ -266,6 +269,9 @@ export function loadGame(slot: string): boolean {
     // Restore dungeon items
     if (data.dungeonItems) {
       useDungeonItemStore.setState({ found: new Set(data.dungeonItems) });
+    }
+    if (data.activeDungeonItem !== undefined) {
+      usePlayerStore.setState({ activeDungeonItem: data.activeDungeonItem });
     }
 
     // Restore play time

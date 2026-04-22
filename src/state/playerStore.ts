@@ -61,6 +61,10 @@ interface PlayerState {
   /** Whether this playthrough is a New Game+ run. */
   newGamePlus: boolean;
 
+  /** Currently selected dungeon key-item (Zelda B-button slot). Null if none. */
+  activeDungeonItem: string | null;
+  setActiveDungeonItem: (key: string | null) => void;
+
   /** Gold milestones already announced (prevents re-firing). */
   goldMilestonesReached: Set<number>;
 }
@@ -85,6 +89,9 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   ancientCoins: new Set<string>(),
   newGamePlus: false,
   goldMilestonesReached: new Set<number>(),
+  activeDungeonItem: null,
+
+  setActiveDungeonItem: (key) => set({ activeDungeonItem: key, version: get().version + 1 }),
 
   choosePerk: (perkKey) => {
     const { pendingPerkChoices, character, perks } = get();
@@ -100,9 +107,9 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
     });
   },
 
-  create: (init) => set({ character: new Character(init), version: 1, perks: [], pendingPerkChoices: null, heartPieces: 0, heartPiecesCollected: new Set<string>(), ancientCoins: new Set<string>(), newGamePlus: false, goldMilestonesReached: new Set<number>() }),
+  create: (init) => set({ character: new Character(init), version: 1, perks: [], pendingPerkChoices: null, heartPieces: 0, heartPiecesCollected: new Set<string>(), ancientCoins: new Set<string>(), newGamePlus: false, goldMilestonesReached: new Set<number>(), activeDungeonItem: null }),
   notify: () => set((s) => ({ version: s.version + 1 })),
-  clear: () => set({ character: null, version: 0, companion: null, perks: [], pendingPerkChoices: null, heartPieces: 0, heartPiecesCollected: new Set<string>(), ancientCoins: new Set<string>(), newGamePlus: false, goldMilestonesReached: new Set<number>() }),
+  clear: () => set({ character: null, version: 0, companion: null, perks: [], pendingPerkChoices: null, heartPieces: 0, heartPiecesCollected: new Set<string>(), ancientCoins: new Set<string>(), newGamePlus: false, goldMilestonesReached: new Set<number>(), activeDungeonItem: null }),
 
   giveGold: (amount) => {
     const c = get().character;

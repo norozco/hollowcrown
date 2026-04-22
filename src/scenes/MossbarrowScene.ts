@@ -315,6 +315,30 @@ export class MossbarrowScene extends BaseWorldScene {
       coinId: 'coin_3', inscription: 'Three for the gate that would not open.',
     });
 
+    // ── Hollow walls (Echo Stone) — hidden overworld rooms ──
+    // West ridge — a small loot cache behind a hollow stone.
+    this.spawnHollowWall({
+      x: 2 * TILE, y: 4 * TILE, w: TILE, h: TILE,
+      onBreak: () => {
+        this.spawnChest({
+          x: 1 * TILE + TILE / 2, y: 4 * TILE + TILE / 2,
+          loot: [{ itemKey: 'health_potion', qty: 2 }, { itemKey: 'iron_ore', qty: 1 }],
+          gold: 20,
+        });
+      },
+    });
+    // South-east boulder field — behind a hollow rock.
+    this.spawnHollowWall({
+      x: 32 * TILE, y: 5 * TILE, w: TILE, h: TILE,
+      onBreak: () => {
+        this.spawnAncientCoin({
+          x: 33 * TILE + TILE / 2, y: 5 * TILE + TILE / 2,
+          coinId: 'coin_hollow_mossbarrow',
+          inscription: 'The stone remembered its own echo.',
+        });
+      },
+    });
+
     // ── Shallow water crossing (Water Charm gate) — south-east pool ──
     // Blocks a hidden lore object behind a water barrier.
     this.spawnShallowWater({ x: 34 * TILE, y: 16 * TILE, w: 3 * TILE, h: 2 * TILE });

@@ -170,6 +170,23 @@ export abstract class BaseWorldScene extends Phaser.Scene {
   private darkBrush: Phaser.GameObjects.Graphics | null = null;
   private isDarkRoom = false;
 
+  // ── Echo Stone system ──
+  /** Hollow walls in this scene — revealed (glow cyan) when the Echo pulse touches them. */
+  protected hollowWalls: Array<{
+    sprite: Phaser.GameObjects.Rectangle;
+    cx: number;
+    cy: number;
+    broken: boolean;
+    reveal: () => void;
+  }> = [];
+  /** Invisible enemy overlays tracked per-enemy so we can flash them. */
+  protected invisibleEnemies: Array<{
+    sprite: Phaser.GameObjects.Sprite | Phaser.GameObjects.Arc;
+    outline: Phaser.GameObjects.Arc;
+    revealedUntil: number;
+  }> = [];
+  private echoBoundHandler: ((e: Event) => void) | null = null;
+
   // ──────────────────────────────────────────────────────────────
   // Subclass hooks
   // ──────────────────────────────────────────────────────────────
@@ -198,6 +215,8 @@ export abstract class BaseWorldScene extends Phaser.Scene {
     this.traps = [];
     this.pushBlocks = [];
     this.pressurePlates = [];
+    this.hollowWalls = [];
+    this.invisibleEnemies = [];
     this.nearbyTarget = null;
     this.transitionLock = false;
     this.combatImmunity = 0;
@@ -291,6 +310,24 @@ export abstract class BaseWorldScene extends Phaser.Scene {
     this.events.once('shutdown', stopWeather);
     this.events.once('destroy', stopWeather);
 
+    // Echo Stone pulse handler — draws an expanding cyan ring, reveals
+    // nearby hollow walls, and flashes any invisible enemies.
+    this.echoBoundHandler = (e: Event) => {
+      const detail = (e as CustomEvent).detail as { x?: number; y?: number } | undefined;
+      const px = detail?.x ?? this.player?.x ?? 0;
+      const py = detail?.y ?? this.player?.y ?? 0;
+      this.fireEchoPulse(px, py);
+    };
+    window.addEventListener('echoStonePulse', this.echoBoundHandler);
+    const echoCleanup = () => {
+      if (this.echoBoundHandler) {
+        window.removeEventListener('echoStonePulse', this.echoBoundHandler);
+        this.echoBoundHandler = null;
+      }
+    };
+    this.events.once('shutdown', echoCleanup);
+    this.events.once('destroy', echoCleanup);
+
     // Dark room — if the scene is marked dark and the player lacks the Lantern,
     // create a RenderTexture overlay and a brush to erase a circle of light.
     if (this.isDarkRoom && !useDungeonItemStore.getState().has('lantern')) {
@@ -375,6 +412,7 @@ export abstract class BaseWorldScene extends Phaser.Scene {
       }
     }
     this.checkTraps();
+    this.updateInvisibleEnemies();
     this.updatePlayerLabel();
     this.updateProximityPrompt();
     this.handleInteraction();
@@ -916,6 +954,162 @@ export abstract class BaseWorldScene extends Phaser.Scene {
   }
 
   /**
+   * Spawn a "hollow wall" — a breakable wall variant that responds to
+   * the Echo Stone pulse. The wall looks like cracked stone; when an
+   * Echo pulse reaches it, it glows cyan for ~1.2s, during which the
+   * player can interact (E / attack) to shatter it and reveal whatever
+   * sits behind. Pre-reveal the wall reads as solid stone — "cracked"
+   * is only visible after the sonar response.
+   */
+  protected spawnHollowWall(cfg: {
+    x: number; y: number; w: number; h: number;
+    onBreak?: () => void;
+  }): void {
+    const cx = cfg.x + cfg.w / 2;
+    const cy = cfg.y + cfg.h / 2;
+    const wall = this.add.rectangle(cx, cy, cfg.w, cfg.h, 0x585048);
+    wall.setStrokeStyle(1, 0x3a342e);
+    wall.setDepth(5);
+    // Subtle crack overlay (only obvious when revealed).
+    const crackA = this.add.line(0, 0, cx - 6, cy - 8, cx + 4, cy + 2, 0x2a2620).setLineWidth(1).setDepth(6);
+    const crackB = this.add.line(0, 0, cx + 4, cy + 2, cx - 2, cy + 10, 0x2a2620).setLineWidth(1).setDepth(6);
+    const crackC = this.add.line(0, 0, cx + 4, cy + 2, cx + 10, cy - 4, 0x2a2620).setLineWidth(1).setDepth(6);
+    this.physics.add.existing(wall, true);
+    this.walls.add(wall);
+
+    let revealedUntil = 0;
+    const reveal = () => {
+      revealedUntil = this.time.now + 1200;
+      this.tweens.killTweensOf(wall);
+      wall.setFillStyle(0x7fe6ff);
+      wall.setStrokeStyle(2, 0xb8f4ff);
+      this.tweens.add({
+        targets: wall, alpha: 0.65, duration: 300, yoyo: true, repeat: 1,
+        onComplete: () => {
+          if (this.time.now >= revealedUntil) {
+            wall.setFillStyle(0x585048);
+            wall.setStrokeStyle(1, 0x3a342e);
+            wall.setAlpha(1);
+          }
+        },
+      });
+    };
+
+    const entry = { sprite: wall, cx, cy, broken: false, reveal };
+    this.hollowWalls.push(entry);
+
+    const interactZone = this.add.rectangle(cx, cy, cfg.w + 20, cfg.h + 20, 0x000000, 0);
+    this.spawnInteractable({
+      sprite: interactZone as any,
+      label: 'Hollow wall',
+      radius: 28,
+      action: () => {
+        if (entry.broken) return;
+        if (this.time.now > revealedUntil) {
+          window.dispatchEvent(new CustomEvent('gameMessage', { detail: 'The stone looks solid. Something ought to reveal what is hollow.' }));
+          return;
+        }
+        entry.broken = true;
+        wall.destroy();
+        crackA.destroy(); crackB.destroy(); crackC.destroy();
+        const body = wall.body as Phaser.Physics.Arcade.StaticBody;
+        if (body) body.destroy();
+        shakeScaled(this, 220, 0.009);
+        Sfx.chestOpen();
+        window.dispatchEvent(new CustomEvent('gameMessage', { detail: 'The hollow wall shatters!' }));
+        this.spawnPickupParticles(cx, cy, 0x7fe6ff);
+        cfg.onBreak?.();
+      },
+    });
+  }
+
+  /**
+   * Register an enemy sprite as "invisible". Starts at alpha 0.05 and is
+   * briefly revealed (alpha 1 + cyan outline) by an Echo Stone pulse.
+   */
+  protected registerInvisibleEnemy(sprite: Phaser.GameObjects.Sprite | Phaser.GameObjects.Arc): void {
+    sprite.setAlpha(0.06);
+    const outline = this.add.circle(sprite.x, sprite.y, 18, 0x00ffff, 0).setStrokeStyle(2, 0x7fe6ff, 0);
+    outline.setDepth((sprite.depth ?? 10) - 1);
+    this.invisibleEnemies.push({ sprite, outline, revealedUntil: 0 });
+  }
+
+  /** Fire the Echo Stone pulse — expanding ring + reveal hollow walls + flash invisibles. */
+  protected fireEchoPulse(px: number, py: number): void {
+    // Primary expanding ring.
+    const ring = this.add.graphics();
+    ring.setDepth(90);
+    let r = 0;
+    const maxR = 300;
+    const duration = 1800;
+    this.tweens.addCounter({
+      from: 0, to: 1, duration, ease: 'Sine.easeOut',
+      onUpdate: (tw) => {
+        r = maxR * (tw.getValue() ?? 0);
+        ring.clear();
+        ring.lineStyle(3, 0x7fe6ff, 1 - (tw.getValue() ?? 0));
+        ring.strokeCircle(px, py, r);
+        ring.lineStyle(1, 0xffffff, (1 - (tw.getValue() ?? 0)) * 0.6);
+        ring.strokeCircle(px, py, Math.max(0, r - 6));
+      },
+      onComplete: () => ring.destroy(),
+    });
+    // Secondary delayed ring.
+    this.time.delayedCall(100, () => {
+      const ring2 = this.add.graphics();
+      ring2.setDepth(89);
+      this.tweens.addCounter({
+        from: 0, to: 1, duration,
+        onUpdate: (tw) => {
+          const rr = maxR * (tw.getValue() ?? 0) * 0.85;
+          ring2.clear();
+          ring2.lineStyle(2, 0x5fc6ff, (1 - (tw.getValue() ?? 0)) * 0.55);
+          ring2.strokeCircle(px, py, rr);
+        },
+        onComplete: () => ring2.destroy(),
+      });
+    });
+
+    // Emit secondary reveal event for any external listeners.
+    window.dispatchEvent(new CustomEvent('echoStoneReveal', { detail: { x: px, y: py, radius: maxR } }));
+
+    // Reveal hollow walls within radius (staggered by distance).
+    for (const hw of this.hollowWalls) {
+      if (hw.broken) continue;
+      const d = Math.hypot(hw.cx - px, hw.cy - py);
+      if (d > maxR + 20) continue;
+      const arrivalMs = Math.min(1600, (d / maxR) * duration);
+      this.time.delayedCall(arrivalMs, () => {
+        if (!hw.broken) hw.reveal();
+      });
+    }
+
+    // Reveal invisible enemies for 2s + cyan outline ping.
+    const now = this.time.now;
+    for (const inv of this.invisibleEnemies) {
+      if (!inv.sprite.active) continue;
+      const d = Math.hypot(inv.sprite.x - px, inv.sprite.y - py);
+      if (d > maxR + 40) continue;
+      const arrivalMs = Math.min(1600, (d / maxR) * duration);
+      this.time.delayedCall(arrivalMs, () => {
+        if (!inv.sprite.active) return;
+        inv.revealedUntil = this.time.now + 2000;
+        this.tweens.killTweensOf(inv.sprite);
+        inv.sprite.setAlpha(1);
+        inv.outline.setStrokeStyle(2, 0x7fe6ff, 0.9);
+        inv.outline.setPosition(inv.sprite.x, inv.sprite.y);
+        this.tweens.add({
+          targets: inv.outline, alpha: 0.2, scale: 1.4,
+          duration: 400, yoyo: true, repeat: 1,
+        });
+      });
+    }
+
+    Sfx.echoPulse();
+    shakeScaled(this, 120, 0.004);
+  }
+
+  /**
    * Spawn an ancient coin pickup. Golden shimmer, one-time per save.
    * Collecting all 12 unlocks the Crownless Blade.
    */
@@ -1148,6 +1342,21 @@ export abstract class BaseWorldScene extends Phaser.Scene {
       patrolDir: Math.random() > 0.5 ? 1 : -1,
       patrolTimer: Math.random() * 3000,
     });
+  }
+
+  /**
+   * Spawn an enemy that is invisible until revealed by an Echo Stone pulse.
+   * Same semantics as spawnEnemy() — combat + killed-tracking still apply —
+   * but the sprite alpha is driven by the Echo Stone reveal window.
+   */
+  protected spawnInvisibleEnemy(cfg: { monsterKey: string; x: number; y: number }): void {
+    const before = this.enemies.length;
+    this.spawnEnemy(cfg);
+    const after = this.enemies.length;
+    if (after > before) {
+      const spawned = this.enemies[after - 1];
+      this.registerInvisibleEnemy(spawned.sprite);
+    }
   }
 
   /** Spawn an NPC sprite at tile coords, with name floating above. */
@@ -1538,6 +1747,26 @@ export abstract class BaseWorldScene extends Phaser.Scene {
           window.dispatchEvent(new CustomEvent('gameMessage', { detail: `Spike trap! -${trap.damage} HP` }));
           shakeScaled(this, 100, 0.005);
         }
+      }
+    }
+  }
+
+  private updateInvisibleEnemies(): void {
+    const now = this.time.now;
+    for (let i = this.invisibleEnemies.length - 1; i >= 0; i--) {
+      const inv = this.invisibleEnemies[i];
+      if (!inv.sprite.active) {
+        inv.outline.destroy();
+        this.invisibleEnemies.splice(i, 1);
+        continue;
+      }
+      inv.outline.setPosition(inv.sprite.x, inv.sprite.y);
+      if (now >= inv.revealedUntil) {
+        // Fade back to invisible.
+        if (inv.sprite.alpha > 0.08) {
+          inv.sprite.setAlpha(Math.max(0.06, inv.sprite.alpha - 0.02));
+        }
+        inv.outline.setStrokeStyle(2, 0x7fe6ff, 0);
       }
     }
   }

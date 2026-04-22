@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { usePlayerStore } from './playerStore';
 
 interface DungeonItemState {
   /** Set of dungeon item keys the player has found. */
@@ -23,6 +24,11 @@ export const useDungeonItemStore = create<DungeonItemState>((set, get) => ({
     window.dispatchEvent(new CustomEvent('rareItemFound', {
       detail: { name: key, rarity: 'legendary', description: 'A dungeon item has been found.' },
     }));
+    // Auto-equip if the player has no active key-item yet (Zelda B-slot).
+    const player = usePlayerStore.getState();
+    if (!player.activeDungeonItem) {
+      player.setActiveDungeonItem(key);
+    }
   },
   has: (key) => get().found.has(key),
   reset: () => set({ found: new Set<string>() }),

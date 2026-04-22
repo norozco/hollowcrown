@@ -12,7 +12,23 @@ export interface DungeonItem {
   enables: string;
 }
 
+export type DungeonItemKey =
+  | 'echo_stone'
+  | 'lantern'
+  | 'pickaxe'
+  | 'water_charm'
+  | 'mirror_shard'
+  | 'flame_amulet'
+  | 'grapple_hook';
+
 export const DUNGEON_ITEMS: Record<string, DungeonItem> = {
+  echo_stone: {
+    key: 'echo_stone',
+    name: 'Echo Stone',
+    description: 'A dull grey pebble that hums when the hall does. Press R to send a resonant pulse — hollow walls and unseen foes answer back.',
+    icon: '\uD83D\uDD4A',
+    enables: 'hollow-wall',
+  },
   lantern: {
     key: 'lantern',
     name: 'Cairn Lantern',

@@ -168,6 +168,50 @@ export function InGameOverlay() {
   const [healToast, setHealToast] = useState<{ text: string; key: number } | null>(null);
   const [goldMilestone, setGoldMilestone] = useState<{ milestone: number; title: string; key: number } | null>(null);
 
+  // Echo Stone / key-item cooldown (ms epoch when cooldown ends).
+  const keyItemCooldownRef = useRef<number>(0);
+  const [keyItemCooldownPct, setKeyItemCooldownPct] = useState(0);
+  const activeDungeonItem = usePlayerStore((s) => s.activeDungeonItem);
+
+  const useKeyItem = () => {
+    const now = performance.now();
+    if (now < keyItemCooldownRef.current) {
+      Sfx.echoDenied();
+      return;
+    }
+    const player = usePlayerStore.getState();
+    const key = player.activeDungeonItem;
+    const hasItem = key ? useDungeonItemStore.getState().has(key) : false;
+    if (!key || !hasItem) {
+      Sfx.echoDenied();
+      return;
+    }
+    if (key === 'echo_stone') {
+      const map = (window as { __currentMap?: { playerX?: number; playerY?: number } }).__currentMap;
+      window.dispatchEvent(new CustomEvent('echoStonePulse', {
+        detail: { x: map?.playerX ?? 0, y: map?.playerY ?? 0 },
+      }));
+      // 4 second cooldown.
+      keyItemCooldownRef.current = now + 4000;
+    } else {
+      // Other key items don't have an active-press behavior yet; brief lockout.
+      keyItemCooldownRef.current = now + 1500;
+      Sfx.menuClick();
+    }
+  };
+
+  // Tick cooldown radial (60 Hz via a timer).
+  useEffect(() => {
+    const id = window.setInterval(() => {
+      const now = performance.now();
+      const end = keyItemCooldownRef.current;
+      if (end <= now) { setKeyItemCooldownPct(0); return; }
+      const total = 4000;
+      setKeyItemCooldownPct(Math.max(0, Math.min(1, (end - now) / total)));
+    }, 50);
+    return () => window.clearInterval(id);
+  }, []);
+
   // Refs mirror React state so the Esc keydown handler (bound once with []
   // deps) can read current values without stale closures.
   const questBoardOpenRef = useRef(questBoardOpen);
@@ -581,6 +625,11 @@ export function InGameOverlay() {
           Sfx.spellHeal();
         }
       }
+      if (matchesKey(e.key, 'keyItem')) {
+        e.preventDefault();
+        useKeyItem();
+        return;
+      }
       if (matchesKey(e.key, 'marker')) {
         e.preventDefault();
         const map = (window as { __currentMap?: { sceneKey?: string; playerX?: number; playerY?: number } }).__currentMap;
@@ -766,6 +815,49 @@ export function InGameOverlay() {
           </button>
         </div>
       </header>
+
+      {activeDungeonItem && DUNGEON_ITEMS[activeDungeonItem] && (
+        <div
+          className="ig__keyitem-slot"
+          title={`${DUNGEON_ITEMS[activeDungeonItem].name} (press ${getKey('keyItem').toUpperCase()})`}
+          style={{
+            position: 'fixed', top: 78, right: 10,
+            width: 48, height: 48,
+            background: 'rgba(10,6,6,0.75)',
+            border: '2px solid #d4a968',
+            borderRadius: 6,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: 24, color: '#f4d488',
+            zIndex: 20, userSelect: 'none',
+            overflow: 'hidden',
+          }}
+          onClick={useKeyItem}
+        >
+          <span style={{ position: 'relative', zIndex: 2 }}>
+            {DUNGEON_ITEMS[activeDungeonItem].icon}
+          </span>
+          {keyItemCooldownPct > 0 && (
+            <div
+              aria-hidden="true"
+              style={{
+                position: 'absolute', left: 0, right: 0, bottom: 0,
+                height: `${Math.round(keyItemCooldownPct * 100)}%`,
+                background: 'rgba(20,60,90,0.55)',
+                pointerEvents: 'none',
+              }}
+            />
+          )}
+          <span
+            aria-hidden="true"
+            style={{
+              position: 'absolute', bottom: 2, right: 4,
+              fontSize: 9, color: '#d4a968', fontFamily: 'Courier New',
+            }}
+          >
+            [{getKey('keyItem').toUpperCase()}]
+          </span>
+        </div>
+      )}
 
       {companionKey && COMPANIONS[companionKey] && (
         <div className="ig__companion-bar">
