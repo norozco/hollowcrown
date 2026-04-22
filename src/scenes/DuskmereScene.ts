@@ -213,42 +213,78 @@ export class DuskmereScene extends BaseWorldScene {
       });
     }
 
-    // ── Mira theft event — first visit trigger ──
-    const visited = localStorage.getItem('hollowcrown_duskmere_visited');
-    if (!visited && miraFlag !== 'true') {
+    // ── Mira theft event — fires if theft hasn't happened yet ──
+    // Previously gated on `!visited` which locked out anyone who had
+    // visited Duskmere before the fix shipped. Now it fires on any entry
+    // where `hollowcrown_mira_theft` isn't set, so returning players
+    // who missed the original event still get it.
+    if (miraFlag !== 'true') {
       localStorage.setItem('hollowcrown_duskmere_visited', 'true');
-      // Delay the theft event slightly so the player sees the zone name first.
-      this.time.delayedCall(2500, () => {
+      // Delay slightly so the player sees the zone name banner first.
+      this.time.delayedCall(2200, () => {
         const ps = usePlayerStore.getState();
         const char = ps.character;
         if (!char) return;
-        const stolen = Math.min(20, Math.floor(char.gold * 0.1));
-        if (stolen > 0) {
-          char.loseGold(stolen);
-          ps.notify();
-        }
-        localStorage.setItem('hollowcrown_mira_theft', 'true');
-        localStorage.setItem('hollowcrown_mira_stolen_amount', String(stolen));
-        window.dispatchEvent(new CustomEvent('gameMessage', {
-          detail: 'Something brushes past you. Your gold pouch feels lighter.',
-        }));
+        const stolen = Math.min(20, Math.max(5, Math.floor(char.gold * 0.1)));
 
-        // Brief visual — a dark circle darts away.
-        const thief = this.add.circle(this.player.x + 20, this.player.y, 6, 0x5a3040, 0.7);
-        thief.setDepth(15);
+        // Visible cutscene: Mira runs up behind the player, bumps into
+        // them, then sprints away across the dock.
+        const startX = this.player.x - 40;
+        const startY = this.player.y + 20;
+        const mira = this.add.circle(startX, startY, 8, 0x8a3a4a, 0.9);
+        mira.setStrokeStyle(2, 0xffd43a);
+        mira.setDepth(20);
+        // Speech bubble-ish label
+        const bubble = this.add.text(this.player.x, this.player.y - 40,
+          'Oi! Watch yerself —', {
+          fontFamily: 'Courier New', fontSize: '10px', color: '#ffd43a',
+          backgroundColor: '#1a1208', padding: { x: 6, y: 3 },
+        }).setOrigin(0.5).setDepth(21).setAlpha(0);
+
+        // Step 1: Mira dashes toward player
         this.tweens.add({
-          targets: thief,
-          x: 30 * TILE, y: 10 * TILE, alpha: 0,
-          duration: 600, ease: 'Quad.easeIn',
-          onComplete: () => thief.destroy(),
-        });
+          targets: mira,
+          x: this.player.x + 4, y: this.player.y - 2,
+          duration: 400, ease: 'Quad.easeOut',
+          onComplete: () => {
+            // Step 2: bump visual — brief flash + bubble
+            this.cameras.main.shake(120, 0.004);
+            this.tweens.add({ targets: bubble, alpha: 1, duration: 120 });
+            // Step 3: apply theft after bump
+            if (stolen > 0 && char.gold > 0) {
+              char.loseGold(Math.min(stolen, char.gold));
+              ps.notify();
+            }
+            localStorage.setItem('hollowcrown_mira_theft', 'true');
+            localStorage.setItem('hollowcrown_mira_stolen_amount', String(stolen));
+            window.dispatchEvent(new CustomEvent('gameMessage', {
+              detail: `Someone just bumped into you — and lifted ${stolen}g from your pouch! A red-cloaked figure sprints toward the docks.`,
+            }));
 
-        // Spawn Mira on the dock now.
-        this.time.delayedCall(1200, () => {
-          this.spawnNpc({
-            key: 'mira', dialogueId: 'mira-greeting',
-            x: 28 * TILE, y: 12 * TILE + TILE / 2,
-          });
+            // Step 4: Mira sprints to the dock
+            this.time.delayedCall(700, () => {
+              this.tweens.add({
+                targets: bubble, alpha: 0, duration: 200,
+                onComplete: () => bubble.destroy(),
+              });
+              this.tweens.add({
+                targets: mira,
+                x: 28 * TILE, y: 12 * TILE + TILE / 2,
+                duration: 1400, ease: 'Sine.easeInOut',
+                onComplete: () => {
+                  mira.destroy();
+                  // Now spawn the persistent interactable Mira NPC on the dock.
+                  this.spawnNpc({
+                    key: 'mira', dialogueId: 'mira-greeting',
+                    x: 28 * TILE, y: 12 * TILE + TILE / 2,
+                  });
+                  window.dispatchEvent(new CustomEvent('gameMessage', {
+                    detail: 'She stopped at the end of the long dock. You could go confront her...',
+                  }));
+                },
+              });
+            });
+          },
         });
       });
     }
@@ -644,7 +680,17 @@ function buildMapData(): number[][] {
 }
 
 function tileAt(x: number, y: number): number {
-  // ── Lake: eastern half (cols 22-39) ──
+  // ── Dock planks over water (checked FIRST so they override the lake) ──
+  // Dock 1: row 10, cols 18-22
+  if (y === 10 && x >= 18 && x <= 22) return FW;
+  // Dock 2: rows 12-13, cols 18-30 — Mira spawns here at (28, 12-13)
+  if ((y === 12 || y === 13) && x >= 18 && x <= 30) return FW;
+  // Dock 3: row 16, cols 18-26
+  if (y === 16 && x >= 18 && x <= 26) return FW;
+  // Connecting dock strip (col 18-19, rows 9-17)
+  if ((x === 18 || x === 19) && y >= 9 && y <= 17) return FW;
+
+  // ── Lake: eastern half (cols 22-39) — AFTER dock checks ──
   if (x >= 22) return Wa;
 
   // ── Dockmaster's Office: (3,4) to (7,7) ──
@@ -673,17 +719,6 @@ function tileAt(x: number, y: number): number {
     return FW;
   }
   if (y === 17 && x >= 2 && x < 8) return SH;
-
-  // ── Dock planks over water (cols 18-30, various rows) ──
-  // Dock 1: row 10, cols 18-22
-  if (y === 10 && x >= 18 && x <= 22) return FW;
-  // Dock 2: rows 12-13, cols 18-30
-  if ((y === 12 || y === 13) && x >= 18 && x <= 30) return FW;
-  // Dock 3: row 16, cols 18-26
-  if (y === 16 && x >= 18 && x <= 26) return FW;
-  // Connecting dock strip (col 18, rows 9-17)
-  if (x === 18 && y >= 9 && y <= 17) return FW;
-  if (x === 19 && y >= 9 && y <= 17) return FW;
 
   // ── Main village path (north-south, cols 10-13) ──
   if (x >= 11 && x <= 12 && y >= 0 && y <= 20) return P;

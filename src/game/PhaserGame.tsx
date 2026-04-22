@@ -3,6 +3,22 @@ import * as Phaser from 'phaser';
 import { gameConfig } from './config';
 import { usePlayerStore } from '../state/playerStore';
 import { useUIStore } from '../state/uiStore';
+import { useCombatStore } from '../state/combatStore';
+import { useQuestStore } from '../state/questStore';
+import { useInventoryStore } from '../state/inventoryStore';
+import { useAchievementStore } from '../state/achievementStore';
+
+// Dev-only store exposure so automated playtests / debugging can mutate
+// state without running the full UI. Safe because these are the same
+// references imported everywhere else — the window handles are a pure
+// read/write passthrough to zustand.
+if (import.meta.env.DEV) {
+  (window as Record<string, unknown>).__playerStore = usePlayerStore;
+  (window as Record<string, unknown>).__combatStore = useCombatStore;
+  (window as Record<string, unknown>).__questStore = useQuestStore;
+  (window as Record<string, unknown>).__inventoryStore = useInventoryStore;
+  (window as Record<string, unknown>).__achievementStore = useAchievementStore;
+}
 
 /**
  * Mounts a Phaser.Game instance inside a React-managed <div>. The React

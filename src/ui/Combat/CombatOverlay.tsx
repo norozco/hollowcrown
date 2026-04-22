@@ -49,6 +49,44 @@ export function CombatOverlay() {
         _pendingEnemyId: '', lastLoot: [], combatEvents: [],
       } as Partial<ReturnType<typeof useCombatStore.getState>>);
     }
+    // Belt-and-suspenders: force scene transition from React rather than
+    // relying on CombatScene.update() to detect state=null. The Phaser
+    // scene update was occasionally not firing quickly enough after combat
+    // ended (rAF throttling, React render pressure, pending popups), so
+    // players saw the combat scene canvas still rendered with no UI for
+    // several seconds. This guarantees the world scene takes over within
+    // ~300ms regardless.
+    setTimeout(() => {
+      try {
+        const cs = useCombatStore.getState();
+        if (cs.state) return; // something re-opened combat — bail
+        const game = (window as { __phaserGame?: {
+          scene: {
+            scenes: { sys: { settings: { key: string; status: number } } }[];
+            isActive: (key: string) => boolean;
+            start: (key: string, data?: unknown) => void;
+            stop: (key: string) => void;
+          }
+        } }).__phaserGame;
+        if (!game) return;
+        const combatSceneActive = game.scene.isActive('CombatScene');
+        if (!combatSceneActive) return; // already transitioned
+        const target = cs.returnScene || 'TownScene';
+        const rx = cs.returnX || 0;
+        const ry = cs.returnY || 0;
+        const spawnPoint = (rx === 0 && ry === 0) ? 'default' : 'combat_return';
+        // eslint-disable-next-line no-console
+        console.log('[CombatOverlay] forcing scene transition →', target, spawnPoint);
+        try { game.scene.stop('CombatScene'); } catch { /* ignore */ }
+        try {
+          game.scene.start(target, { spawnPoint, combatReturnX: rx, combatReturnY: ry });
+        } catch (err) {
+          // eslint-disable-next-line no-console
+          console.warn('[CombatOverlay] transition failed, falling back to TownScene', err);
+          game.scene.start('TownScene', { spawnPoint: 'default' });
+        }
+      } catch { /* ignore */ }
+    }, 300);
   };
   const useItem = useCombatStore((s) => s.useItem);
   const character = usePlayerStore((s) => s.character);
