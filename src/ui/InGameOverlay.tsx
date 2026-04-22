@@ -326,13 +326,34 @@ export function InGameOverlay() {
     useGameStatsStore.getState().setPaused(anyOverlayOpen);
 
     // Pause/resume Phaser world scenes so enemies/timers freeze too.
-    const game = (window as { __phaserGame?: { scene?: { scenes: { key: string; sys: { isActive: () => boolean; pause: () => void; resume: () => void } }[] } } }).__phaserGame;
+    //
+    // IMPORTANT: Phaser's pause sets the scene's internal active=false and
+    // status=PAUSED. That means:
+    //   - When pausing: iterate only the scenes that are currently *running*
+    //     (status RUNNING) so we don't touch scenes that never started.
+    //   - When resuming: iterate scenes whose status is PAUSED, because
+    //     isActive() returns false for paused scenes — a pure isActive check
+    //     skips them and leaves them paused forever (the "stuck after
+    //     waypoint" bug).
+    const game = (window as { __phaserGame?: {
+      scene?: {
+        scenes: { sys: { settings: { key: string; status: number } } }[];
+        pause: (key: string) => void;
+        resume: (key: string) => void;
+      }
+    } }).__phaserGame;
     if (game?.scene?.scenes) {
+      // Phaser scene status constants: RUNNING=5, PAUSED=6.
+      const RUNNING = 5, PAUSED = 6;
       for (const s of game.scene.scenes) {
-        if (!s.sys.isActive()) continue;
-        if (s.key === 'CombatScene') continue; // combat runs on its own pacing
-        if (anyOverlayOpen) s.sys.pause();
-        else s.sys.resume();
+        const key = s.sys.settings.key;
+        if (key === 'CombatScene' || key === 'BootScene') continue;
+        const status = s.sys.settings.status;
+        if (anyOverlayOpen) {
+          if (status === RUNNING) game.scene.pause(key);
+        } else {
+          if (status === PAUSED) game.scene.resume(key);
+        }
       }
     }
   }, [menuOpen, inventoryOpen, shopOpen, craftingOpen, cookingOpen, questBoardOpen,
@@ -606,6 +627,7 @@ export function InGameOverlay() {
         if (bestiaryOpenRef.current) { setBestiaryOpen(false); return; }
         if (statScreenOpenRef.current) { setStatScreenOpen(false); return; }
         if (journalOpenRef.current) { setJournalOpen(false); return; }
+        if (fastTravelOpenRef.current) { setFastTravelOpen(false); return; }
         if (dungeonMapOpenRef.current) { setDungeonMapOpen(false); return; }
         if (dialogueHistoryOpenRef.current) { setDialogueHistoryOpen(false); return; }
         if (photoModeRef.current) { setPhotoMode(false); return; }
