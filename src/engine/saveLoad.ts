@@ -219,12 +219,11 @@ export function loadGame(slot: string): boolean {
       usePlayerStore.getState().notify();
     }
 
-    // Restore quests
-    const questStore = useQuestStore.getState();
-    questStore.reset();
-    for (const [id, state] of Object.entries(data.quests)) {
-      (questStore as unknown as { active: Record<string, QuestState> }).active[id] = state;
-    }
+    // Restore quests — use setState so Zustand subscribers (QuestTracker,
+    // QuestBoard, Journal) actually re-render. Previously mutated the
+    // `.active` object in place, which left the state reference unchanged
+    // and no UI updated → user saw "quests got reset" on reload.
+    useQuestStore.setState({ active: { ...data.quests } });
 
     // Restore inventory
     const inv = useInventoryStore.getState();
@@ -237,14 +236,14 @@ export function loadGame(slot: string): boolean {
       void slot;
     }
 
-    // Restore killed enemies
-    const combat = useCombatStore.getState();
-    combat.killedEnemies.clear();
-    for (const id of data.killedEnemies) {
-      combat.killedEnemies.add(id);
-    }
-    // Restore per-monster quest kill counts (missing on legacy saves).
-    useCombatStore.setState({ questKillCounts: { ...(data.questKillCounts ?? {}) } });
+    // Restore killed enemies + quest kill counts via setState so any
+    // subscribers (dungeon progress UI, combat state derived selectors)
+    // actually re-render. In-place mutation of the Set does NOT trigger
+    // Zustand updates.
+    useCombatStore.setState({
+      killedEnemies: new Set(data.killedEnemies),
+      questKillCounts: { ...(data.questKillCounts ?? {}) },
+    });
 
     // Restore heart pieces
     if (data.heartPieces != null) {
