@@ -1,7 +1,18 @@
 # Hollowcrown
 
 > A 2D top-down RPG — pixel art gameplay, anime-style dialogue portraits, D&D-inspired mechanics under the hood.
-> See `../DUNGEON_GAME_SPEC.md` for the full design document.
+>
+> **Live:** https://norozco.github.io/hollowcrown/  (GitHub Pages, auto-deploys from `main`)
+
+**New here? Read [PROJECT_STATUS.md](./PROJECT_STATUS.md) first** — it covers every shipped system, every recent fix, architecture notes, cheat codes for playtesting, known issues, and collaboration rules. It's the single source of truth for current project state.
+
+Other reference docs:
+- [DESIGN.md](./DESIGN.md) — original design pillars + class/race mechanics
+- [STYLE_GUIDE.md](./STYLE_GUIDE.md) — code + UI style conventions
+- [CREDITS.md](./CREDITS.md) — license attribution (Kenney CC0 assets)
+- [SESSION_LOG.md](./SESSION_LOG.md) — earlier historical build log (pre-2025-04)
+- [AGENTS_LOG.md](./AGENTS_LOG.md) — automated-agent session notes
+- [COMBAT_FIXES.md](./COMBAT_FIXES.md) — combat bug fix history
 
 ## Quick start
 
