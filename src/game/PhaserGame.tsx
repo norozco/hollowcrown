@@ -26,23 +26,21 @@ import { useDungeonItemStore } from '../state/dungeonItemStore';
   const cheats = {
     help() {
       const lines = [
-        '━━━ HOLLOWCROWN CHEATS ━━━',
-        'cheats.level(n)       — level up to N (1-20)',
-        'cheats.gold(n)        — add gold (default 1000)',
-        'cheats.heal()         — full HP + MP',
-        'cheats.gear()         — full armor set + steel sword + 20 health potions',
-        'cheats.keyItems()     — grant all 4 dungeon items (echo/lantern/pickaxe/charm)',
-        'cheats.beatBoss(k)    — mark a boss defeated (hollow_king / drowned_warden / crownless_one)',
-        'cheats.tp(scene)      — fast travel (e.g. "DepthsFloor3Scene" or "DuskmereScene")',
-        'cheats.god(on)        — toggle 999 HP + 999 damage weapon cheat',
-        'cheats.reveal()       — open all zones on the world map',
-        'cheats.wipe()         — wipe all saves + localStorage (confirm first!)',
-        'cheats.stats()        — print current character stats',
-        'cheats.scenes()       — list all scene keys',
-        'cheats.all()          — level 20 + full gear + all key items + 10k gold + reveal map',
+        'all — lv20 + gear + items + 10k gold + reveal',
+        'level N — 1..20',
+        'gold N — add gold',
+        'heal — full HP+MP',
+        'gear — armor + weapon + potions',
+        'keyitems — all 4 dungeon items',
+        'beatboss KEY — hollow_king/drowned_warden/crownless_one',
+        'tp SCENE — fast travel',
+        'god — 999 HP/MP/damage',
+        'reveal — open all zones',
+        'stats — print char',
+        'scenes — list scenes',
+        'wipe — clear saves',
       ];
-      // eslint-disable-next-line no-console
-      console.log('%c' + lines.join('\n'), 'color: #ffd43a; font-family: monospace;');
+      return lines.join(' | ');
     },
     level(n: number) {
       const ps = usePlayerStore.getState();
@@ -169,6 +167,11 @@ import { useDungeonItemStore } from '../state/dungeonItemStore';
       return msgs;
     },
   };
+  // Lowercase aliases so the in-game pause menu can match typed commands
+  // directly (keyitems, beatboss) without the caller knowing camelCase.
+  const aliased = cheats as unknown as Record<string, unknown>;
+  aliased.keyitems = cheats.keyItems;
+  aliased.beatboss = cheats.beatBoss;
   w.cheats = cheats;
   // Print welcome on load so testers see the hint.
   setTimeout(() => {
