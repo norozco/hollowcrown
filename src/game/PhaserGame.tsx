@@ -33,6 +33,8 @@ import { useDungeonItemStore } from '../state/dungeonItemStore';
         'gear — armor + weapon + potions',
         'keyitems — all 4 dungeon items',
         'beatboss KEY — hollow_king/drowned_warden/crownless_one',
+        'completequest ID — force-complete a quest',
+        'restore MILESTONE — recover lost progress (hollow_king/depths/drowned_warden/crownless_one)',
         'tp SCENE — fast travel',
         'god — 999 HP/MP/damage',
         'reveal — open all zones',
@@ -92,6 +94,85 @@ import { useDungeonItemStore } from '../state/dungeonItemStore';
       ach.recordBossKill(key);
       localStorage.setItem(`hc_${key}_defeated`, '1');
       return `marked ${key} defeated`;
+    },
+    /**
+     * Complete + turn in a quest by id. Use to recover quest state when
+     * a player actually accomplished the objective but the quest got
+     * reset (e.g., by the pre-4f29a11 Zustand mutation bug on reload).
+     */
+    completequest(questId: string) {
+      const qs = useQuestStore.getState();
+      // Accept if not already accepted
+      if (!qs.active[questId]) qs.accept(questId);
+      const quest = qs.active[questId];
+      if (!quest) return `unknown quest: ${questId}`;
+      // Complete every objective
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const questDef = (quest as any).quest ?? null;
+      // Mark every objective complete (iterate quest definition)
+      try {
+        const allObjIds: string[] = [];
+        const active = qs.active[questId];
+        // Pull objective list from engine/quests via a dynamic lookup
+        // — since we can't import at runtime, read the ones already
+        // tracked on the state plus common known IDs.
+        for (const oid of active.completedObjectiveIds) allObjIds.push(oid);
+        // Try completing a few known generic ids in case some are missing
+        const known = ['talk-orric', 'find-cairn', 'kill-hollow-king',
+          'kill-wolves', 'kill-spiders', 'kill-wraiths', 'reach-floor-3',
+          'reach-coast', 'enter-throne-beneath', 'defeat-crownless-one',
+          'kill-drowned-warden'];
+        for (const o of known) qs.completeObjective(questId, o);
+        qs.turnIn(questId);
+        void questDef;
+      } catch (err) { return (err as Error).message; }
+      return `quest ${questId} → complete + turned in`;
+    },
+    /**
+     * Recover from a known "progress lost" state. Accepts milestone names
+     * a playtester can paste if they hit one of the save/quest bugs that
+     * have since been fixed but already corrupted their save.
+     *
+     *   cheats.restore('hollow_king')  — boss defeated + quest turned in
+     *   cheats.restore('depths')       — reached floor 3 + quest turned in
+     *   cheats.restore('drowned_warden')
+     *   cheats.restore('crownless_one')
+     */
+    restore(milestone: string) {
+      const ach = useAchievementStore.getState();
+      const ps = usePlayerStore.getState();
+      const char = ps.character;
+      const done: string[] = [];
+      const run = (label: string, fn: () => void) => { try { fn(); done.push(label); } catch { /* ignore */ } };
+      switch (milestone) {
+        case 'hollow_king':
+          run('level ≥ 10', () => { if (char && char.level < 10) while (char.level < 10) char.gainXp(10000); });
+          run('boss flag', () => { ach.recordBossKill('hollow_king'); localStorage.setItem('hc_hollow_king_defeated', '1'); });
+          run('depths-explorer', () => cheats.completequest('depths-explorer'));
+          run('hollow-king-slayer', () => cheats.completequest('hollow-king-slayer'));
+          run('iron-token', () => cheats.completequest('iron-token'));
+          run('echo stone', () => useDungeonItemStore.getState().acquire('echo_stone'));
+          break;
+        case 'depths':
+          run('level ≥ 7', () => { if (char && char.level < 7) while (char.level < 7) char.gainXp(5000); });
+          run('depths-explorer', () => cheats.completequest('depths-explorer'));
+          run('iron-token', () => cheats.completequest('iron-token'));
+          break;
+        case 'drowned_warden':
+          run('boss flag', () => { ach.recordBossKill('drowned_warden'); localStorage.setItem('hc_drowned_warden_defeated', '1'); });
+          run('warden-slayer', () => cheats.completequest('warden-slayer'));
+          run('drowned-sanctum', () => cheats.completequest('drowned-sanctum'));
+          break;
+        case 'crownless_one':
+          run('boss flag', () => { ach.recordBossKill('crownless_one'); localStorage.setItem('hc_crownless_one_defeated', '1'); localStorage.setItem('hc_game_complete', '1'); });
+          run('the-crownless-one', () => cheats.completequest('the-crownless-one'));
+          run('the-final-gate', () => cheats.completequest('the-final-gate'));
+          break;
+        default:
+          return `unknown milestone "${milestone}" — try: hollow_king, depths, drowned_warden, crownless_one`;
+      }
+      ps.notify();
+      return `restored ${milestone} → ${done.join(', ')}`;
     },
     tp(scene: string) {
       window.dispatchEvent(new CustomEvent('fastTravel', {
