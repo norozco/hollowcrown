@@ -18,6 +18,7 @@ import { useTimeStore, getPhaseTint } from '../state/timeStore';
 import { useGameStatsStore } from '../state/gameStatsStore';
 import { spawnWeather, getWeatherForScene } from './weather';
 import { applyTileVariants } from './tiles/tileMap';
+import { Pseudo3d, USE_PSEUDO_3D } from './pseudo3d';
 import {
   generateCharacterSprite,
   getNpcPalette,
@@ -157,6 +158,9 @@ export abstract class BaseWorldScene extends Phaser.Scene {
   protected prompt!: Phaser.GameObjects.Text;
   protected nearbyTarget: NearbyTarget | null = null;
 
+  /** Pseudo-3D depth / shadow / ambient helper. Enabled by USE_PSEUDO_3D. */
+  protected pseudo3d: Pseudo3d | null = null;
+
   /** Guards against re-entering checkExits during a transition. */
   private transitionLock = false;
 
@@ -288,6 +292,13 @@ export abstract class BaseWorldScene extends Phaser.Scene {
 
     this.walls = this.physics.add.staticGroup();
     this.createWorldBounds();
+
+    // Pseudo-3D helper — one per scene, initialized before layout() so
+    // subclasses can register shadows/Y-sort on objects they create.
+    if (USE_PSEUDO_3D) {
+      this.pseudo3d = new Pseudo3d(this);
+    }
+
     this.layout();
 
     // Per-cell variant cycling — after layout() has created any tilemap
@@ -387,12 +398,32 @@ export abstract class BaseWorldScene extends Phaser.Scene {
     if (this.player) this.cameras.main.startFollow(this.player, true, 0.15, 0.15);
     this.cameras.main.fadeIn(FADE_MS, 0, 0, 0);
 
+    // Pseudo-3D ambient: subtle vignette always, plus warm/cool tint
+    // based on time of day. Dark dungeons already have their own
+    // darkness overlay from the lantern system — skip the tint there.
+    if (this.pseudo3d) {
+      this.pseudo3d.addAmbientVignette(0x0a0605, 0.28);
+      if (!this.isDarkRoom) {
+        const phase = useTimeStore.getState().phase;
+        if (phase === 'dawn') this.pseudo3d.addAmbientTint(0xffc880, 0.12);
+        else if (phase === 'dusk') this.pseudo3d.addAmbientTint(0xe0826a, 0.14);
+        else if (phase === 'night') this.pseudo3d.addAmbientTint(0x2a3868, 0.18);
+      }
+    }
+
     // Weather — zone-specific ambient particles
     const weatherKind = getWeatherForScene(this.scene.key);
     const stopWeather = spawnWeather(this, weatherKind, WORLD_W, WORLD_H);
     // Clean up on scene shutdown
     this.events.once('shutdown', stopWeather);
     this.events.once('destroy', stopWeather);
+
+    // Pseudo-3D cleanup
+    if (this.pseudo3d) {
+      const p = this.pseudo3d;
+      this.events.once('shutdown', () => { p.destroy(); });
+      this.events.once('destroy', () => { p.destroy(); });
+    }
 
     // Echo Stone pulse handler — draws an expanding cyan ring, reveals
     // nearby hollow walls, and flashes any invisible enemies.
@@ -520,6 +551,8 @@ export abstract class BaseWorldScene extends Phaser.Scene {
     this.checkWorldEvents();
 
     this.updateLantern();
+    // Pseudo-3D: follow shadows, apply Y-sort depth
+    if (this.pseudo3d) this.pseudo3d.update(this.time.now);
   }
 
   // ──────────────────────────────────────────────────────────────
@@ -1998,6 +2031,15 @@ export abstract class BaseWorldScene extends Phaser.Scene {
     const enemy = this.add.sprite(finalX, finalY, spriteKey, 0);
     enemy.setScale(0.8);
     enemy.setDepth(10);
+    // Pseudo-3D: drop shadow + Y-sort
+    if (this.pseudo3d) {
+      // Boss-sized enemies get a bigger shadow
+      const isBoss = /king|warden|forgotten|crownless/i.test(cfg.monsterKey);
+      const width = isBoss ? 36 : 18;
+      const height = isBoss ? 9 : 5;
+      this.pseudo3d.addShadow(enemy, { width, height, offsetY: 12, alpha: 0.5 });
+      this.pseudo3d.ySort(enemy);
+    }
 
     this.enemies.push({
       sprite: enemy, monsterKey: cfg.monsterKey, id: enemyId,
@@ -2038,6 +2080,11 @@ export abstract class BaseWorldScene extends Phaser.Scene {
 
     const sprite = this.add.sprite(cfg.x, cfg.y, spriteKey, 0); // face down
     sprite.setDepth(10);
+    // Pseudo-3D: drop shadow + Y-sort
+    if (this.pseudo3d) {
+      this.pseudo3d.addShadow(sprite, { width: 20, height: 5, offsetY: 14, alpha: 0.4 });
+      this.pseudo3d.ySort(sprite);
+    }
     this.physics.add.existing(sprite, true);
     // Collision body centered on feet
     const body = sprite.body as Phaser.Physics.Arcade.StaticBody;
@@ -2157,6 +2204,11 @@ export abstract class BaseWorldScene extends Phaser.Scene {
 
     this.player = this.add.sprite(spawnX, spawnY, 'player-sprite', 0);
     this.player.setDepth(10);
+    // Pseudo-3D: drop shadow + Y-sort for natural "behind/in-front" depth
+    if (this.pseudo3d) {
+      this.pseudo3d.addShadow(this.player, { width: 22, height: 6, offsetY: 14, alpha: 0.45 });
+      this.pseudo3d.ySort(this.player);
+    }
     this.physics.add.existing(this.player);
     const body = this.player.body as Phaser.Physics.Arcade.Body;
     // Collision box smaller than sprite (just the feet area).
