@@ -24,6 +24,9 @@ export class MossbarrowDepthsScene extends BaseWorldScene {
   protected getZoneName(): string | null { return 'Mossbarrow Depths \u2014 Floor 1'; }
 
   protected layout(): void {
+    // Mark this floor as dark — players need the Lantern (or lit torches)
+    // to see more than a few tiles beyond themselves.
+    this.setDarkRoom(true);
     generateTileset(this);
 
     const map = this.make.tilemap({
@@ -244,7 +247,14 @@ export class MossbarrowDepthsScene extends BaseWorldScene {
         sprite: diChest as any, label: 'Open golden chest', radius: 24,
         action: () => {
           useDungeonItemStore.getState().acquire('lantern');
-          window.dispatchEvent(new CustomEvent('gameMessage', { detail: 'Cairn Lantern acquired! Dark rooms are now lit.' }));
+          window.dispatchEvent(new CustomEvent('gameMessage', {
+            detail: 'You found the LANTERN!',
+          }));
+          setTimeout(() => {
+            window.dispatchEvent(new CustomEvent('gameMessage', {
+              detail: 'Press R to light your lantern. Dark places will yield their secrets.',
+            }));
+          }, 1600);
           diChest.destroy();
         },
       });
@@ -288,6 +298,20 @@ export class MossbarrowDepthsScene extends BaseWorldScene {
         this.spawnHeartPiece(4 * TILE + TILE / 2, 19 * TILE + TILE / 2);
       },
     });
+
+    // ── Iron ore veins (F1 — common ore, 3 scattered) ──
+    this.spawnOreVein({ x: 8 * TILE + TILE / 2, y: 6 * TILE + TILE / 2, oreType: 'iron' });
+    this.spawnOreVein({ x: 21 * TILE + TILE / 2, y: 4 * TILE + TILE / 2, oreType: 'iron' });
+    this.spawnOreVein({ x: 15 * TILE + TILE / 2, y: 14 * TILE + TILE / 2, oreType: 'iron' });
+
+    // ── Boulder blocks the shortcut to a hidden heart piece cache ──
+    this.spawnBoulder({
+      x: 11 * TILE + TILE / 2, y: 17 * TILE + TILE / 2,
+      hitsRequired: 5,
+    });
+    // Behind/beside the boulder — a heart piece (the boulder gates it
+    // physically; once shattered the player can walk up and grab it).
+    this.spawnHeartPiece(12 * TILE + TILE / 2, 17 * TILE + TILE / 2, 'MossbarrowDepths-boulder-cache');
   }
 
   protected spawnAt(name: string): { x: number; y: number } {

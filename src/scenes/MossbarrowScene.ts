@@ -339,6 +339,31 @@ export class MossbarrowScene extends BaseWorldScene {
       },
     });
 
+    // ── Overworld iron ore veins (cliff zones, pickaxe content) ──
+    this.spawnOreVein({ x: 3 * TILE + TILE / 2, y: 10 * TILE + TILE / 2, oreType: 'iron' });
+    this.spawnOreVein({ x: 34 * TILE + TILE / 2, y: 3 * TILE + TILE / 2, oreType: 'iron' });
+
+    // ── Boulder blocking the cliff shortcut to Ashenvale approach.
+    //    Mine with pickaxe to open a faster path north.
+    this.spawnBoulder({
+      x: 6 * TILE + TILE / 2, y: 2 * TILE + TILE / 2,
+      hitsRequired: 5,
+    });
+
+    // ── Cracked wall (alt to Echo hollow wall) — hides a loot cache
+    //    that Echo Stone would never pulse-reveal. Always-visible crack
+    //    pattern so players without the stone can still spot it.
+    this.spawnCrackedWall({
+      x: 28 * TILE, y: 19 * TILE, w: TILE, h: TILE,
+      onBreak: () => {
+        this.spawnChest({
+          x: 29 * TILE + TILE / 2, y: 19 * TILE + TILE / 2,
+          loot: [{ itemKey: 'silver_ore', qty: 1 }, { itemKey: 'moonpetal', qty: 2 }],
+          gold: 35,
+        });
+      },
+    });
+
     // ── Shallow water crossing (Water Charm gate) — south-east pool ──
     // Blocks a hidden lore object behind a water barrier.
     this.spawnShallowWater({ x: 34 * TILE, y: 16 * TILE, w: 3 * TILE, h: 2 * TILE });

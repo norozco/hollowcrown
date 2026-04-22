@@ -26,6 +26,8 @@ export class DepthsFloor3Scene extends BaseWorldScene {
   protected getZoneName(): string | null { return 'The Hollow Throne'; }
 
   protected layout(): void {
+    // Deepest floor — pitch dark without the Cairn Lantern.
+    this.setDarkRoom(true);
     generateTileset(this);
 
     const map = this.make.tilemap({
@@ -280,6 +282,21 @@ export class DepthsFloor3Scene extends BaseWorldScene {
     this.spawnAncientCoin({
       x: 22 * TILE, y: 18 * TILE,
       coinId: 'coin_depths', inscription: 'Ten placed on the throne. It fell through.',
+    });
+
+    // ── Gold ore vein (rare — only on the final dungeon floor) ──
+    this.spawnOreVein({ x: 20 * TILE + TILE / 2, y: 10 * TILE + TILE / 2, oreType: 'gold' });
+
+    // ── Cracked wall near the throne — hides a bonus chest.
+    this.spawnCrackedWall({
+      x: 11 * TILE, y: 10 * TILE, w: TILE, h: TILE,
+      onBreak: () => {
+        this.spawnChest({
+          x: 10 * TILE + TILE / 2, y: 10 * TILE + TILE / 2,
+          loot: [{ itemKey: 'gold_ore', qty: 1 }, { itemKey: 'shadow_essence', qty: 2 }],
+          gold: 75,
+        });
+      },
     });
   }
 

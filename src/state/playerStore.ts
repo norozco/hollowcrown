@@ -65,6 +65,10 @@ interface PlayerState {
   activeDungeonItem: string | null;
   setActiveDungeonItem: (key: string | null) => void;
 
+  /** Whether the Cairn Lantern is currently lit (toggled via R). */
+  lanternLit: boolean;
+  setLanternLit: (lit: boolean) => void;
+
   /** Gold milestones already announced (prevents re-firing). */
   goldMilestonesReached: Set<number>;
 }
@@ -90,8 +94,10 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   newGamePlus: false,
   goldMilestonesReached: new Set<number>(),
   activeDungeonItem: null,
+  lanternLit: false,
 
   setActiveDungeonItem: (key) => set({ activeDungeonItem: key, version: get().version + 1 }),
+  setLanternLit: (lit) => set({ lanternLit: lit, version: get().version + 1 }),
 
   choosePerk: (perkKey) => {
     const { pendingPerkChoices, character, perks } = get();
@@ -107,9 +113,9 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
     });
   },
 
-  create: (init) => set({ character: new Character(init), version: 1, perks: [], pendingPerkChoices: null, heartPieces: 0, heartPiecesCollected: new Set<string>(), ancientCoins: new Set<string>(), newGamePlus: false, goldMilestonesReached: new Set<number>(), activeDungeonItem: null }),
+  create: (init) => set({ character: new Character(init), version: 1, perks: [], pendingPerkChoices: null, heartPieces: 0, heartPiecesCollected: new Set<string>(), ancientCoins: new Set<string>(), newGamePlus: false, goldMilestonesReached: new Set<number>(), activeDungeonItem: null, lanternLit: false }),
   notify: () => set((s) => ({ version: s.version + 1 })),
-  clear: () => set({ character: null, version: 0, companion: null, perks: [], pendingPerkChoices: null, heartPieces: 0, heartPiecesCollected: new Set<string>(), ancientCoins: new Set<string>(), newGamePlus: false, goldMilestonesReached: new Set<number>(), activeDungeonItem: null }),
+  clear: () => set({ character: null, version: 0, companion: null, perks: [], pendingPerkChoices: null, heartPieces: 0, heartPiecesCollected: new Set<string>(), ancientCoins: new Set<string>(), newGamePlus: false, goldMilestonesReached: new Set<number>(), activeDungeonItem: null, lanternLit: false }),
 
   giveGold: (amount) => {
     const c = get().character;

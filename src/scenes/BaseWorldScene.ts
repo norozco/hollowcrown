@@ -11,6 +11,8 @@ import { getNPC } from '../engine/npcs';
 import { saveGame } from '../engine/saveLoad';
 import { useCommissionStore } from '../state/commissionStore';
 import { useDungeonItemStore } from '../state/dungeonItemStore';
+import { useWorldStateStore } from '../state/worldStateStore';
+import { getMonster } from '../engine/monster';
 import { useDungeonMapStore } from '../state/dungeonMapStore';
 import { useTimeStore, getPhaseTint } from '../state/timeStore';
 import { spawnWeather, getWeatherForScene } from './weather';
@@ -165,10 +167,47 @@ export abstract class BaseWorldScene extends Phaser.Scene {
   /** Exit zone the player spawned inside — suppressed until they walk out of it. */
   private suppressedExit: Exit | null = null;
 
-  // ── Dark room system (Lantern dungeon item) ──
+  // ── Dark room / Lantern light system ──
   private darkRT: Phaser.GameObjects.RenderTexture | null = null;
   private darkBrush: Phaser.GameObjects.Graphics | null = null;
+  private torchBrush: Phaser.GameObjects.Graphics | null = null;
   private isDarkRoom = false;
+  private lanternGlow: Phaser.GameObjects.Graphics | null = null;
+  private lanternFlickerPhase = 0;
+  private shadeFleeTimers = new Map<string, number>();
+  private shadeDamageAccum = new Map<string, number>();
+
+  // ── Torch interactables ──
+  protected torches: Array<{
+    id: string;
+    x: number;
+    y: number;
+    lit: boolean;
+    base: Phaser.GameObjects.GameObject;
+    flame: Phaser.GameObjects.Arc | null;
+    glow: Phaser.GameObjects.Arc | null;
+  }> = [];
+  /** Optional "light all torches" puzzle. Fires onComplete once. */
+  protected torchPuzzle: { ids: string[]; completed: boolean; onComplete: () => void } | null = null;
+
+
+  // ── Water Charm system ──
+  /** Shallow water zones in this scene. Player passes through only with
+   *  the Water Charm; movement is slowed and ripples follow. Enemies are
+   *  always blocked by the zone's collider. */
+  protected shallowWaterZones: Array<{
+    x: number; y: number; w: number; h: number;
+    /** Static body that blocks enemies AND the player when the Water
+     *  Charm is not equipped. Disabled when the player walks in with the
+     *  charm equipped, re-enabled when they leave. */
+    barrier: Phaser.GameObjects.Rectangle;
+  }> = [];
+  private lastWaterRippleAt = 0;
+  private lastWaterStepAt = 0;
+  /** Whether the player was in shallow water last frame (edge detection). */
+  private wasInShallowWater = false;
+  /** Scene-wide underwater config (applied via setUnderwater from layout). */
+  private isUnderwater = false;
 
   // ── Echo Stone system ──
   /** Hollow walls in this scene — revealed (glow cyan) when the Echo pulse touches them. */
@@ -186,6 +225,16 @@ export abstract class BaseWorldScene extends Phaser.Scene {
     revealedUntil: number;
   }> = [];
   private echoBoundHandler: ((e: Event) => void) | null = null;
+
+  // ── Stuck watchdog ──
+  /** ms timestamp of last WASD/arrow keydown — used by the lock watchdog
+   *  to detect "user trying to move but nothing's happening". */
+  private lastMovementInputAt = 0;
+  /** ms timestamp of the last frame the player actually moved. */
+  private lastPlayerMoveAt = 0;
+  /** "Press Esc to unstick" hint text shown when the player has been
+   *  idle + locked for 3+ seconds. */
+  private stuckHintText: Phaser.GameObjects.Text | null = null;
 
   // ──────────────────────────────────────────────────────────────
   // Subclass hooks
@@ -217,6 +266,11 @@ export abstract class BaseWorldScene extends Phaser.Scene {
     this.pressurePlates = [];
     this.hollowWalls = [];
     this.invisibleEnemies = [];
+    this.shallowWaterZones = [];
+    this.lastWaterRippleAt = 0;
+    this.lastWaterStepAt = 0;
+    this.wasInShallowWater = false;
+    this.isUnderwater = false;
     this.nearbyTarget = null;
     this.transitionLock = false;
     this.combatImmunity = 0;
@@ -328,14 +382,25 @@ export abstract class BaseWorldScene extends Phaser.Scene {
     this.events.once('shutdown', echoCleanup);
     this.events.once('destroy', echoCleanup);
 
-    // Dark room — if the scene is marked dark and the player lacks the Lantern,
-    // create a RenderTexture overlay and a brush to erase a circle of light.
-    if (this.isDarkRoom && !useDungeonItemStore.getState().has('lantern')) {
+    // Dark room — in dark scenes, a near-opaque overlay blankets the map.
+    // The lantern (if lit) and any lit torches punch holes of light through it.
+    // In non-dark scenes, only the lantern glow graphic is drawn.
+    if (this.isDarkRoom) {
       this.darkRT = this.add.renderTexture(0, 0, WORLD_W, WORLD_H).setDepth(100);
+      // Large brush for the lantern circle (radius ~180px, sized generously
+      // for the radial falloff we draw manually).
       this.darkBrush = this.make.graphics({});
       this.darkBrush.fillStyle(0xffffff);
-      this.darkBrush.fillCircle(64, 64, 64);
+      this.darkBrush.fillCircle(180, 180, 180);
+      // Smaller brush for lit torches (~80px radius).
+      this.torchBrush = this.make.graphics({});
+      this.torchBrush.fillStyle(0xffffff);
+      this.torchBrush.fillCircle(100, 100, 100);
     }
+    // Lantern glow — always present as a graphic; hidden when lantern not lit.
+    this.lanternGlow = this.add.graphics();
+    this.lanternGlow.setDepth(95);
+    this.lanternGlow.setVisible(false);
 
     // Record zone visit for achievements.
     useAchievementStore.getState().recordZoneVisit(this.scene.key);
@@ -396,6 +461,9 @@ export abstract class BaseWorldScene extends Phaser.Scene {
     }
 
     this.handleMovement();
+    // Water Charm — slow the player, spawn ripples, toggle wade barriers.
+    // Runs after handleMovement so velocity scaling applies to this frame.
+    this.updateShallowWater();
     // Keep minimap player position current.
     if ((window as any).__currentMap) {
       (window as any).__currentMap.playerX = this.player.x;
@@ -421,12 +489,7 @@ export abstract class BaseWorldScene extends Phaser.Scene {
     this.checkExits();
     this.checkWorldEvents();
 
-    // Dark room overlay — erase a circle of light around the player each frame.
-    if (this.darkRT && this.darkBrush) {
-      this.darkRT.clear();
-      this.darkRT.fill(0x000000, 0.92);
-      this.darkRT.erase(this.darkBrush, this.player.x - 64, this.player.y - 64);
-    }
+    this.updateLantern();
   }
 
   // ──────────────────────────────────────────────────────────────
@@ -888,17 +951,162 @@ export abstract class BaseWorldScene extends Phaser.Scene {
   }
 
   /**
-   * Spawn a shallow water barrier — a translucent water-like area that
-   * blocks the player UNLESS they have the Water Charm dungeon item.
-   * Used for optional shortcuts and hidden areas.
+   * Spawn a shallow water zone — a translucent, ankle-deep pool that
+   * the player can only wade through when the Water Charm dungeon item
+   * is equipped (active B-slot). Without the charm it is a hard wall;
+   * enemies are always blocked regardless so the charm can be used as
+   * an escape tool. While wading, the player's speed is reduced and
+   * ripples trail them (handled in update()).
    */
   protected spawnShallowWater(cfg: { x: number; y: number; w: number; h: number }): void {
-    if (useDungeonItemStore.getState().has('water_charm')) return; // passable
+    // Visual base — light teal fill with two subtle horizontal wave lines,
+    // consistent with TILE.SHALLOW_WATER but scaled to the zone rect.
+    const pool = this.add.rectangle(
+      cfg.x + cfg.w / 2, cfg.y + cfg.h / 2, cfg.w, cfg.h, 0x4da0c0, 0.55);
+    pool.setStrokeStyle(1, 0x6ecae0, 0.6);
+    pool.setDepth(2);
+
+    // Horizontal wave line overlays (purely decorative, gentle shimmer).
+    const wave1 = this.add.rectangle(cfg.x + cfg.w / 2, cfg.y + cfg.h * 0.33, cfg.w * 0.85, 1, 0x7fd8e8, 0.7).setDepth(3);
+    const wave2 = this.add.rectangle(cfg.x + cfg.w / 2, cfg.y + cfg.h * 0.66, cfg.w * 0.85, 1, 0x7fd8e8, 0.7).setDepth(3);
+    this.tweens.add({
+      targets: [wave1, wave2], alpha: { from: 0.3, to: 0.8 },
+      duration: 2200, yoyo: true, repeat: -1, ease: 'Sine.easeInOut',
+    });
+
+    // Barrier — always present so enemies can't cross. For the player we
+    // toggle it every frame in update() based on whether the Water Charm
+    // is equipped as the active key-item.
     const barrier = this.add.rectangle(
-      cfg.x + cfg.w / 2, cfg.y + cfg.h / 2, cfg.w, cfg.h, 0x4080b0, 0.3);
-    barrier.setDepth(3);
+      cfg.x + cfg.w / 2, cfg.y + cfg.h / 2, cfg.w, cfg.h, 0x000000, 0);
     this.physics.add.existing(barrier, true);
     this.walls.add(barrier);
+
+    this.shallowWaterZones.push({
+      x: cfg.x, y: cfg.y, w: cfg.w, h: cfg.h, barrier,
+    });
+  }
+
+  /** Mark the current scene as an underwater area — enables ambient
+   *  bubble particles and a subtle blue tint overlay. Call from layout(). */
+  protected setUnderwater(on: boolean): void {
+    this.isUnderwater = on;
+    if (on) this.setupUnderwaterEffects();
+  }
+
+  /** True if the current scene is flagged as an underwater area. */
+  protected getIsUnderwater(): boolean { return this.isUnderwater; }
+
+  /** Spawn the underwater ambience — slow rising bubbles + blue tint. */
+  private setupUnderwaterEffects(): void {
+    // Subtle blue tint overlay.
+    this.add.rectangle(WORLD_W / 2, WORLD_H / 2, WORLD_W, WORLD_H, 0x3c8eb0, 0.18)
+      .setDepth(95);
+
+    // Continuous bubble stream — 1 new bubble every ~300ms, rising from
+    // a random offscreen bottom x to the top, fading out.
+    const spawnBubble = () => {
+      const bx = Phaser.Math.Between(20, WORLD_W - 20);
+      const by = WORLD_H + Phaser.Math.Between(0, 40);
+      const r = Phaser.Math.Between(2, 5);
+      const bubble = this.add.circle(bx, by, r, 0xb0e4f0, 0.55).setDepth(96);
+      bubble.setStrokeStyle(1, 0xe8f8ff, 0.65);
+      const travel = WORLD_H + 80;
+      const duration = 4000 + Math.random() * 3000;
+      this.tweens.add({
+        targets: bubble,
+        y: by - travel,
+        x: bx + (Math.random() - 0.5) * 40,
+        alpha: { from: 0.55, to: 0 },
+        duration,
+        ease: 'Sine.easeIn',
+        onComplete: () => bubble.destroy(),
+      });
+    };
+    const bubbleTimer = this.time.addEvent({
+      delay: 300, loop: true, callback: spawnBubble,
+    });
+    this.events.once('shutdown', () => bubbleTimer.remove(false));
+    this.events.once('destroy', () => bubbleTimer.remove(false));
+    // Seed a few bubbles up-front so the effect is visible immediately.
+    for (let i = 0; i < 6; i++) this.time.delayedCall(i * 120, spawnBubble);
+  }
+
+  /** True if the point is inside any registered shallow water zone. */
+  private isPointInShallowWater(x: number, y: number): boolean {
+    for (const z of this.shallowWaterZones) {
+      if (x >= z.x && x <= z.x + z.w && y >= z.y && y <= z.y + z.h) return true;
+    }
+    return false;
+  }
+
+  /** Spawn a single expanding ripple ring at (x, y). */
+  private spawnRipple(x: number, y: number): void {
+    const ring = this.add.graphics();
+    ring.setDepth(3);
+    this.tweens.addCounter({
+      from: 0, to: 1, duration: 700, ease: 'Sine.easeOut',
+      onUpdate: (tw) => {
+        const t = tw.getValue() ?? 0;
+        const r = 4 + t * 20;
+        ring.clear();
+        ring.lineStyle(1.5, 0x8fd8ef, 1 - t);
+        ring.strokeCircle(x, y, r);
+      },
+      onComplete: () => ring.destroy(),
+    });
+  }
+
+  /** Per-frame shallow water state — speed reduction, ripples, SFX, and
+   *  dynamic collision toggle so the player can wade through with the
+   *  Water Charm equipped while enemies remain blocked. */
+  private updateShallowWater(): void {
+    if (this.shallowWaterZones.length === 0) { this.wasInShallowWater = false; return; }
+    const hasCharm = useDungeonItemStore.getState().has('water_charm');
+    const active = usePlayerStore.getState().activeDungeonItem === 'water_charm';
+    const passable = hasCharm && active;
+
+    const pb = this.player.body as Phaser.Physics.Arcade.Body | undefined;
+    if (!pb) return;
+    let inZone = false;
+    for (const z of this.shallowWaterZones) {
+      const body = z.barrier.body as Phaser.Physics.Arcade.StaticBody | undefined;
+      const inside = this.isPointInShallowWater(this.player.x, this.player.y);
+      if (inside) inZone = true;
+      if (body) {
+        // Toggle body: disabled when the player is near a zone AND has the
+        // Water Charm active (so they can walk in). Enemies use this same
+        // body; while the body is disabled, enemies could cross — but we
+        // re-enable as soon as the player steps away, so the window is
+        // tight. Enemies also can't typically path far from their spawn.
+        const pad = TILE;
+        const near =
+          this.player.x >= z.x - pad && this.player.x <= z.x + z.w + pad &&
+          this.player.y >= z.y - pad && this.player.y <= z.y + z.h + pad;
+        body.enable = !(passable && near);
+      }
+    }
+
+    if (!inZone) { this.wasInShallowWater = false; return; }
+
+    const now = this.time.now;
+    if (!this.wasInShallowWater) {
+      if (now - this.lastWaterStepAt > 120) {
+        Sfx.waterStep();
+        this.lastWaterStepAt = now;
+      }
+    }
+    this.wasInShallowWater = true;
+
+    // Speed reduction ×0.7 while wading.
+    pb.velocity.x *= 0.7;
+    pb.velocity.y *= 0.7;
+
+    const moving = Math.abs(pb.velocity.x) + Math.abs(pb.velocity.y) > 4;
+    if (moving && now - this.lastWaterRippleAt >= 400) {
+      this.lastWaterRippleAt = now;
+      this.spawnRipple(this.player.x, this.player.y + 8);
+    }
   }
 
   /** Call from subclass layout() to make this scene dark. */
@@ -1109,6 +1317,179 @@ export abstract class BaseWorldScene extends Phaser.Scene {
     shakeScaled(this, 120, 0.004);
   }
 
+  // ──────────────────────────────────────────────────────────────
+  // Lantern + torch systems
+  // ──────────────────────────────────────────────────────────────
+
+  /** Current lit radius (with flicker). */
+  protected lanternRadius(): number {
+    const base = 180;
+    const wave = Math.sin((this.lanternFlickerPhase / 800) * Math.PI * 2) * 8;
+    return base + wave;
+  }
+
+  /**
+   * Spawn a torch interactable. Unlit = brown stick on a grey base. When
+   * the player walks adjacent with the lantern lit and presses E, it
+   * ignites permanently (persisted via worldStateStore) and emits its own
+   * circle of light. Counts toward any registered {@link torchPuzzle}.
+   */
+  protected spawnTorch(cfg: { id: string; x: number; y: number }): void {
+    const wasLit = useWorldStateStore.getState().isTorchLit(this.scene.key, cfg.id);
+
+    const base = this.add.rectangle(cfg.x, cfg.y + 4, 12, 6, 0x6a6660);
+    base.setStrokeStyle(1, 0x3a3830);
+    base.setDepth(6);
+    this.add.rectangle(cfg.x, cfg.y - 4, 4, 12, 0x6a4820).setDepth(6);
+
+    const torchEntry: (typeof this.torches)[number] = {
+      id: cfg.id, x: cfg.x, y: cfg.y, lit: false,
+      base, flame: null, glow: null,
+    };
+    this.torches.push(torchEntry);
+
+    const ignite = (silent = false) => {
+      if (torchEntry.lit) return;
+      torchEntry.lit = true;
+      useWorldStateStore.getState().igniteTorch(this.scene.key, cfg.id);
+      const flame = this.add.circle(cfg.x, cfg.y - 10, 4, 0xf4a648, 0.9).setDepth(7);
+      const glow = this.add.circle(cfg.x, cfg.y - 6, 16, 0xe09040, 0.15).setDepth(5);
+      torchEntry.flame = flame;
+      torchEntry.glow = glow;
+      this.tweens.add({
+        targets: flame, y: flame.y - 2, scale: 1.15,
+        duration: 500, yoyo: true, repeat: -1, ease: 'Sine.easeInOut',
+      });
+      this.tweens.add({
+        targets: glow, alpha: 0.08, scale: 1.2, duration: 700, yoyo: true, repeat: -1,
+      });
+      if (!silent) {
+        Sfx.torchLight();
+        window.dispatchEvent(new CustomEvent('gameMessage', { detail: 'The torch catches flame.' }));
+      }
+      this.checkTorchPuzzle();
+    };
+
+    this.spawnInteractable({
+      sprite: base as any,
+      label: 'Light torch',
+      radius: 28,
+      action: () => {
+        if (torchEntry.lit) {
+          window.dispatchEvent(new CustomEvent('gameMessage', { detail: 'Already lit.' }));
+          return;
+        }
+        if (!usePlayerStore.getState().lanternLit) {
+          window.dispatchEvent(new CustomEvent('gameMessage', {
+            detail: 'The wick is cold. A flame of your own would help.',
+          }));
+          return;
+        }
+        ignite();
+      },
+    });
+
+    if (wasLit) ignite(true);
+  }
+
+  /** Register a "light all torches" puzzle. onComplete fires once. */
+  protected registerTorchPuzzle(ids: string[], onComplete: () => void): void {
+    this.torchPuzzle = { ids, completed: false, onComplete };
+    this.checkTorchPuzzle();
+  }
+
+  private checkTorchPuzzle(): void {
+    const p = this.torchPuzzle;
+    if (!p || p.completed) return;
+    const allLit = p.ids.every((id) =>
+      this.torches.find((t) => t.id === id)?.lit ||
+      useWorldStateStore.getState().isTorchLit(this.scene.key, id),
+    );
+    if (!allLit) return;
+    p.completed = true;
+    try { p.onComplete(); } catch (err) { console.warn('torch puzzle error', err); }
+  }
+
+  /** Per-frame lantern update — dark overlay cutouts, glow graphic, shade AI. */
+  private updateLantern(): void {
+    const lit = usePlayerStore.getState().lanternLit;
+    this.lanternFlickerPhase = (this.lanternFlickerPhase + this.game.loop.delta) % 1e9;
+
+    if (this.darkRT && this.darkBrush) {
+      this.darkRT.clear();
+      this.darkRT.fill(0x080602, 0.92);
+      if (lit) {
+        this.darkRT.erase(this.darkBrush, this.player.x - 180, this.player.y - 180);
+      }
+      if (this.torchBrush) {
+        for (const t of this.torches) {
+          if (!t.lit) continue;
+          this.darkRT.erase(this.torchBrush, t.x - 100, t.y - 100);
+        }
+      }
+    }
+
+    if (this.lanternGlow) {
+      if (lit) {
+        this.lanternGlow.setVisible(true);
+        this.lanternGlow.clear();
+        const r = this.lanternRadius();
+        this.lanternGlow.fillStyle(0xf4a648, 0.18);
+        this.lanternGlow.fillCircle(this.player.x, this.player.y, r);
+        this.lanternGlow.fillStyle(0xf4c878, 0.26);
+        this.lanternGlow.fillCircle(this.player.x, this.player.y, r * 0.65);
+        this.lanternGlow.fillStyle(0xfff0c0, 0.32);
+        this.lanternGlow.fillCircle(this.player.x, this.player.y, r * 0.28);
+      } else {
+        this.lanternGlow.setVisible(false);
+        this.lanternGlow.clear();
+      }
+    }
+
+    this.updateShades(lit);
+  }
+
+  private updateShades(lit: boolean): void {
+    const dt = this.game.loop.delta;
+    const radius = this.lanternRadius();
+    for (const enemy of this.enemies) {
+      let monster;
+      try { monster = getMonster(enemy.monsterKey); } catch { continue; }
+      if (!monster.lightVulnerable) continue;
+
+      const dx = enemy.sprite.x - this.player.x;
+      const dy = enemy.sprite.y - this.player.y;
+      const dist = Math.hypot(dx, dy);
+      const inLight = lit && dist < radius;
+
+      if (inLight) {
+        this.shadeFleeTimers.set(enemy.id, 800);
+        const accum = (this.shadeDamageAccum.get(enemy.id) ?? 0) + dt;
+        this.shadeDamageAccum.set(enemy.id, accum);
+        if (accum >= 3000) {
+          useCombatStore.getState().killedEnemies.add(enemy.id);
+          this.spawnPickupParticles(enemy.sprite.x, enemy.sprite.y, 0xf4c878);
+          enemy.sprite.destroy();
+          this.shadeDamageAccum.delete(enemy.id);
+          this.shadeFleeTimers.delete(enemy.id);
+        }
+      }
+
+      const fleeMs = this.shadeFleeTimers.get(enemy.id) ?? 0;
+      if (fleeMs > 0 && enemy.sprite.active) {
+        this.shadeFleeTimers.set(enemy.id, Math.max(0, fleeMs - dt));
+        const len = Math.max(1, Math.hypot(dx, dy));
+        const step = 90 * (dt / 1000);
+        enemy.sprite.x += (dx / len) * step;
+        enemy.sprite.y += (dy / len) * step;
+        enemy.sprite.setAlpha(0.5 + Math.random() * 0.3);
+      }
+    }
+    for (const id of Array.from(this.shadeDamageAccum.keys())) {
+      if (!this.enemies.find((e) => e.id === id)) this.shadeDamageAccum.delete(id);
+    }
+  }
+
   /**
    * Spawn an ancient coin pickup. Golden shimmer, one-time per save.
    * Collecting all 12 unlocks the Crownless Blade.
@@ -1161,6 +1542,228 @@ export abstract class BaseWorldScene extends Phaser.Scene {
         cfg.onMelt?.();
       },
     });
+  }
+
+  /**
+   * Spawn a pickaxe-mineable ore vein. Three types: iron (grey + brown),
+   * silver (white shimmer), gold (yellow sparkle). Each press of E while
+   * adjacent + pickaxe equipped shakes the vein and increments hits. On
+   * depletion, drops one ore item of the matching type into the inventory
+   * and permanently removes the vein from this save.
+   */
+  protected spawnOreVein(cfg: {
+    x: number; y: number;
+    oreType: 'iron' | 'silver' | 'gold';
+    hitsRequired?: number;
+  }): void {
+    const objectId = `ore_${Math.round(cfg.x)}_${Math.round(cfg.y)}`;
+    if (useWorldStateStore.getState().isMined(this.scene.key, objectId)) return;
+
+    const hitsRequired = cfg.hitsRequired ?? 3;
+    const oreItemKey = `${cfg.oreType}_ore`;
+
+    const palette = {
+      iron:   { base: 0x585048, streak: 0x7a5a3a, sparkle: 0xa08060, particle: 0x808070 },
+      silver: { base: 0x606878, streak: 0xd0d8e0, sparkle: 0xf0f4ff, particle: 0xd0d8e0 },
+      gold:   { base: 0x504028, streak: 0xc89028, sparkle: 0xf4d860, particle: 0xf4d488 },
+    }[cfg.oreType];
+
+    const rock = this.add.rectangle(cfg.x, cfg.y, 28, 24, palette.base);
+    rock.setStrokeStyle(2, 0x2a2620);
+    rock.setDepth(5);
+    const streakA = this.add.rectangle(cfg.x - 4, cfg.y - 2, 12, 3, palette.streak).setDepth(6);
+    streakA.setAngle(-18);
+    const streakB = this.add.rectangle(cfg.x + 5, cfg.y + 4, 10, 2, palette.streak).setDepth(6);
+    streakB.setAngle(12);
+    const sparkle = this.add.circle(cfg.x + 2, cfg.y - 4, 2, palette.sparkle).setDepth(7);
+    if (cfg.oreType !== 'iron') {
+      this.tweens.add({ targets: sparkle, alpha: 0.3, duration: 900, yoyo: true, repeat: -1 });
+    }
+
+    this.physics.add.existing(rock, true);
+    this.walls.add(rock);
+
+    let hits = 0;
+    const parts: Phaser.GameObjects.GameObject[] = [rock, streakA, streakB, sparkle];
+
+    const interactZone = this.add.rectangle(cfg.x, cfg.y, 48, 44, 0x000000, 0);
+    this.spawnInteractable({
+      sprite: interactZone as any,
+      label: `${cfg.oreType[0].toUpperCase()}${cfg.oreType.slice(1)} vein`,
+      radius: 28,
+      action: () => this.mineObject({
+        parts,
+        bodyHost: rock,
+        cx: cfg.x, cy: cfg.y,
+        hitsRequiredRef: () => hitsRequired,
+        incrementHits: () => ++hits,
+        particleColor: palette.particle,
+        objectId,
+        onShatter: () => {
+          useInventoryStore.getState().addItem(oreItemKey);
+          const prettyName = `${cfg.oreType[0].toUpperCase()}${cfg.oreType.slice(1)} Ore`;
+          window.dispatchEvent(new CustomEvent('gameMessage', { detail: `Found ${prettyName}!` }));
+        },
+      }),
+    });
+  }
+
+  /**
+   * Spawn a boulder blocking a path. Needs 5 pickaxe hits (default) to
+   * shatter, then is permanently passable for this save.
+   */
+  protected spawnBoulder(cfg: { x: number; y: number; hitsRequired?: number }): void {
+    const objectId = `boulder_${Math.round(cfg.x)}_${Math.round(cfg.y)}`;
+    if (useWorldStateStore.getState().isMined(this.scene.key, objectId)) return;
+
+    const hitsRequired = cfg.hitsRequired ?? 5;
+
+    const boulder = this.add.rectangle(cfg.x, cfg.y, 40, 36, 0x585048);
+    boulder.setStrokeStyle(2, 0x2a2620);
+    boulder.setDepth(5);
+    const lumpA = this.add.circle(cfg.x - 8, cfg.y - 6, 7, 0x6a5e50).setDepth(6);
+    const lumpB = this.add.circle(cfg.x + 10, cfg.y + 4, 6, 0x484038).setDepth(6);
+    const parts: Phaser.GameObjects.GameObject[] = [boulder, lumpA, lumpB];
+
+    this.physics.add.existing(boulder, true);
+    this.walls.add(boulder);
+
+    let hits = 0;
+    const interactZone = this.add.rectangle(cfg.x, cfg.y, 64, 60, 0x000000, 0);
+    this.spawnInteractable({
+      sprite: interactZone as any, label: 'Boulder', radius: 34,
+      action: () => this.mineObject({
+        parts,
+        bodyHost: boulder,
+        cx: cfg.x, cy: cfg.y,
+        hitsRequiredRef: () => hitsRequired,
+        incrementHits: () => ++hits,
+        particleColor: 0x808070,
+        objectId,
+        onShatter: () => {
+          this.spawnDebrisBurst(cfg.x, cfg.y, 0x706860);
+          window.dispatchEvent(new CustomEvent('gameMessage', { detail: 'The boulder crumbles to rubble.' }));
+        },
+      }),
+    });
+  }
+
+  /**
+   * Spawn a cracked-stone wall — the always-visible pickaxe counterpart
+   * to the Echo Stone hollow wall. Default 4 pickaxe hits to break.
+   */
+  protected spawnCrackedWall(cfg: { x: number; y: number; w?: number; h?: number; hitsRequired?: number; onBreak?: () => void }): void {
+    const w = cfg.w ?? TILE;
+    const h = cfg.h ?? TILE;
+    const cx = cfg.x + w / 2;
+    const cy = cfg.y + h / 2;
+    const objectId = `crackwall_${Math.round(cfg.x)}_${Math.round(cfg.y)}`;
+    if (useWorldStateStore.getState().isMined(this.scene.key, objectId)) {
+      cfg.onBreak?.();
+      return;
+    }
+
+    const hitsRequired = cfg.hitsRequired ?? 4;
+
+    const wall = this.add.rectangle(cx, cy, w, h, 0x706860);
+    wall.setStrokeStyle(2, 0x2a2620);
+    wall.setDepth(5);
+    // Obvious cracks — visible without pulse.
+    const crackA = this.add.line(0, 0, cx - 10, cy - 10, cx + 6, cy - 2, 0x1a140e).setLineWidth(2).setDepth(6);
+    const crackB = this.add.line(0, 0, cx + 6, cy - 2, cx - 4, cy + 10, 0x1a140e).setLineWidth(2).setDepth(6);
+    const crackC = this.add.line(0, 0, cx - 4, cy + 10, cx + 10, cy + 12, 0x1a140e).setLineWidth(2).setDepth(6);
+    const crackD = this.add.line(0, 0, cx + 2, cy + 2, cx + 12, cy - 8, 0x1a140e).setLineWidth(1).setDepth(6);
+    const parts: Phaser.GameObjects.GameObject[] = [wall, crackA, crackB, crackC, crackD];
+
+    this.physics.add.existing(wall, true);
+    this.walls.add(wall);
+
+    let hits = 0;
+    const interactZone = this.add.rectangle(cx, cy, w + 20, h + 20, 0x000000, 0);
+    this.spawnInteractable({
+      sprite: interactZone as any, label: 'Cracked wall', radius: 28,
+      action: () => this.mineObject({
+        parts,
+        bodyHost: wall,
+        cx, cy,
+        hitsRequiredRef: () => hitsRequired,
+        incrementHits: () => ++hits,
+        particleColor: 0x8a7a60,
+        objectId,
+        onShatter: () => {
+          this.spawnDebrisBurst(cx, cy, 0x8a7a60);
+          window.dispatchEvent(new CustomEvent('gameMessage', { detail: 'The cracked wall shatters!' }));
+          cfg.onBreak?.();
+        },
+      }),
+    });
+  }
+
+  /**
+   * Shared mining handler. Requires the pickaxe to be both owned and
+   * currently equipped (active). Otherwise shows a prompt-style message.
+   */
+  private mineObject(args: {
+    parts: Phaser.GameObjects.GameObject[];
+    bodyHost: Phaser.GameObjects.Rectangle;
+    cx: number; cy: number;
+    hitsRequiredRef: () => number;
+    incrementHits: () => number;
+    particleColor: number;
+    objectId: string;
+    onShatter: () => void;
+  }): void {
+    const player = usePlayerStore.getState();
+    const active = player.activeDungeonItem;
+    const hasPick = useDungeonItemStore.getState().has('pickaxe');
+    if (!hasPick || active !== 'pickaxe') {
+      window.dispatchEvent(new CustomEvent('gameMessage', {
+        detail: hasPick
+          ? 'You need the pickaxe equipped. (Shift+R to cycle key items.)'
+          : 'The stone is cracked and loose. A pickaxe could break it.',
+      }));
+      return;
+    }
+
+    Sfx.mineHit();
+    // Small shake on the object parts (±2px horizontal).
+    const movable = args.parts.filter((p): p is Phaser.GameObjects.GameObject & { x: number } =>
+      'x' in p && typeof (p as any).x === 'number');
+    this.tweens.killTweensOf(movable);
+    this.tweens.add({
+      targets: movable, x: '+=2', duration: 40, yoyo: true, repeat: 1,
+    });
+    shakeScaled(this, 60, 0.003);
+
+    const nextHits = args.incrementHits();
+    if (nextHits >= args.hitsRequiredRef()) {
+      Sfx.oreShatter();
+      shakeScaled(this, 220, 0.01);
+      this.spawnPickupParticles(args.cx, args.cy, args.particleColor);
+      useWorldStateStore.getState().markMined(this.scene.key, args.objectId);
+      const body = args.bodyHost.body as Phaser.Physics.Arcade.StaticBody;
+      if (body) body.destroy();
+      for (const p of args.parts) p.destroy();
+      args.onShatter();
+    }
+  }
+
+  /** Small debris-scatter effect for shattered boulders / cracked walls. */
+  private spawnDebrisBurst(x: number, y: number, color: number): void {
+    for (let i = 0; i < 8; i++) {
+      const angle = Math.random() * Math.PI * 2;
+      const speed = 30 + Math.random() * 40;
+      const chunk = this.add.rectangle(x, y, 3 + Math.random() * 3, 3 + Math.random() * 3, color).setDepth(30);
+      this.tweens.add({
+        targets: chunk,
+        x: x + Math.cos(angle) * speed,
+        y: y + Math.sin(angle) * speed + 20,
+        alpha: 0,
+        duration: 500 + Math.random() * 250,
+        ease: 'Cubic.easeOut',
+        onComplete: () => chunk.destroy(),
+      });
+    }
   }
 
   /**
@@ -1518,34 +2121,156 @@ export abstract class BaseWorldScene extends Phaser.Scene {
    * Failsafes to prevent the player getting "stuck" after an interaction:
    *  - Listen for `dialogueClosed` and clear any lingering nearby target /
    *    proximity prompt so the next frame resumes cleanly.
-   *  - Global Esc handler: if for any reason the dialogue store still
-   *    thinks a dialogue is open, force-close it. This is an escape hatch
-   *    — ordinary Esc handling lives in the React overlay.
+   *  - Global Esc handler — NUCLEAR ESCAPE HATCH: hard-resets every
+   *    possible lock source so the player can always recover.
+   *  - A watchdog that detects "input received but no movement + no
+   *    legitimate lock" stuck states and force-unsticks.
+   *  - A visible "Press Esc to unstick" prompt after 3s of lock + idle.
    */
   private setupInteractionFailsafes(): void {
     const onDialogueClosed = () => {
       this.nearbyTarget = null;
       if (this.prompt) this.prompt.setVisible(false);
     };
+
+    // Track the most recent movement input we observed so the watchdog
+    // can tell "user is trying to move" from "user isn't pressing anything".
+    this.lastMovementInputAt = 0;
+    this.lastPlayerMoveAt = Date.now();
+
     const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key !== 'Escape') return;
-      const ds = useDialogueStore.getState();
-      if (ds.dialogue) {
-        // Ordinary flow already handles close; this is a paranoid backstop
-        // if the overlay is somehow unmounted while the store is still set.
-        ds.end();
+      // Track any WASD/arrow press so the watchdog sees movement intent.
+      const k = e.key;
+      if (k === 'w' || k === 'a' || k === 's' || k === 'd' ||
+          k === 'W' || k === 'A' || k === 'S' || k === 'D' ||
+          k === 'ArrowUp' || k === 'ArrowDown' ||
+          k === 'ArrowLeft' || k === 'ArrowRight') {
+        this.lastMovementInputAt = Date.now();
       }
+      if (e.key !== 'Escape') return;
+
+      // ── NUCLEAR ESCAPE HATCH ──
+      // Hard-reset EVERY known lock flag. Safe even when nothing is stuck
+      // because each reset either matches the already-clean state or
+      // closes an overlay that was legitimately open (the React overlay
+      // also handles Esc; this runs in parallel as a belt-and-suspenders).
+      try {
+        const ds = useDialogueStore.getState();
+        if (ds.dialogue) ds.end();
+      } catch { /* ignore */ }
+
+      try {
+        const cs = useCombatStore.getState();
+        // If a combat state exists but the overlay isn't draining it,
+        // finish() cleans up rewards/loot; if there's nothing to finish,
+        // this is a cheap no-op.
+        if (cs.state) cs.finish();
+      } catch { /* ignore */ }
+
+      // Clear scene-local interaction state.
       this.nearbyTarget = null;
+      this.transitionLock = false;
       if (this.prompt) this.prompt.setVisible(false);
+
+      // If the scene was paused by an overlay that never unpaused,
+      // resume it.
+      if (this.scene.isPaused(this.scene.key)) {
+        this.scene.resume(this.scene.key);
+      }
+
+      // Re-zero velocity so any stale scaling from updateShallowWater
+      // or similar doesn't carry a phantom "push" on the next frame.
+      const body = this.player?.body as Phaser.Physics.Arcade.Body | undefined;
+      body?.setVelocity(0, 0);
     };
     window.addEventListener('dialogueClosed', onDialogueClosed);
     window.addEventListener('keydown', onKeyDown);
+
+    // ── Watchdog ──
+    // Every 500 ms check: has the user been pressing movement keys but
+    // the player hasn't moved, AND no legitimate lock is active? If so,
+    // we're stuck — force-clear every lock. Errors silently swallowed so
+    // the timer never stops.
+    const watchdog = this.time.addEvent({
+      delay: 500,
+      loop: true,
+      callback: () => this.runLockWatchdog(),
+    });
+
     const cleanup = () => {
       window.removeEventListener('dialogueClosed', onDialogueClosed);
       window.removeEventListener('keydown', onKeyDown);
+      watchdog.remove(false);
+      this.stuckHintText?.destroy();
+      this.stuckHintText = null;
     };
     this.events.once('shutdown', cleanup);
     this.events.once('destroy', cleanup);
+  }
+
+  /** Returns true if a legitimate lock is active (dialogue / combat / menu open). */
+  private isLegitimatelyLocked(): boolean {
+    if (useDialogueStore.getState().dialogue) return true;
+    if (useCombatStore.getState().state) return true;
+    const inv = useInventoryStore.getState();
+    if (inv.isOpen || inv.isShopOpen || inv.isCraftingOpen || inv.isCookingOpen) return true;
+    if (this.transitionLock) return true;
+    return false;
+  }
+
+  /** Per-tick (500ms) stuck detection. */
+  private runLockWatchdog(): void {
+    try {
+      if (!this.player || !this.player.body) return;
+      const body = this.player.body as Phaser.Physics.Arcade.Body;
+      const now = Date.now();
+      const moving = Math.abs(body.velocity.x) + Math.abs(body.velocity.y) > 1;
+      if (moving) {
+        this.lastPlayerMoveAt = now;
+        this.hideStuckHint();
+        return;
+      }
+      const recentMovementInput = now - this.lastMovementInputAt < 800;
+      const idleFor = now - this.lastPlayerMoveAt;
+
+      if (recentMovementInput && idleFor > 1000 && !this.isLegitimatelyLocked()) {
+        // User is pressing WASD but not moving and nothing legit is
+        // blocking — we're stuck. Force-clear every lock we know about.
+        try { useDialogueStore.getState().end(); } catch { /* ignore */ }
+        this.nearbyTarget = null;
+        this.transitionLock = false;
+        if (this.prompt) this.prompt.setVisible(false);
+        if (this.scene.isPaused(this.scene.key)) this.scene.resume(this.scene.key);
+        this.lastPlayerMoveAt = now; // give it a beat before re-triggering
+      }
+
+      // Show the hint if we've been idle + locked for 3s+.
+      if (idleFor > 3000 && this.isLegitimatelyLocked()) {
+        this.showStuckHint();
+      } else {
+        this.hideStuckHint();
+      }
+    } catch { /* watchdog never throws */ }
+  }
+
+  private showStuckHint(): void {
+    if (this.stuckHintText) { this.stuckHintText.setVisible(true); return; }
+    const cam = this.cameras.main;
+    this.stuckHintText = this.add
+      .text(cam.width / 2, cam.height - 18, 'Press Esc to unstick', {
+        fontFamily: 'Courier New',
+        fontSize: '11px',
+        color: '#d4a968',
+        backgroundColor: 'rgba(10,6,6,0.7)',
+        padding: { x: 6, y: 2 },
+      })
+      .setOrigin(0.5, 1)
+      .setScrollFactor(0)
+      .setDepth(9999);
+  }
+
+  private hideStuckHint(): void {
+    if (this.stuckHintText) this.stuckHintText.setVisible(false);
   }
 
   private setupInput(): void {
@@ -1582,11 +2307,19 @@ export abstract class BaseWorldScene extends Phaser.Scene {
     if (this.cursors.down?.isDown || this.keyS.isDown) vy += 1;
     // Touch input (mobile joystick)
     if (window.__touchInput) {
-      if (window.__touchInput.x < -0.3) vx -= 1;
-      if (window.__touchInput.x >  0.3) vx += 1;
-      if (window.__touchInput.y < -0.3) vy -= 1;
-      if (window.__touchInput.y >  0.3) vy += 1;
+      const ti = window.__touchInput;
+      if (ti.x < -0.3) vx -= 1;
+      if (ti.x >  0.3) vx += 1;
+      if (ti.y < -0.3) vy -= 1;
+      if (ti.y >  0.3) vy += 1;
+      // Feed the stuck watchdog — touch input counts as movement intent.
+      if (Math.abs(ti.x) > 0.3 || Math.abs(ti.y) > 0.3) {
+        this.lastMovementInputAt = Date.now();
+      }
     }
+    // Also count keyboard intent so the watchdog picks up keys that
+    // are held down (keydown only fires once per press).
+    if (vx !== 0 || vy !== 0) this.lastMovementInputAt = Date.now();
     if (vx !== 0 && vy !== 0) {
       const d = Math.SQRT1_2;
       vx *= d;

@@ -30,6 +30,9 @@ export class DrownedSanctumF2Scene extends BaseWorldScene {
 
   protected layout(): void {
     generateTileset(this);
+    // Deepest point of the sanctum — the whole chamber is submerged.
+    // Adds rising bubble particles + a subtle blue tint overlay.
+    this.setUnderwater(true);
 
     const map = this.make.tilemap({
       data: buildMapData(),
@@ -141,27 +144,27 @@ export class DrownedSanctumF2Scene extends BaseWorldScene {
       gold: 60,
     });
 
-    // ── Water Charm — golden chest near the altar ──
+    // ── Water Charm — blue/teal-trimmed chest near the altar ──
     if (!useDungeonItemStore.getState().has('water_charm')) {
       const wcX = 11 * TILE + TILE / 2;
       const wcY = 14 * TILE + TILE / 2;
-      const wcChest = this.add.rectangle(wcX, wcY, 28, 24, 0x8a6830);
-      wcChest.setStrokeStyle(2, 0xe0c040);
+      const wcChest = this.add.rectangle(wcX, wcY, 28, 24, 0x2a5878);
+      wcChest.setStrokeStyle(2, 0x7fd8e8);
       wcChest.setDepth(8);
-      // Gold clasp
-      const wcClasp = this.add.rectangle(wcX, wcY - 4, 8, 8, 0xe0c040);
+      // Teal clasp
+      const wcClasp = this.add.rectangle(wcX, wcY - 4, 8, 8, 0x7fd8e8);
       wcClasp.setDepth(9);
-      // Pulsing glow
-      const wcGlow = this.add.circle(wcX, wcY, 22, 0xe0c040, 0.1);
+      // Pulsing cyan glow — pearl inside the chest
+      const wcGlow = this.add.circle(wcX, wcY, 22, 0x7fd8e8, 0.14);
       wcGlow.setDepth(7);
-      this.tweens.add({ targets: wcGlow, alpha: 0.2, scale: 1.3, duration: 1500, yoyo: true, repeat: -1 });
+      this.tweens.add({ targets: wcGlow, alpha: 0.28, scale: 1.3, duration: 1500, yoyo: true, repeat: -1 });
 
       this.spawnInteractable({
-        sprite: wcChest as any, label: 'Open golden chest', radius: 24,
+        sprite: wcChest as any, label: 'Open tidal chest', radius: 24,
         action: () => {
           useDungeonItemStore.getState().acquire('water_charm');
           window.dispatchEvent(new CustomEvent('gameMessage', {
-            detail: 'Water Charm acquired! Shallow water paths are now passable.',
+            detail: 'You found the WATER CHARM! Equip the charm to wade through shallow water. Submerged paths will open.',
           }));
           wcChest.destroy();
           wcClasp.destroy();

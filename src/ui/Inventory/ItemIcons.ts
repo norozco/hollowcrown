@@ -80,6 +80,8 @@ function drawIcon(c: Ctx, key: string): void {
     case 'wolf_pelt': drawPelt(c, '#686868', '#888888', '#a0a0a0', '#505050'); break;
     case 'bone_shard': drawBone(c, '#c8c0a8', '#e0d8c0', '#f0e8d8', '#a8a088'); break;
     case 'iron_ore': drawOre(c, '#505860', '#687078', '#808890', '#384048'); break;
+    case 'silver_ore': drawOre(c, '#707880', '#a0a8b0', '#d8e0e8', '#484850'); break;
+    case 'gold_ore': drawOre(c, '#8a6018', '#c89028', '#f0c040', '#503010'); break;
     case 'moonpetal': drawFlower(c, '#d0c0e0', '#e8d8f0', '#f8f0ff', '#9060b0'); break;
     case 'shadow_essence': drawOrb(c, '#402060', '#6030a0', '#9050d0', '#b080f0'); break;
     case 'spider_silk': drawSilk(c); break;

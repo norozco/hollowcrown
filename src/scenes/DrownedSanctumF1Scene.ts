@@ -210,6 +210,20 @@ export class DrownedSanctumF1Scene extends BaseWorldScene {
       gold: 20, spawnChance: 0.2,
     });
 
+    // ── Flooded corridor (Water Charm shortcut to Floor 2) ──
+    // Wading across this pool skips several tiles of the main walkway,
+    // landing the player next to the "Deeper" exit with a fresh chest.
+    this.spawnShallowWater({ x: 14 * TILE, y: 14 * TILE, w: 4 * TILE, h: 3 * TILE });
+    this.spawnChest({
+      x: 19 * TILE + TILE / 2, y: 15 * TILE + TILE / 2,
+      loot: [
+        { itemKey: 'health_potion', qty: 2 },
+        { itemKey: 'mana_potion', qty: 2 },
+        { itemKey: 'shadow_essence' },
+      ],
+      gold: 25,
+    });
+
     // ── Heart piece #7 — in a flooded alcove (west side, needs exploration) ──
     this.spawnHeartPiece(6 * TILE + TILE / 2, 10 * TILE);
 

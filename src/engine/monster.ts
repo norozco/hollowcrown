@@ -31,6 +31,8 @@ export interface Monster {
   weakness?: string;
   /** Element the monster resists (takes 0.5x damage). */
   resistance?: string;
+  /** Flees or takes damage when within a lit Lantern's radius. */
+  lightVulnerable?: boolean;
   /** Optional special ability. */
   special?: {
     name: string;
@@ -502,6 +504,28 @@ const MONSTERS: Record<string, Monster> = {
     element: 'shadow',
     resistance: 'shadow',
     special: { name: 'Erasure', chance: 0.25, damageMult: 3.0, text: '{name} does not attack. Part of you simply ceases.' },
+  },
+  shade: {
+    key: 'shade',
+    name: 'Shade',
+    maxHp: 14,
+    ac: 12,
+    attackBonus: 3,
+    baseDamage: 5,
+    speed: 4,
+    xpReward: 60,
+    goldReward: 10,
+    description: 'A smear of darkness with hungry eyes. It only moves when unseen — and it does not love the light.',
+    color: '#20102a',
+    element: 'shadow',
+    weakness: 'fire',
+    resistance: 'shadow',
+    lightVulnerable: true,
+    loot: [
+      { itemKey: 'shadow_essence', chance: 0.5 },
+      { itemKey: 'mana_potion', chance: 0.2 },
+    ],
+    special: { name: 'Creep', chance: 0.2, damageMult: 1.3, text: '{name} slips out of the dark and bites.' },
   },
 };
 

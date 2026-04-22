@@ -54,10 +54,12 @@ export const TILE = {
   FLOOR_PLANK_V: 95, FLOOR_PLANK_H: 96,
   CARPET_RED: 97, CARPET_BLUE: 98, CARPET_EDGE: 99,
   TABLE_SMALL: 100, BENCH: 101, CHAIR_WOOD: 102,
+  // Wadeable water — passable only with the Water Charm dungeon item.
+  SHALLOW_WATER: 103,
 } as const;
 
 export const TILE_SIZE = 32;
-const TILE_COUNT = 103;
+const TILE_COUNT = 104;
 const S = TILE_SIZE;
 
 export function generateTileset(scene: Phaser.Scene): void {
@@ -74,6 +76,7 @@ export function generateTileset(scene: Phaser.Scene): void {
   drawRoofEdge(ctx, 9); drawShadow(ctx, 10); drawBush(ctx, 11);
   drawFence(ctx, 12); drawPathEdge(ctx, 13); drawWell(ctx, 14);
   drawWater(ctx, 15);
+  drawShallowWater(ctx, 103);
   // Furniture
   drawBookshelf(ctx, 16); drawCounter(ctx, 17); drawBedHead(ctx, 18);
   drawBedFoot(ctx, 19); drawTable(ctx, 20); drawChair(ctx, 21);
@@ -912,6 +915,58 @@ function drawWater(c: Ctx, i: number) {
 
   // === DEPTH SHADOWS (1-2 single dark pixels) ===
   px(c,i,24,28,'#285068'); px(c,i,4,18,'#285068');
+}
+
+// ───────────────────────────────────────────────────────────────
+// SHALLOW WATER — Water Charm passable, ankle-deep wading tile.
+// Lighter and more translucent than TILE.WATER; two horizontal
+// ripple lines suggest the player would be walking through it.
+// ───────────────────────────────────────────────────────────────
+function drawShallowWater(c: Ctx, i: number) {
+  // Base fill — light teal/cyan.
+  fill(c, i, '#4da0c0');
+
+  // Subtle mottled variation so the tile reads as water, not flat paint.
+  blk(c,i, 2, 4, 6, 3, '#4498b8');
+  blk(c,i,18, 6, 6, 3, '#4498b8');
+  blk(c,i, 6,18, 7, 3, '#4498b8');
+  blk(c,i,22,22, 6, 3, '#4498b8');
+  blk(c,i,10,26, 5, 2, '#4498b8');
+
+  // Highlight speckle (reflected sky).
+  blk(c,i, 4, 2, 3, 1, '#6ecae0');
+  blk(c,i,20, 3, 3, 1, '#6ecae0');
+  blk(c,i,12,14, 3, 1, '#6ecae0');
+  blk(c,i,26,16, 3, 1, '#6ecae0');
+  blk(c,i, 6,24, 3, 1, '#6ecae0');
+
+  // Two horizontal wave ripple bands (wrap across tile so it tiles).
+  // Upper band — dashed line at y=10.
+  for (const x of [0, 1, 4, 5, 6, 10, 11, 14, 15, 20, 21, 22, 26, 27, 30, 31]) {
+    px(c, i, x, 10, '#7fd8e8');
+  }
+  // Shadow below upper band for a bit of depth.
+  for (const x of [1, 5, 11, 15, 21, 27]) {
+    px(c, i, x, 11, '#3a85a0');
+  }
+
+  // Lower band — dashed line at y=21.
+  for (const x of [2, 3, 7, 8, 12, 13, 17, 18, 19, 23, 24, 28, 29]) {
+    px(c, i, x, 21, '#7fd8e8');
+  }
+  for (const x of [3, 8, 13, 18, 24, 29]) {
+    px(c, i, x, 22, '#3a85a0');
+  }
+
+  // Edge hint — faint semi-transparent border so adjacent tiles read
+  // as a water boundary.
+  blk(c, i, 0, 0, S, 1, '#6ecae0');
+  blk(c, i, 0, S - 1, S, 1, '#3a85a0');
+
+  // Small sparkle highlights (fewer than deep water — flatter look).
+  px(c, i, 8, 6, '#b0f0ff');
+  px(c, i, 24, 14, '#b0f0ff');
+  px(c, i, 14, 28, '#b0f0ff');
 }
 
 // ═══════════════════════════════════════════════════════════════

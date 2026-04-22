@@ -227,6 +227,45 @@ export const Sfx = {
   },
   /** Echo Stone on cooldown — short negative blip. */
   echoDenied: () => playSfx({ freq: 200, endFreq: 100, type: 'triangle', duration: 0.1, volume: 0.12 }),
+  /** Water Charm — splash when first stepping into shallow water. */
+  waterStep: () => {
+    playSfx({ freq: 220, endFreq: 110, type: 'sine', duration: 0.14, volume: 0.12, noise: 0.55 });
+    playSfx({ freq: 440, endFreq: 330, type: 'triangle', duration: 0.1, volume: 0.06, noise: 0.25, delay: 0.02 });
+  },
+  /** Key-item cycle / Water Charm activate — low tone + watery shimmer. */
+  charmActivate: () => {
+    playSfx({ freq: 180, endFreq: 320, type: 'sine', duration: 0.18, volume: 0.18 });
+    playSfx({ freq: 880, endFreq: 1320, type: 'triangle', duration: 0.22, volume: 0.1, noise: 0.2, delay: 0.04 });
+    playSfx({ freq: 1760, type: 'sine', duration: 0.14, volume: 0.06, delay: 0.14 });
+  },
+  /** Lantern ignite — warm whoosh with fire crackle. */
+  lanternLight: () => {
+    playSfx({ freq: 140, endFreq: 320, type: 'sine', duration: 0.35, volume: 0.22, noise: 0.45 });
+    playSfx({ freq: 880, type: 'triangle', duration: 0.18, volume: 0.12, delay: 0.05 });
+  },
+  /** Lantern extinguish — soft puff. */
+  lanternExtinguish: () => playSfx({ freq: 420, endFreq: 120, type: 'sine', duration: 0.2, volume: 0.15, noise: 0.3 }),
+  /** Torch ignite — short crackle. */
+  torchLight: () => {
+    playSfx({ freq: 180, endFreq: 360, type: 'sine', duration: 0.18, volume: 0.18, noise: 0.4 });
+    playSfx({ freq: 1100, type: 'triangle', duration: 0.12, volume: 0.1, delay: 0.03 });
+  },
+  /** Pickaxe strike on stone — noisy chip + short metallic ting. */
+  mineHit: () => {
+    playSfx({ freq: 220, endFreq: 110, type: 'square', duration: 0.05, volume: 0.2, noise: 0.55 });
+    playSfx({ freq: 1760, endFreq: 1320, type: 'triangle', duration: 0.08, volume: 0.1, delay: 0.02 });
+  },
+  /** Ore / boulder shatters — gravel fall + small crash. */
+  oreShatter: () => {
+    playSfx({ freq: 140, endFreq: 60, type: 'sawtooth', duration: 0.35, volume: 0.3, noise: 0.7 });
+    playSfx({ freq: 440, endFreq: 180, type: 'triangle', duration: 0.4, volume: 0.18, delay: 0.04 });
+    playSfx({ freq: 1200, endFreq: 420, type: 'square', duration: 0.25, volume: 0.12, delay: 0.1 });
+  },
+  /** Pickaxe equipped — short metallic clink. */
+  pickaxeEquip: () => {
+    playSfx({ freq: 660, endFreq: 990, type: 'square', duration: 0.08, volume: 0.18 });
+    playSfx({ freq: 1320, type: 'triangle', duration: 0.1, volume: 0.12, delay: 0.05 });
+  },
   /** Coin / gold sound. */
   coin: () => {
     playSfx({ freq: 1320, type: 'square', duration: 0.05, volume: 0.18 });

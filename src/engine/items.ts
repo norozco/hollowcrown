@@ -138,6 +138,16 @@ const ITEMS: Record<string, Item> = {
     buyPrice: 15, description: 'Heavy, dark metal. The smithy knows what to do with it.',
     stackable: true,
   },
+  silver_ore: {
+    key: 'silver_ore', name: 'Silver Ore', type: 'material', rarity: 'uncommon',
+    buyPrice: 50, description: 'Bright veins in grey stone. Cold to the touch, even in sun.',
+    stackable: true,
+  },
+  gold_ore: {
+    key: 'gold_ore', name: 'Gold Ore', type: 'material', rarity: 'rare',
+    buyPrice: 150, description: 'A king\'s ransom still trapped in rough stone. Heavy as a promise.',
+    stackable: true,
+  },
   moonpetal: {
     key: 'moonpetal', name: 'Moonpetal', type: 'material', rarity: 'uncommon',
     buyPrice: 25, description: 'A pale flower that only opens at dusk. Alchemists pay well.',

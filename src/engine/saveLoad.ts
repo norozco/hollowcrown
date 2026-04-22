@@ -14,6 +14,7 @@ import { useCommissionStore } from '../state/commissionStore';
 import { useTimeStore, type TimePhase } from '../state/timeStore';
 import { useLoreStore } from '../state/loreStore';
 import { useDungeonItemStore } from '../state/dungeonItemStore';
+import { useWorldStateStore } from '../state/worldStateStore';
 import type { CharacterInit, Gender } from './character';
 import type { QuestState } from './quest';
 import type { LoreEntry } from '../state/loreStore';
@@ -59,6 +60,10 @@ interface SaveData {
   dungeonItems?: string[];
   /** Active (equipped) key-item slot (added post-v1, optional for compat). */
   activeDungeonItem?: string | null;
+  /** Whether the Lantern is currently lit (added post-v1, optional for compat). */
+  lanternLit?: boolean;
+  /** Lit torches + mined objects, keyed by scene (added post-v1, optional for compat). */
+  worldState?: { litTorches?: string[]; minedObjects?: string[] };
   /** Lore entries discovered (added post-v1, optional for compat). */
   lore?: LoreEntry[];
   /** Commission state (added post-v1, optional for compat). */
@@ -139,6 +144,11 @@ export function saveGame(slot: string, currentScene = 'TownScene'): boolean {
     },
     dungeonItems: Array.from(dungeonItemState.found),
     activeDungeonItem: playerState.activeDungeonItem ?? null,
+    lanternLit: playerState.lanternLit ?? false,
+    worldState: {
+      litTorches: useWorldStateStore.getState().serialize(),
+      minedObjects: useWorldStateStore.getState().serializeMined(),
+    },
     lore: loreState.entries,
     commissions: {
       commissions: commissionState.commissions,
@@ -273,6 +283,10 @@ export function loadGame(slot: string): boolean {
     if (data.activeDungeonItem !== undefined) {
       usePlayerStore.setState({ activeDungeonItem: data.activeDungeonItem });
     }
+    if (typeof data.lanternLit === 'boolean') {
+      usePlayerStore.setState({ lanternLit: data.lanternLit });
+    }
+    useWorldStateStore.getState().loadFrom(data.worldState?.litTorches ?? [], data.worldState?.minedObjects ?? []);
 
     // Restore play time
     if (typeof data.playTimeMs === 'number') {

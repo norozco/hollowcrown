@@ -18,6 +18,7 @@ import { CookingScreen } from './Cooking/CookingScreen';
 import { LevelUpPopup } from './LevelUp/LevelUpPopup';
 import { getPerkHpBonus, getPerkMpBonus } from '../engine/perks';
 import { useDungeonItemStore } from '../state/dungeonItemStore';
+import { useWorldStateStore } from '../state/worldStateStore';
 import { DUNGEON_ITEMS } from '../engine/dungeonItems';
 import { getHeartPieceHpBonus } from '../state/playerStore';
 import { QuestBoard } from './QuestBoard/QuestBoard';
@@ -172,6 +173,7 @@ export function InGameOverlay() {
   const keyItemCooldownRef = useRef<number>(0);
   const [keyItemCooldownPct, setKeyItemCooldownPct] = useState(0);
   const activeDungeonItem = usePlayerStore((s) => s.activeDungeonItem);
+  const lanternLit = usePlayerStore((s) => s.lanternLit);
 
   const useKeyItem = () => {
     const now = performance.now();
@@ -193,11 +195,38 @@ export function InGameOverlay() {
       }));
       // 4 second cooldown.
       keyItemCooldownRef.current = now + 4000;
+    } else if (key === 'lantern') {
+      // Toggle the lantern ON/OFF. No cooldown, no resource cost.
+      const lit = !player.lanternLit;
+      player.setLanternLit(lit);
+      if (lit) Sfx.lanternLight(); else Sfx.lanternExtinguish();
+      window.dispatchEvent(new CustomEvent('lanternToggle', { detail: { lit } }));
+    } else if (key === 'water_charm') {
+      // Passive item — pressing R just re-affirms the charm is humming.
+      Sfx.charmActivate();
+      keyItemCooldownRef.current = now + 800;
+      window.dispatchEvent(new CustomEvent('gameMessage', {
+        detail: 'The Water Charm hums. Shallow water parts at your step.',
+      }));
     } else {
       // Other key items don't have an active-press behavior yet; brief lockout.
       keyItemCooldownRef.current = now + 1500;
       Sfx.menuClick();
     }
+  };
+
+  /** Cycle to the next owned dungeon key-item. */
+  const cycleKeyItem = () => {
+    const owned = Array.from(useDungeonItemStore.getState().found);
+    if (owned.length === 0) { Sfx.echoDenied(); return; }
+    const current = usePlayerStore.getState().activeDungeonItem;
+    const idx = current ? owned.indexOf(current) : -1;
+    const next = owned[(idx + 1) % owned.length];
+    usePlayerStore.getState().setActiveDungeonItem(next);
+    if (next === 'water_charm') Sfx.charmActivate();
+    else Sfx.menuClick();
+    const name = DUNGEON_ITEMS[next]?.name ?? next;
+    window.dispatchEvent(new CustomEvent('gameMessage', { detail: `Equipped: ${name}` }));
   };
 
   // Tick cooldown radial (60 Hz via a timer).
@@ -627,7 +656,8 @@ export function InGameOverlay() {
       }
       if (matchesKey(e.key, 'keyItem')) {
         e.preventDefault();
-        useKeyItem();
+        if (e.shiftKey) cycleKeyItem();
+        else useKeyItem();
         return;
       }
       if (matchesKey(e.key, 'marker')) {
@@ -676,6 +706,7 @@ export function InGameOverlay() {
     resetTime();
     useCommissionStore.getState().reset();
     useDungeonItemStore.getState().reset();
+    useWorldStateStore.getState().reset();
     setMenuOpen(false);
     setScreen('menu');
   };
@@ -819,11 +850,15 @@ export function InGameOverlay() {
       {activeDungeonItem && DUNGEON_ITEMS[activeDungeonItem] && (
         <div
           className="ig__keyitem-slot"
-          title={`${DUNGEON_ITEMS[activeDungeonItem].name} (press ${getKey('keyItem').toUpperCase()})`}
+          title={`${DUNGEON_ITEMS[activeDungeonItem].name} — press ${getKey('keyItem').toUpperCase()} to use, Shift+${getKey('keyItem').toUpperCase()} to swap`}
           style={{
             position: 'fixed', top: 78, right: 10,
             width: 48, height: 48,
-            background: 'rgba(10,6,6,0.75)',
+            background: activeDungeonItem === 'lantern' && lanternLit
+              ? 'radial-gradient(circle, rgba(220,140,40,0.55) 0%, rgba(40,20,10,0.85) 100%)'
+              : 'rgba(10,6,6,0.75)',
+            boxShadow: activeDungeonItem === 'lantern' && lanternLit
+              ? '0 0 14px rgba(240,170,60,0.55)' : 'none',
             border: '2px solid #d4a968',
             borderRadius: 6,
             display: 'flex', alignItems: 'center', justifyContent: 'center',

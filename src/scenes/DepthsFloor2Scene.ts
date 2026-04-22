@@ -1,6 +1,7 @@
 import * as Phaser from 'phaser';
 import { useInventoryStore } from '../state/inventoryStore';
 import { useLoreStore } from '../state/loreStore';
+import { useDungeonItemStore } from '../state/dungeonItemStore';
 import { BaseWorldScene, TILE, WORLD_W, WORLD_H } from './BaseWorldScene';
 import { generateTileset, TILE as T, TILE_SIZE } from './tiles/generateTiles';
 
@@ -283,6 +284,28 @@ export class DepthsFloor2Scene extends BaseWorldScene {
       gold: 15, spawnChance: 0.2,
     });
 
+    // ── Torch puzzle — light all 3 to spawn a reward chest ──
+    this.spawnTorch({ id: 'f2-torch-a', x: 6 * TILE, y: 10 * TILE });
+    this.spawnTorch({ id: 'f2-torch-b', x: 14 * TILE, y: 10 * TILE });
+    this.spawnTorch({ id: 'f2-torch-c', x: 10 * TILE, y: 6 * TILE });
+    this.registerTorchPuzzle(
+      ['f2-torch-a', 'f2-torch-b', 'f2-torch-c'],
+      () => {
+        window.dispatchEvent(new CustomEvent('gameMessage', {
+          detail: 'The three flames join. Stone grinds, and a hidden cache opens.',
+        }));
+        this.spawnChest({
+          x: 10 * TILE, y: 10 * TILE,
+          loot: [{ itemKey: 'mana_potion', qty: 2 }, { itemKey: 'shadow_essence', qty: 2 }],
+          gold: 40,
+        });
+      },
+    );
+
+    // ── Shade encounters (lightVulnerable — the Lantern hurts them) ──
+    this.spawnEnemy({ monsterKey: 'shade', x: 7 * TILE, y: 8 * TILE });
+    this.spawnEnemy({ monsterKey: 'shade', x: 13 * TILE, y: 14 * TILE });
+
     // ── Breakable wall (south chamber west side) → hidden shadow_essence x3 ──
     this.spawnBreakableWall({
       x: 4 * TILE, y: 15 * TILE, w: TILE, h: TILE * 2,
@@ -291,6 +314,47 @@ export class DepthsFloor2Scene extends BaseWorldScene {
         window.dispatchEvent(new CustomEvent('gameMessage', { detail: 'Found shadow essence x3!' }));
       },
     });
+
+    // ── Silver ore veins (F2 is deeper — uncommon drops) ──
+    this.spawnOreVein({ x: 14 * TILE + TILE / 2, y: 2 * TILE + TILE / 2, oreType: 'silver' });
+    this.spawnOreVein({ x: 5 * TILE + TILE / 2, y: 17 * TILE + TILE / 2, oreType: 'silver' });
+
+    // ── Cracked wall (alt to hollow walls — always visible, needs pickaxe) ──
+    // Hides a small loot cache in the south chamber.
+    this.spawnCrackedWall({
+      x: 15 * TILE, y: 16 * TILE, w: TILE, h: TILE,
+      onBreak: () => {
+        this.spawnChest({
+          x: 16 * TILE + TILE / 2, y: 16 * TILE + TILE / 2,
+          loot: [{ itemKey: 'wraith_dust', qty: 2 }, { itemKey: 'mana_potion', qty: 1 }],
+          gold: 25,
+        });
+      },
+    });
+
+    // ── Pickaxe chest — drops after the Wraith Captain (a wraith enemy
+    //    killed on this floor). The 2nd dungeon floor's reward: the
+    //    Miner's Pickaxe, with grey-silver trim to distinguish it from
+    //    the Echo Stone's cyan chest.
+    if (!useDungeonItemStore.getState().has('pickaxe')) {
+      const pickChest = this.add.rectangle(14 * TILE, 17 * TILE + TILE / 2, 28, 22, 0x585c68);
+      pickChest.setStrokeStyle(2, 0xc0c8d0);
+      pickChest.setDepth(8);
+      // Silver shimmer aura
+      this.add.circle(14 * TILE, 17 * TILE + TILE / 2, 20, 0xd0d8e0, 0.1).setDepth(7);
+      this.tweens.add({ targets: pickChest, scale: 1.06, duration: 900, yoyo: true, repeat: -1 });
+
+      this.spawnInteractable({
+        sprite: pickChest as any, label: 'Open grey-silver chest', radius: 28,
+        action: () => {
+          useDungeonItemStore.getState().acquire('pickaxe');
+          window.dispatchEvent(new CustomEvent('gameMessage', {
+            detail: 'You found the PICKAXE! Press R near cracked rock or ore to mine. Hidden paths await in the stone.',
+          }));
+          pickChest.destroy();
+        },
+      });
+    }
   }
 
   protected spawnAt(name: string): { x: number; y: number } {
