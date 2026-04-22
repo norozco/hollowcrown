@@ -236,38 +236,56 @@ export class DepthsFloor3Scene extends BaseWorldScene {
     useQuestStore.getState().completeObjective('depths-explorer', 'reach-floor-3');
 
     // ── Victory chest: spawns at the throne if the Hollow King has been defeated ──
+    // DEFER these spawns by ~600ms so that when the player returns from the
+    // boss fight via combat_return, their physics body doesn't land on top
+    // of the chest interactable (which caused the "stuck and glitched"
+    // sensation — the player spawned inside the throne-adjacent interact
+    // radius and could not move/act correctly).
     const killed = useCombatStore.getState().killedEnemies;
     const bossKilled = Array.from(killed).some(id => id.includes('hollow_king'));
+    console.log('[DepthsFloor3] layout', { bossKilled, killedCount: killed.size, hasEcho: useDungeonItemStore.getState().has('echo_stone') });
     if (bossKilled) {
-      this.spawnChest({
-        x: 15 * TILE, y: 15 * TILE,  // in front of the throne
-        loot: [
-          { itemKey: 'kings_crown', qty: 1 },
-          { itemKey: 'health_potion', qty: 3 },
-          { itemKey: 'mana_potion', qty: 2 },
-          { itemKey: 'shadow_essence', qty: 2 },
-          { itemKey: 'shadow_cloak' },
-        ],
-        gold: 100,
+      this.time.delayedCall(600, () => {
+        try {
+          this.spawnChest({
+            x: 15 * TILE, y: 15 * TILE,  // in front of the throne
+            loot: [
+              { itemKey: 'kings_crown', qty: 1 },
+              { itemKey: 'health_potion', qty: 3 },
+              { itemKey: 'mana_potion', qty: 2 },
+              { itemKey: 'shadow_essence', qty: 2 },
+              { itemKey: 'shadow_cloak' },
+            ],
+            gold: 100,
+          });
+        } catch (err) { console.warn('[DepthsFloor3] victory chest spawn failed', err); }
       });
     }
 
     // ── Echo Stone chest: dropped by the Hollow King on first victory ──
+    // Guard against double-spawn (if somehow acquire was already called)
+    // and defer for the same reason as the victory chest.
     if (bossKilled && !useDungeonItemStore.getState().has('echo_stone')) {
-      const esChest = this.add.rectangle(15 * TILE, 16.5 * TILE, 28, 22, 0x3a4a6a);
-      esChest.setStrokeStyle(2, 0x7fe6ff);
-      esChest.setDepth(8);
-      this.add.circle(15 * TILE, 16.5 * TILE, 22, 0x7fe6ff, 0.12).setDepth(7);
-      this.tweens.add({ targets: esChest, scale: 1.08, duration: 900, yoyo: true, repeat: -1 });
-      this.spawnInteractable({
-        sprite: esChest as any, label: 'Open resonant chest', radius: 28,
-        action: () => {
-          useDungeonItemStore.getState().acquire('echo_stone');
-          window.dispatchEvent(new CustomEvent('gameMessage', {
-            detail: 'You found the ECHO STONE! Press R to emit a resonant pulse \u2014 hidden walls and unseen foes will reveal themselves.',
-          }));
-          esChest.destroy();
-        },
+      this.time.delayedCall(600, () => {
+        try {
+          // Re-check — player might have obtained it via another path.
+          if (useDungeonItemStore.getState().has('echo_stone')) return;
+          const esChest = this.add.rectangle(15 * TILE, 16.5 * TILE, 28, 22, 0x3a4a6a);
+          esChest.setStrokeStyle(2, 0x7fe6ff);
+          esChest.setDepth(8);
+          this.add.circle(15 * TILE, 16.5 * TILE, 22, 0x7fe6ff, 0.12).setDepth(7);
+          this.tweens.add({ targets: esChest, scale: 1.08, duration: 900, yoyo: true, repeat: -1 });
+          this.spawnInteractable({
+            sprite: esChest as any, label: 'Open resonant chest', radius: 28,
+            action: () => {
+              useDungeonItemStore.getState().acquire('echo_stone');
+              window.dispatchEvent(new CustomEvent('gameMessage', {
+                detail: 'You found the ECHO STONE! Press R to emit a resonant pulse \u2014 hidden walls and unseen foes will reveal themselves.',
+              }));
+              esChest.destroy();
+            },
+          });
+        } catch (err) { console.warn('[DepthsFloor3] echo stone chest spawn failed', err); }
       });
     }
 

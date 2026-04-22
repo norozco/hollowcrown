@@ -319,12 +319,18 @@ export function InGameOverlay() {
   }, []);
 
   // Pause when any overlay is open or window loses focus.
+  // NOTE: pendingPerkChoices is read via a ref-like selector below so the
+  // pause effect re-runs when LevelUpPopup becomes active — otherwise the
+  // world scene keeps running under a fullscreen perk modal and the player
+  // can walk blind + interact with chests they can't see (classic post-boss
+  // "stuck" bug).
+  const pendingPerkChoices = usePlayerStore((s) => s.pendingPerkChoices);
   useEffect(() => {
     const anyOverlayOpen =
       menuOpen || inventoryOpen || shopOpen || craftingOpen || cookingOpen ||
       questBoardOpen || optionsOpen || achievementsOpen || worldMapOpen ||
       bestiaryOpen || journalOpen || statScreenOpen || fastTravelOpen ||
-      dungeonMapOpen;
+      dungeonMapOpen || !!pendingPerkChoices;
     useGameStatsStore.getState().setPaused(anyOverlayOpen);
 
     // Pause/resume Phaser world scenes so enemies/timers freeze too.
@@ -360,7 +366,7 @@ export function InGameOverlay() {
     }
   }, [menuOpen, inventoryOpen, shopOpen, craftingOpen, cookingOpen, questBoardOpen,
       optionsOpen, achievementsOpen, worldMapOpen, bestiaryOpen,
-      journalOpen, statScreenOpen, fastTravelOpen, dungeonMapOpen]);
+      journalOpen, statScreenOpen, fastTravelOpen, dungeonMapOpen, pendingPerkChoices]);
 
   // Gold milestone banner listener.
   useEffect(() => {

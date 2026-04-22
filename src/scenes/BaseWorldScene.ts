@@ -333,7 +333,15 @@ export abstract class BaseWorldScene extends Phaser.Scene {
         const push = TILE * 2;
         spawn = { x: savedX + (dx / len) * push, y: savedY + (dy / len) * push };
       } else {
-        spawn = { x: savedX, y: savedY };
+        // No nearby enemy (e.g. boss kill — boss no longer respawns). Nudge
+        // the player up one tile so they don't spawn directly on top of any
+        // post-victory loot chests or decor placed at the former enemy spot.
+        // Previously this case left the player pinned to savedY exactly,
+        // which in the Hollow Throne caused the "stuck and glitched" bug
+        // — the player body landed inside the throne-adjacent chest
+        // interact radius right as a fullscreen LevelUpPopup covered the
+        // screen.
+        spawn = { x: savedX, y: Math.max(TILE, savedY - TILE) };
       }
       // Clamp to world bounds (stay a tile away from the edge walls).
       spawn.x = Math.max(TILE, Math.min(WORLD_W - TILE, spawn.x));

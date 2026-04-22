@@ -77,12 +77,35 @@ export class DuskmereScene extends BaseWorldScene {
       color: 0x4a3a20, label: "Dockmaster's Office",
       doorSide: 'bottom', visual: false,
     });
+    this.drawBuildingSilhouette(3, 4, 5, 4, 0x5a4228, 0x3a2810);
+    this.addExit({
+      x: 5 * TILE, y: 7 * TILE, w: 2 * TILE, h: TILE,
+      targetScene: 'InteriorScene', targetSpawn: 'dockmaster',
+    });
 
     // Lakeshore Inn (medium, south-west)
     this.addBuilding({
       xTile: 2, yTile: 12, wTile: 6, hTile: 5,
       color: 0x3a2a18, label: 'Lakeshore Inn',
       doorSide: 'right', visual: false,
+    });
+    this.drawBuildingSilhouette(2, 12, 6, 5, 0x4a3220, 0x2a1810);
+    // Inn door was on the right at tile (7, 14) — exit placed there.
+    this.addExit({
+      x: 8 * TILE, y: 14 * TILE, w: TILE, h: TILE,
+      targetScene: 'InteriorScene', targetSpawn: 'duskmere_inn',
+    });
+
+    // Fisher's Cabin (new — small hut near the south path)
+    this.addBuilding({
+      xTile: 10, yTile: 17, wTile: 4, hTile: 3,
+      color: 0x4a3420, label: "Fisher's Cabin",
+      doorSide: 'top', visual: false,
+    });
+    this.drawBuildingSilhouette(10, 17, 4, 3, 0x5a3a20, 0x2a1810);
+    this.addExit({
+      x: 11 * TILE, y: 16 * TILE, w: 2 * TILE, h: TILE,
+      targetScene: 'InteriorScene', targetSpawn: 'fisher_cabin',
     });
 
     // Fishmonger's Stall (open-air counter near docks)
@@ -115,6 +138,61 @@ export class DuskmereScene extends BaseWorldScene {
     this.spawnNpc({
       key: 'nessa', dialogueId: 'nessa-greeting',
       x: 5 * TILE + TILE / 2, y: 9 * TILE,
+    });
+
+    // ── Stew Pot (behind Nessa) ──
+    // Exchanges one fish for either a hot meal buff item or gold.
+    const potX = 6 * TILE + TILE / 2;
+    const potY = 9 * TILE + 8;
+    const pot = this.add.ellipse(potX, potY, 22, 14, 0x2a1a12);
+    pot.setStrokeStyle(2, 0x1a0e08);
+    pot.setDepth(6);
+    this.add.ellipse(potX, potY - 4, 18, 6, 0x8a5a30, 0.8).setDepth(7); // broth
+    // Steam wisps
+    this.time.addEvent({
+      delay: 900, loop: true, callback: () => {
+        const s = this.add.circle(potX + Phaser.Math.Between(-4, 4), potY - 8, 2, 0xd0d0d0, 0.4);
+        s.setDepth(8);
+        this.tweens.add({
+          targets: s, y: s.y - 28, alpha: 0, scale: 2, duration: 1800,
+          onComplete: () => s.destroy(),
+        });
+      },
+    });
+    this.add.text(potX, potY - 22, 'Stew Pot', {
+      fontFamily: 'Courier New', fontSize: '10px', color: '#d4a968',
+      backgroundColor: 'rgba(10,6,6,0.7)', padding: { x: 4, y: 2 },
+    }).setOrigin(0.5).setDepth(11);
+    this.spawnInteractable({
+      sprite: pot as any, label: 'Drop fish in the stew pot', radius: 24,
+      action: () => {
+        const inv = useInventoryStore.getState();
+        // Accept any of the caught fish types. First match wins.
+        const fishKeys = ['grilled_pike', 'smoked_eel', 'golden_carp'];
+        const held = fishKeys.find(k => inv.hasItem(k, 1));
+        if (!held) {
+          window.dispatchEvent(new CustomEvent('gameMessage', {
+            detail: 'The pot bubbles. You have no fish to offer.',
+          }));
+          return;
+        }
+        inv.removeItem(held, 1);
+        // Golden carp rewards more gold; others give a meal + small gold.
+        const ps = usePlayerStore.getState();
+        const ch = ps.character;
+        if (held === 'golden_carp') {
+          if (ch) { ch.addGold(40); ps.notify(); }
+          window.dispatchEvent(new CustomEvent('gameMessage', {
+            detail: 'Nessa eyes the golden carp, then nods. She slides 40g across the planks.',
+          }));
+        } else {
+          inv.addItem('health_potion');
+          if (ch) { ch.addGold(8); ps.notify(); }
+          window.dispatchEvent(new CustomEvent('gameMessage', {
+            detail: 'The pot hisses. You receive a Health Potion and 8g.',
+          }));
+        }
+      },
     });
 
     // Torben — behind the fishmonger's counter
@@ -203,61 +281,17 @@ export class DuskmereScene extends BaseWorldScene {
       pole.setDepth(7);
       const line = this.add.rectangle(fs.x + 12, fs.y + 4, 1, 14, 0x808080, 0.5);
       line.setDepth(7);
+      void line;
       const fishSpotX = fs.x;
       const fishSpotY = fs.y;
+      // Floating prompt above each spot so the player knows what to do.
+      this.add.text(fs.x, fs.y - 20, 'Press E to fish', {
+        fontFamily: 'Courier New', fontSize: '9px', color: '#a0c0d8',
+        backgroundColor: 'rgba(10,6,6,0.6)', padding: { x: 3, y: 1 },
+      }).setOrigin(0.5).setDepth(12);
       this.spawnInteractable({
-        sprite: pole as any, label: 'Fish', radius: 24,
-        action: () => {
-          window.dispatchEvent(new CustomEvent('gameMessage', { detail: 'Fishing...' }));
-
-          const delay = 2000 + Math.random() * 2000;
-          const biteTimeout = this.time.delayedCall(delay, () => {
-            window.dispatchEvent(new CustomEvent('gameMessage', { detail: '! Press E!' }));
-
-            let caught = false;
-            const catchWindow = this.time.delayedCall(1000, () => {
-              if (!caught) {
-                window.dispatchEvent(new CustomEvent('gameMessage', { detail: 'The fish got away.' }));
-                window.removeEventListener('keydown', catchHandler);
-              }
-            });
-
-            const catchHandler = (e: KeyboardEvent) => {
-              if (e.key === 'e' || e.key === 'E') {
-                caught = true;
-                catchWindow.destroy();
-                window.removeEventListener('keydown', catchHandler);
-
-                const catches =   ['grilled_pike', 'smoked_eel', 'lake_tonic', 'health_potion', 'iron_ore', 'golden_carp'];
-                const weights =   [4,               3,             2,            2,               1,          1];
-                const total = weights.reduce((a, b) => a + b, 0);
-                let roll = Math.random() * total;
-                let item = catches[0];
-                for (let i = 0; i < catches.length; i++) {
-                  roll -= weights[i];
-                  if (roll <= 0) { item = catches[i]; break; }
-                }
-
-                useInventoryStore.getState().addItem(item);
-                const name = getItem(item).name;
-                window.dispatchEvent(new CustomEvent('gameMessage', { detail: `Caught a ${name}!` }));
-                this.spawnPickupParticles(fishSpotX, fishSpotY, 0x4080b0);
-
-                // Advance deep-hook quest fishing counter
-                const fishCount = parseInt(localStorage.getItem('hollowcrown_fish_caught') ?? '0', 10) + 1;
-                localStorage.setItem('hollowcrown_fish_caught', String(fishCount));
-                if (fishCount >= 3) {
-                  useQuestStore.getState().completeObjective('deep-hook', 'fish-objects');
-                }
-              }
-            };
-            window.addEventListener('keydown', catchHandler);
-
-            // Safety cleanup
-            this.time.delayedCall(1200, () => window.removeEventListener('keydown', catchHandler));
-          });
-          void biteTimeout;
-        },
+        sprite: pole as any, label: 'Cast line', radius: 28,
+        action: () => { this.castLine(fishSpotX, fishSpotY); },
       });
     }
 
@@ -461,11 +495,127 @@ export class DuskmereScene extends BaseWorldScene {
 
   protected spawnAt(name: string): { x: number; y: number } {
     switch (name) {
+      case 'fromDuskmereInn':
+        return { x: 8 * TILE + TILE / 2, y: 15 * TILE + TILE / 2 };
+      case 'fromDockmaster':
+        return { x: 5 * TILE + TILE / 2, y: 9 * TILE };
+      case 'fromFisherCabin':
+        return { x: 11 * TILE + TILE, y: 16 * TILE + TILE / 2 };
       case 'fromGreenhollow':
       case 'default':
       default:
         return { x: 12 * TILE, y: 2 * TILE };
     }
+  }
+
+  /**
+   * Draws a painted building silhouette on top of the tilemap — a peaked
+   * roof, a wall face, and a visible door. Purely cosmetic; collision
+   * comes from addBuilding's invisible wall segments.
+   */
+  private drawBuildingSilhouette(
+    xTile: number, yTile: number, wTile: number, hTile: number,
+    wallColor: number, roofColor: number,
+  ): void {
+    const px = xTile * TILE;
+    const py = yTile * TILE;
+    const pw = wTile * TILE;
+    const ph = hTile * TILE;
+
+    // Wall face
+    const wall = this.add.rectangle(px + pw / 2, py + ph / 2, pw, ph, wallColor);
+    wall.setStrokeStyle(2, 0x1a0e08);
+    wall.setDepth(3);
+
+    // Peaked roof — a triangle over the top edge, plus a thicker roof-eave bar.
+    const roofH = Math.floor(TILE * 0.9);
+    const roof = this.add.triangle(
+      px + pw / 2, py - roofH + 2,
+      0, roofH, pw / 2, 0, pw, roofH, roofColor,
+    );
+    roof.setStrokeStyle(2, 0x1a0e08);
+    roof.setDepth(4);
+    // Eave shadow beam
+    this.add.rectangle(px + pw / 2, py + 2, pw + 6, 4, 0x1a0e08, 0.9).setDepth(4);
+
+    // Windows (two small yellow squares on the wall face)
+    const winY = py + Math.floor(ph * 0.35);
+    this.add.rectangle(px + pw * 0.25, winY, 10, 10, 0xd4a968, 0.6).setStrokeStyle(1, 0x1a0e08).setDepth(5);
+    this.add.rectangle(px + pw * 0.75, winY, 10, 10, 0xd4a968, 0.6).setStrokeStyle(1, 0x1a0e08).setDepth(5);
+  }
+
+  /**
+   * Cast a line from the given dock-end fishing spot. Shows clear on-screen
+   * prompts, then a BITE banner after 2-5s. Player has 1.5s to press E to
+   * reel in. Success gives an item + quest progress; miss does nothing
+   * punitive. Only one cast can be in flight at a time.
+   */
+  private isFishing = false;
+  private castLine(fishSpotX: number, fishSpotY: number): void {
+    if (this.isFishing) return;
+    this.isFishing = true;
+
+    // Rod bob animation on the pole nearest the spot (cosmetic text cue).
+    const castText = this.add.text(fishSpotX, fishSpotY - 40, 'Casting... wait for the bite', {
+      fontFamily: 'Courier New', fontSize: '12px', color: '#a0c0d8',
+      backgroundColor: 'rgba(10,6,6,0.85)', padding: { x: 6, y: 3 },
+    }).setOrigin(0.5).setDepth(60).setScrollFactor(0);
+    // center on screen
+    castText.setPosition(WORLD_W / 2, WORLD_H - 90);
+
+    const cleanup = () => {
+      this.isFishing = false;
+      castText.destroy();
+    };
+
+    const delay = 2000 + Math.random() * 3000;
+    this.time.delayedCall(delay, () => {
+      if (!this.isFishing) return; // cancelled
+      castText.setText('!  BITE!  Press E!');
+      castText.setColor('#ffd060');
+      // flash
+      this.tweens.add({
+        targets: castText, scale: 1.2, duration: 120, yoyo: true, repeat: 2,
+      });
+
+      let caught = false;
+      const catchHandler = (e: KeyboardEvent) => {
+        if (e.key !== 'e' && e.key !== 'E') return;
+        if (caught) return;
+        caught = true;
+        window.removeEventListener('keydown', catchHandler);
+
+        const catches = ['grilled_pike', 'smoked_eel', 'lake_tonic', 'health_potion', 'iron_ore', 'golden_carp'];
+        const weights = [4, 3, 2, 2, 1, 1];
+        const total = weights.reduce((a, b) => a + b, 0);
+        let roll = Math.random() * total;
+        let item = catches[0];
+        for (let i = 0; i < catches.length; i++) {
+          roll -= weights[i];
+          if (roll <= 0) { item = catches[i]; break; }
+        }
+        useInventoryStore.getState().addItem(item);
+        const name = getItem(item).name;
+        window.dispatchEvent(new CustomEvent('gameMessage', { detail: `Caught a ${name}!` }));
+        this.spawnPickupParticles(fishSpotX, fishSpotY, 0x4080b0);
+
+        const fishCount = parseInt(localStorage.getItem('hollowcrown_fish_caught') ?? '0', 10) + 1;
+        localStorage.setItem('hollowcrown_fish_caught', String(fishCount));
+        if (fishCount >= 3) {
+          useQuestStore.getState().completeObjective('deep-hook', 'fish-objects');
+        }
+        cleanup();
+      };
+      window.addEventListener('keydown', catchHandler);
+
+      // 1.5s reaction window
+      this.time.delayedCall(1500, () => {
+        if (caught) return;
+        window.removeEventListener('keydown', catchHandler);
+        window.dispatchEvent(new CustomEvent('gameMessage', { detail: 'The fish slipped the hook.' }));
+        cleanup();
+      });
+    });
   }
 }
 

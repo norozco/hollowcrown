@@ -273,9 +273,23 @@ export class CombatScene extends Phaser.Scene {
       // Defensive cleanup: kill any lingering tweens/delayed calls from
       // the boss victory cutscene so they can't fire on a destroyed scene.
       this.tweens.killAll();
-      this.time.removeAllEvents();
+      // NOTE: we intentionally do NOT call this.time.removeAllEvents() here
+      // because we schedule a failsafe delayedCall below. Cleanup happens
+      // when scene.start switches away (Phaser kills the clock).
+      // eslint-disable-next-line no-console
+      console.log('[CombatScene] combat ended, transitioning →', { finalReturn, spawnPoint, rx, ry });
+      // Hard-reset residual combat flags so the destination scene's
+      // watchdogs never see a stale "in combat" signal.
+      useCombatStore.setState({ _enemyActing: false, _pendingEnemyId: '' });
       this.cameras.main.fadeOut(300, 0, 0, 0);
-      this.cameras.main.once('camerafadeoutcomplete', () => {
+      // Failsafe: if the fade completion callback never fires for any reason
+      // (another camera fade steals the 'camerafadeoutcomplete' event, a
+      // resume happens mid-fade, etc.) hard-transition after 500ms so the
+      // player can't get pinned to a black screen.
+      let transitioned = false;
+      const doTransition = () => {
+        if (transitioned) return;
+        transitioned = true;
         try {
           this.scene.start(finalReturn, { spawnPoint, combatReturnX: rx, combatReturnY: ry });
         } catch (err) {
@@ -285,7 +299,9 @@ export class CombatScene extends Phaser.Scene {
           console.warn('[CombatScene] scene.start failed, falling back to TownScene', err);
           this.scene.start('TownScene', { spawnPoint: 'default' });
         }
-      });
+      };
+      this.cameras.main.once('camerafadeoutcomplete', doTransition);
+      this.time.delayedCall(500, doTransition);
       return;
     }
     if (!state || !monster || !character) return;

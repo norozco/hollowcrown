@@ -137,6 +137,31 @@ export class InteriorScene extends BaseWorldScene {
           fontFamily: 'Courier New', fontSize: '11px', color: '#d4a968',
           backgroundColor: 'rgba(10,6,6,0.7)', padding: { x: 4, y: 2 },
         }).setOrigin(0.5, 1).setDepth(11);
+      } else if (ix.dialogueId === '__fisher_stash__') {
+        const stashKey = 'hollowcrown_fisher_stash_taken';
+        this.spawnInteractable({ sprite, label: ix.label, radius: 24,
+          action: () => {
+            if (localStorage.getItem(stashKey) === 'true') {
+              window.dispatchEvent(new CustomEvent('gameMessage', {
+                detail: 'The stash is empty. Only a scent of brine remains.',
+              }));
+              return;
+            }
+            localStorage.setItem(stashKey, 'true');
+            const inv = useInventoryStore.getState();
+            inv.addItem('smoked_eel');
+            inv.addItem('lake_tonic');
+            const ps = usePlayerStore.getState();
+            const ch = ps.character;
+            if (ch) { ch.addGold(20); ps.notify(); }
+            window.dispatchEvent(new CustomEvent('gameMessage', {
+              detail: 'You find a hidden stash: Smoked Eel, Lake Tonic, and 20g.',
+            }));
+          } });
+        this.add.text(oX + ix.tileX * TILE + TILE / 2, oY + ix.tileY * TILE - 6, 'Stash', {
+          fontFamily: 'Courier New', fontSize: '10px', color: '#d4a968',
+          backgroundColor: 'rgba(10,6,6,0.7)', padding: { x: 4, y: 2 },
+        }).setOrigin(0.5, 1).setDepth(11);
       } else if (ix.dialogueId === '__rest__') {
         this.spawnInteractable({ sprite, label: ix.label, radius: 24,
           action: () => {
@@ -265,12 +290,15 @@ const SOLID: Set<number> = new Set([
 
 function getLayout(id: string): InteriorLayout {
   switch (id) {
-    case 'guild':  return guildLayout();
-    case 'inn':    return innLayout();
-    case 'shop':   return shopLayout();
-    case 'smithy': return smithyLayout();
-    case 'orric':  return orricLayout();
-    default:       return guildLayout();
+    case 'guild':         return guildLayout();
+    case 'inn':           return innLayout();
+    case 'shop':          return shopLayout();
+    case 'smithy':        return smithyLayout();
+    case 'orric':         return orricLayout();
+    case 'duskmere_inn':  return duskmereInnLayout();
+    case 'dockmaster':    return dockmasterLayout();
+    case 'fisher_cabin':  return fisherCabinLayout();
+    default:              return guildLayout();
   }
 }
 
@@ -450,5 +478,95 @@ function orricLayout(): InteriorLayout {
     npcs: [{ key: 'orric', dialogueId: 'orric-greeting', tileX: 5, tileY: 4 }],
     interactables: [],
     exitScene: 'GreenhollowScene', exitSpawn: 'fromOrricInterior',
+  };
+}
+
+// ─── DUSKMERE INN: Lakeshore Inn ───────────────────────────────
+// Run by Tomas (shared innkeeper template). Rest bed + hearth.
+function duskmereInnLayout(): InteriorLayout {
+  const _ = FW;
+  const tiles: number[][] = [
+    [WC,WW,WW,WW,WW,WW,WW,WW,WW,WW,WW,WW,WW,WW,WW,WW,WW,WC],
+    [WI,WH,WH,WH,WH,WH,FP,FP,FP,WH,WH,WH,WH,WH,WH,WH,WH,WI],
+    [WI,BB,BB,BB,BB,BB,BB,BB,BB,BB,BB,BB,BB,BB,BB,BB,BB,WI],
+    [WI,_,CT,CT,CT,CT,_,_,_,_,_,_,BH,BH,_,_,_,WI],
+    [WN,_,_,_,_,_,_,RC,RC,_,_,_,BF,BF,_,_,_,WN],
+    [WI,_,_,_,_,_,_,RC,RC,_,_,_,_,_,_,_,_,WI],
+    [WN,_,TB,TB,_,_,_,RE,RE,_,_,_,BH,BH,_,_,_,WN],
+    [WI,_,CH,CH,_,_,_,_,_,_,_,_,BF,BF,_,_,_,WI],
+    [WI,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,WI],
+    [WN,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,WN],
+    [WI,BA,BA,_,_,_,_,_,_,_,_,_,_,_,PL,BA,BA,WI],
+    [WI,CR,_,_,_,_,_,_,_,_,_,_,_,_,_,_,CR,WI],
+    [WC,WW,WW,WW,WW,WW,WW,WW,D,D,WW,WW,WW,WW,WW,WW,WW,WC],
+    [WC,WC,WC,WC,WC,WC,WC,WC,WC,WC,WC,WC,WC,WC,WC,WC,WC,WC],
+  ];
+  return {
+    name: 'Lakeshore Inn', roomW: 18, roomH: 14, tiles,
+    solidTiles: SOLID,
+    npcs: [{ key: 'tomas', dialogueId: 'tomas-greeting', tileX: 6, tileY: 3 }],
+    interactables: [
+      { tileX: 14, tileY: 5, label: 'Rest at the inn (10g)', dialogueId: '__rest__' },
+      { tileX: 7, tileY: 3, label: 'Cook at the hearth', dialogueId: '__cook__' },
+    ],
+    exitScene: 'DuskmereScene', exitSpawn: 'fromDuskmereInn',
+  };
+}
+
+// ─── DOCKMASTER'S OFFICE ───────────────────────────────────────
+// Small office with a desk, a bookcase of ledgers, and Torben
+// moonlighting as the village clerk.
+function dockmasterLayout(): InteriorLayout {
+  const _ = FW;
+  const tiles: number[][] = [
+    [WC,WW,WW,WW,WW,WW,WW,WW,WW,WW,WW,WW,WW,WC],
+    [WI,WH,BK,BK,BK,WH,WH,WH,WH,WH,DI,DI,WH,WI],
+    [WI,BB,BB,BB,BB,BB,BB,BB,BB,BB,BB,BB,BB,WI],
+    [WI,_,_,CT,CT,CT,_,_,_,_,_,_,_,WI],
+    [WN,_,_,_,_,_,_,_,TB,TB,_,_,_,WN],
+    [WI,_,_,_,_,_,_,_,CH,_,_,_,_,WI],
+    [WN,_,_,_,_,_,_,_,_,_,_,_,_,WN],
+    [WI,_,BA,_,_,_,RC,RC,_,_,_,CR,_,WI],
+    [WI,PL,_,_,_,_,RC,RC,_,_,_,_,PL,WI],
+    [WI,_,_,_,_,_,RE,RE,_,_,_,_,_,WI],
+    [WC,WW,WW,WW,WW,WW,D,D,WW,WW,WW,WW,WW,WC],
+    [WC,WC,WC,WC,WC,WC,WC,WC,WC,WC,WC,WC,WC,WC],
+  ];
+  return {
+    name: "Dockmaster's Office", roomW: 14, roomH: 12, tiles,
+    solidTiles: SOLID,
+    npcs: [{ key: 'torben', dialogueId: 'torben-greeting', tileX: 8, tileY: 4 }],
+    interactables: [
+      { tileX: 4, tileY: 3, label: 'Browse the ledger (Shop)', dialogueId: '__shop__' },
+    ],
+    exitScene: 'DuskmereScene', exitSpawn: 'fromDockmaster',
+  };
+}
+
+// ─── FISHER'S CABIN: Mira's humble hut ─────────────────────────
+// Nets on the wall, a small bed, barrels of bait. A quiet place.
+function fisherCabinLayout(): InteriorLayout {
+  const _ = FW;
+  const tiles: number[][] = [
+    [WC,WW,WW,WW,WW,WW,WW,WW,WW,WW,WW,WW,WC],
+    [WI,WH,WR,WR,WH,FP,FP,WH,WH,BH,BH,WH,WI],
+    [WI,BB,BB,BB,BB,BB,BB,BB,BB,BB,BB,BB,WI],
+    [WI,_,_,_,_,_,_,_,_,BF,BF,_,WI],
+    [WN,_,BA,BA,_,_,_,_,_,_,_,_,WN],
+    [WI,_,BA,_,TB,_,_,_,_,_,_,_,WI],
+    [WN,_,_,_,CH,_,_,RC,RC,_,_,_,WN],
+    [WI,PL,_,_,_,_,_,RC,RC,_,_,PL,WI],
+    [WI,CR,_,_,_,_,_,RE,RE,_,_,CR,WI],
+    [WC,WW,WW,WW,WW,WW,D,D,WW,WW,WW,WW,WC],
+    [WC,WC,WC,WC,WC,WC,WC,WC,WC,WC,WC,WC,WC],
+  ];
+  return {
+    name: "Fisher's Cabin", roomW: 13, roomH: 11, tiles,
+    solidTiles: SOLID,
+    npcs: [],
+    interactables: [
+      { tileX: 2, tileY: 4, label: 'Search the bait barrels', dialogueId: '__fisher_stash__' },
+    ],
+    exitScene: 'DuskmereScene', exitSpawn: 'fromFisherCabin',
   };
 }

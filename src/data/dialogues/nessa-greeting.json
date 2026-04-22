@@ -16,6 +16,7 @@
       "choices": [
         { "text": "What is happening here?", "next": "whats-wrong" },
         { "text": "Can I help?", "next": "help-offer" },
+        { "text": "I caught a fish. Any use for it?", "next": "fish-advice" },
         { "text": "Tell me about the village.", "next": "village-lore" },
         { "text": "I will let you be.", "next": "leave" }
       ]
@@ -41,8 +42,15 @@
       "id": "help-accept",
       "speaker": "nessa",
       "expression": "neutral",
-      "text": "Use the fishing spots at the ends of the docks. Whatever you pull up, bring it to me. I will be here. I am always here.",
+      "text": "Use the fishing spots at the ends of the docks. Press E when you see the bite warning. Whatever you pull up, bring it to me \u2014 or drop it in the stew pot behind me. A warm meal is worth more than silver out here.",
       "next": null
+    },
+    "fish-advice": {
+      "id": "fish-advice",
+      "speaker": "nessa",
+      "expression": "neutral",
+      "text": "You caught one? Good. Drop the fish in the stew pot behind me \u2014 old Duskmere tradition. The pot gives back a hot meal, or a few coins if your hands are full. Keep one aside if Torben has asked for it.",
+      "next": "nessa-look"
     },
     "village-lore": {
       "id": "village-lore",

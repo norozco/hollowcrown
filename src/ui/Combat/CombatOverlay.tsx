@@ -30,7 +30,26 @@ export function CombatOverlay() {
   const monster = useCombatStore((s) => s.monster);
   const lastLoot = useCombatStore((s) => s.lastLoot) ?? [];
   const act = useCombatStore((s) => s.act);
-  const finish = useCombatStore((s) => s.finish);
+  const rawFinish = useCombatStore((s) => s.finish);
+  // Wrap finish() so that even if reward application throws (e.g. achievement
+  // toast renders badly, quest store mutation error, etc.) we still force the
+  // combat state to null so CombatScene.update will transition back to the
+  // world scene. Previously an exception mid-finish() left state non-null
+  // and the player stuck on the victory screen.
+  const finish = () => {
+    // eslint-disable-next-line no-console
+    console.log('[CombatOverlay] finish() called', { phase: state?.phase, monster: monster?.key });
+    try {
+      rawFinish();
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.warn('[CombatOverlay] finish() threw — force-clearing combat state', err);
+      useCombatStore.setState({
+        state: null, monster: null, _enemyActing: false,
+        _pendingEnemyId: '', lastLoot: [], combatEvents: [],
+      } as Partial<ReturnType<typeof useCombatStore.getState>>);
+    }
+  };
   const useItem = useCombatStore((s) => s.useItem);
   const character = usePlayerStore((s) => s.character);
   usePlayerStore((s) => s.version); // re-render on XP/level changes
