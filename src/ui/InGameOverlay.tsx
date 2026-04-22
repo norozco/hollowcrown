@@ -510,6 +510,30 @@ export function InGameOverlay() {
       // eslint-disable-next-line no-console
       console.log('[fastTravel] request →', detail.sceneKey, detail.spawn);
 
+      // Close EVERY React overlay that could re-pause the destination scene
+      // after we start it. Any overlay left open causes anyOverlayOpen to
+      // stay true, which re-pauses the new scene on the next render tick.
+      setMenuOpen(false);
+      setOptionsOpen(false);
+      setQuestBoardOpen(false);
+      setAchievementsOpen(false);
+      setWorldMapOpen(false);
+      setBestiaryOpen(false);
+      setJournalOpen(false);
+      setStatScreenOpen(false);
+      setFastTravelOpen(false);
+      setDungeonMapOpen(false);
+      setDialogueHistoryOpen(false);
+      setPhotoMode(false);
+      // Close inventory-family overlays via the inventory store.
+      try {
+        const inv = useInventoryStore.getState();
+        if (inv.isOpen) inv.close();
+        if (inv.isShopOpen) inv.closeShop();
+        if (inv.isCraftingOpen) inv.closeCrafting();
+        if (inv.isCookingOpen) inv.closeCooking();
+      } catch { /* ignore */ }
+
       // Reset every store that could hold the new scene in a stuck state.
       try { useDialogueStore.setState({ dialogue: null }); } catch { /* ignore */ }
       try {
