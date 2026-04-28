@@ -20,8 +20,14 @@
  */
 import { TILE } from './generateTiles';
 
-/** Master switch. Set to false to go back to the procedural tileset. */
-export const USE_SPRITE_TILES = true;
+/** Master switch. Set to false to go back to the procedural tileset.
+ *  HISTORY: temporarily flipped true by the LttP handoff in 3d7324c; the
+ *  Kenney overlay broke building composition (each TILE slot renders a
+ *  whole 16×16 sprite, but scenes assume procedural blocks that tile
+ *  continuously across multiple cells — roof/wall/window sprites land
+ *  as disjoint icons instead of a coherent building, and decoration
+ *  sprites sit where solid collision was expected). Reverted. */
+export const USE_SPRITE_TILES = false;
 
 /** Legacy export — kept for the Tiny Dungeon sheet's 12-wide layout. */
 export const KENNEY_COLS = 12;
