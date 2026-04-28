@@ -276,6 +276,46 @@
   font-family: 'Helvetica Neue', Arial, sans-serif;
 }
 
+/* Skill popup — same skeleton as the item popup, with a per-skill
+   accent stripe + cost pills so the player can see at a glance what
+   each costs. */
+.combat__skill-popup {
+  min-width: 240px;
+}
+
+.combat__skill-option {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  border-left: 6px solid #888; /* override per skill via inline style */
+}
+
+.combat__skill-option:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  background: #d0d0d0;
+}
+.combat__skill-option:disabled:hover {
+  background: #d0d0d0;
+  transform: skewX(-6deg);
+  box-shadow: 3px 3px 0 #000;
+}
+
+.combat__skill-name {
+  flex: 1;
+}
+
+.combat__skill-cost {
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  padding: 0.1rem 0.35rem;
+  border: 2px solid #000;
+  background: #fff;
+  margin-left: 0.25rem;
+}
+.combat__skill-cost--mp { color: #2050c0; }
+.combat__skill-cost--sta { color: #2a8030; }
+
 /* End-of-combat messaging */
 .combat__waiting {
   color: #ffd43a;
@@ -657,6 +697,24 @@
   0%   { opacity: 0; transform: translate(-50%, -50%) scale(0) rotate(0); }
   40%  { opacity: 1; transform: translate(-50%, -50%) scale(1.5) rotate(30deg); }
   100% { opacity: 0; transform: translate(-50%, -50%) scale(1.1) rotate(60deg); }
+}
+
+/* Per-skill colored aura. Color is set inline from skill.visual.color so
+   each skill reads visually distinct without needing a class per skill.
+   The keyframes inflate from a tight ring → wide aura → fade out. */
+.combat__skill-flash {
+  position: absolute;
+  inset: -10%;
+  border: 4px solid #fff;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 1;
+  animation: skillAura 350ms ease-out forwards;
+}
+@keyframes skillAura {
+  0%   { opacity: 0; transform: scale(0.6); }
+  35%  { opacity: 1; transform: scale(1.05); }
+  100% { opacity: 0; transform: scale(1.45); }
 }
 
 /* Screen shake — applied to the whole combat container on heavy hits */

@@ -55,7 +55,7 @@ export function StepStats() {
     : addStats(rolled, extra);
 
   const derived = klass
-    ? computeDerived(finalStats, 1, klass.hpPerLevel, klass.mpStat)
+    ? computeDerived(finalStats, 1, klass.hpPerLevel, klass.mpStat, klass.staminaStat)
     : null;
 
   return (

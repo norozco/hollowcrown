@@ -1,6 +1,6 @@
 # Hollowcrown — Project Status & Collaborator Guide
 
-**For AzuXo + fluffybunnies + future collaborators.** This is the single source of truth for current project state as of commit `0f19b93`. Everything in SESSION_LOG.md through 2025-04 is historical; everything below is what's actually in main right now.
+**For AzuXo + fluffybunnies + future collaborators.** This is the single source of truth for current project state. Everything in SESSION_LOG.md through 2025-04 is historical; everything below is what's actually in `main` right now. Last sweep against `main`: 2026-04-28 (HEAD around the multi-skill + stamina drop).
 
 ---
 
@@ -85,8 +85,18 @@ Key architecture notes:
 
 ### Core gameplay
 - **Character creation**: 4 races × 6 classes × difficulty × gender × playerChoice + random-hero skip button, 8 Persona-style SVG portraits (→ `src/assets/portraits/player/`)
-- **Combat**: turn-based, 5 actions (attack/skill/defend/flee/item) + 6 class skills, elements + weaknesses/resistances, status effects (stun/burn/bleed/poison/marked/stunImmune), companion heal-per-turn, difficulty scaling on monster HP/damage + gold/XP rewards, phase-2 transitions on 4 bosses (double/triple attacks, status procs)
-- **Combat juice**: floating damage numbers, crit star-burst, screen shake, hit flash, slash/starburst overlays, HP-bar drain with P5-style lag trail, all SFX audited (no double-triggers)
+- **Combat**: turn-based, 5 actions (attack/skill/defend/flee/item). **3 skills per class × 6 classes = 18 skills** (`src/engine/combat.ts:CLASS_SKILLS`), each keyed by stable `skill.key` + a `cost: { mp?, stamina? }` object + a `visual` block (color/flashMs/shake/particle/target). Skill button opens a submenu picker (mirrors the Item submenu); keys 1/2/3 inside the submenu select skill, Esc closes. Elements + weaknesses/resistances (physical/fire/ice/shadow/poison/radiant/arcane), status effects (stun/burn/bleed/poison/marked/stunImmune), companion heal-per-turn, difficulty scaling on monster HP/damage + gold/XP rewards, phase-2 transitions on 4 bosses (double/triple attacks, status procs).
+- **Two resource pools**:
+  - **MP** (caster classes — wizard/cleric/bard, governed by `mpStat: int|wis|cha`). Existing pool, `5 + mpStat × level`. Spent by spell skills.
+  - **Stamina** (martial classes — fighter/rogue/ranger, governed by `staminaStat: str|dex`). New pool, `8 + staminaStat × level`. Spent by martial skills (3-6 cost). **Regenerates +2 per player turn** (`STAMINA_REGEN_PER_TURN` in combat.ts) so small skills are usable repeatedly without bottoming out. Ranger flipped from MP-driven to stamina-driven on this drop — old saves with ranger MP are clamped on load (`saveLoad.ts`).
+- **Skill list (per class)**:
+  - **Fighter** (stamina): Action Surge (4) two strikes — Cleave (6) heavy single hit, bypasses defending — Bulwark (3) heal + guard.
+  - **Rogue** (stamina): Sneak Attack (4) shadow dmg — Poison Strike (5) apply poison — Vanish (3) guard up + mark target.
+  - **Ranger** (stamina): Hunter's Mark (3) mark + bonus dmg — Volley (6) three rolled arrows — Beast Strike (4) bleed + dmg.
+  - **Wizard** (MP): Fireball (8) heavy fire — Ice Lance (6) ice + 25% stun — Arcane Bolt (3) cheap reliable, no roll.
+  - **Cleric** (MP): Cure Wounds (6) big heal — Smite (5) radiant, +40% vs shadow-weak — Bless (3) heal + guard.
+  - **Bard** (MP): Vicious Mockery (3) shadow + 25% stun — Healing Word (4) small heal — Inspiration (5) heal + mark target.
+- **Combat juice**: floating damage numbers, crit star-burst, screen shake, hit flash, slash/starburst overlays, HP-bar drain with P5-style lag trail, all SFX audited (no double-triggers). **Per-skill visual signatures** — each skill carries an authored `visual: { color, flashMs, shake, particle, target }` block; the Phaser scene fires `cameras.main.flash` with the skill color + a particle-bucketed SFX (`spellFire`/`spellIce`/`spellShadow`/`spellArcane`/`spellHeal`/`attackHit`), and the React layer pulses a colored aura on the focus side. Visuals are routed through a `'skill'` `CombatEvent` (skillKey + visual lookup) — **not** text-matching the log, which was the source of incidental SFX false-positives in earlier builds.
 - **Quests**: 15+ main + side; persistent `questKillCounts` never cleared on zone exit; evolving NPC greetings via `dialogueMemoryStore` (5 NPCs cycle first-visit/casual/familiar dialogue pools)
 - **Inventory**: 30-slot grid, 5 equipment slots, favorites (locked from sale), category filter tabs (All/Weapons/Armor/Consumables/Materials/Quest), NEW ribbon + HUD pulse indicator, sell junk button, full-set smithy recipe with 10% discount + auto-equip
 - **Progression**: 20 levels, XP curve "easier 1-10, steep 11-20", 30+ perks (chosen at level-up), 6-tier rank system (F→S) derived from level + quests completed
@@ -165,8 +175,13 @@ Four shipped, two more on the roadmap. Each ships with tutorial banner on acquis
 
 Keep reading this section after pulling new changes. Each line = one commit.
 
-| Commit | What it fixed |
+| Commit | What it fixed / shipped |
 |---|---|
+| _(this drop)_ | **Combat content drop**: 3 skills per class (18 total), Stamina resource for martial classes (fighter/rogue/ranger), skill submenu picker, per-skill colored flash + SFX, +2 stamina regen per turn. Replaces the strictly-better-than-attack 0-MP martial skill spam. Fixes the no-distinct-animation complaint by routing skill visuals through a structured `'skill'` CombatEvent instead of log-text matching. |
+| `61248fa` | Fix pseudo3d Y-sort cast — `obj as Transform & Depth` was rejected by `tsc` (TS2352, GameObject doesn't sufficiently overlap). Cast through `unknown` first. **Was blocking `npm run build` since `19ad98a`** — would have failed every deploy on a clean clone. |
+| `105c129` | **CRITICAL: TDZ crash on NPC interaction.** `DialogueScene.tsx` deps array referenced `tw` 27 lines before its `useTypewriter` declaration. ReferenceError fired the instant a dialogue mounted → React error boundary → "THE WORLD BROKE" on every NPC click. Introduced by `3d9ab8f` (dialogue-skip rewrite added `tw.skip()` calls in the keyboard effect but didn't move the hook up). Fix: relocate the typewriter hook above the keyboard effect, optional-chain on `node`. |
+| `39bac98` | **Music: replace dungeon/interior buzz with stacked detuned sine pads.** Two issues — (1) routing: `InteriorScene` had no music route so guild/inn/shop/smithy played the dungeon drone; (2) texture: drones were single low-pitched osc (tri/saw/sq at 65-110 Hz) which read as "buzz" even with the 1100Hz lowpass. Added a new `interior` track + an optional `pad` field on MusicTrack (array of frequency multipliers spawning sine voices for warm chorus). |
+| `3d9ab8f` | Music buzz lowpass + training dummy fix + dialogue skip (saw → tri swap, capture-phase keydown). |
 | `0f19b93` | **In-game cheat input on pause menu** (typed shorthand or full JS) |
 | `9d789a5` | `window.cheats.*` console cheat object (F12 → type `cheats.help()`) |
 | `8b9ecbe` | **Hollow King still rendered after defeat** — was checking `killedEnemies` Set which gets cleared on zone exit. Now checks `achievementStore.bossesKilled` + localStorage flag. Boss + skeleton guards skip spawn when defeated; throne room reads as won-empty |
@@ -228,6 +243,9 @@ Cheats are **always available** (not dev-gated) so deployed playtesters can use 
 - **Bundle size**: 2.2 MB. Vite warns about 500 KB chunk limit. Code-splitting would help.
 - **Audio buzzing**: previously fixed; watch for regression if adding new combat SFX (use the `dedup()` wrapper)
 - **Preview iframe FPS**: Claude Code's preview runs at ~3 FPS which made bug reproduction hard; real browsers hit 60. Use the cheat console on deployed site for real testing.
+- **Skill balance**: 18 new skills landed. Numbers were chosen to be reasonable, not playtested in depth — if a skill feels too strong (Cleave), too weak (Arcane Bolt), or wastes a turn slot, tune the cost/damage in `CLASS_SKILLS` (`src/engine/combat.ts`). Stamina regen is **+2/turn**; if martials feel resource-starved or spammy, that constant (`STAMINA_REGEN_PER_TURN`) is the dial.
+- **No skill unlock progression yet**: all 3 class skills are available from level 1. Originally considered gating to lvl 1/5/10 — deferred. Could be added as a perk node or a level milestone.
+- **Per-skill SFX share buckets**: 18 skills route to 9 SFX buckets (by `visual.particle`). Some skills sound identical to each other (e.g. Cure Wounds and Healing Word both use `spellHeal`). Acceptable for v0; budget a unique SFX per skill if playtesters notice the overlap.
 
 ---
 

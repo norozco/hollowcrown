@@ -117,7 +117,7 @@ describe('computeDerived()', () => {
     // CON 14 → +2 mod. HP = 10 + 2*1 + 10*1 = 22.
     // DEX 14 → +2 mod. AC = 12. Init bonus = 2.
     // No MP stat → 0.
-    expect(d).toEqual({ maxHp: 22, maxMp: 0, ac: 12, initiativeBonus: 2 });
+    expect(d).toEqual({ maxHp: 22, maxMp: 0, maxStamina: 0, ac: 12, initiativeBonus: 2 });
   });
 
   it('computes MP for an INT caster (wizard, hp/lvl 4)', () => {
@@ -153,6 +153,29 @@ describe('computeDerived()', () => {
     const d = computeDerived(stats, 5, 4, 'int');
     // INT 1 → -5 mod. MP = 5 + -25 = -20 → clamped to 0.
     expect(d.maxMp).toBe(0);
+  });
+
+  it('computes maxStamina from staminaStat (martial classes)', () => {
+    const stats: StatBlock = { str: 16, dex: 12, con: 12, int: 8, wis: 10, cha: 10 };
+    // Fighter: hp/lvl 10, no mp, stamina from STR.
+    // STR 16 → +3 mod. Stamina = 8 + 3*1 = 11.
+    const d = computeDerived(stats, 1, 10, null, 'str');
+    expect(d.maxStamina).toBe(11);
+    expect(d.maxMp).toBe(0);
+  });
+
+  it('clamps maxStamina at 0 (no negative stamina)', () => {
+    const stats: StatBlock = { str: 1, dex: 8, con: 8, int: 8, wis: 8, cha: 8 };
+    const d = computeDerived(stats, 5, 6, null, 'str');
+    // STR 1 → -5 mod. Stamina = 8 + -25 = -17 → clamped to 0.
+    expect(d.maxStamina).toBe(0);
+  });
+
+  it('caster classes get 0 maxStamina (no staminaStat)', () => {
+    const stats: StatBlock = { str: 10, dex: 10, con: 10, int: 16, wis: 10, cha: 10 };
+    const d = computeDerived(stats, 3, 4, 'int', null);
+    expect(d.maxStamina).toBe(0);
+    expect(d.maxMp).toBe(14);
   });
 
   it('throws on invalid level', () => {

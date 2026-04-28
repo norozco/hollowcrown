@@ -152,6 +152,8 @@ export class Character {
   xp: number;
   hp: number;
   mp: number;
+  /** Melee resource. 0 for caster classes (mpStat-driven). */
+  stamina: number;
   gold: number;
 
   constructor(init: CharacterInit) {
@@ -188,6 +190,7 @@ export class Character {
     const d = this.derived;
     this.hp = d.maxHp;
     this.mp = d.maxMp;
+    this.stamina = d.maxStamina;
   }
 
   /** Recompute derived stats from current stats + class + level. */
@@ -197,6 +200,7 @@ export class Character {
       this.level,
       this.characterClass.hpPerLevel,
       this.characterClass.mpStat,
+      this.characterClass.staminaStat,
     );
   }
 
@@ -255,6 +259,20 @@ export class Character {
     this.mp = Math.min(this.derived.maxMp, this.mp + amount);
   }
 
+  /** Try to spend Stamina. Returns false (and doesn't deduct) if insufficient. */
+  spendStamina(amount: number): boolean {
+    if (amount < 0) throw new Error('Stamina cost must be non-negative');
+    if (this.stamina < amount) return false;
+    this.stamina -= amount;
+    return true;
+  }
+
+  /** Restore Stamina up to current max. */
+  restoreStamina(amount: number): void {
+    if (amount < 0) throw new Error('Stamina restore must be non-negative');
+    this.stamina = Math.min(this.derived.maxStamina, this.stamina + amount);
+  }
+
   /**
    * Add XP and auto-level if thresholds crossed. Returns the number of
    * levels gained this call (0 if none). Each level-up refills HP/MP —
@@ -271,6 +289,7 @@ export class Character {
       const d = this.derived;
       this.hp = d.maxHp;
       this.mp = d.maxMp;
+      this.stamina = d.maxStamina;
     }
     return gained;
   }

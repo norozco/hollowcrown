@@ -1,7 +1,7 @@
 import * as Phaser from 'phaser';
 import { useCombatStore } from '../state/combatStore';
 import { usePlayerStore } from '../state/playerStore';
-import { type StatusEffects } from '../engine/combat';
+import { type StatusEffects, getSkillByKey } from '../engine/combat';
 import { generateTileset } from './tiles/generateTiles';
 import {
   generateCharacterSprite,
@@ -32,6 +32,8 @@ export class CombatScene extends Phaser.Scene {
   // Name refs stored but only used for positioning in create.
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   private lastLogLength = 0;
+  /** Highest combatEvent.id we've already played — prevents replays. */
+  private lastSeenEventId = 0;
   private playerBaseX = 0;
   private enemyBaseX = 0;
   private combatEnded = false;
@@ -347,6 +349,30 @@ export class CombatScene extends Phaser.Scene {
     this.statusIconsGfx.clear();
     this.drawStatusIcons(this.playerBaseX - 40, this.playerSprite.y - SPRITE_H * 1.3, state.playerStatus);
     this.drawStatusIcons(this.enemyBaseX - 40, eY - eHalfH - 4, state.monsterStatus);
+
+    // Per-skill visuals — colored camera flash + SFX driven by skill events.
+    // Reading from combatEvents (rather than text-matching log entries the
+    // way SFX used to be triggered) means skill visuals are now keyed
+    // structurally and can't false-positive on incidental log copy.
+    const events = useCombatStore.getState().combatEvents;
+    for (const ev of events) {
+      if (ev.id <= this.lastSeenEventId) continue;
+      this.lastSeenEventId = ev.id;
+      if (ev.kind === 'skill' && ev.skillKey) {
+        const skill = getSkillByKey(ev.skillKey);
+        if (skill) {
+          const c = hexToRgb(skill.visual.color);
+          this.cameras.main.flash(skill.visual.flashMs, c.r, c.g, c.b, false);
+          if (skill.visual.shake > 0) {
+            // Duration scales loosely with intensity so a heavy hit stays
+            // on screen longer than a light one.
+            const dur = 200 + skill.visual.shake * 4000;
+            shakeScaled(this, dur, skill.visual.shake);
+          }
+          this.playSkillSfx(skill.visual.particle, ev.skillKey);
+        }
+      }
+    }
 
     // Detect new log entries → trigger animations
     if (state.log.length > this.lastLogLength) {
@@ -867,4 +893,37 @@ export class CombatScene extends Phaser.Scene {
       offsetX += 14;
     }
   }
+
+  /**
+   * Map a skill's authored particle category to an SFX. We deliberately
+   * fall back to the existing pool (spellFire, spellHeal, attackHit,
+   * criticalHit, dialogueTick) for categories that don't have a bespoke
+   * sound — the per-skill *color flash* + *shake* already do the heavy
+   * lifting on visual differentiation, so adding 18 unique SFX would be
+   * audible noise for marginal gain. New SFX (spellIce, spellShadow,
+   * spellArcane) cover the spell categories the existing pool didn't.
+   */
+  private playSkillSfx(particle: string, _skillKey: string): void {
+    switch (particle) {
+      case 'fire':   Sfx.spellFire(); break;
+      case 'ice':    Sfx.spellIce(); break;
+      case 'shadow': Sfx.spellShadow(); break;
+      case 'arcane': Sfx.spellArcane(); break;
+      case 'star':   Sfx.spellHeal(); break;       // healing/buff sparkle
+      case 'shield': Sfx.spellHeal(); break;
+      case 'arrow':  Sfx.attackHit(); break;
+      case 'leaf':   Sfx.attackHit(); break;
+      case 'none':
+      default:       Sfx.dialogueTick(); break;
+    }
+  }
+}
+
+/** "#rrggbb" → { r, g, b } in 0-255. Tolerates missing #. */
+function hexToRgb(hex: string): { r: number; g: number; b: number } {
+  const h = hex.startsWith('#') ? hex.slice(1) : hex;
+  const v = parseInt(h.length === 3
+    ? h.split('').map((c) => c + c).join('')
+    : h, 16);
+  return { r: (v >> 16) & 0xff, g: (v >> 8) & 0xff, b: v & 0xff };
 }

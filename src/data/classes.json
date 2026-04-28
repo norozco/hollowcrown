@@ -5,6 +5,7 @@
     "primaryStats": ["str", "con"],
     "hpPerLevel": 10,
     "mpStat": null,
+    "staminaStat": "str",
     "role": "Tank / melee DPS",
     "signatureAbility": {
       "name": "Action Surge",
@@ -21,6 +22,7 @@
     "primaryStats": ["dex", "int"],
     "hpPerLevel": 6,
     "mpStat": null,
+    "staminaStat": "dex",
     "role": "Stealth / crit damage",
     "signatureAbility": {
       "name": "Sneak Attack",
@@ -36,6 +38,7 @@
     "primaryStats": ["int", "wis"],
     "hpPerLevel": 4,
     "mpStat": "int",
+    "staminaStat": null,
     "role": "AOE caster",
     "signatureAbility": {
       "name": "Fireball",
@@ -52,6 +55,7 @@
     "primaryStats": ["wis", "cha"],
     "hpPerLevel": 8,
     "mpStat": "wis",
+    "staminaStat": null,
     "role": "Healer / support",
     "signatureAbility": {
       "name": "Cure Wounds",
@@ -66,7 +70,8 @@
     "name": "Ranger",
     "primaryStats": ["dex", "wis"],
     "hpPerLevel": 8,
-    "mpStat": "wis",
+    "mpStat": null,
+    "staminaStat": "dex",
     "role": "Ranged DPS / tracker",
     "signatureAbility": {
       "name": "Hunter's Mark",
@@ -83,6 +88,7 @@
     "primaryStats": ["cha", "dex"],
     "hpPerLevel": 6,
     "mpStat": "cha",
+    "staminaStat": null,
     "role": "Support / crowd control",
     "signatureAbility": {
       "name": "Vicious Mockery",

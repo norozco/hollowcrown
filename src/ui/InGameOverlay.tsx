@@ -915,6 +915,18 @@ export function InGameOverlay() {
                 <span className="ig__bar-val">{character.mp}/{effectiveMaxMp}</span>
               </div>
             )}
+            {d.maxStamina > 0 && (
+              <div className="ig__bar-group">
+                <span className="ig__bar-label">STA</span>
+                <div className="ig__hp-bar">
+                  <div
+                    className="ig__stamina-fill"
+                    style={{ width: `${Math.max(0, (character.stamina / d.maxStamina) * 100)}%` }}
+                  />
+                </div>
+                <span className="ig__bar-val">{character.stamina}/{d.maxStamina}</span>
+              </div>
+            )}
             <div className="ig__bar-group">
               <span className="ig__bar-label">XP</span>
               {character.level >= MAX_LEVEL ? (

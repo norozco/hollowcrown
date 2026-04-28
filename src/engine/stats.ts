@@ -63,6 +63,8 @@ export function assignStats(rolled: number[], assignment: StatKey[]): StatBlock 
 export interface DerivedStats {
   maxHp: number;
   maxMp: number;
+  /** Melee resource pool. 0 for caster classes that use MP instead. */
+  maxStamina: number;
   ac: number;
   initiativeBonus: number;
 }
@@ -70,16 +72,24 @@ export interface DerivedStats {
 /**
  * computeDerived
  *
- *   maxHp = max(1, 10 + (CON mod × level) + (hpPerLevel × level))
- *   maxMp = mpStat ? max(0, 5 + (mpStat mod × level)) : 0
- *   ac    = 10 + DEX mod
- *   init  = DEX mod
+ *   maxHp      = max(1, 10 + (CON mod × level) + (hpPerLevel × level))
+ *   maxMp      = mpStat       ? max(0, 5 + (mpStat mod × level))      : 0
+ *   maxStamina = staminaStat  ? max(0, 8 + (staminaStat mod × level)) : 0
+ *   ac         = 10 + DEX mod
+ *   init       = DEX mod
+ *
+ * Stamina pool is slightly larger at base (8 vs MP's 5) because melee
+ * skills are designed around small, frequent costs (3-6) and stamina
+ * regen of +2/turn — we want the player to use a skill every turn or
+ * two without ever fully bottoming out, while MP is rarer and more
+ * decisive per cast.
  */
 export function computeDerived(
   stats: StatBlock,
   level: number,
   hpPerLevel: number,
   mpStat: StatKey | null = null,
+  staminaStat: StatKey | null = null,
 ): DerivedStats {
   if (level < 1 || !Number.isInteger(level)) {
     throw new Error(`computeDerived: invalid level ${level}`);
@@ -88,9 +98,13 @@ export function computeDerived(
   const dexMod = modifier(stats.dex);
   const maxHp = Math.max(1, 10 + conMod * level + hpPerLevel * level);
   const maxMp = mpStat ? Math.max(0, 5 + modifier(stats[mpStat]) * level) : 0;
+  const maxStamina = staminaStat
+    ? Math.max(0, 8 + modifier(stats[staminaStat]) * level)
+    : 0;
   return {
     maxHp,
     maxMp,
+    maxStamina,
     ac: 10 + dexMod,
     initiativeBonus: dexMod,
   };

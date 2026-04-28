@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useCombatStore, type CombatEvent } from '../../state/combatStore';
 import { usePlayerStore } from '../../state/playerStore';
 import { useInventoryStore } from '../../state/inventoryStore';
-import { CLASS_SKILLS, type StatusEffects } from '../../engine/combat';
+import { CLASS_SKILLS, getSkillByKey, type CombatSkill, type StatusEffects } from '../../engine/combat';
 import { COMPANIONS, companionBonusLabel } from '../../engine/companion';
 import { getItem } from '../../engine/items';
 import { xpForLevel } from '../../engine/character';
@@ -102,12 +102,16 @@ export function CombatOverlay() {
   const continueReadyRef = useRef(false);
   const [continueReady, setContinueReady] = useState(false);
   const [itemPopupOpen, setItemPopupOpen] = useState(false);
+  const [skillPopupOpen, setSkillPopupOpen] = useState(false);
   const deathMsgRef = useRef<string>('');
   const [shake, setShake] = useState(false);
   const [playerHitFlash, setPlayerHitFlash] = useState(0);
   const [enemyHitFlash, setEnemyHitFlash] = useState(0);
   const [playerSlash, setPlayerSlash] = useState<{ id: number; crit: boolean } | null>(null);
   const [enemySlash, setEnemySlash] = useState<{ id: number; crit: boolean } | null>(null);
+  /** Colored skill flash on a side. Replays on each new skill event. */
+  const [playerSkillFlash, setPlayerSkillFlash] = useState<{ id: number; color: string } | null>(null);
+  const [enemySkillFlash, setEnemySkillFlash] = useState<{ id: number; color: string } | null>(null);
 
   // Track which event ids have already been processed so we only react once
   // per emission even when the events array changes for other reasons.
@@ -133,6 +137,30 @@ export function CombatOverlay() {
           setPlayerHitFlash((n) => n + 1);
           setPlayerSlash({ id: ev.id, crit: ev.kind === 'crit' });
           window.setTimeout(() => setPlayerSlash((s) => (s?.id === ev.id ? null : s)), 220);
+        }
+      }
+      // Skill cast — color flash on the focus side. The skill's authored
+      // visual.target tells us where to focus; attacks point at the enemy,
+      // heals/buffs at the player, both-target skills (Vanish, Inspiration)
+      // flash both sides.
+      if (ev.kind === 'skill' && ev.skillKey) {
+        const skill = getSkillByKey(ev.skillKey);
+        const color = skill?.visual.color ?? '#ffd43a';
+        const focus = skill?.visual.target ?? 'enemy';
+        if (focus === 'player' || focus === 'both') {
+          setPlayerSkillFlash({ id: ev.id, color });
+          window.setTimeout(() => setPlayerSkillFlash((s) => (s?.id === ev.id ? null : s)), 350);
+        }
+        if (focus === 'enemy' || focus === 'both') {
+          setEnemySkillFlash({ id: ev.id, color });
+          window.setTimeout(() => setEnemySkillFlash((s) => (s?.id === ev.id ? null : s)), 350);
+        }
+        // Skill-driven shake (uses the skill's authored intensity).
+        const shakeIntensity = skill?.visual.shake ?? 0;
+        if (shakeIntensity > 0) {
+          setShake(false);
+          requestAnimationFrame(() => setShake(true));
+          window.setTimeout(() => setShake(false), 220 + shakeIntensity * 4000);
         }
       }
       // Auto-prune after floating-number animation completes
@@ -174,7 +202,10 @@ export function CombatOverlay() {
 
   // Close item popup when leaving player turn
   useEffect(() => {
-    if (state?.phase !== 'player_turn') setItemPopupOpen(false);
+    if (state?.phase !== 'player_turn') {
+      setItemPopupOpen(false);
+      setSkillPopupOpen(false);
+    }
   }, [state?.phase]);
 
   useEffect(() => {
@@ -185,11 +216,28 @@ export function CombatOverlay() {
       const current = useCombatStore.getState().state;
       if (!current) return;
       if (current.phase === 'player_turn') {
+        // Skill popup catches 1/2/3 (skill index) + Esc/2 to close
+        if (skillPopupOpen) {
+          if (e.key === 'Escape' || e.key === '2') {
+            e.preventDefault();
+            setSkillPopupOpen(false);
+            return;
+          }
+          const character = usePlayerStore.getState().character;
+          const skills = character ? CLASS_SKILLS[character.characterClass.key] ?? [] : [];
+          const idx = parseInt(e.key, 10) - 1;
+          if (idx >= 0 && idx < skills.length) {
+            e.preventDefault();
+            act('skill', skills[idx].key);
+            setSkillPopupOpen(false);
+          }
+          return;
+        }
         if (e.key === '1') { e.preventDefault(); act('attack'); }
-        else if (e.key === '2') { e.preventDefault(); act('skill'); }
+        else if (e.key === '2') { e.preventDefault(); setSkillPopupOpen((v) => !v); setItemPopupOpen(false); }
         else if (e.key === '3') { e.preventDefault(); act('defend'); }
         else if (e.key === '4') { e.preventDefault(); act('flee'); }
-        else if (e.key === '5') { e.preventDefault(); setItemPopupOpen((v) => !v); }
+        else if (e.key === '5') { e.preventDefault(); setItemPopupOpen((v) => !v); setSkillPopupOpen(false); }
       } else if (current.phase === 'victory' || current.phase === 'fled') {
         if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); finish(); }
       } else if (current.phase === 'defeat') {
@@ -262,6 +310,7 @@ export function CombatOverlay() {
           flashKey={playerHitFlash}
           events={playerEvents}
           slash={playerSlash}
+          skillFlash={playerSkillFlash}
         />
         <div className="combat__vs">VS</div>
         <CombatantPanel
@@ -273,6 +322,7 @@ export function CombatOverlay() {
           flashKey={enemyHitFlash}
           events={enemyEvents}
           slash={enemySlash}
+          skillFlash={enemySkillFlash}
         />
       </div>
       <div className="combat__log">
@@ -308,21 +358,55 @@ export function CombatOverlay() {
             <button type="button" className="combat__btn" onClick={() => act('attack')}>
               <span className="combat__btn-key">1</span> Attack
             </button>
-            {character && CLASS_SKILLS[character.characterClass.key] && (
-              <button
-                type="button"
-                className="combat__btn"
-                onClick={() => act('skill')}
-                title={CLASS_SKILLS[character.characterClass.key].description}
-              >
-                <span className="combat__btn-key">2</span>
-                {CLASS_SKILLS[character.characterClass.key].name}
-                {CLASS_SKILLS[character.characterClass.key].mpCost > 0 && (
-                  <span style={{ color: '#80a0e0', fontSize: '0.75rem', marginLeft: '0.3rem' }}>
-                    ({CLASS_SKILLS[character.characterClass.key].mpCost} MP)
-                  </span>
+            {character && CLASS_SKILLS[character.characterClass.key]?.length > 0 && (
+              <div className="combat__skill-wrapper combat__item-wrapper">
+                <button
+                  type="button"
+                  className="combat__btn"
+                  onClick={() => { setSkillPopupOpen((v) => !v); setItemPopupOpen(false); }}
+                  title="Choose a skill"
+                >
+                  <span className="combat__btn-key">2</span> Skills
+                </button>
+                {skillPopupOpen && (
+                  <div className="combat__item-popup combat__skill-popup">
+                    {CLASS_SKILLS[character.characterClass.key].map((skill: CombatSkill, i) => {
+                      const mpCost = skill.cost.mp ?? 0;
+                      const staCost = skill.cost.stamina ?? 0;
+                      const canAfford =
+                        character.mp >= mpCost && character.stamina >= staCost;
+                      return (
+                        <button
+                          key={skill.key}
+                          type="button"
+                          className="combat__item-option combat__skill-option"
+                          disabled={!canAfford}
+                          title={skill.description}
+                          onClick={() => {
+                            if (!canAfford) return;
+                            act('skill', skill.key);
+                            setSkillPopupOpen(false);
+                          }}
+                          style={{ borderLeftColor: skill.visual.color }}
+                        >
+                          <span className="combat__btn-key">{i + 1}</span>
+                          <span className="combat__skill-name">{skill.name}</span>
+                          {mpCost > 0 && (
+                            <span className="combat__skill-cost combat__skill-cost--mp">
+                              {mpCost} MP
+                            </span>
+                          )}
+                          {staCost > 0 && (
+                            <span className="combat__skill-cost combat__skill-cost--sta">
+                              {staCost} Sta
+                            </span>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
                 )}
-              </button>
+              </div>
             )}
             <button type="button" className="combat__btn" onClick={() => act('defend')}>
               <span className="combat__btn-key">3</span> Defend
@@ -430,7 +514,7 @@ export function CombatOverlay() {
  * a brighter "lag bar" sits underneath and trails the real bar.
  */
 function CombatantPanel({
-  side, name, hpPct, hp, maxHp, flashKey, events, slash,
+  side, name, hpPct, hp, maxHp, flashKey, events, slash, skillFlash,
 }: {
   side: 'player' | 'enemy';
   name: string;
@@ -440,6 +524,8 @@ function CombatantPanel({
   flashKey: number;
   events: CombatEvent[];
   slash: { id: number; crit: boolean } | null;
+  /** Per-skill colored aura. Replays on each new skill event. */
+  skillFlash: { id: number; color: string } | null;
 }) {
   // "Lag bar" — trails behind the real HP bar on damage for a Persona-5 feel
   const [lagPct, setLagPct] = useState(hpPct);
@@ -462,6 +548,17 @@ function CombatantPanel({
         }`}
       >
         <span className="combat__portrait-glyph">{side === 'player' ? '\u2020' : '\u2620'}</span>
+        {skillFlash && (
+          <span
+            key={`sk-${skillFlash.id}`}
+            className="combat__skill-flash"
+            aria-hidden
+            style={{
+              boxShadow: `0 0 24px 8px ${skillFlash.color}, inset 0 0 32px 4px ${skillFlash.color}`,
+              borderColor: skillFlash.color,
+            }}
+          />
+        )}
         {slash && (
           slash.crit ? (
             <span key={slash.id} className="combat__starburst" aria-hidden />

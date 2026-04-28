@@ -43,7 +43,7 @@ export function StepConfirm() {
   const klass = getClass(classKey);
   const extra: StatBlock = { ...ZERO_STATS, ...(state.extraBonuses ?? {}) };
   const finalStats = addStats(addStats(rolled, race.bonuses), extra);
-  const derived = computeDerived(finalStats, 1, klass.hpPerLevel, klass.mpStat);
+  const derived = computeDerived(finalStats, 1, klass.hpPerLevel, klass.mpStat, klass.staminaStat);
   const weapon = pickStartingWeapon(finalStats, raceKey, classKey, klass.startingWeapons);
 
   const beginAdventure = () => {

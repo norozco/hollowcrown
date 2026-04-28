@@ -3,6 +3,7 @@ import {
   initCombat,
   playerAct,
   enemyAct,
+  getSkillByKey,
   type CombatAction,
   type CombatState,
 } from '../engine/combat';
@@ -19,7 +20,7 @@ import { DIFFICULTY_SCALES } from '../engine/character';
 import { Sfx } from '../engine/audio';
 
 /** A transient combat event used by the UI to render floating numbers, flashes, etc. */
-export type CombatEventKind = 'damage' | 'heal' | 'miss' | 'crit';
+export type CombatEventKind = 'damage' | 'heal' | 'miss' | 'crit' | 'skill';
 export interface CombatEvent {
   id: number;
   kind: CombatEventKind;
@@ -28,6 +29,10 @@ export interface CombatEvent {
   crit: boolean;
   /** ms timestamp so the UI can prune */
   at: number;
+  /** Skill key — only set when kind === 'skill'. Drives per-skill
+   *  visual signatures in CombatScene (camera flash color, particle,
+   *  shake) and the React layer (colored slash overlay). */
+  skillKey?: string;
 }
 
 let _eventSeq = 0;
@@ -81,6 +86,26 @@ function emitEventsFromDiff(
     }
   }
 
+  // Skill cast — fired once when the engine flips lastSkillKey on a
+  // tick. Drives the per-skill visual signature in CombatScene (color
+  // flash, particle, shake) and the React layer (colored slash). The
+  // `target` reflects who the skill focuses on per the skill's
+  // visual.target — buffs/heals point at the player; attacks at the
+  // enemy. We resolve the skill's authored target via getSkillByKey
+  // so this stays consistent with the skill's visual block.
+  if (next.lastSkillKey && next.lastSkillKey !== prev.lastSkillKey) {
+    const skill = getSkillByKey(next.lastSkillKey);
+    const tgt: 'player' | 'enemy' =
+      skill?.visual.target === 'player' ? 'player' : 'enemy';
+    pushEvent({
+      kind: 'skill',
+      target: tgt,
+      amount: 0,
+      crit: false,
+      skillKey: next.lastSkillKey,
+    });
+  }
+
   // Victory / defeat / flee stingers — CombatScene also fires these on
   // their log entry; dedup window in audio.ts collapses the near-simultaneous
   // pair to one sound.
@@ -126,8 +151,11 @@ interface CombatStoreState {
 
   /** Start combat against a monster key. */
   start: (monsterKey: string, returnScene?: string, playerX?: number, playerY?: number) => void;
-  /** Player takes an action. If it's then the enemy's turn, auto-acts. */
-  act: (action: CombatAction) => void;
+  /** Player takes an action. For 'skill', pass the stable skill key
+   *  (e.g. 'fireball', 'sneak_attack'). If omitted, the class signature
+   *  (first skill) is used — preserves the test calls that just pass
+   *  `act('skill')`. */
+  act: (action: CombatAction, skillKey?: string) => void;
   /** Use a consumable item during combat (costs the player's turn). */
   useItem: (itemKey: string) => void;
   /** End combat — apply rewards or penalties and clean up. */
@@ -183,7 +211,7 @@ export const useCombatStore = create<CombatStoreState>((set, get) => ({
     }
   },
 
-  act: (action) => {
+  act: (action, skillKey) => {
     const { state, monster, _enemyActing } = get();
     const character = usePlayerStore.getState().character;
     if (!state || !monster || !character) return;
@@ -191,7 +219,7 @@ export const useCombatStore = create<CombatStoreState>((set, get) => ({
     if (state.phase !== 'player_turn' || _enemyActing) return;
 
     // Player acts.
-    const next = playerAct(state, action, character, monster);
+    const next = playerAct(state, action, character, monster, skillKey);
 
     // Guard: if playerAct returned the exact same object, the action was
     // a no-op (wrong phase). Do NOT re-set state or schedule enemy turn.
@@ -456,6 +484,7 @@ export const useCombatStore = create<CombatStoreState>((set, get) => ({
           const heartHpR = getHeartPieceHpBonus(usePlayerStore.getState().heartPieces);
           character.hp = character.derived.maxHp + perkHpR + heartHpR;
           character.mp = character.derived.maxMp + perkMpR;
+          character.stamina = character.derived.maxStamina;
           player.notify();
         }
         // Enemy NOT marked as killed — it survives if player dies.

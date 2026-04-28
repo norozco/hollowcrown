@@ -51,21 +51,196 @@ function getEquipmentBonuses(): { attack: number; damage: number; ac: number } {
   return { attack, damage, ac };
 }
 
-/** Class-specific combat skills with MP cost and special effects. */
+/**
+ * Class-specific combat skills.
+ *
+ * Each skill has a stable `key` (used by the engine dispatch and by the
+ * scene to drive per-skill animations) plus a `cost` object that picks
+ * exactly one resource:
+ *   - `mp`      → caster classes (wizard/cleric/bard)
+ *   - `stamina` → martial classes (fighter/rogue/ranger)
+ *
+ * Visuals are described by a `visual` block read by CombatScene to play
+ * a colored flash + per-skill SFX without text-matching the log.
+ */
 export interface CombatSkill {
+  /** Stable id used by engine dispatch + scene animations. */
+  key: string;
   name: string;
-  mpCost: number;
+  cost: { mp?: number; stamina?: number };
   description: string;
+  /** Visual signature for the scene. Color is hex (e.g. '#ff5533'). */
+  visual: {
+    color: string;
+    /** Phaser camera flash duration in ms. */
+    flashMs: number;
+    /** Camera shake intensity (0..1). 0 = no shake. */
+    shake: number;
+    /** Particle style. 'none' = just the flash. */
+    particle: 'none' | 'fire' | 'ice' | 'shadow' | 'arrow' | 'shield' | 'star' | 'leaf' | 'arcane';
+    /** Where the visual focuses. 'enemy' / 'player' / 'both'. */
+    target: 'enemy' | 'player' | 'both';
+  };
 }
 
-export const CLASS_SKILLS: Record<string, CombatSkill> = {
-  fighter:  { name: 'Action Surge', mpCost: 0, description: 'Strike twice in one turn.' },
-  rogue:    { name: 'Sneak Attack', mpCost: 0, description: 'Deal bonus damage from the shadows.' },
-  wizard:   { name: 'Fireball', mpCost: 8, description: 'Hurl a ball of fire for heavy damage.' },
-  cleric:   { name: 'Cure Wounds', mpCost: 6, description: 'Heal yourself with divine light.' },
-  ranger:   { name: "Hunter's Mark", mpCost: 0, description: 'Mark the enemy — your next attacks deal bonus damage.' },
-  bard:     { name: 'Vicious Mockery', mpCost: 3, description: 'Insult the enemy, reducing their next attack.' },
+export const CLASS_SKILLS: Record<string, readonly CombatSkill[]> = {
+  fighter: [
+    {
+      key: 'action_surge',
+      name: 'Action Surge',
+      cost: { stamina: 4 },
+      description: 'Strike twice in one turn.',
+      visual: { color: '#e8c060', flashMs: 110, shake: 0.012, particle: 'star', target: 'enemy' },
+    },
+    {
+      key: 'cleave',
+      name: 'Cleave',
+      cost: { stamina: 6 },
+      description: 'Heavy two-handed swing — bypasses guard.',
+      visual: { color: '#ff7a30', flashMs: 180, shake: 0.025, particle: 'arrow', target: 'enemy' },
+    },
+    {
+      key: 'bulwark',
+      name: 'Bulwark',
+      cost: { stamina: 3 },
+      description: 'Brace and recover — heal a little, harden your guard.',
+      visual: { color: '#80c0ff', flashMs: 140, shake: 0, particle: 'shield', target: 'player' },
+    },
+  ],
+  rogue: [
+    {
+      key: 'sneak_attack',
+      name: 'Sneak Attack',
+      cost: { stamina: 4 },
+      description: 'Strike from the shadows for shadow damage.',
+      visual: { color: '#9050d0', flashMs: 120, shake: 0.012, particle: 'shadow', target: 'enemy' },
+    },
+    {
+      key: 'poison_strike',
+      name: 'Poison Strike',
+      cost: { stamina: 5 },
+      description: 'A coated blade. Less force, lingering poison.',
+      visual: { color: '#60c060', flashMs: 130, shake: 0.008, particle: 'leaf', target: 'enemy' },
+    },
+    {
+      key: 'vanish',
+      name: 'Vanish',
+      cost: { stamina: 3 },
+      description: 'Slip into shadow — guard up, mark them for the next strike.',
+      visual: { color: '#3a2050', flashMs: 200, shake: 0, particle: 'shadow', target: 'both' },
+    },
+  ],
+  ranger: [
+    {
+      key: 'hunters_mark',
+      name: "Hunter's Mark",
+      cost: { stamina: 3 },
+      description: 'Mark a target — your next strikes find their weak points.',
+      visual: { color: '#ff4040', flashMs: 130, shake: 0, particle: 'arrow', target: 'enemy' },
+    },
+    {
+      key: 'volley',
+      name: 'Volley',
+      cost: { stamina: 6 },
+      description: 'Three arrows in quick succession.',
+      visual: { color: '#c0a040', flashMs: 110, shake: 0.012, particle: 'arrow', target: 'enemy' },
+    },
+    {
+      key: 'beast_strike',
+      name: 'Beast Strike',
+      cost: { stamina: 4 },
+      description: 'A wounding shot that bleeds the target.',
+      visual: { color: '#a04040', flashMs: 130, shake: 0.012, particle: 'arrow', target: 'enemy' },
+    },
+  ],
+  wizard: [
+    {
+      key: 'fireball',
+      name: 'Fireball',
+      cost: { mp: 8 },
+      description: 'A roaring ball of fire — heavy damage.',
+      visual: { color: '#ff5020', flashMs: 240, shake: 0.030, particle: 'fire', target: 'enemy' },
+    },
+    {
+      key: 'ice_lance',
+      name: 'Ice Lance',
+      cost: { mp: 6 },
+      description: 'A spear of ice — may stun on impact.',
+      visual: { color: '#80d0ff', flashMs: 200, shake: 0.018, particle: 'ice', target: 'enemy' },
+    },
+    {
+      key: 'arcane_bolt',
+      name: 'Arcane Bolt',
+      cost: { mp: 3 },
+      description: 'A cheap bolt of raw magic — reliable, no element.',
+      visual: { color: '#c060ff', flashMs: 140, shake: 0.010, particle: 'arcane', target: 'enemy' },
+    },
+  ],
+  cleric: [
+    {
+      key: 'cure_wounds',
+      name: 'Cure Wounds',
+      cost: { mp: 6 },
+      description: 'Divine light mends your wounds.',
+      visual: { color: '#ffe080', flashMs: 220, shake: 0, particle: 'star', target: 'player' },
+    },
+    {
+      key: 'smite',
+      name: 'Smite',
+      cost: { mp: 5 },
+      description: 'Holy radiance — extra against the unholy.',
+      visual: { color: '#fff8c0', flashMs: 200, shake: 0.020, particle: 'star', target: 'enemy' },
+    },
+    {
+      key: 'bless',
+      name: 'Bless',
+      cost: { mp: 3 },
+      description: 'A small mending and a steady guard.',
+      visual: { color: '#c0e0ff', flashMs: 160, shake: 0, particle: 'star', target: 'player' },
+    },
+  ],
+  bard: [
+    {
+      key: 'vicious_mockery',
+      name: 'Vicious Mockery',
+      cost: { mp: 3 },
+      description: 'A cutting word — psychic damage, may stun.',
+      visual: { color: '#a040c0', flashMs: 140, shake: 0.012, particle: 'arcane', target: 'enemy' },
+    },
+    {
+      key: 'healing_word',
+      name: 'Healing Word',
+      cost: { mp: 4 },
+      description: 'A small song that mends.',
+      visual: { color: '#80e080', flashMs: 160, shake: 0, particle: 'star', target: 'player' },
+    },
+    {
+      key: 'inspiration',
+      name: 'Inspiration',
+      cost: { mp: 5 },
+      description: 'A rallying note — heal yourself and unsteady the foe.',
+      visual: { color: '#c0a0ff', flashMs: 180, shake: 0.008, particle: 'arcane', target: 'both' },
+    },
+  ],
 };
+
+/** Look up a skill by its stable key across all classes. */
+export function getSkillByKey(skillKey: string): CombatSkill | null {
+  for (const list of Object.values(CLASS_SKILLS)) {
+    const found = list.find((s) => s.key === skillKey);
+    if (found) return found;
+  }
+  return null;
+}
+
+/** Convenience: signature (first) skill for a class. Used as default
+ *  when callers don't specify a skill key. */
+export function getSignatureSkill(classKey: string): CombatSkill | null {
+  return CLASS_SKILLS[classKey]?.[0] ?? null;
+}
+
+/** Stamina regenerated each player turn that the player is *not* stunned. */
+export const STAMINA_REGEN_PER_TURN = 2;
 
 export type CombatAction = 'attack' | 'defend' | 'flee' | 'skill';
 export type CombatPhase = 'start' | 'player_turn' | 'enemy_turn' | 'victory' | 'defeat' | 'fled';
@@ -112,6 +287,15 @@ export interface CombatState {
   bossPhase2: boolean;
   /** Scaled monster base damage for this fight. */
   monsterBaseDamage: number;
+  /**
+   * The skill key resolved on this tick (transient). Set by the skill
+   * branch of `playerAct`, reset to undefined on subsequent ticks.
+   * The UI / scene reads this to drive per-skill visuals (color flash,
+   * particles, sound) without text-matching the log — text-matching was
+   * the bug that made spellFire / spellHeal trigger on incidental
+   * substrings in atmospheric copy.
+   */
+  lastSkillKey?: string;
 }
 
 const dice = new DiceRoller();
@@ -141,15 +325,23 @@ function applyStatus(status: StatusEffects, effect: keyof StatusEffects, value: 
   status[effect] = Math.min(STATUS_CAPS[effect], status[effect] + value) as never;
 }
 
-/** Map class + action to an element for weakness/resistance checks. */
+/** Map class + action to an element for weakness/resistance checks.
+ *  For skills, prefer the skill-specific element (passed in) — falls back
+ *  to old class-based mapping for the basic attack action. */
 function getAttackElement(classKey: string, action: CombatAction): string {
   if (action === 'skill') {
+    // Legacy fallback only — the skill branch of playerAct passes the
+    // explicit element to applyElement directly.
     if (classKey === 'wizard') return 'fire';
     if (classKey === 'rogue') return 'shadow';
     if (classKey === 'bard') return 'shadow';
   }
   return 'physical';
 }
+
+// Skill elements are inlined in each skill's switch case below — each
+// call to applyElement passes the element directly. A central lookup
+// table existed in an earlier draft but proved redundant.
 
 /**
  * Apply elemental weakness or resistance to a damage value.
@@ -263,12 +455,20 @@ export function initCombat(player: Character, monster: Monster): CombatState {
   };
 }
 
-/** Execute the player's chosen action. Returns updated state. */
+/**
+ * Execute the player's chosen action. Returns updated state.
+ *
+ * `skillKey` is required for action='skill' — pass the stable key of
+ * one of the player's class skills (CLASS_SKILLS[classKey][...].key).
+ * If omitted on a skill action, defaults to the class signature (first
+ * entry) so existing tests that just pass 'skill' keep working.
+ */
 export function playerAct(
   state: CombatState,
   action: CombatAction,
   player: Character,
   monster: Monster,
+  skillKey?: string,
 ): CombatState {
   if (state.phase !== 'player_turn') return state;
 
@@ -278,10 +478,19 @@ export function playerAct(
     playerDefending: false,
     playerStatus: { ...state.playerStatus },
     monsterStatus: { ...state.monsterStatus },
+    lastSkillKey: undefined as string | undefined,
   };
 
   // Tick player status effects at the start of their turn
   const playerStunned = tickStatus(s, 'player', 'You');
+
+  // Stamina regenerates a little each turn (only on turns the player
+  // actually gets to act — stunned turns don't tick regen). This makes
+  // small-cost skills usable repeatedly without bottoming out, while
+  // big-cost skills still need a turn or two of buildup.
+  if (!playerStunned && player.characterClass.staminaStat) {
+    player.restoreStamina(STAMINA_REGEN_PER_TURN);
+  }
 
   // If player died from status damage, defeat
   if (s.playerHp <= 0) {
@@ -338,83 +547,244 @@ export function playerAct(
     s.log.push({ text: 'You brace yourself.', type: 'info' });
   } else if (action === 'skill') {
     const classKey = player.characterClass.key;
-    const skill = CLASS_SKILLS[classKey];
-    if (!skill) {
-      // No skill available — don't waste the turn, return original state.
-      return state;
-    } else if (player.mp < skill.mpCost) {
-      // Not enough MP — don't waste the turn. Add log but return new state
-      // with phase still on player_turn so they can pick another action.
-      s.log.push({ text: `Not enough MP for ${skill.name} (need ${skill.mpCost}).`, type: 'info' });
+    const list = CLASS_SKILLS[classKey];
+    if (!list || list.length === 0) return state;
+
+    // Default to signature skill if caller didn't specify (existing tests
+    // call playerAct(state, 'skill', ...) without a key).
+    const skill = skillKey
+      ? (list.find((sk) => sk.key === skillKey) ?? list[0])
+      : list[0];
+
+    // Resource check — MP for casters, Stamina for melee.
+    const mpCost = skill.cost.mp ?? 0;
+    const staCost = skill.cost.stamina ?? 0;
+    const haveMp = player.mp >= mpCost;
+    const haveSta = player.stamina >= staCost;
+    if (!haveMp || !haveSta) {
+      const need: string[] = [];
+      if (!haveMp) need.push(`${mpCost} MP`);
+      if (!haveSta) need.push(`${staCost} Stamina`);
+      s.log.push({
+        text: `Not enough resources for ${skill.name} (need ${need.join(', ')}).`,
+        type: 'info',
+      });
       s.phase = 'player_turn';
       return s;
-    } else {
-      player.spendMp(skill.mpCost);
+    }
 
-      if (classKey === 'cleric') {
-        // Cure Wounds: heal self — no damage element to check
-        const healAmt = 8 + modifier(player.stats.wis) * 2;
-        const maxHpWithPerks = player.derived.maxHp + getPerkHpBonus(usePlayerStore.getState().perks) + getHeartPieceHpBonus(usePlayerStore.getState().heartPieces);
-        s.playerHp = Math.min(maxHpWithPerks, s.playerHp + healAmt);
-        s.log.push({ text: `Divine light mends your wounds. +${healAmt} HP.`, type: 'player_hit' });
-      } else if (classKey === 'wizard') {
-        // Fireball: guaranteed fire damage
-        const rawDmg = 10 + modifier(player.stats.int) * 2;
-        const dmg = applyElement(rawDmg, 'fire', monster, s);
+    if (mpCost > 0) player.spendMp(mpCost);
+    if (staCost > 0) player.spendStamina(staCost);
+
+    s.lastSkillKey = skill.key;
+
+    // Helper for skill attacks that roll-to-hit (so weakness/resist apply).
+    const skillAttack = (
+      stat: 'str' | 'dex' | 'int' | 'wis' | 'cha',
+      baseDmg: number,
+      element: string,
+      hitText: (dmg: number) => string,
+      missText: () => string,
+    ) => {
+      const r = dice.d(20);
+      const b = modifier(player.stats[stat]);
+      const t = r + b;
+      const ac = monster.ac + (s.monsterDefending ? 2 : 0);
+      if (r === 20 || (r !== 1 && t >= ac)) {
+        const raw = Math.max(1, baseDmg);
+        const dmg = applyElement(raw, element, monster, s);
         s.monsterHp = Math.max(0, s.monsterHp - dmg);
-        s.log.push({ text: `Fireball erupts. ${dmg} fire damage.`, type: 'player_hit' });
-      } else if (classKey === 'fighter') {
-        // Action Surge: two physical attacks in one turn
-        const elem = getAttackElement(classKey, 'skill');
+        s.log.push({ text: hitText(dmg), type: 'player_hit' });
+      } else {
+        s.log.push({ text: missText(), type: 'player_miss' });
+      }
+    };
+
+    const maxHpWithBonuses = () =>
+      player.derived.maxHp
+      + getPerkHpBonus(usePlayerStore.getState().perks)
+      + getHeartPieceHpBonus(usePlayerStore.getState().heartPieces);
+
+    switch (skill.key) {
+      case 'action_surge': {
         for (let strike = 0; strike < 2; strike++) {
-          const r = dice.d(20);
-          const b = modifier(player.stats.str);
-          const t = r + b;
-          const ac = monster.ac + (s.monsterDefending ? 2 : 0);
-          if (r === 20 || (r !== 1 && t >= ac)) {
-            const rawD2 = Math.max(1, modifier(player.stats.str) + 3);
-            const d2 = applyElement(rawD2, elem, monster, s);
-            s.monsterHp = Math.max(0, s.monsterHp - d2);
-            s.log.push({ text: `Action Surge \u2014 strike connects. ${d2} damage.`, type: 'player_hit' });
-          } else {
-            s.log.push({ text: `Action Surge \u2014 the blow misses.`, type: 'player_miss' });
-          }
+          skillAttack(
+            'str',
+            modifier(player.stats.str) + 3,
+            'physical',
+            (d) => `Action Surge — strike connects. ${d} damage.`,
+            () => `Action Surge — the blow misses.`,
+          );
         }
-      } else if (classKey === 'rogue') {
-        // Sneak Attack: shadow damage
-        const rawDmg = 6 + modifier(player.stats.dex) * 2;
-        const dmg = applyElement(rawDmg, 'shadow', monster, s);
-        s.monsterHp = Math.max(0, s.monsterHp - dmg);
-        s.log.push({ text: `You strike from the shadows. ${dmg} damage.`, type: 'player_hit' });
-      } else if (classKey === 'ranger') {
-        // Hunter's Mark: physical + apply marked status
-        applyStatus(s.monsterStatus, 'marked', 3);
+        break;
+      }
+      case 'cleave': {
+        // Heavy single hit; bypasses defending bonus (the swing comes
+        // around the guard). Big damage, single roll.
         const r = dice.d(20);
-        const b = modifier(player.stats.dex);
+        const b = modifier(player.stats.str);
         const t = r + b;
         const ac = monster.ac;
-        const bonusDmg = 4;
         if (r === 20 || (r !== 1 && t >= ac)) {
-          const rawD2 = Math.max(1, modifier(player.stats.dex) + 2 + bonusDmg);
-          const d2 = applyElement(rawD2, 'physical', monster, s);
-          s.monsterHp = Math.max(0, s.monsterHp - d2);
-          s.log.push({ text: `Marked shot lands. ${d2} damage. Target marked.`, type: 'player_hit' });
+          const raw = Math.max(2, Math.round((modifier(player.stats.str) + 4) * 1.5));
+          const dmg = applyElement(raw, 'physical', monster, s);
+          s.monsterHp = Math.max(0, s.monsterHp - dmg);
+          s.log.push({ text: `Cleave — a sweeping blow. ${dmg} damage.`, type: 'player_hit' });
         } else {
-          s.log.push({ text: `Marked shot \u2014 missed. The mark holds.`, type: 'player_miss' });
+          s.log.push({ text: `Cleave — the swing whistles past.`, type: 'player_miss' });
         }
-      } else if (classKey === 'bard') {
-        // Vicious Mockery: shadow psychic damage + debuff + 25% stun
-        const rawDmg = 3 + modifier(player.stats.cha);
-        const dmg = applyElement(rawDmg, 'shadow', monster, s);
+        break;
+      }
+      case 'bulwark': {
+        const heal = Math.max(1, 4 + modifier(player.stats.con));
+        s.playerHp = Math.min(maxHpWithBonuses(), s.playerHp + heal);
+        s.playerDefending = true;
+        s.log.push({ text: `You set your stance. The shield holds. +${heal} HP.`, type: 'player_hit' });
+        break;
+      }
+      case 'sneak_attack': {
+        const raw = 6 + modifier(player.stats.dex) * 2;
+        const dmg = applyElement(raw, 'shadow', monster, s);
         s.monsterHp = Math.max(0, s.monsterHp - dmg);
-        s.monsterDefending = false; // cancel any defend
+        s.log.push({ text: `You strike from the shadows. ${dmg} damage.`, type: 'player_hit' });
+        break;
+      }
+      case 'poison_strike': {
+        applyStatus(s.monsterStatus, 'poison', 3);
+        skillAttack(
+          'dex',
+          2 + modifier(player.stats.dex),
+          'poison',
+          (d) => `A coated blade slips in. ${d} damage. The wound seeps green.`,
+          () => `A coated blade slips past. The poison drips on stone.`,
+        );
+        break;
+      }
+      case 'vanish': {
+        s.playerDefending = true;
+        applyStatus(s.monsterStatus, 'marked', 2);
+        s.log.push({ text: `You step into shadow. They lose sight of you.`, type: 'info' });
+        break;
+      }
+      case 'hunters_mark': {
+        applyStatus(s.monsterStatus, 'marked', 3);
+        skillAttack(
+          'dex',
+          modifier(player.stats.dex) + 2 + 4,
+          'physical',
+          (d) => `Marked shot lands. ${d} damage. The mark holds.`,
+          () => `Marked shot — missed. The mark holds.`,
+        );
+        break;
+      }
+      case 'volley': {
+        for (let arrow = 0; arrow < 3; arrow++) {
+          skillAttack(
+            'dex',
+            modifier(player.stats.dex) + 2,
+            'physical',
+            (d) => `Arrow finds flesh. ${d} damage.`,
+            () => `Arrow hisses past.`,
+          );
+        }
+        break;
+      }
+      case 'beast_strike': {
+        applyStatus(s.monsterStatus, 'bleed', 3);
+        skillAttack(
+          'dex',
+          modifier(player.stats.dex) + 3,
+          'physical',
+          (d) => `A wounding shot. ${d} damage. The wound bleeds.`,
+          () => `The shot goes wide. The wound waits.`,
+        );
+        break;
+      }
+      case 'fireball': {
+        const raw = 10 + modifier(player.stats.int) * 2;
+        const dmg = applyElement(raw, 'fire', monster, s);
+        s.monsterHp = Math.max(0, s.monsterHp - dmg);
+        s.log.push({ text: `Fireball erupts. ${dmg} fire damage.`, type: 'player_hit' });
+        break;
+      }
+      case 'ice_lance': {
+        const raw = 7 + modifier(player.stats.int) * 2;
+        const dmg = applyElement(raw, 'ice', monster, s);
+        s.monsterHp = Math.max(0, s.monsterHp - dmg);
+        const stunRoll = dice.d(20);
+        if (stunRoll >= 15) {
+          applyStatus(s.monsterStatus, 'stun', 1);
+          s.log.push({ text: `Ice Lance — ${dmg} damage. ${monster.name} is locked in frost.`, type: 'player_hit' });
+        } else {
+          s.log.push({ text: `Ice Lance — ${dmg} damage. The cold lingers.`, type: 'player_hit' });
+        }
+        break;
+      }
+      case 'arcane_bolt': {
+        // Cheap & reliable: lower base than fireball, no roll-to-hit,
+        // bypasses fire/ice resists (raw arcane).
+        const raw = Math.max(1, 5 + modifier(player.stats.int));
+        s.monsterHp = Math.max(0, s.monsterHp - raw);
+        s.log.push({ text: `Arcane Bolt strikes true. ${raw} damage.`, type: 'player_hit' });
+        break;
+      }
+      case 'cure_wounds': {
+        const healAmt = 8 + modifier(player.stats.wis) * 2;
+        s.playerHp = Math.min(maxHpWithBonuses(), s.playerHp + healAmt);
+        s.log.push({ text: `Divine light mends your wounds. +${healAmt} HP.`, type: 'player_hit' });
+        break;
+      }
+      case 'smite': {
+        // Treat 'shadow' weakness as the unholy bonus.
+        let raw = 7 + modifier(player.stats.wis) * 2;
+        if (monster.weakness === 'shadow') {
+          raw = Math.ceil(raw * 1.4);
+          s.log.push({ text: `Holy radiance pierces the dark.`, type: 'info' });
+        }
+        const dmg = applyElement(raw, 'radiant', monster, s);
+        s.monsterHp = Math.max(0, s.monsterHp - dmg);
+        s.log.push({ text: `Smite — ${dmg} damage.`, type: 'player_hit' });
+        break;
+      }
+      case 'bless': {
+        const heal = Math.max(1, 4 + modifier(player.stats.wis));
+        s.playerHp = Math.min(maxHpWithBonuses(), s.playerHp + heal);
+        s.playerDefending = true;
+        s.log.push({ text: `A small mending. The light steadies your guard. +${heal} HP.`, type: 'player_hit' });
+        break;
+      }
+      case 'vicious_mockery': {
+        const raw = 3 + modifier(player.stats.cha);
+        const dmg = applyElement(raw, 'shadow', monster, s);
+        s.monsterHp = Math.max(0, s.monsterHp - dmg);
+        s.monsterDefending = false;
         const stunRoll = dice.d(20);
         if (stunRoll >= 16) {
           applyStatus(s.monsterStatus, 'stun', 1);
-          s.log.push({ text: `Vicious Mockery! "${monster.name} couldn't pour water from a boot with instructions on the heel." ${dmg} psychic damage. ${monster.name} is stunned!`, type: 'player_hit' });
+          s.log.push({ text: `Vicious Mockery — ${dmg} psychic damage. ${monster.name} reels.`, type: 'player_hit' });
         } else {
-          s.log.push({ text: `Vicious Mockery! "${monster.name} couldn't pour water from a boot with instructions on the heel." ${dmg} psychic damage.`, type: 'player_hit' });
+          s.log.push({ text: `Vicious Mockery — ${dmg} psychic damage.`, type: 'player_hit' });
         }
+        break;
+      }
+      case 'healing_word': {
+        const heal = Math.max(1, 5 + modifier(player.stats.cha));
+        s.playerHp = Math.min(maxHpWithBonuses(), s.playerHp + heal);
+        s.log.push({ text: `A healing note. +${heal} HP.`, type: 'player_hit' });
+        break;
+      }
+      case 'inspiration': {
+        const heal = Math.max(1, 3 + modifier(player.stats.cha));
+        s.playerHp = Math.min(maxHpWithBonuses(), s.playerHp + heal);
+        applyStatus(s.monsterStatus, 'marked', 3);
+        s.log.push({ text: `A rallying note. +${heal} HP. ${monster.name} hesitates.`, type: 'player_hit' });
+        break;
+      }
+      default: {
+        // Unknown key — refund + graceful no-op.
+        if (mpCost > 0) player.restoreMp(mpCost);
+        if (staCost > 0) player.restoreStamina(staCost);
+        s.log.push({ text: `${skill.name} fizzles.`, type: 'info' });
       }
     }
   } else if (action === 'flee') {

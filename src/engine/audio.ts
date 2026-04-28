@@ -197,6 +197,21 @@ export const Sfx = {
     playSfx({ freq: 660, endFreq: 1320, type: 'sine', duration: 0.35, volume: 0.2 });
     playSfx({ freq: 880, type: 'sine', duration: 0.3, volume: 0.15, delay: 0.08 });
   },
+  /** Spell: ice. Brittle high-pitched crack with a cold shimmer underneath. */
+  spellIce: () => dedup('spellIce', () => {
+    playSfx({ freq: 2400, endFreq: 1600, type: 'triangle', duration: 0.18, volume: 0.18, noise: 0.05 });
+    playSfx({ freq: 880, endFreq: 440, type: 'sine', duration: 0.35, volume: 0.14, delay: 0.04 });
+  }),
+  /** Spell: shadow. Low murmuring drone, no high-end. */
+  spellShadow: () => dedup('spellShadow', () => {
+    playSfx({ freq: 220, endFreq: 80, type: 'triangle', duration: 0.45, volume: 0.22, noise: 0.25 });
+    playSfx({ freq: 110, type: 'sine', duration: 0.35, volume: 0.16, delay: 0.05 });
+  }),
+  /** Spell: arcane. Chromatic dyad — two close pitches that detune as they ring. */
+  spellArcane: () => dedup('spellArcane', () => {
+    playSfx({ freq: 880, endFreq: 1320, type: 'sine', duration: 0.30, volume: 0.18 });
+    playSfx({ freq: 1108, endFreq: 1480, type: 'triangle', duration: 0.30, volume: 0.14, delay: 0.02 });
+  }),
   /** Item pickup. */
   pickup: () => {
     playSfx({ freq: 880, endFreq: 1760, type: 'square', duration: 0.1, volume: 0.18 });

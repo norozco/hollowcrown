@@ -14,6 +14,10 @@ export interface CharacterClass {
   hpPerLevel: number;
   /** Which stat (if any) governs spell power & MP pool. null = no MP. */
   mpStat: StatKey | null;
+  /** Which stat (if any) governs stamina pool for martial skills.
+   *  null = caster, uses MP instead. Mutually exclusive with mpStat
+   *  by convention; a class declares ONE resource. */
+  staminaStat: StatKey | null;
   role: string;
   signatureAbility: { name: string; description: string };
   /** Weapon options this class starts with. pickStartingWeapon() chooses

@@ -26,7 +26,7 @@ import { ALL_PERKS } from './perks';
 interface SaveData {
   version: 1;
   timestamp: number;
-  characterInit: CharacterInit & { level: number; xp: number; gold: number; hp: number; mp: number; gender: Gender };
+  characterInit: CharacterInit & { level: number; xp: number; gold: number; hp: number; mp: number; gender: Gender; stamina?: number };
   quests: Record<string, QuestState>;
   inventory: { slots: Array<{ itemKey: string; qty: number }>; equipment: Record<string, string | null> };
   killedEnemies: string[];
@@ -115,6 +115,7 @@ export function saveGame(slot: string, currentScene = 'TownScene'): boolean {
       gold: char.gold,
       hp: char.hp,
       mp: char.mp,
+      stamina: char.stamina,
     },
     quests: { ...useQuestStore.getState().active },
     inventory: {
@@ -206,6 +207,13 @@ export function loadGame(slot: string): boolean {
     if (char) {
       char.hp = init.hp;
       char.mp = init.mp;
+      // Backward compat: saves predating the stamina pool default to a
+      // full pool. Also clamp mp to the new maxMp in case the class's
+      // resource model changed since the save was written (e.g. ranger
+      // moved from mpStat to staminaStat — old saves carry stale MP).
+      char.stamina = init.stamina ?? char.derived.maxStamina;
+      char.mp = Math.min(char.mp, char.derived.maxMp);
+      char.stamina = Math.min(char.stamina, char.derived.maxStamina);
       // Restore perks — re-apply stat mutations (stat-boost perks modify
       // the character's stats directly, so we replay them on load).
       const savedPerks = data.perks ?? [];
