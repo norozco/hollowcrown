@@ -131,7 +131,7 @@ export class Pseudo3d {
 
     // Y-sort depth
     for (const obj of this.ySortObjects) {
-      const o = obj as Phaser.GameObjects.Components.Transform & Phaser.GameObjects.Components.Depth;
+      const o = obj as unknown as Phaser.GameObjects.Components.Transform & Phaser.GameObjects.Components.Depth;
       if (o.setDepth && typeof o.y === 'number') {
         o.setDepth(10 + o.y * 0.01);
       }
