@@ -52,6 +52,16 @@ export function DialogueScene() {
       .filter(({ choice }) => meetsAllRequirements(choice.requires, quests));
   }, [node, quests]);
 
+  // Are we currently showing the player's staged response line? Computed
+  // up here (before the keyboard effect) because the typewriter hook needs
+  // it, and the keyboard effect references `tw` — so `tw` has to exist by
+  // the time React evaluates that effect's deps array. Use optional
+  // chaining so this is safe to run before the early-return below.
+  const showingPlayerLine = pendingChoice !== null && !!node?.choices?.[pendingChoice];
+  const stagedChoice = showingPlayerLine ? node!.choices![pendingChoice!] : null;
+  const activeText = showingPlayerLine ? (stagedChoice?.text ?? '') : (node?.text ?? '');
+  const tw = useTypewriter(activeText);
+
   // Clear the pending player line whenever the dialogue changes or ends.
   useEffect(() => {
     if (!dialogue) setPendingChoice(null);
@@ -135,14 +145,6 @@ export function DialogueScene() {
   // Real portrait URL — null if this NPC has no art yet (falls back to
   // placeholder circle) or if we're rendering the narrator / player.
   const npcPortraitUrl = npc ? pickPortraitUrl(npc.portraits, node.expression) : null;
-
-  // Are we currently showing the player's staged response line?
-  const showingPlayerLine = pendingChoice !== null && !!node.choices?.[pendingChoice];
-  const stagedChoice = showingPlayerLine ? node.choices![pendingChoice!] : null;
-
-  // Typewriter effect for the current line of text.
-  const activeText = showingPlayerLine ? (stagedChoice?.text ?? '') : node.text;
-  const tw = useTypewriter(activeText);
 
   // Play a subtle dialogue tick SFX every few characters
   useEffect(() => {
