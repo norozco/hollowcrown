@@ -327,12 +327,27 @@ interface MusicTrack {
   arpDur?: number;
   /** Overall volume scale. */
   vol?: number;
+  /**
+   * Pad layer: extra detuned sine voices stacked on the drone for
+   * richness without buzz. Each entry is a multiplier applied to the
+   * base drone frequency. Examples:
+   *   1.0    — fundamental
+   *   1.005  — slightly sharp (slow chorus shimmer)
+   *   1.5    — perfect fifth above
+   *   2.0    — octave above
+   * Pads are always sine waves and bypass the lowpass filter, which
+   * means they sound clean even at low pitch.
+   */
+  pad?: number[];
+  /** Arpeggio wave type — defaults to sine. */
+  arpType?: OscillatorType;
 }
 
 const MUSIC_TRACKS: Record<string, MusicTrack> = {
   town: {
     drone: 130.81, // C3
     droneType: 'triangle',
+    pad: [1.0, 1.005, 1.5, 2.0], // chorus + fifth + octave
     arp: [261.63, 329.63, 392.00, 523.25], // C major
     arpDur: 0.8,
     vol: 0.12,
@@ -340,34 +355,58 @@ const MUSIC_TRACKS: Record<string, MusicTrack> = {
   forest: {
     drone: 146.83, // D3
     droneType: 'sine',
+    pad: [1.0, 1.004, 1.5, 2.0],
     arp: [293.66, 369.99, 440.00, 587.33], // D major
     arpDur: 1.0,
     vol: 0.1,
   },
+  // Cozy interior pad: warm sine pad in C, gentle bell-like pings in
+  // a slow arpeggio. No buzzing waveforms, no aggressive fundamentals.
+  interior: {
+    drone: 174.61, // F3
+    droneType: 'sine',
+    pad: [1.0, 1.005, 1.5, 2.0, 3.0], // fifth + octave + 12th
+    arp: [349.23, 440.00, 523.25, 659.25], // F major bells
+    arpDur: 1.6,
+    arpType: 'sine',
+    vol: 0.08,
+  },
+  // Dungeon: deep sine pad with slow minor arpeggio. Was sawtooth at
+  // 110Hz which buzzed; now layered sines with a perfect-fifth + octave
+  // for fullness without harshness.
   dungeon: {
     drone: 110.00, // A2
-    droneType: 'triangle', // was sawtooth — too buzzy at low pitch
+    droneType: 'sine',
+    pad: [1.0, 1.003, 1.5, 2.0],
     arp: [220.00, 261.63, 329.63, 415.30], // A minor
-    arpDur: 0.9,
-    vol: 0.1,
+    arpDur: 1.4,
+    arpType: 'sine',
+    vol: 0.09,
   },
+  // Combat: still urgent but pads instead of saw drones.
   combat: {
     drone: 87.31, // F2
-    droneType: 'triangle', // was sawtooth — too buzzy at low pitch
+    droneType: 'triangle',
+    pad: [1.0, 1.006, 1.5, 2.0],
     arp: [174.61, 207.65, 261.63, 349.23], // F minor, urgent
     arpDur: 0.4,
-    vol: 0.13, // slightly lowered — was 0.15
+    arpType: 'triangle',
+    vol: 0.11,
   },
+  // Boss: deep + ominous, but lush rather than buzzy.
   boss: {
     drone: 65.41, // C2 — deep
-    droneType: 'triangle', // was square — square at C2 was unbearable
+    droneType: 'sine',
+    pad: [1.0, 1.004, 1.5, 2.0, 2.5], // power-chord stack
     arp: [130.81, 155.56, 196.00, 233.08, 196.00, 155.56], // C minor crawl
     arpDur: 0.5,
-    vol: 0.16, // slightly lowered — was 0.18
+    arpType: 'triangle',
+    vol: 0.13,
   },
   menu: {
     drone: 164.81, // E3
     droneType: 'triangle',
+    pad: [1.0, 1.005, 1.5, 2.0],
     arp: [329.63, 493.88, 659.25], // E major arpeggio
     arpDur: 1.2,
     vol: 0.1,
@@ -375,6 +414,7 @@ const MUSIC_TRACKS: Record<string, MusicTrack> = {
   ending: {
     drone: 130.81,
     droneType: 'sine',
+    pad: [1.0, 1.005, 1.5, 2.0, 3.0],
     arp: [523.25, 659.25, 783.99, 1046.50, 783.99, 659.25], // slow C major
     arpDur: 1.5,
     vol: 0.15,
@@ -446,20 +486,47 @@ export function playMusic(trackKey: string): void {
   };
   currentMusicNodes.push({ osc: droneOsc, gain: droneGain });
 
-  // Harmonic layer (fifth above)
-  const harmOsc = c.createOscillator();
-  harmOsc.type = 'sine';
-  harmOsc.frequency.value = track.drone * 1.5;
-  const harmGain = c.createGain();
-  harmGain.gain.setValueAtTime(0, now);
-  harmGain.gain.linearRampToValueAtTime(vol * 0.3, now + 0.5);
-  harmOsc.connect(harmGain).connect(musicGain);
-  harmOsc.start(now);
-  harmOsc.onended = () => {
-    try { harmOsc.disconnect(); } catch { /* ok */ }
-    try { harmGain.disconnect(); } catch { /* ok */ }
-  };
-  currentMusicNodes.push({ osc: harmOsc, gain: harmGain });
+  // Pad layer — stacked detuned sines for richness without buzz. Each
+  // multiplier in track.pad spawns its own sine voice at vol * 0.18,
+  // creating a chorus + harmonic-stack effect. Sine waves don't have
+  // the harsh harmonics that sawtooth/square produce at low pitch, so
+  // pads stay smooth even on the deep dungeon/boss tracks.
+  if (track.pad && track.pad.length > 0) {
+    for (const mult of track.pad) {
+      const padOsc = c.createOscillator();
+      padOsc.type = 'sine';
+      padOsc.frequency.value = track.drone * mult;
+      const padGain = c.createGain();
+      // Each pad voice is ~18% of vol so a 5-voice stack tops out around
+      // vol * 0.9 total — full but not blown out.
+      const padVol = vol * 0.18;
+      padGain.gain.setValueAtTime(0, now);
+      padGain.gain.linearRampToValueAtTime(padVol, now + 0.7);
+      padOsc.connect(padGain).connect(musicGain);
+      padOsc.start(now);
+      padOsc.onended = () => {
+        try { padOsc.disconnect(); } catch { /* ok */ }
+        try { padGain.disconnect(); } catch { /* ok */ }
+      };
+      currentMusicNodes.push({ osc: padOsc, gain: padGain });
+    }
+  } else {
+    // Fallback for tracks without an explicit pad: keep the legacy
+    // single-fifth harmonic so pre-update tracks still sound layered.
+    const harmOsc = c.createOscillator();
+    harmOsc.type = 'sine';
+    harmOsc.frequency.value = track.drone * 1.5;
+    const harmGain = c.createGain();
+    harmGain.gain.setValueAtTime(0, now);
+    harmGain.gain.linearRampToValueAtTime(vol * 0.3, now + 0.5);
+    harmOsc.connect(harmGain).connect(musicGain);
+    harmOsc.start(now);
+    harmOsc.onended = () => {
+      try { harmOsc.disconnect(); } catch { /* ok */ }
+      try { harmGain.disconnect(); } catch { /* ok */ }
+    };
+    currentMusicNodes.push({ osc: harmOsc, gain: harmGain });
+  }
 
   // Arpeggio layer — scheduled as repeating setInterval
   if (track.arp && track.arp.length > 0) {
@@ -474,7 +541,7 @@ export function playMusic(trackKey: string): void {
       step++;
       const ac = cur.currentTime;
       const noteOsc = cur.createOscillator();
-      noteOsc.type = 'sine';
+      noteOsc.type = track.arpType ?? 'sine';
       noteOsc.frequency.value = note;
       const noteGain = cur.createGain();
       noteGain.gain.setValueAtTime(0, ac);

@@ -478,6 +478,8 @@ export function InGameOverlay() {
         playMusic('town');
       } else if (scene === 'GreenhollowScene' || scene === 'AshenmereScene') {
         playMusic('forest');
+      } else if (scene === 'InteriorScene') {
+        playMusic('interior');
       } else {
         playMusic('dungeon');
       }
