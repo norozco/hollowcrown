@@ -60,6 +60,14 @@ export function DialogueScene() {
   // Keyboard handlers are always registered while a dialogue is active.
   useEffect(() => {
     if (!node) return;
+    // Blur whatever was focused when dialogue opens, so Space doesn't
+    // get eaten by a focused button (which would fire its onClick instead
+    // of advancing the dialogue). User reported "Space doesn't skip"
+    // when their cursor was last on a menu button.
+    const focused = document.activeElement as HTMLElement | null;
+    if (focused && focused !== document.body && typeof focused.blur === 'function') {
+      try { focused.blur(); } catch { /* ignore */ }
+    }
     const onKey = (e: KeyboardEvent) => {
       const tag = (e.target as HTMLElement | null)?.tagName;
       if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
@@ -71,12 +79,12 @@ export function DialogueScene() {
       }
 
       // If we're showing the player's chosen line, Space/Enter commits
-      // the choice. Number keys are ignored in this mode.
+      // the choice in ONE press (skip typewriter + commit). User feedback:
+      // two-press flow felt clunky.
       if (pendingChoice !== null) {
         if (e.key === ' ' || e.key === 'Enter') {
           e.preventDefault();
-          // If still typing, skip to end first (don't commit yet)
-          if (!tw.done) { tw.skip(); return; }
+          if (!tw.done) tw.skip();
           choose(pendingChoice);
           setPendingChoice(null);
         }
@@ -96,14 +104,18 @@ export function DialogueScene() {
 
       if (e.key === ' ' || e.key === 'Enter') {
         e.preventDefault();
-        // If still typing, skip to end first
-        if (!tw.done) { tw.skip(); return; }
+        // Single press skips the typewriter AND advances. React batches
+        // both state changes so the partial text never visibly flashes.
+        if (!tw.done) tw.skip();
         advance();
       }
     };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [node, advance, choose, end, pendingChoice, visibleChoices]);
+    // useCapture so we run before any focused-button's default Space-as-click,
+    // which was eating dialogue Space presses when focus was lingering on
+    // a previously-clicked menu button.
+    window.addEventListener('keydown', onKey, true);
+    return () => window.removeEventListener('keydown', onKey, true);
+  }, [node, advance, choose, end, pendingChoice, visibleChoices, tw]);
 
   if (!node || !dialogue || !state) return null;
 
@@ -153,16 +165,19 @@ export function DialogueScene() {
   }, [tw.done, activeText]);
 
   const onClickTextBox = () => {
-    // If still typing, click skips the typewriter first
-    if (!tw.done) { tw.skip(); return; }
+    // Single click both skips the typewriter and advances. React batches
+    // the state changes so the partial text never visibly flashes — the
+    // line moves forward in one press. Previously this required 2 clicks
+    // (skip, then advance) which playtesters found clunky.
+    if (!tw.done) tw.skip();
     if (showingPlayerLine) {
       choose(pendingChoice!);
       setPendingChoice(null);
       return;
     }
-    // Only block textbox-click-advance if there's at least one visible
-    // choice; if all choices are gated away, fall through to advance.
-    if (visibleChoices.length > 0) return;
+    // Don't auto-advance when the line has visible choices — the player
+    // needs to pick. (If all choices are gated away, fall through.)
+    if (visibleChoices.length > 0 && tw.done) return;
     advance();
   };
 

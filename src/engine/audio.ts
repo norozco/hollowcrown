@@ -10,6 +10,7 @@
 let ctx: AudioContext | null = null;
 let masterGain: GainNode | null = null;
 let musicGain: GainNode | null = null;
+let musicFilter: BiquadFilterNode | null = null;
 let sfxGain: GainNode | null = null;
 
 // Track currently playing music so we can crossfade
@@ -35,7 +36,16 @@ function getCtx(): AudioContext | null {
     masterGain = ctx.createGain();
     musicGain = ctx.createGain();
     sfxGain = ctx.createGain();
-    musicGain.connect(masterGain);
+    // Lowpass filter on the music chain ONLY — rolls off the harsh
+    // high-frequency harmonics that make sawtooth/square drones at
+    // low pitch sound buzzy. SFX still go straight through (they need
+    // the bite). Q is gentle so it doesn't ring.
+    musicFilter = ctx.createBiquadFilter();
+    musicFilter.type = 'lowpass';
+    musicFilter.frequency.value = 1100; // cuts above ~1.1 kHz
+    musicFilter.Q.value = 0.7;
+    musicGain.connect(musicFilter);
+    musicFilter.connect(masterGain);
     sfxGain.connect(masterGain);
     masterGain.connect(ctx.destination);
   } catch {
@@ -336,24 +346,24 @@ const MUSIC_TRACKS: Record<string, MusicTrack> = {
   },
   dungeon: {
     drone: 110.00, // A2
-    droneType: 'sawtooth',
+    droneType: 'triangle', // was sawtooth — too buzzy at low pitch
     arp: [220.00, 261.63, 329.63, 415.30], // A minor
     arpDur: 0.9,
     vol: 0.1,
   },
   combat: {
     drone: 87.31, // F2
-    droneType: 'sawtooth',
+    droneType: 'triangle', // was sawtooth — too buzzy at low pitch
     arp: [174.61, 207.65, 261.63, 349.23], // F minor, urgent
     arpDur: 0.4,
-    vol: 0.15,
+    vol: 0.13, // slightly lowered — was 0.15
   },
   boss: {
     drone: 65.41, // C2 — deep
-    droneType: 'square',
+    droneType: 'triangle', // was square — square at C2 was unbearable
     arp: [130.81, 155.56, 196.00, 233.08, 196.00, 155.56], // C minor crawl
     arpDur: 0.5,
-    vol: 0.18,
+    vol: 0.16, // slightly lowered — was 0.18
   },
   menu: {
     drone: 164.81, // E3

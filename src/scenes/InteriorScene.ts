@@ -113,9 +113,23 @@ export class InteriorScene extends BaseWorldScene {
           backgroundColor: 'rgba(10,6,6,0.7)', padding: { x: 4, y: 2 },
         }).setOrigin(0.5, 1).setDepth(11);
       } else if (ix.dialogueId === '__training_dummy__') {
+        const sceneRef = this;
         this.spawnInteractable({ sprite, label: ix.label, radius: 24,
           action: () => {
-            useCombatStore.getState().start('training_dummy', 'InteriorScene', 0, 0);
+            // Mirror BaseWorldScene.checkEnemyContact: start the combat
+            // store, mark a synthetic _pendingEnemyId so the finish() path
+            // doesn't try to add a real enemy id to killedEnemies, then
+            // hand off to CombatScene the same way real enemies do.
+            // Without the scene swap the React overlay rendered combat UI
+            // but no Phaser combatant sprites, and on finish the world
+            // scene was never restored cleanly.
+            const px = sceneRef.player?.x ?? 0;
+            const py = sceneRef.player?.y ?? 0;
+            const store = useCombatStore.getState();
+            store._pendingEnemyId = '__training_dummy_synthetic__';
+            store.start('training_dummy', 'InteriorScene', px, py);
+            sceneRef.scene.stop(sceneRef.scene.key);
+            sceneRef.scene.start('CombatScene');
           } });
         this.add.text(oX + ix.tileX * TILE + TILE / 2, oY + ix.tileY * TILE - 6, 'Training Dummy', {
           fontFamily: 'Courier New', fontSize: '10px', color: '#d4a968',
