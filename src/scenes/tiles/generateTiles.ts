@@ -8,7 +8,8 @@ import {
 } from './tileMap';
 
 /**
- * Procedural pixel-art tileset — 32 tiles, ALTTP/Pokemon quality target.
+ * Procedural pixel-art tileset — LttP palette retune. Vivid emerald grass,
+ * warm umber paths, royal-blue water. Same TILE.* contract; collision-safe.
  *
  * Tiles 0-15:  terrain (grass, path, walls, roof, etc.)
  * Tiles 16-31: furniture & decoration (bookshelf, bed, table, etc.)
@@ -162,7 +163,7 @@ function fill(c: Ctx, i: number, col: string) { blk(c, i, 0, 0, S, S, col); }
  */
 function drawKenneyFallbacks(c: Ctx): void {
   const biome = (id: number, col: string) => fill(c, id, col);
-  const G = '#48a020', D = '#ae8050', K = '#a0a0a0', W = '#69c5cd';
+  const G = '#3ca41c', D = '#ae8050', K = '#a0a0a0', W = '#69c5cd';
   const R = '#b65e26', N = '#c8b890', T = '#2a2a2a';
   // Grass decorations 44-47 — base green.
   biome(TILE.GRASS_FLOWER_RED, G);    biome(TILE.GRASS_FLOWER_YELLOW, G);
@@ -205,149 +206,149 @@ function drawKenneyFallbacks(c: Ctx): void {
 
 function drawGrassDark(c: Ctx, i: number) {
   // Forest grass — cluster-based texture, NOT random scatter
-  // Ramp: shadow #2a6830, mid-dark #389818, mid #48a020, highlight #78c840
-  fill(c, i, '#48a020');
+  // Ramp: shadow #1a6818, mid-dark #288818, mid #3ca41c, highlight #84d040
+  fill(c, i, '#3ca41c');
 
   // Subtle ground variation — flat patches of slightly different mid-tones
-  blk(c,i,0,0,5,4,'#44981c'); blk(c,i,16,8,6,5,'#4ca024');
-  blk(c,i,8,20,7,5,'#44981c'); blk(c,i,26,16,6,6,'#4ca024');
+  blk(c,i,0,0,5,4,'#38a018'); blk(c,i,16,8,6,5,'#40a820');
+  blk(c,i,8,20,7,5,'#38a018'); blk(c,i,26,16,6,6,'#40a820');
 
   // === GRASS TUFT CLUSTERS (5 clusters, each 3-5px, deliberate shapes) ===
   // Cluster 1 — top-left area, L-shaped tuft (wraps top edge for tiling)
-  px(c,i,4,0,'#78c840'); px(c,i,5,0,'#78c840');  // tips at tile top edge
-  px(c,i,4,1,'#389818'); px(c,i,5,1,'#48a020');
-  px(c,i,3,2,'#2a6830'); px(c,i,4,2,'#389818');
-  px(c,i,3,3,'#2a6830');
+  px(c,i,4,0,'#84d040'); px(c,i,5,0,'#84d040');  // tips at tile top edge
+  px(c,i,4,1,'#288818'); px(c,i,5,1,'#3ca41c');
+  px(c,i,3,2,'#1a6818'); px(c,i,4,2,'#288818');
+  px(c,i,3,3,'#1a6818');
 
   // Cluster 2 — upper-right, V-shaped tuft
-  px(c,i,22,4,'#2a6830'); px(c,i,24,4,'#2a6830');
-  px(c,i,22,3,'#389818'); px(c,i,23,3,'#48a020'); px(c,i,24,3,'#389818');
-  px(c,i,23,2,'#78c840');
+  px(c,i,22,4,'#1a6818'); px(c,i,24,4,'#1a6818');
+  px(c,i,22,3,'#288818'); px(c,i,23,3,'#3ca41c'); px(c,i,24,3,'#288818');
+  px(c,i,23,2,'#84d040');
 
   // Cluster 3 — center, inverted-T tuft
-  px(c,i,14,14,'#2a6830'); px(c,i,15,14,'#2a6830'); px(c,i,16,14,'#2a6830');
-  px(c,i,15,13,'#389818'); px(c,i,15,12,'#78c840');
+  px(c,i,14,14,'#1a6818'); px(c,i,15,14,'#1a6818'); px(c,i,16,14,'#1a6818');
+  px(c,i,15,13,'#288818'); px(c,i,15,12,'#84d040');
 
   // Cluster 4 — lower-left, diagonal tuft
-  px(c,i,6,24,'#2a6830'); px(c,i,7,23,'#389818');
-  px(c,i,8,22,'#78c840'); px(c,i,7,24,'#389818');
-  px(c,i,6,25,'#2a6830');
+  px(c,i,6,24,'#1a6818'); px(c,i,7,23,'#288818');
+  px(c,i,8,22,'#84d040'); px(c,i,7,24,'#288818');
+  px(c,i,6,25,'#1a6818');
 
   // Cluster 5 — lower-right, wraps right edge for seamless tiling
-  px(c,i,30,20,'#2a6830'); px(c,i,31,20,'#389818');
-  px(c,i,30,19,'#389818'); px(c,i,31,19,'#78c840');
-  px(c,i,30,21,'#2a6830');
+  px(c,i,30,20,'#1a6818'); px(c,i,31,20,'#288818');
+  px(c,i,30,19,'#288818'); px(c,i,31,19,'#84d040');
+  px(c,i,30,21,'#1a6818');
 
   // === NEGATIVE SPACE — large flat areas of base color left untouched ===
 
   // === SINGLE-PIXEL SHADOW DIPS (ground depressions) ===
-  px(c,i,10,10,'#2a6830'); px(c,i,27,6,'#2a6830');
+  px(c,i,10,10,'#1a6818'); px(c,i,27,6,'#1a6818');
 
   // === SCATTERED FLOWERS (2-3 single pixels) ===
-  px(c,i,12,7,'#e8e0d0');   // white wildflower
-  px(c,i,20,18,'#d0a0a0');  // pink wildflower
-  px(c,i,2,28,'#e8e0d0');   // white wildflower
+  px(c,i,12,7,'#fff8e8');   // white wildflower
+  px(c,i,20,18,'#f098b0');  // pink wildflower
+  px(c,i,2,28,'#fff8e8');   // white wildflower
 }
 
 function drawGrassLight(c: Ctx, i: number) {
   // Sunlit meadow — brighter palette, same cluster technique, more flowers
-  // Ramp: shadow #2a6830, mid #58b028, bright #78c840, highlight #a0e058
-  fill(c, i, '#58b028');
+  // Ramp: shadow #1a6818, mid #54b424, bright #84d040, highlight #b0e860
+  fill(c, i, '#54b424');
 
   // Sunlit variation patches (warm bright areas)
-  blk(c,i,6,2,7,5,'#60b830'); blk(c,i,22,14,6,5,'#60b830');
-  blk(c,i,2,22,5,4,'#5cb82c');
+  blk(c,i,6,2,7,5,'#5cbc28'); blk(c,i,22,14,6,5,'#5cbc28');
+  blk(c,i,2,22,5,4,'#58b820');
 
   // === GRASS TUFT CLUSTERS (5 clusters, brighter tips than dark grass) ===
   // Cluster 1 — upper area, arc-shaped tuft
-  px(c,i,8,5,'#2a6830'); px(c,i,9,5,'#2a6830'); px(c,i,10,5,'#2a6830');
-  px(c,i,8,4,'#58b028'); px(c,i,9,4,'#78c840'); px(c,i,10,4,'#58b028');
-  px(c,i,9,3,'#a0e058');
+  px(c,i,8,5,'#1a6818'); px(c,i,9,5,'#1a6818'); px(c,i,10,5,'#1a6818');
+  px(c,i,8,4,'#54b424'); px(c,i,9,4,'#84d040'); px(c,i,10,4,'#54b424');
+  px(c,i,9,3,'#b0e860');
 
   // Cluster 2 — right side, diagonal tuft wrapping right edge
-  px(c,i,28,10,'#2a6830'); px(c,i,29,9,'#389818');
-  px(c,i,30,8,'#78c840'); px(c,i,31,8,'#a0e058');
-  px(c,i,29,10,'#2a6830');
+  px(c,i,28,10,'#1a6818'); px(c,i,29,9,'#288818');
+  px(c,i,30,8,'#84d040'); px(c,i,31,8,'#b0e860');
+  px(c,i,29,10,'#1a6818');
 
   // Cluster 3 — center, small T-shape
-  px(c,i,16,16,'#2a6830'); px(c,i,17,16,'#2a6830');
-  px(c,i,16,15,'#58b028'); px(c,i,17,15,'#78c840');
-  px(c,i,17,14,'#a0e058');
+  px(c,i,16,16,'#1a6818'); px(c,i,17,16,'#1a6818');
+  px(c,i,16,15,'#54b424'); px(c,i,17,15,'#84d040');
+  px(c,i,17,14,'#b0e860');
 
   // Cluster 4 — lower-left, L-shape wrapping bottom edge
-  px(c,i,4,28,'#2a6830'); px(c,i,5,28,'#389818');
-  px(c,i,4,29,'#2a6830'); px(c,i,5,29,'#58b028');
-  px(c,i,4,30,'#389818'); px(c,i,4,31,'#78c840');
+  px(c,i,4,28,'#1a6818'); px(c,i,5,28,'#288818');
+  px(c,i,4,29,'#1a6818'); px(c,i,5,29,'#54b424');
+  px(c,i,4,30,'#288818'); px(c,i,4,31,'#84d040');
 
   // Cluster 5 — top-left, wraps left edge
-  px(c,i,0,12,'#78c840'); px(c,i,0,13,'#58b028');
-  px(c,i,1,13,'#389818'); px(c,i,0,14,'#2a6830');
-  px(c,i,1,14,'#2a6830');
+  px(c,i,0,12,'#84d040'); px(c,i,0,13,'#54b424');
+  px(c,i,1,13,'#288818'); px(c,i,0,14,'#1a6818');
+  px(c,i,1,14,'#1a6818');
 
   // === GOLDEN LIGHT SPOTS (single warm-yellow pixels, sunlit effect) ===
-  px(c,i,12,2,'#c0d048'); px(c,i,24,6,'#b8c840'); px(c,i,18,20,'#c0d048');
+  px(c,i,12,2,'#dcd848'); px(c,i,24,6,'#d4d040'); px(c,i,18,20,'#dcd848');
 
   // === SCATTERED FLOWERS (more than dark grass — bright meadow) ===
-  px(c,i,3,8,'#e8e0d0');    // white
-  px(c,i,14,10,'#d0a0a0');  // pink
-  px(c,i,26,4,'#e8e0d0');   // white
-  px(c,i,20,24,'#d0a0a0');  // pink
-  px(c,i,8,18,'#e8e0d0');   // white
+  px(c,i,3,8,'#fff8e8');    // white
+  px(c,i,14,10,'#f098b0');  // pink
+  px(c,i,26,4,'#fff8e8');   // white
+  px(c,i,20,24,'#f098b0');  // pink
+  px(c,i,8,18,'#fff8e8');   // white
 
   // === SHADOW DIPS ===
-  px(c,i,22,22,'#2a6830'); px(c,i,10,26,'#2a6830');
+  px(c,i,22,22,'#1a6818'); px(c,i,10,26,'#1a6818');
 }
 
 function drawPath(c: Ctx, i: number) {
   // Worn dirt path — warm tan base, embedded organic stones, cart tracks
-  // Ramp: shadow #786030, mid-dark #988040, mid #b89850, highlight #d8b868
-  fill(c, i, '#b89850');
+  // Ramp: shadow #704818, mid-dark #9c6028, mid #cc8838, highlight #f0b860
+  fill(c, i, '#cc8838');
 
   // Worn center slightly lighter (foot traffic)
-  blk(c,i,8,8,16,16,'#c0a058');
+  blk(c,i,8,8,16,16,'#d49040');
 
   // === EMBEDDED STONES (3-4 organic ovals, highlight top-left, shadow bottom-right) ===
   // Stone 1 — irregular 6x4 blob, upper-left
-  blk(c,i,3,5,5,3,'#909088'); px(c,i,4,4,'#909088'); px(c,i,6,7,'#909088');
-  px(c,i,3,5,'#b0a8a0'); px(c,i,4,5,'#b0a8a0'); px(c,i,5,5,'#909088');  // highlight top-left
-  px(c,i,6,7,'#585058'); px(c,i,7,6,'#585058'); px(c,i,7,5,'#787470');   // shadow bottom-right
-  px(c,i,4,6,'#787470');  // interior texture
+  blk(c,i,3,5,5,3,'#a89878'); px(c,i,4,4,'#a89878'); px(c,i,6,7,'#a89878');
+  px(c,i,3,5,'#d4c098'); px(c,i,4,5,'#d4c098'); px(c,i,5,5,'#a89878');  // highlight top-left
+  px(c,i,6,7,'#4a4038'); px(c,i,7,6,'#4a4038'); px(c,i,7,5,'#7c6a58');   // shadow bottom-right
+  px(c,i,4,6,'#7c6a58');  // interior texture
 
   // Stone 2 — irregular 5x3, upper-right
-  blk(c,i,22,3,4,3,'#787470'); px(c,i,23,2,'#787470'); px(c,i,25,5,'#787470');
-  px(c,i,22,3,'#b0a8a0'); px(c,i,23,3,'#b0a8a0'); px(c,i,23,2,'#909088');  // highlight
-  px(c,i,25,5,'#585058'); px(c,i,24,5,'#585058');  // shadow
+  blk(c,i,22,3,4,3,'#7c6a58'); px(c,i,23,2,'#7c6a58'); px(c,i,25,5,'#7c6a58');
+  px(c,i,22,3,'#d4c098'); px(c,i,23,3,'#d4c098'); px(c,i,23,2,'#a89878');  // highlight
+  px(c,i,25,5,'#4a4038'); px(c,i,24,5,'#4a4038');  // shadow
 
   // Stone 3 — irregular 5x4, center-right
-  blk(c,i,20,16,5,3,'#909088'); px(c,i,21,15,'#909088'); px(c,i,23,18,'#909088');
-  px(c,i,20,16,'#b0a8a0'); px(c,i,21,16,'#b0a8a0'); px(c,i,21,15,'#b0a8a0');  // highlight
-  px(c,i,24,18,'#585058'); px(c,i,23,18,'#585058'); px(c,i,24,17,'#787470');  // shadow
-  px(c,i,22,17,'#787470');  // texture
+  blk(c,i,20,16,5,3,'#a89878'); px(c,i,21,15,'#a89878'); px(c,i,23,18,'#a89878');
+  px(c,i,20,16,'#d4c098'); px(c,i,21,16,'#d4c098'); px(c,i,21,15,'#d4c098');  // highlight
+  px(c,i,24,18,'#4a4038'); px(c,i,23,18,'#4a4038'); px(c,i,24,17,'#7c6a58');  // shadow
+  px(c,i,22,17,'#7c6a58');  // texture
 
   // Stone 4 — small 3x3, lower-left
-  blk(c,i,5,24,3,2,'#787470'); px(c,i,6,23,'#787470');
-  px(c,i,5,24,'#b0a8a0'); px(c,i,6,23,'#909088');  // highlight
-  px(c,i,7,25,'#585058');  // shadow
+  blk(c,i,5,24,3,2,'#7c6a58'); px(c,i,6,23,'#7c6a58');
+  px(c,i,5,24,'#d4c098'); px(c,i,6,23,'#a89878');  // highlight
+  px(c,i,7,25,'#4a4038');  // shadow
 
   // === SCATTERED PEBBLES (single dark-brown pixels) ===
-  px(c,i,14,8,'#786030'); px(c,i,28,12,'#786030'); px(c,i,10,20,'#786030');
+  px(c,i,14,8,'#704818'); px(c,i,28,12,'#704818'); px(c,i,10,20,'#704818');
 
   // === CART TRACKS (two faint parallel lines using shadow color, dashed) ===
   for (let y = 0; y < S; y += 3) {
-    px(c,i,11,y,'#988040'); px(c,i,20,y,'#988040');
+    px(c,i,11,y,'#9c6028'); px(c,i,20,y,'#9c6028');
   }
 
   // === HIGHLIGHT DUST (worn dusty patches) ===
-  px(c,i,16,10,'#d8b868'); px(c,i,12,22,'#d8b868'); px(c,i,26,28,'#d8b868');
-  px(c,i,2,14,'#d8b868');
+  px(c,i,16,10,'#f0b860'); px(c,i,12,22,'#f0b860'); px(c,i,26,28,'#f0b860');
+  px(c,i,2,14,'#f0b860');
 }
 
 function drawWallStone(c: Ctx, i: number) {
   // Stone wall — mortar grid FIRST, then fill bricks (Slynyrd method)
-  // Stone ramp: shadow #585058, mid-dark #787470, mid #909088, highlight #b0a8a0
+  // Stone ramp: shadow #4a4038, mid-dark #7c6a58, mid #a89878, highlight #d4c098
 
   // Step 1: fill entire tile with MORTAR color
-  fill(c, i, '#585058');
+  fill(c, i, '#4a4038');
 
   // Step 2: fill bricks within grid (15px wide x 7px tall, offset rows)
   // Row 0 (y=0..6): bricks at x=0, x=16
@@ -366,47 +367,47 @@ function drawWallStone(c: Ctx, i: number) {
       if (cw <= 0 || cx >= S) continue;
 
       // Slight color variation per brick
-      const variants = ['#909088','#888880','#909090','#8a8a82'];
+      const variants = ['#a89878','#a09078','#a89878','#a49474'];
       const brickCol = variants[(r * 3 + col) & 3];
 
       // Brick body
       blk(c,i,cx,by,cw,7,brickCol);
       // Top edge highlight
-      blk(c,i,cx,by,cw,1,'#b0a8a0');
+      blk(c,i,cx,by,cw,1,'#d4c098');
       // Bottom edge shadow
-      blk(c,i,cx,by+6,cw,1,'#787470');
+      blk(c,i,cx,by+6,cw,1,'#7c6a58');
       // Left highlight edge
-      px(c,i,cx,by+1,'#b0a8a0'); px(c,i,cx,by+2,'#b0a8a0');
+      px(c,i,cx,by+1,'#d4c098'); px(c,i,cx,by+2,'#d4c098');
       // Right shadow edge
-      px(c,i,cx+cw-1,by+4,'#787470'); px(c,i,cx+cw-1,by+5,'#787470');
+      px(c,i,cx+cw-1,by+4,'#7c6a58'); px(c,i,cx+cw-1,by+5,'#7c6a58');
 
       // Surface scratch (1 darker pixel per brick)
-      px(c,i,cx+3+((r+col)%4),by+3,'#585058');
+      px(c,i,cx+3+((r+col)%4),by+3,'#4a4038');
       // Micro-texture pixel
-      px(c,i,cx+6+((r+col)%3),by+2,'#787470');
+      px(c,i,cx+6+((r+col)%3),by+2,'#7c6a58');
     }
   }
 
   // Step 3: top wall edge — much brighter for depth
-  blk(c,i,0,0,S,1,'#b0a8a0');
-  px(c,i,8,0,'#c0b8b0'); px(c,i,20,0,'#c0b8b0');
+  blk(c,i,0,0,S,1,'#d4c098');
+  px(c,i,8,0,'#e8d4ac'); px(c,i,20,0,'#e8d4ac');
 
   // Step 4: moss pixel on shadow side of 1 brick
-  px(c,i,14,6,'#2a6830'); px(c,i,15,6,'#389818');
+  px(c,i,14,6,'#1a6818'); px(c,i,15,6,'#288818');
 
   // Cracked/discolored brick (prevents visual fatigue)
-  px(c,i,4,18,'#787470'); px(c,i,5,18,'#787470'); px(c,i,5,19,'#585058');
+  px(c,i,4,18,'#7c6a58'); px(c,i,5,18,'#7c6a58'); px(c,i,5,19,'#4a4038');
 }
 
 function drawWallWood(c: Ctx, i: number) {
   // Wooden wall — 4 vertical planks (~7px wide + 1px gap)
-  // Wood ramp: shadow #3a2818, mid-dark #5a4020, mid #7a5830, highlight #a07840
-  fill(c, i, '#3a2818');  // gaps are darkest shadow
+  // Wood ramp: shadow #2c1808, mid-dark #4a2c10, mid #7a4818, highlight #c08838
+  fill(c, i, '#2c1808');  // gaps are darkest shadow
 
   // 4 planks, each ~7px wide with 1px gap between
   const plankX = [0, 8, 16, 24];
   const plankW = [7, 7, 7, 8]; // last plank fills to edge
-  const plankHue = ['#7a5830','#7c5a32','#785630','#7e5c34']; // slight hue variation per plank
+  const plankHue = ['#7a4818','#7c5a32','#785630','#7e5c34']; // slight hue variation per plank
 
   for (let n = 0; n < 4; n++) {
     const pxStart = plankX[n];
@@ -416,69 +417,69 @@ function drawWallWood(c: Ctx, i: number) {
     blk(c,i,pxStart,0,pw,S,plankHue[n]);
 
     // Left edge highlight
-    blk(c,i,pxStart,0,1,S,'#a07840');
+    blk(c,i,pxStart,0,1,S,'#c08838');
 
     // Right edge shadow
-    blk(c,i,pxStart+pw-1,0,1,S,'#5a4020');
+    blk(c,i,pxStart+pw-1,0,1,S,'#4a2c10');
 
     // Wood grain — 2-3 slightly wavy lines per plank (individual px for waviness)
     const g1 = 5 + n * 2;
     const g2 = 14 + n;
     const g3 = 24 - n;
     // Grain line 1 (wavy)
-    px(c,i,pxStart+1,g1,'#5a4020'); px(c,i,pxStart+2,g1,'#5a4020');
-    px(c,i,pxStart+3,g1+1,'#5a4020'); px(c,i,pxStart+4,g1+1,'#5a4020');
-    px(c,i,pxStart+5,g1,'#5a4020');
+    px(c,i,pxStart+1,g1,'#4a2c10'); px(c,i,pxStart+2,g1,'#4a2c10');
+    px(c,i,pxStart+3,g1+1,'#4a2c10'); px(c,i,pxStart+4,g1+1,'#4a2c10');
+    px(c,i,pxStart+5,g1,'#4a2c10');
     // Grain line 2 (wavy)
-    px(c,i,pxStart+1,g2,'#5a4020'); px(c,i,pxStart+2,g2+1,'#5a4020');
-    px(c,i,pxStart+3,g2+1,'#5a4020'); px(c,i,pxStart+4,g2,'#5a4020');
-    px(c,i,pxStart+5,g2,'#5a4020');
+    px(c,i,pxStart+1,g2,'#4a2c10'); px(c,i,pxStart+2,g2+1,'#4a2c10');
+    px(c,i,pxStart+3,g2+1,'#4a2c10'); px(c,i,pxStart+4,g2,'#4a2c10');
+    px(c,i,pxStart+5,g2,'#4a2c10');
     // Grain line 3 (wavy)
-    px(c,i,pxStart+2,g3,'#5a4020'); px(c,i,pxStart+3,g3,'#5a4020');
-    px(c,i,pxStart+4,g3+1,'#5a4020'); px(c,i,pxStart+5,g3+1,'#5a4020');
+    px(c,i,pxStart+2,g3,'#4a2c10'); px(c,i,pxStart+3,g3,'#4a2c10');
+    px(c,i,pxStart+4,g3+1,'#4a2c10'); px(c,i,pxStart+5,g3+1,'#4a2c10');
   }
 
   // Knot hole on plank 1 (dark circle 3px with ring)
-  px(c,i,3,12,'#3a2818'); px(c,i,4,12,'#3a2818'); px(c,i,5,12,'#3a2818');
-  px(c,i,3,13,'#3a2818'); px(c,i,4,13,'#1a1008'); px(c,i,5,13,'#3a2818');
-  px(c,i,3,14,'#3a2818'); px(c,i,4,14,'#3a2818'); px(c,i,5,14,'#3a2818');
+  px(c,i,3,12,'#2c1808'); px(c,i,4,12,'#2c1808'); px(c,i,5,12,'#2c1808');
+  px(c,i,3,13,'#2c1808'); px(c,i,4,13,'#1a1008'); px(c,i,5,13,'#2c1808');
+  px(c,i,3,14,'#2c1808'); px(c,i,4,14,'#2c1808'); px(c,i,5,14,'#2c1808');
   // Ring around knot (concentric grain lines)
-  px(c,i,2,11,'#5a4020'); px(c,i,6,11,'#5a4020');
-  px(c,i,2,15,'#5a4020'); px(c,i,6,15,'#5a4020');
+  px(c,i,2,11,'#4a2c10'); px(c,i,6,11,'#4a2c10');
+  px(c,i,2,15,'#4a2c10'); px(c,i,6,15,'#4a2c10');
 
-  // Nail head (bright metallic #c0b8a8 with shadow #604838 below)
-  px(c,i,20,8,'#c0b8a8'); px(c,i,20,9,'#604838');
+  // Nail head (bright metallic #e8dcb8 with shadow #604838 below)
+  px(c,i,20,8,'#e8dcb8'); px(c,i,20,9,'#604838');
 }
 
 function drawDoor(c: Ctx, i: number) {
   // Building door — dark frame, two wood panels, iron band, handle
-  // Wood ramp for door: #3a2818, #5a4020, #7a5830, #a07840
+  // Wood ramp for door: #2c1808, #4a2c10, #7a4818, #c08838
   fill(c,i,'#1a1008');  // dark recess behind door
 
   // Dark frame border (2px top and sides)
-  blk(c,i,0,0,S,2,'#5a4020');  // top frame
-  blk(c,i,0,0,3,S,'#5a4020');  // left frame
-  blk(c,i,S-3,0,3,S,'#5a4020');  // right frame
+  blk(c,i,0,0,S,2,'#4a2c10');  // top frame
+  blk(c,i,0,0,3,S,'#4a2c10');  // left frame
+  blk(c,i,S-3,0,3,S,'#4a2c10');  // right frame
   // Frame highlight (top-left lit)
-  blk(c,i,0,0,S,1,'#a07840');
-  blk(c,i,0,0,1,S,'#7a5830');
+  blk(c,i,0,0,S,1,'#c08838');
+  blk(c,i,0,0,1,S,'#7a4818');
   // Frame shadow (bottom-right)
-  blk(c,i,S-1,0,1,S,'#3a2818');
+  blk(c,i,S-1,0,1,S,'#2c1808');
 
   // Left door panel
-  blk(c,i,3,2,12,S-5,'#5a4020');
-  blk(c,i,4,3,10,S-8,'#7a5830');
+  blk(c,i,3,2,12,S-5,'#4a2c10');
+  blk(c,i,4,3,10,S-8,'#7a4818');
   // Right door panel
-  blk(c,i,17,2,12,S-5,'#5a4020');
-  blk(c,i,18,3,10,S-8,'#7a5830');
+  blk(c,i,17,2,12,S-5,'#4a2c10');
+  blk(c,i,18,3,10,S-8,'#7a4818');
 
   // Subtle wood grain on panels (horizontal lines)
   for (let y = 5; y < S-5; y += 4) {
-    blk(c,i,4,y,10,1,'#5a4020'); blk(c,i,18,y,10,1,'#5a4020');
+    blk(c,i,4,y,10,1,'#4a2c10'); blk(c,i,18,y,10,1,'#4a2c10');
   }
 
   // Center divider between panels
-  blk(c,i,15,2,2,S-5,'#3a2818');
+  blk(c,i,15,2,2,S-5,'#2c1808');
 
   // Iron band across middle (3px tall, metallic)
   blk(c,i,3,14,S-6,3,'#808088');
@@ -488,16 +489,16 @@ function drawDoor(c: Ctx, i: number) {
   px(c,i,8,15,'#a0a0a8'); px(c,i,16,15,'#a0a0a8'); px(c,i,23,15,'#a0a0a8');
 
   // Handle (bright metallic dot)
-  px(c,i,22,20,'#c0b8a8');
+  px(c,i,22,20,'#e8dcb8');
   px(c,i,21,20,'#808088'); px(c,i,23,20,'#808088');
   px(c,i,22,19,'#808088'); px(c,i,22,21,'#505058');
 
   // Threshold at bottom (stone ramp, worn)
-  blk(c,i,3,S-3,S-6,3,'#909088');
-  blk(c,i,3,S-3,S-6,1,'#b0a8a0');  // highlight
-  blk(c,i,3,S-1,S-6,1,'#787470');  // shadow
+  blk(c,i,3,S-3,S-6,3,'#a89878');
+  blk(c,i,3,S-3,S-6,1,'#d4c098');  // highlight
+  blk(c,i,3,S-1,S-6,1,'#7c6a58');  // shadow
   // Worn marks
-  px(c,i,10,S-2,'#787470'); px(c,i,18,S-2,'#787470');
+  px(c,i,10,S-2,'#7c6a58'); px(c,i,18,S-2,'#7c6a58');
 }
 
 function drawFloorWood(c: Ctx, i: number) {
@@ -583,8 +584,8 @@ function drawFloorStone(c: Ctx, i: number) {
 
 function drawRoof(c: Ctx, i: number) {
   // Overlapping shingle rows (each row 3px tall, offset by 4px)
-  // Warm red ramp: #702818 shadow, #903828 mid-dark, #a84838 mid, #c06050 highlight
-  fill(c,i,'#903828');
+  // Warm red ramp: #80200c shadow, #a8341c mid-dark, #c44820 mid, #dc5c30 highlight
+  fill(c,i,'#a8341c');
 
   // Shingle rows — overlapping, each 3px tall with 1px shadow gap
   for (let r = 0; r < 8; r++) {
@@ -592,7 +593,7 @@ function drawRoof(c: Ctx, i: number) {
     const off = r % 2 === 0 ? 0 : 8;
 
     // Shadow line under shingle overlap
-    if (ry > 0) blk(c,i,0,ry-1,S,1,'#702818');
+    if (ry > 0) blk(c,i,0,ry-1,S,1,'#80200c');
 
     for (let cl = -1; cl < 3; cl++) {
       const tx = off + cl * 16;
@@ -601,38 +602,38 @@ function drawRoof(c: Ctx, i: number) {
       if (tw <= 0) continue;
 
       // Shingle body
-      blk(c,i,tx0,ry,tw,3,'#a84838');
+      blk(c,i,tx0,ry,tw,3,'#c44820');
 
       // Highlight on top-left of each shingle
-      px(c,i,tx0,ry,'#c06050'); px(c,i,tx0+1,ry,'#c06050');
+      px(c,i,tx0,ry,'#dc5c30'); px(c,i,tx0+1,ry,'#dc5c30');
 
       // Shadow on bottom-right
-      px(c,i,tx0+tw-1,ry+2,'#702818'); px(c,i,tx0+tw-2,ry+2,'#903828');
+      px(c,i,tx0+tw-1,ry+2,'#80200c'); px(c,i,tx0+tw-2,ry+2,'#a8341c');
     }
   }
 
   // Ridge line at top
-  blk(c,i,0,0,S,1,'#c06050');
+  blk(c,i,0,0,S,1,'#dc5c30');
   px(c,i,6,0,'#d07060'); px(c,i,18,0,'#d07060'); px(c,i,28,0,'#d07060');
 }
 
 function drawRoofEdge(c: Ctx, i: number) {
   // Roof-to-wall transition: shingles top, shadow overhang, wall bottom
-  fill(c,i,'#585058');  // mortar base for wall section
+  fill(c,i,'#4a4038');  // mortar base for wall section
 
   // === TOP HALF: shingle pattern (matching ROOF) ===
   for (let r = 0; r < 3; r++) {
     const ry = r * 4;
     const off = r % 2 === 0 ? 0 : 8;
-    if (r > 0) blk(c,i,0,ry-1,S,1,'#702818');
+    if (r > 0) blk(c,i,0,ry-1,S,1,'#80200c');
     for (let cl = -1; cl < 3; cl++) {
       const tx = off + cl * 16;
       const tx0 = Math.max(0, tx);
       const tw = Math.min(15, S - tx0);
       if (tw <= 0) continue;
-      blk(c,i,tx0,ry,tw,3,'#a84838');
-      px(c,i,tx0,ry,'#c06050'); px(c,i,tx0+1,ry,'#c06050');
-      px(c,i,tx0+tw-1,ry+2,'#702818');
+      blk(c,i,tx0,ry,tw,3,'#c44820');
+      px(c,i,tx0,ry,'#dc5c30'); px(c,i,tx0+1,ry,'#dc5c30');
+      px(c,i,tx0+tw-1,ry+2,'#80200c');
     }
   }
 
@@ -649,21 +650,21 @@ function drawRoofEdge(c: Ctx, i: number) {
     const cx = Math.max(0, bx);
     const cw = Math.min(15, S - cx);
     if (cw <= 0) continue;
-    blk(c,i,cx,16,cw,7,'#909088');
-    blk(c,i,cx,16,cw,1,'#b0a8a0');
-    blk(c,i,cx,22,cw,1,'#787470');
+    blk(c,i,cx,16,cw,7,'#a89878');
+    blk(c,i,cx,16,cw,1,'#d4c098');
+    blk(c,i,cx,22,cw,1,'#7c6a58');
   }
-  blk(c,i,0,23,S,1,'#585058');  // mortar
+  blk(c,i,0,23,S,1,'#4a4038');  // mortar
   for (let col = -1; col < 3; col++) {
     const bx = 8 + col * 16;
     const cx = Math.max(0, bx);
     const cw = Math.min(15, S - cx);
     if (cw <= 0) continue;
-    blk(c,i,cx,24,cw,7,'#888880');
-    blk(c,i,cx,24,cw,1,'#b0a8a0');
-    blk(c,i,cx,30,cw,1,'#787470');
+    blk(c,i,cx,24,cw,7,'#a09078');
+    blk(c,i,cx,24,cw,1,'#d4c098');
+    blk(c,i,cx,30,cw,1,'#7c6a58');
   }
-  blk(c,i,0,31,S,1,'#585058');
+  blk(c,i,0,31,S,1,'#4a4038');
 }
 
 function drawShadow(c: Ctx, i: number) {
@@ -678,94 +679,94 @@ function drawShadow(c: Ctx, i: number) {
 
   // === Grass texture visible through shadow (scattered highlight pixels) ===
   // These read as blades poking through darkness
-  px(c,i,5,6,'#2a6830'); px(c,i,5,5,'#389818');    // darkened tuft in band 1
-  px(c,i,20,10,'#389818'); px(c,i,20,9,'#48a020');  // tuft in band 2
-  px(c,i,12,18,'#48a020'); px(c,i,12,17,'#78c840'); // tuft in band 3
-  px(c,i,26,26,'#48a020'); px(c,i,26,25,'#78c840'); // tuft in band 4
-  px(c,i,8,28,'#78c840');   // bright blade tip nearly at normal
-  px(c,i,18,30,'#48a020');  // grass showing at bottom
+  px(c,i,5,6,'#1a6818'); px(c,i,5,5,'#288818');    // darkened tuft in band 1
+  px(c,i,20,10,'#288818'); px(c,i,20,9,'#3ca41c');  // tuft in band 2
+  px(c,i,12,18,'#3ca41c'); px(c,i,12,17,'#84d040'); // tuft in band 3
+  px(c,i,26,26,'#3ca41c'); px(c,i,26,25,'#84d040'); // tuft in band 4
+  px(c,i,8,28,'#84d040');   // bright blade tip nearly at normal
+  px(c,i,18,30,'#3ca41c');  // grass showing at bottom
 }
 
 function drawBush(c: Ctx, i: number) {
   // Bush — organic oval, 4-shade green, leaf clusters on top, berries
   // Background: grass (matching GRASS_DARK)
-  fill(c,i,'#48a020');
+  fill(c,i,'#3ca41c');
 
   // Ground shadow at base (dark strip, 2px tall)
-  blk(c,i,7,27,18,2,'#2a6830');
-  blk(c,i,9,29,14,2,'#2a6830');
+  blk(c,i,7,27,18,2,'#1a6818');
+  blk(c,i,9,29,14,2,'#1a6818');
 
   // === BUSH BODY: organic oval (NOT perfectly round) ===
   // Build oval from concentric-ish zones: darkest bottom-right, lightest top-left
   // Core mass
-  blk(c,i,8,8,16,16,'#389818');   // mid base
-  blk(c,i,6,10,20,12,'#389818');  // wider mid section
-  blk(c,i,10,6,12,20,'#389818');  // taller mid section
+  blk(c,i,8,8,16,16,'#288818');   // mid base
+  blk(c,i,6,10,20,12,'#288818');  // wider mid section
+  blk(c,i,10,6,12,20,'#288818');  // taller mid section
   // Round off corners with single pixels
-  px(c,i,7,9,'#389818'); px(c,i,24,9,'#389818');
-  px(c,i,7,22,'#389818'); px(c,i,24,22,'#389818');
+  px(c,i,7,9,'#288818'); px(c,i,24,9,'#288818');
+  px(c,i,7,22,'#288818'); px(c,i,24,22,'#288818');
 
   // Dark zone (bottom-right quadrant)
-  blk(c,i,16,16,8,8,'#2a6830'); blk(c,i,18,14,6,4,'#2a6830');
-  blk(c,i,14,20,4,6,'#2a6830');
+  blk(c,i,16,16,8,8,'#1a6818'); blk(c,i,18,14,6,4,'#1a6818');
+  blk(c,i,14,20,4,6,'#1a6818');
 
   // Light zone (top-left quadrant)
-  blk(c,i,8,8,8,6,'#48a020'); blk(c,i,10,6,6,4,'#78c840');
+  blk(c,i,8,8,8,6,'#3ca41c'); blk(c,i,10,6,6,4,'#84d040');
 
   // === LEAF CLUSTERS on top (3-5px each, brighter) ===
   // Cluster 1 — top-left highlight
-  px(c,i,10,6,'#78c840'); px(c,i,11,5,'#78c840'); px(c,i,12,5,'#78c840');
-  px(c,i,11,6,'#78c840'); px(c,i,10,7,'#48a020');
+  px(c,i,10,6,'#84d040'); px(c,i,11,5,'#84d040'); px(c,i,12,5,'#84d040');
+  px(c,i,11,6,'#84d040'); px(c,i,10,7,'#3ca41c');
 
   // Cluster 2 — top-right
-  px(c,i,19,7,'#78c840'); px(c,i,20,6,'#78c840'); px(c,i,21,7,'#48a020');
-  px(c,i,20,7,'#78c840');
+  px(c,i,19,7,'#84d040'); px(c,i,20,6,'#84d040'); px(c,i,21,7,'#3ca41c');
+  px(c,i,20,7,'#84d040');
 
   // Cluster 3 — left side
-  px(c,i,6,14,'#48a020'); px(c,i,7,13,'#48a020'); px(c,i,7,14,'#389818');
+  px(c,i,6,14,'#3ca41c'); px(c,i,7,13,'#3ca41c'); px(c,i,7,14,'#288818');
 
   // === BERRY DOTS (2-3 small red/orange pixels) ===
-  px(c,i,13,10,'#c04040'); px(c,i,22,14,'#c04040'); px(c,i,10,18,'#d06040');
+  px(c,i,13,10,'#e02828'); px(c,i,22,14,'#e02828'); px(c,i,10,18,'#f04830');
 
   // === DEPTH PIXELS inside bush (darkest) ===
-  px(c,i,15,15,'#1a5010'); px(c,i,18,18,'#1a5010'); px(c,i,12,20,'#1a5010');
+  px(c,i,15,15,'#0c5008'); px(c,i,18,18,'#0c5008'); px(c,i,12,20,'#0c5008');
 }
 
 function drawFence(c: Ctx, i: number) {
   // Fence — grass background, vertical wood post, cross-beam, shadow
-  // Wood ramp: #3a2818, #5a4020, #7a5830, #a07840
-  fill(c,i,'#48a020');  // grass background
+  // Wood ramp: #2c1808, #4a2c10, #7a4818, #c08838
+  fill(c,i,'#3ca41c');  // grass background
 
   // Shadow to the right of post (2px strip, dark)
-  blk(c,i,18,6,2,20,'#2a6830');
+  blk(c,i,18,6,2,20,'#1a6818');
 
   // === VERTICAL POST: 4px wide, 20px tall ===
   const pX = 14;
-  blk(c,i,pX,4,4,20,'#7a5830');
+  blk(c,i,pX,4,4,20,'#7a4818');
   // Left highlight
-  blk(c,i,pX,4,1,20,'#a07840');
+  blk(c,i,pX,4,1,20,'#c08838');
   // Right shadow
-  blk(c,i,pX+3,4,1,20,'#5a4020');
+  blk(c,i,pX+3,4,1,20,'#4a2c10');
   // Wood grain (wavy individual pixels)
-  px(c,i,pX+1,8,'#5a4020'); px(c,i,pX+2,9,'#5a4020');
-  px(c,i,pX+1,14,'#5a4020'); px(c,i,pX+2,15,'#5a4020');
-  px(c,i,pX+1,20,'#5a4020'); px(c,i,pX+2,21,'#5a4020');
+  px(c,i,pX+1,8,'#4a2c10'); px(c,i,pX+2,9,'#4a2c10');
+  px(c,i,pX+1,14,'#4a2c10'); px(c,i,pX+2,15,'#4a2c10');
+  px(c,i,pX+1,20,'#4a2c10'); px(c,i,pX+2,21,'#4a2c10');
 
   // Post top (pointed — single pixel tip)
-  blk(c,i,pX,3,4,1,'#a07840');
-  blk(c,i,pX+1,2,2,1,'#a07840');
-  px(c,i,pX+1,1,'#a07840'); px(c,i,pX+2,1,'#a07840');
+  blk(c,i,pX,3,4,1,'#c08838');
+  blk(c,i,pX+1,2,2,1,'#c08838');
+  px(c,i,pX+1,1,'#c08838'); px(c,i,pX+2,1,'#c08838');
 
   // === CROSS-BEAM: 3px tall, extends full width ===
-  blk(c,i,0,12,pX,3,'#7a5830');
-  blk(c,i,pX+4,12,S-pX-4,3,'#7a5830');
+  blk(c,i,0,12,pX,3,'#7a4818');
+  blk(c,i,pX+4,12,S-pX-4,3,'#7a4818');
   // Beam top highlight
-  blk(c,i,0,12,pX,1,'#a07840'); blk(c,i,pX+4,12,S-pX-4,1,'#a07840');
+  blk(c,i,0,12,pX,1,'#c08838'); blk(c,i,pX+4,12,S-pX-4,1,'#c08838');
   // Beam bottom shadow
-  blk(c,i,0,14,pX,1,'#5a4020'); blk(c,i,pX+4,14,S-pX-4,1,'#5a4020');
+  blk(c,i,0,14,pX,1,'#4a2c10'); blk(c,i,pX+4,14,S-pX-4,1,'#4a2c10');
 
   // Nail detail (bright metallic pixel)
-  px(c,i,pX,13,'#c0b8a8'); px(c,i,pX+3,13,'#c0b8a8');
+  px(c,i,pX,13,'#e8dcb8'); px(c,i,pX+3,13,'#e8dcb8');
 }
 
 function drawPathEdge(c: Ctx, i: number) {
@@ -773,19 +774,19 @@ function drawPathEdge(c: Ctx, i: number) {
   // Top: grass, Bottom: path, Middle: organic irregular edge
 
   // === TOP PORTION: grass (matching GRASS_DARK) ===
-  blk(c,i,0,0,S,14,'#48a020');
+  blk(c,i,0,0,S,14,'#3ca41c');
   // Grass cluster in top half
-  px(c,i,6,4,'#2a6830'); px(c,i,7,3,'#389818'); px(c,i,7,2,'#78c840');
-  px(c,i,20,6,'#2a6830'); px(c,i,21,5,'#389818'); px(c,i,21,4,'#78c840');
+  px(c,i,6,4,'#1a6818'); px(c,i,7,3,'#288818'); px(c,i,7,2,'#84d040');
+  px(c,i,20,6,'#1a6818'); px(c,i,21,5,'#288818'); px(c,i,21,4,'#84d040');
   // Flower
-  px(c,i,14,3,'#e8e0d0');
+  px(c,i,14,3,'#fff8e8');
 
   // === BOTTOM PORTION: path (matching PATH) ===
-  blk(c,i,0,18,S,14,'#b89850');
+  blk(c,i,0,18,S,14,'#cc8838');
   // Pebble in path area
-  px(c,i,10,24,'#786030'); px(c,i,22,20,'#786030');
+  px(c,i,10,24,'#704818'); px(c,i,22,20,'#704818');
   // Highlight dust
-  px(c,i,16,26,'#d8b868');
+  px(c,i,16,26,'#f0b860');
 
   // === TRANSITION ZONE (y=14 to y=17): organic irregular edge ===
   // NOT dithered — instead, grass pixels extend into path, path into grass
@@ -794,22 +795,22 @@ function drawPathEdge(c: Ctx, i: number) {
   for (let x = 0; x < S; x++) {
     const ey = edgeLine[x];
     // Everything above ey = grass
-    if (ey > 14) blk(c,i,x,14,1,ey-14,'#48a020');
+    if (ey > 14) blk(c,i,x,14,1,ey-14,'#3ca41c');
     // Everything below ey = path
-    if (ey < 18) blk(c,i,x,ey,1,18-ey,'#b89850');
+    if (ey < 18) blk(c,i,x,ey,1,18-ey,'#cc8838');
     // Dark shadow at exact edge (grass overhanging)
-    px(c,i,x,ey,'#2a6830');
+    px(c,i,x,ey,'#1a6818');
   }
   // Grass blades poking over into path
-  px(c,i,7,15,'#48a020'); px(c,i,8,16,'#78c840');
-  px(c,i,19,16,'#48a020'); px(c,i,20,17,'#78c840');
-  px(c,i,29,15,'#48a020');
+  px(c,i,7,15,'#3ca41c'); px(c,i,8,16,'#84d040');
+  px(c,i,19,16,'#3ca41c'); px(c,i,20,17,'#84d040');
+  px(c,i,29,15,'#3ca41c');
 }
 
 function drawWell(c: Ctx, i: number) {
   // Village well — grass background, stone ring (~16px diameter), dark water inside
-  // Stone ramp: #585058, #787470, #909088, #b0a8a0
-  fill(c,i,'#48a020');  // grass background
+  // Stone ramp: #4a4038, #7c6a58, #a89878, #d4c098
+  fill(c,i,'#3ca41c');  // grass background
 
   // === STONE RING (oval, using stone ramp) ===
   // Outer ring (~16px diameter)
@@ -825,90 +826,90 @@ function drawWell(c: Ctx, i: number) {
 
       if (id2 <= 1) {
         // === DARK WATER inside ring (deep shades only) ===
-        px(c,i,x,y, id2 < 0.4 ? '#285068' : '#3870a0');
+        px(c,i,x,y, id2 < 0.4 ? '#103880' : '#2a68d0');
       } else {
         // === STONE RING with per-stone lighting ===
         // Top-left = highlight, bottom-right = shadow
-        if (y < 14) px(c,i,x,y,'#b0a8a0');      // top highlight
-        else if (y < 18) px(c,i,x,y,'#909088');  // mid
-        else px(c,i,x,y,'#787470');                // bottom shadow
+        if (y < 14) px(c,i,x,y,'#d4c098');      // top highlight
+        else if (y < 18) px(c,i,x,y,'#a89878');  // mid
+        else px(c,i,x,y,'#7c6a58');                // bottom shadow
       }
     }
   }
 
   // Stone texture on ring (per-stone highlight/shadow marks)
-  px(c,i,10,10,'#b0a8a0'); px(c,i,14,8,'#b0a8a0'); px(c,i,18,8,'#b0a8a0');
-  px(c,i,22,12,'#585058'); px(c,i,22,16,'#585058'); px(c,i,20,22,'#585058');
-  px(c,i,12,22,'#585058');
+  px(c,i,10,10,'#d4c098'); px(c,i,14,8,'#d4c098'); px(c,i,18,8,'#d4c098');
+  px(c,i,22,12,'#4a4038'); px(c,i,22,16,'#4a4038'); px(c,i,20,22,'#4a4038');
+  px(c,i,12,22,'#4a4038');
 
   // Bright highlight on top-left of ring edge
-  px(c,i,10,9,'#c0b8b0'); px(c,i,12,8,'#c0b8b0');
+  px(c,i,10,9,'#e8d4ac'); px(c,i,12,8,'#e8d4ac');
 
   // Water shimmer highlight inside
-  px(c,i,15,14,'#4888b8');
+  px(c,i,15,14,'#508cd8');
 }
 
 function drawWater(c: Ctx, i: number) {
   // Water — BLOB technique (interconnected blob shapes)
-  // Ramp: deep #285068, mid #3870a0, surface #4888b8, highlight #68a8d0
-  fill(c,i,'#3870a0');  // base mid-blue fill
+  // Ramp: deep #103880, mid #2a68d0, surface #508cd8, highlight #90c4f0
+  fill(c,i,'#2a68d0');  // base mid-blue fill
 
   // === BLOB NETWORK: single-pixel deep-blue outlines forming interconnected blobs ===
   // Blob outlines use deep color. Inside blobs = lighter. Between lines = mid.
   // Blobs wrap across tile edges for seamless tiling.
 
   // Blob 1 — large, upper-left (wraps left and top edges)
-  px(c,i,0,4,'#285068'); px(c,i,1,3,'#285068'); px(c,i,2,2,'#285068');
-  px(c,i,3,2,'#285068'); px(c,i,4,3,'#285068'); px(c,i,5,4,'#285068');
-  px(c,i,6,5,'#285068'); px(c,i,7,6,'#285068'); px(c,i,8,7,'#285068');
-  px(c,i,8,8,'#285068'); px(c,i,7,9,'#285068'); px(c,i,6,10,'#285068');
-  px(c,i,5,10,'#285068'); px(c,i,4,9,'#285068'); px(c,i,3,8,'#285068');
-  px(c,i,2,7,'#285068'); px(c,i,1,6,'#285068'); px(c,i,0,5,'#285068');
+  px(c,i,0,4,'#103880'); px(c,i,1,3,'#103880'); px(c,i,2,2,'#103880');
+  px(c,i,3,2,'#103880'); px(c,i,4,3,'#103880'); px(c,i,5,4,'#103880');
+  px(c,i,6,5,'#103880'); px(c,i,7,6,'#103880'); px(c,i,8,7,'#103880');
+  px(c,i,8,8,'#103880'); px(c,i,7,9,'#103880'); px(c,i,6,10,'#103880');
+  px(c,i,5,10,'#103880'); px(c,i,4,9,'#103880'); px(c,i,3,8,'#103880');
+  px(c,i,2,7,'#103880'); px(c,i,1,6,'#103880'); px(c,i,0,5,'#103880');
   // Inside blob 1 = lighter
-  blk(c,i,2,4,4,4,'#4888b8'); px(c,i,5,6,'#4888b8'); px(c,i,6,7,'#4888b8');
+  blk(c,i,2,4,4,4,'#508cd8'); px(c,i,5,6,'#508cd8'); px(c,i,6,7,'#508cd8');
 
   // Blob 2 — mid-right area
-  px(c,i,18,4,'#285068'); px(c,i,19,3,'#285068'); px(c,i,20,3,'#285068');
-  px(c,i,21,3,'#285068'); px(c,i,22,4,'#285068'); px(c,i,23,5,'#285068');
-  px(c,i,23,6,'#285068'); px(c,i,23,7,'#285068'); px(c,i,22,8,'#285068');
-  px(c,i,21,9,'#285068'); px(c,i,20,9,'#285068'); px(c,i,19,8,'#285068');
-  px(c,i,18,7,'#285068'); px(c,i,18,6,'#285068'); px(c,i,18,5,'#285068');
+  px(c,i,18,4,'#103880'); px(c,i,19,3,'#103880'); px(c,i,20,3,'#103880');
+  px(c,i,21,3,'#103880'); px(c,i,22,4,'#103880'); px(c,i,23,5,'#103880');
+  px(c,i,23,6,'#103880'); px(c,i,23,7,'#103880'); px(c,i,22,8,'#103880');
+  px(c,i,21,9,'#103880'); px(c,i,20,9,'#103880'); px(c,i,19,8,'#103880');
+  px(c,i,18,7,'#103880'); px(c,i,18,6,'#103880'); px(c,i,18,5,'#103880');
   // Inside blob 2 = lighter
-  blk(c,i,19,5,3,3,'#4888b8');
+  blk(c,i,19,5,3,3,'#508cd8');
 
   // Blob 3 — center-left (connects to blob 1 via branching line)
-  px(c,i,6,10,'#285068'); px(c,i,7,11,'#285068'); px(c,i,8,12,'#285068');  // branch line
-  px(c,i,9,13,'#285068'); px(c,i,10,14,'#285068'); px(c,i,11,14,'#285068');
-  px(c,i,12,13,'#285068'); px(c,i,13,12,'#285068'); px(c,i,13,11,'#285068');
-  px(c,i,12,10,'#285068'); px(c,i,11,10,'#285068'); px(c,i,10,11,'#285068');
-  px(c,i,9,12,'#285068');
+  px(c,i,6,10,'#103880'); px(c,i,7,11,'#103880'); px(c,i,8,12,'#103880');  // branch line
+  px(c,i,9,13,'#103880'); px(c,i,10,14,'#103880'); px(c,i,11,14,'#103880');
+  px(c,i,12,13,'#103880'); px(c,i,13,12,'#103880'); px(c,i,13,11,'#103880');
+  px(c,i,12,10,'#103880'); px(c,i,11,10,'#103880'); px(c,i,10,11,'#103880');
+  px(c,i,9,12,'#103880');
   // Inside blob 3
-  px(c,i,10,12,'#4888b8'); px(c,i,11,12,'#4888b8'); px(c,i,11,11,'#4888b8');
+  px(c,i,10,12,'#508cd8'); px(c,i,11,12,'#508cd8'); px(c,i,11,11,'#508cd8');
 
   // Blob 4 — lower area (wraps bottom edge)
-  px(c,i,12,22,'#285068'); px(c,i,13,21,'#285068'); px(c,i,14,20,'#285068');
-  px(c,i,15,20,'#285068'); px(c,i,16,20,'#285068'); px(c,i,17,21,'#285068');
-  px(c,i,18,22,'#285068'); px(c,i,19,23,'#285068'); px(c,i,19,24,'#285068');
-  px(c,i,18,25,'#285068'); px(c,i,17,26,'#285068'); px(c,i,16,27,'#285068');
-  px(c,i,15,27,'#285068'); px(c,i,14,26,'#285068'); px(c,i,13,25,'#285068');
-  px(c,i,12,24,'#285068'); px(c,i,12,23,'#285068');
+  px(c,i,12,22,'#103880'); px(c,i,13,21,'#103880'); px(c,i,14,20,'#103880');
+  px(c,i,15,20,'#103880'); px(c,i,16,20,'#103880'); px(c,i,17,21,'#103880');
+  px(c,i,18,22,'#103880'); px(c,i,19,23,'#103880'); px(c,i,19,24,'#103880');
+  px(c,i,18,25,'#103880'); px(c,i,17,26,'#103880'); px(c,i,16,27,'#103880');
+  px(c,i,15,27,'#103880'); px(c,i,14,26,'#103880'); px(c,i,13,25,'#103880');
+  px(c,i,12,24,'#103880'); px(c,i,12,23,'#103880');
   // Inside blob 4
-  blk(c,i,14,22,4,4,'#4888b8');
+  blk(c,i,14,22,4,4,'#508cd8');
 
   // Blob 5 — right side (wraps right edge)
-  px(c,i,26,14,'#285068'); px(c,i,27,13,'#285068'); px(c,i,28,13,'#285068');
-  px(c,i,29,14,'#285068'); px(c,i,30,15,'#285068'); px(c,i,31,16,'#285068');
-  px(c,i,31,17,'#285068'); px(c,i,30,18,'#285068'); px(c,i,29,19,'#285068');
-  px(c,i,28,19,'#285068'); px(c,i,27,18,'#285068'); px(c,i,26,17,'#285068');
-  px(c,i,26,16,'#285068'); px(c,i,26,15,'#285068');
+  px(c,i,26,14,'#103880'); px(c,i,27,13,'#103880'); px(c,i,28,13,'#103880');
+  px(c,i,29,14,'#103880'); px(c,i,30,15,'#103880'); px(c,i,31,16,'#103880');
+  px(c,i,31,17,'#103880'); px(c,i,30,18,'#103880'); px(c,i,29,19,'#103880');
+  px(c,i,28,19,'#103880'); px(c,i,27,18,'#103880'); px(c,i,26,17,'#103880');
+  px(c,i,26,16,'#103880'); px(c,i,26,15,'#103880');
   // Inside blob 5
-  px(c,i,28,15,'#4888b8'); px(c,i,29,16,'#4888b8'); px(c,i,28,17,'#4888b8');
+  px(c,i,28,15,'#508cd8'); px(c,i,29,16,'#508cd8'); px(c,i,28,17,'#508cd8');
 
   // === SPARKLE HIGHLIGHTS (2-3 single bright pixels) ===
-  px(c,i,4,5,'#68a8d0'); px(c,i,20,5,'#68a8d0'); px(c,i,16,24,'#68a8d0');
+  px(c,i,4,5,'#90c4f0'); px(c,i,20,5,'#90c4f0'); px(c,i,16,24,'#90c4f0');
 
   // === DEPTH SHADOWS (1-2 single dark pixels) ===
-  px(c,i,24,28,'#285068'); px(c,i,4,18,'#285068');
+  px(c,i,24,28,'#103880'); px(c,i,4,18,'#103880');
 }
 
 // ───────────────────────────────────────────────────────────────
@@ -1032,7 +1033,7 @@ function drawCounter(c: Ctx, i: number) {
   fill(c, i, '#987048'); // floor peek at bottom
 
   // Counter body — front face
-  blk(c,i,0,6,S,18,'#7a5830');
+  blk(c,i,0,6,S,18,'#7a4818');
   blk(c,i,1,7,S-2,16,'#886838');
   // Front panel recesses
   blk(c,i,3,9,12,12,'#6a4828');
@@ -1040,7 +1041,7 @@ function drawCounter(c: Ctx, i: number) {
   blk(c,i,17,9,12,12,'#6a4828');
   blk(c,i,18,10,10,10,'#5a3820');
   // Panel highlight (top edge of each recess)
-  blk(c,i,3,9,12,1,'#7a5830'); blk(c,i,17,9,12,1,'#7a5830');
+  blk(c,i,3,9,12,1,'#7a4818'); blk(c,i,17,9,12,1,'#7a4818');
   // Panel shadow (bottom of each recess)
   blk(c,i,4,20,10,1,'#503818'); blk(c,i,18,20,10,1,'#503818');
   // Wood grain lines on front face
@@ -1051,14 +1052,14 @@ function drawCounter(c: Ctx, i: number) {
   // Top surface (seen from above — bright, polished)
   blk(c,i,0,2,S,5,'#a88848');
   blk(c,i,0,2,S,1,'#c0a060'); // top edge highlight
-  blk(c,i,1,3,S-2,3,'#b89850'); // polished surface
+  blk(c,i,1,3,S-2,3,'#cc8838'); // polished surface
   // Wood grain on top
   blk(c,i,3,4,6,1,'#a08040'); blk(c,i,14,3,8,1,'#a08040'); blk(c,i,24,4,5,1,'#a08040');
 
   // Items on counter: plate with bread, mug with steam
   // Plate
   blk(c,i,4,1,7,3,'#d0c8b8'); blk(c,i,5,0,5,1,'#e0d8c8');
-  blk(c,i,4,1,7,1,'#e8e0d0'); // plate rim highlight
+  blk(c,i,4,1,7,1,'#fff8e8'); // plate rim highlight
   // Bread on plate
   blk(c,i,6,1,3,2,'#c09840'); px(c,i,7,0,'#d0a850'); px(c,i,6,2,'#a08030');
   // Mug
@@ -1081,7 +1082,7 @@ function drawBedHead(c: Ctx, i: number) {
   blk(c,i,8,2,S-16,4,'#5a3818');
   blk(c,i,10,3,S-20,2,'#684828');
   // Pillow (white, puffy)
-  blk(c,i,4,10,S-8,8,'#e8e0d0');
+  blk(c,i,4,10,S-8,8,'#fff8e8');
   blk(c,i,5,11,S-10,6,'#f0e8d8');
   blk(c,i,4,10,S-8,1,'#f8f0e0'); // pillow top highlight
   blk(c,i,4,17,S-8,1,'#c8c0b0'); // pillow bottom shadow
@@ -1160,7 +1161,7 @@ function drawTable(c: Ctx, i: number) {
   px(c,i,8,7,'#f0a03040'); px(c,i,10,7,'#f0a03040'); // glow
   // Plate with food
   blk(c,i,18,10,7,5,'#d0c8b8'); blk(c,i,19,9,5,1,'#e0d8c8');
-  blk(c,i,18,10,7,1,'#e8e0d0'); // plate rim highlight
+  blk(c,i,18,10,7,1,'#fff8e8'); // plate rim highlight
   blk(c,i,18,14,7,1,'#b0a898'); // plate rim shadow
   px(c,i,20,11,'#a08040'); px(c,i,21,11,'#b09048'); px(c,i,22,12,'#a08040'); // food
 }
@@ -1183,13 +1184,13 @@ function drawChair(c: Ctx, i: number) {
   blk(c,i,8,10,16,14,'#a88040');
   blk(c,i,9,11,14,12,'#b89050');
   // Seat top-left highlight
-  blk(c,i,8,10,16,1,'#c8a060'); blk(c,i,8,10,1,14,'#c0a058');
+  blk(c,i,8,10,16,1,'#c8a060'); blk(c,i,8,10,1,14,'#d49040');
   // Seat bottom-right shadow
   blk(c,i,8,23,16,1,'#886830'); blk(c,i,23,10,1,14,'#907038');
   // Wood grain on seat
   blk(c,i,10,13,12,1,'#a07838'); blk(c,i,11,17,10,1,'#a07838'); blk(c,i,10,20,12,1,'#a07838');
   // Seat center detail
-  px(c,i,15,15,'#c8a860'); px(c,i,16,15,'#c0a058');
+  px(c,i,15,15,'#c8a860'); px(c,i,16,15,'#d49040');
 
   // Chair back (top portion, above seat)
   blk(c,i,8,2,16,7,'#705028');
@@ -1255,7 +1256,7 @@ function drawBarrel(c: Ctx, i: number) {
   // Top rim highlight (bright ellipse for 3D top surface)
   for (let x = 8; x < 24; x++) {
     const dx = (x-16)/8;
-    if (dx*dx < 1) { px(c,i,x,4,'#c8a860'); px(c,i,x,5,'#b89850'); }
+    if (dx*dx < 1) { px(c,i,x,4,'#c8a860'); px(c,i,x,5,'#cc8838'); }
   }
   // Top surface center cross (barrel lid)
   blk(c,i,15,12,2,6,'#705028'); blk(c,i,12,14,8,2,'#705028');
@@ -1307,7 +1308,7 @@ function drawFireplace(c: Ctx, i: number) {
   blk(c,i,1,1,S-2,2,'#787878');
   blk(c,i,0,3,S,1,'#505050'); // bottom shadow of mantle
   // Mantle edge detail
-  px(c,i,0,0,'#909090'); px(c,i,S-1,0,'#606060');
+  px(c,i,0,0,'#a89878'); px(c,i,S-1,0,'#606060');
 
   // Firebox opening (dark recess)
   blk(c,i,6,6,20,26,'#1a1008');
@@ -1401,12 +1402,12 @@ function drawRugEdge(c: Ctx, i: number) {
 
 function drawWeaponRack(c: Ctx, i: number) {
   // Wall-mounted weapon rack with detailed sword and shield
-  // Stone wall: #686868 -> #808080 -> #909090
+  // Stone wall: #686868 -> #808080 -> #a89878
   // Metal: #707880 -> #909898 -> #b0b8c0 -> #d0d8e0
-  fill(c, i, '#888880'); // stone wall bg
+  fill(c, i, '#a09078'); // stone wall bg
   // Wall texture
   px(c,i,2,4,'#808078'); px(c,i,28,6,'#808078'); px(c,i,6,28,'#808078');
-  px(c,i,20,2,'#909088'); px(c,i,14,30,'#808078');
+  px(c,i,20,2,'#a89878'); px(c,i,14,30,'#808078');
 
   // Rack board (dark wood, wall-mounted)
   blk(c,i,3,8,S-6,16,'#5a3820');
@@ -1495,7 +1496,7 @@ function drawWindow(c: Ctx, i: number) {
 
 function drawTorch(c: Ctx, i: number) {
   // Wall-mounted torch with flame
-  fill(c, i, '#888880'); // stone wall bg
+  fill(c, i, '#a09078'); // stone wall bg
   // Bracket
   blk(c,i,12,16,8,10,'#505050');blk(c,i,14,14,4,4,'#606060');
   // Torch handle
@@ -1783,7 +1784,7 @@ function drawAcid(c: Ctx, i: number) {
 
 function drawFloorCracked(c: Ctx, i: number) {
   // Cracked stone floor — full stone base with organic cracks, voids, rubble
-  fill(c, i, '#888880');
+  fill(c, i, '#a09078');
   // Stone brick pattern (matching FLOOR_STONE)
   for (let row = 0; row < 8; row++) {
     const by = row * 4;
@@ -1795,7 +1796,7 @@ function drawFloorCracked(c: Ctx, i: number) {
       const cx2 = Math.max(0, bx);
       const cw = Math.min(10, S - cx2);
       if (cw <= 0) continue;
-      const shade = ['#909088','#888880','#808078','#989890'][(row+col)&3];
+      const shade = ['#a89878','#a09078','#808078','#989890'][(row+col)&3];
       blk(c,i,cx2,by,cw,3,shade);
       blk(c,i,cx2,by,cw,1,'#a0a098');
       if (bx > 0 && bx < S) blk(c,i,bx,by,1,3,'#585850');
@@ -1858,7 +1859,7 @@ function drawFloorCracked(c: Ctx, i: number) {
 
 function drawBones(c: Ctx, i: number) {
   // Bone-littered stone floor — detailed skull, femur, ribs, fragments with shadows
-  fill(c, i, '#888880');
+  fill(c, i, '#a09078');
   // Stone base with brick pattern
   for (let row = 0; row < 8; row++) {
     const by = row * 4;
@@ -1870,7 +1871,7 @@ function drawBones(c: Ctx, i: number) {
       const cx2 = Math.max(0, bx);
       const cw = Math.min(10, S - cx2);
       if (cw <= 0) continue;
-      const shade = ['#909088','#888880','#808078','#989890'][(row+col)&3];
+      const shade = ['#a89878','#a09078','#808078','#989890'][(row+col)&3];
       blk(c,i,cx2,by,cw,3,shade);
       blk(c,i,cx2,by,cw,1,'#a0a098');
       if (bx > 0 && bx < S) blk(c,i,bx,by,1,3,'#585850');
@@ -1885,7 +1886,7 @@ function drawBones(c: Ctx, i: number) {
   // Cranium (rounded top)
   blk(c,i,5,2,6,1,'#d8d0c0'); // top of head
   blk(c,i,4,3,8,1,'#e0d8c8');
-  blk(c,i,3,4,10,1,'#e8e0d0'); // widest part
+  blk(c,i,3,4,10,1,'#fff8e8'); // widest part
   blk(c,i,3,5,10,1,'#e0d8c8');
   blk(c,i,3,6,10,1,'#ddd5c5');
   blk(c,i,4,7,8,1,'#d8d0c0');
@@ -1899,7 +1900,7 @@ function drawBones(c: Ctx, i: number) {
   blk(c,i,4,8,8,1,'#d0c8b8');
   px(c,i,5,8,'#c8c0b0'); px(c,i,6,8,'#e0d8c8'); px(c,i,7,8,'#c8c0b0');
   px(c,i,8,8,'#e0d8c8'); px(c,i,9,8,'#c8c0b0'); px(c,i,10,8,'#e0d8c8');
-  blk(c,i,5,9,6,1,'#c0b8a8'); // jaw line
+  blk(c,i,5,9,6,1,'#e8dcb8'); // jaw line
   // Skull highlight
   px(c,i,6,3,'#f0ead8'); px(c,i,7,3,'#f0ead8');
 
@@ -1927,7 +1928,7 @@ function drawBones(c: Ctx, i: number) {
   // Eyes
   px(c,i,23,21,'#282018'); px(c,i,26,21,'#282018');
   px(c,i,24,22,'#403830'); // nose
-  px(c,i,23,23,'#c0b8a8'); px(c,i,25,23,'#c0b8a8'); // teeth hints
+  px(c,i,23,23,'#e8dcb8'); px(c,i,25,23,'#e8dcb8'); // teeth hints
 
   // === RIB FRAGMENTS ===
   // Ribs (curved bone arcs)
@@ -1948,14 +1949,14 @@ function drawBones(c: Ctx, i: number) {
 function drawCobweb(c: Ctx, i: number) {
   // Stone wall with detailed cobweb radiating from top-right corner, spider
   // Stone wall base (matching WALL_STONE)
-  fill(c, i, '#888880');
+  fill(c, i, '#a09078');
   for (let r = 0; r < 4; r++) {
     const by = r * 8; const off = r%2===0?0:7;
     blk(c,i,0,by+7,S,1,'#585850');
     for (let col = -1; col < 4; col++) {
       const bx = off+col*16; const cx2 = Math.max(0,bx);
       const cw = Math.min(14,S-cx2); if (cw<=0) continue;
-      const sh = ['#909088','#888880','#808078','#989890'][(r+col)&3];
+      const sh = ['#a89878','#a09078','#808078','#989890'][(r+col)&3];
       blk(c,i,cx2,by,cw,7,sh);
       blk(c,i,cx2,by,cw,1,'#a8a8a0');
       blk(c,i,cx2,by+6,cw,1,'#686860');
@@ -2033,14 +2034,14 @@ function drawCobweb(c: Ctx, i: number) {
 function drawChains(c: Ctx, i: number) {
   // Stone wall with detailed hanging chains, manacles, rust spots
   // Stone wall base
-  fill(c, i, '#888880');
+  fill(c, i, '#a09078');
   for (let r = 0; r < 4; r++) {
     const by = r * 8; const off = r%2===0?0:7;
     blk(c,i,0,by+7,S,1,'#585850');
     for (let col = -1; col < 4; col++) {
       const bx = off+col*16; const cx2 = Math.max(0,bx);
       const cw = Math.min(14,S-cx2); if (cw<=0) continue;
-      const sh = ['#909088','#888880','#808078','#989890'][(r+col)&3];
+      const sh = ['#a89878','#a09078','#808078','#989890'][(r+col)&3];
       blk(c,i,cx2,by,cw,7,sh);
       blk(c,i,cx2,by,cw,1,'#a8a8a0');
       blk(c,i,cx2,by+6,cw,1,'#686860');
@@ -2120,7 +2121,7 @@ function drawChains(c: Ctx, i: number) {
 
 function drawMossStone(c: Ctx, i: number) {
   // Mossy stone floor — full stone base with rich moss in cracks, edges, and patches
-  fill(c, i, '#888880');
+  fill(c, i, '#a09078');
   // Stone brick pattern
   for (let row = 0; row < 8; row++) {
     const by = row * 4;
@@ -2132,7 +2133,7 @@ function drawMossStone(c: Ctx, i: number) {
       const cx2 = Math.max(0, bx);
       const cw = Math.min(10, S - cx2);
       if (cw <= 0) continue;
-      const shade = ['#909088','#888880','#808078','#989890'][(row+col)&3];
+      const shade = ['#a89878','#a09078','#808078','#989890'][(row+col)&3];
       blk(c,i,cx2,by,cw,3,shade);
       blk(c,i,cx2,by,cw,1,'#a0a098');
       if (bx > 0 && bx < S) blk(c,i,bx,by,1,3,'#585850');
@@ -2188,7 +2189,7 @@ function drawMossStone(c: Ctx, i: number) {
 
 function drawBloodStone(c: Ctx, i: number) {
   // Blood-stained stone floor — stone base with irregular pools, splatter, dried blood
-  fill(c, i, '#888880');
+  fill(c, i, '#a09078');
   // Stone brick pattern
   for (let row = 0; row < 8; row++) {
     const by = row * 4;
@@ -2200,7 +2201,7 @@ function drawBloodStone(c: Ctx, i: number) {
       const cx2 = Math.max(0, bx);
       const cw = Math.min(10, S - cx2);
       if (cw <= 0) continue;
-      const shade = ['#909088','#888880','#808078','#989890'][(row+col)&3];
+      const shade = ['#a89878','#a09078','#808078','#989890'][(row+col)&3];
       blk(c,i,cx2,by,cw,3,shade);
       blk(c,i,cx2,by,cw,1,'#a0a098');
       if (bx > 0 && bx < S) blk(c,i,bx,by,1,3,'#585850');
