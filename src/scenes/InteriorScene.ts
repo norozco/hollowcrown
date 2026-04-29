@@ -66,6 +66,21 @@ export class InteriorScene extends BaseWorldScene {
         x: oX + npc.tileX * TILE + TILE / 2, y: oY + npc.tileY * TILE + TILE / 2 });
     }
 
+    // Mira recruitment beat — she sits in the corner of the Lakeshore Inn
+    // at night once the player has offered to help her find honest work.
+    // Disappears after recruitment so a recruited companion isn't spawned
+    // as an interactable NPC at the same time.
+    if (layoutId === 'duskmere_inn'
+      && useTimeStore.getState().phase === 'night'
+      && localStorage.getItem('hc_mira_help_offered') === 'true'
+      && localStorage.getItem('hc_mira_recruited') !== 'true') {
+      // Corner table — sit at tile (3, 6) which is empty floor in the inn.
+      this.spawnNpc({
+        key: 'mira', dialogueId: 'mira-recruitment',
+        x: oX + 3 * TILE + TILE / 2, y: oY + 6 * TILE + TILE / 2,
+      });
+    }
+
     for (const ix of layout.interactables) {
       const sprite = this.add.rectangle(
         oX + ix.tileX * TILE + TILE / 2, oY + ix.tileY * TILE + TILE / 2,

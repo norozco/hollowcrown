@@ -1,0 +1,78 @@
+{
+  "id": "mira-backstory",
+  "start": "return",
+  "nodes": {
+    "return": {
+      "id": "return",
+      "speaker": "narrator",
+      "text": "She has not moved. The lamp on the dockmaster's office has been lit and unlit twice since you saw her last. Her eyes find yours before her body does. She nods once, the small nod people give when they were not sure you would come back at all.",
+      "next": "settle"
+    },
+    "settle": {
+      "id": "settle",
+      "speaker": "mira",
+      "expression": "neutral",
+      "text": "Sit, then. The plank holds two. I owe you a story, since you did not put me in the lake when you had the chance.",
+      "next": "story-1"
+    },
+
+    "story-1": {
+      "id": "story-1",
+      "speaker": "mira",
+      "expression": "sad",
+      "text": "I was born here. Not in the village proper. In the row of stilt-houses that used to stand where the long dock is now. The lake came up the year the Greenhollow road went quiet. My mother could not swim. My father could, but he went back for her, and the lake kept them both.",
+      "next": "story-2"
+    },
+    "story-2": {
+      "id": "story-2",
+      "speaker": "mira",
+      "expression": "thoughtful",
+      "text": "I was small. Then I wasn't. Things still need taking, when no one is left to give them to you. I learned which planks creak. Which pockets sit low. Which men drink past the second mug. The work does not ask whether you wanted to learn it.",
+      "next": "story-3"
+    },
+    "story-3": {
+      "id": "story-3",
+      "speaker": "mira",
+      "expression": "neutral",
+      "text": "Nessa knows. She has known for years. She lets me sleep under the dockmaster's office on cold nights and pretends she has not seen me leave at dawn. That is the kindness this place can afford. I have not asked for more. I have stopped expecting more.",
+      "next": "story-options"
+    },
+
+    "story-options": {
+      "id": "story-options",
+      "speaker": "mira",
+      "expression": "neutral",
+      "text": "So. There it is. The long version, since you asked.",
+      "choices": [
+        { "text": "There is honest work. I could find some, with you.", "next": "offer-help" },
+        { "text": "[Leave her to the dock.]", "next": "leave-her" }
+      ]
+    },
+
+    "offer-help": {
+      "id": "offer-help",
+      "speaker": "mira",
+      "expression": "thoughtful",
+      "text": "...Honest work. The phrase makes me tired before I have done any of it. But you are not the first person to suggest it, and you are the first I have not already walked away from. So — alright.",
+      "next": "offer-help-2",
+      "effects": [
+        { "type": "set-flag", "key": "hc_mira_help_offered" }
+      ]
+    },
+    "offer-help-2": {
+      "id": "offer-help-2",
+      "speaker": "mira",
+      "expression": "neutral",
+      "text": "Tomas at the lakeshore inn keeps the hearth lit through the night for the ones who have nowhere else. I will be there when the lamps go down. If you mean what you said — find me in the inn after dark. We can talk about what alright looks like.",
+      "next": null
+    },
+
+    "leave-her": {
+      "id": "leave-her",
+      "speaker": "mira",
+      "expression": "neutral",
+      "text": "Aye. Some stories are heard, and that is the end of the work they ask of the listener. Walk well. The dock is here when you are not.",
+      "next": null
+    }
+  }
+}

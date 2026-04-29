@@ -49,6 +49,13 @@
           ]
         },
         { "text": "Fight alongside me. (50g)", "next": "hire-orric" },
+        {
+          "text": "[Stand a moment in his gaze.]",
+          "next": "orric-grown",
+          "requires": [
+            { "type": "min-level", "level": 10 }
+          ]
+        },
         { "text": "Have you seen an Elven scholar named Veyrin?", "next": "veyrin-seen" },
         { "text": "What is wrong with the woods?", "next": "woods" },
         { "text": "I'm just passing through.", "next": "passing" }
@@ -181,6 +188,21 @@
       "speaker": "orric",
       "expression": "thoughtful",
       "text": "You are still young enough to see the difference. Hold on to that. It goes faster than you think.",
+      "next": null
+    },
+
+    "orric-grown": {
+      "id": "orric-grown",
+      "speaker": "orric",
+      "expression": "thoughtful",
+      "text": "...Aye. You stand differently now. The shoulders settled. The hands quiet. I have seen that change in maybe four people in my life. Two of them lived long enough to teach others. The other two did not.",
+      "next": "orric-grown-2"
+    },
+    "orric-grown-2": {
+      "id": "orric-grown-2",
+      "speaker": "orric",
+      "expression": "neutral",
+      "text": "Do not let the change make you proud. The woods do not respect proud men. They tolerate the quiet ones a little longer. That is the most you can ask of them.",
       "next": null
     }
   }

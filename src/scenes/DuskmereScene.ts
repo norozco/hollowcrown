@@ -201,14 +201,38 @@ export class DuskmereScene extends BaseWorldScene {
       x: 14 * TILE, y: 7 * TILE,
     });
 
-    // Mira — on the far dock (only after the theft event).
-    // She appears if the player has been robbed but hasn't resolved her dialogue.
+    // Mira — on the far dock (only after the theft event, until she has
+    // moved on to the inn for recruitment).
+    //
+    // Dialogue picked from the arc state:
+    //   - first interaction → mira-confront (confrontation, beat 1)
+    //   - after asking-why   → mira-backstory (gated by hc_mira_asked_why, beat 2)
+    //   - after offering help → she leaves the dock for the inn at night
+    //
+    // Once she's moved to the inn (`hc_mira_help_offered`) the dock NPC is
+    // suppressed so the player isn't talking to two of her at once.
     const miraFlag = localStorage.getItem('hollowcrown_mira_theft');
     const miraResolved = localStorage.getItem('hollowcrown_mira_resolved');
-    if (miraFlag === 'true' && miraResolved !== 'true') {
+    const miraRecovered = localStorage.getItem('hc_mira_recovered');
+    const miraAskedWhy = localStorage.getItem('hc_mira_asked_why');
+    const miraHelpOffered = localStorage.getItem('hc_mira_help_offered');
+    if (
+      miraFlag === 'true'
+      && miraResolved !== 'true'
+      && miraHelpOffered !== 'true'
+    ) {
+      // Pick the dialogue beat that matches what the player has done so far.
+      let dockDialogueId = 'mira-confront';
+      if (miraAskedWhy === 'true') dockDialogueId = 'mira-backstory';
+      // If they only recovered the gold without asking why, keep the
+      // confrontation dialogue available so she still has something to say
+      // — leaving the dock empty after one short interaction felt thin.
+      if (miraRecovered === 'true' && miraAskedWhy !== 'true') {
+        dockDialogueId = 'mira-confront';
+      }
       // On the long dock (cols 18-30, rows 12-13) — walkable floor, not water.
       this.spawnNpc({
-        key: 'mira', dialogueId: 'mira-greeting',
+        key: 'mira', dialogueId: dockDialogueId,
         x: 28 * TILE, y: 12 * TILE + TILE / 2,
       });
     }
@@ -273,9 +297,12 @@ export class DuskmereScene extends BaseWorldScene {
                 duration: 1400, ease: 'Sine.easeInOut',
                 onComplete: () => {
                   mira.destroy();
-                  // Now spawn the persistent interactable Mira NPC on the dock.
+                  // Spawn the persistent interactable Mira NPC at the dock's
+                  // end. First confrontation uses `mira-confront`; subsequent
+                  // visits flip to `mira-backstory` once the player has asked
+                  // why (see the dock spawn block earlier in this layout).
                   this.spawnNpc({
-                    key: 'mira', dialogueId: 'mira-greeting',
+                    key: 'mira', dialogueId: 'mira-confront',
                     x: 28 * TILE, y: 12 * TILE + TILE / 2,
                   });
                   window.dispatchEvent(new CustomEvent('gameMessage', {

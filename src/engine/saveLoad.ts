@@ -15,6 +15,7 @@ import { useTimeStore, type TimePhase } from '../state/timeStore';
 import { useLoreStore } from '../state/loreStore';
 import { useDungeonItemStore } from '../state/dungeonItemStore';
 import { useWorldStateStore } from '../state/worldStateStore';
+import { useDialogueMemoryStore } from '../state/dialogueMemoryStore';
 import type { CharacterInit, Gender } from './character';
 import type { QuestState } from './quest';
 import type { LoreEntry } from '../state/loreStore';
@@ -83,6 +84,10 @@ interface SaveData {
     phase: TimePhase;
     transitionsSincePhase: number;
   };
+  /** Per-dialogue greeting counts so NPCs keep their familiarity across
+   *  reloads (added post-v1, optional for compat — missing field defaults
+   *  to an empty record so old saves still load cleanly). */
+  dialogueMemory?: Record<string, number>;
 }
 
 const SAVE_PREFIX = 'hollowcrown_save_';
@@ -167,6 +172,7 @@ export function saveGame(slot: string, currentScene = 'TownScene'): boolean {
       phase: useTimeStore.getState().phase,
       transitionsSincePhase: useTimeStore.getState().transitionsSincePhase,
     },
+    dialogueMemory: useDialogueMemoryStore.getState().snapshot(),
   };
 
   try {
@@ -340,6 +346,13 @@ export function loadGame(slot: string): boolean {
         transitionsSincePhase: data.time.transitionsSincePhase,
       });
     }
+
+    // Restore NPC greeting familiarity. Missing field on older saves
+    // defaults to empty so the player just sees first-meeting lines
+    // again rather than the load failing.
+    useDialogueMemoryStore.setState({
+      greetingCount: { ...(data.dialogueMemory ?? {}) },
+    });
 
     return true;
   } catch {

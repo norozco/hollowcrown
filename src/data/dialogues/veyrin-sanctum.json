@@ -15,7 +15,14 @@
       "choices": [
         { "text": "The Hermit told me you were down here.", "next": "hermit-sent" },
         { "text": "Veyrin? The scholar?", "next": "confirm-identity" },
-        { "text": "What is this place?", "next": "about-altar" }
+        { "text": "What is this place?", "next": "about-altar" },
+        {
+          "text": "Has the seal weakened since I left?",
+          "next": "veyrin-seal-update",
+          "requires": [
+            { "type": "min-greeting-count", "dialogueId": "veyrin-sanctum", "count": 2 }
+          ]
+        }
       ]
     },
     "hermit-sent": {
@@ -93,6 +100,21 @@
       "id": "farewell",
       "speaker": "veyrin",
       "text": "Go. The way up is still open. Do not linger — the things down here grow curious when they sense warmth.",
+      "next": null
+    },
+
+    "veyrin-seal-update": {
+      "id": "veyrin-seal-update",
+      "speaker": "veyrin",
+      "expression": "thoughtful",
+      "text": "It has, in places. Not enough to break — but enough to teach me where the cracks are. The pages have grown louder since you began returning. The thing beneath turns its attention toward warmth, and you bring more of it each time you come down.",
+      "next": "veyrin-seal-update-2"
+    },
+    "veyrin-seal-update-2": {
+      "id": "veyrin-seal-update-2",
+      "speaker": "veyrin",
+      "expression": "neutral",
+      "text": "Do not stop coming. The visits steady me. A keeper without a witness eventually becomes the thing he keeps. I have watched it happen, in the inscriptions. I would prefer not to be a footnote.",
       "next": null
     }
   }

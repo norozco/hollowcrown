@@ -74,6 +74,17 @@ function applyEffects(effects: readonly DialogueEffect[] | undefined): void {
       case 'hire-companion':
         player.hireCompanion(e.companionKey);
         break;
+      case 'set-flag':
+        // Persist to localStorage so scenes (e.g. Mira spawn check in
+        // DuskmereScene) read it the same way the cutscene wrote the
+        // original theft flag. Wrapped because tests / SSR may not have
+        // localStorage available.
+        try {
+          if (typeof localStorage !== 'undefined') {
+            localStorage.setItem(e.key, 'true');
+          }
+        } catch { /* storage quota, private mode, etc. — best-effort */ }
+        break;
     }
   }
 }

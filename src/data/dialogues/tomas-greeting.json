@@ -28,6 +28,13 @@
           "requires": [{ "type": "quest-not-started", "questId": "herb-gathering" }]
         },
         { "text": "Fight alongside me. (60g)", "next": "hire-tomas" },
+        {
+          "text": "[The room you keep aired. For me, now?]",
+          "next": "tomas-regular",
+          "requires": [
+            { "type": "min-greeting-count", "dialogueId": "tomas-greeting", "count": 5 }
+          ]
+        },
         { "text": "How much for a bed?", "next": "bed" },
         { "text": "Who usually stays here?", "next": "regulars" },
         { "text": "Tell me about yourself.", "next": "about-tomas" },
@@ -167,6 +174,21 @@
       "speaker": "tomas",
       "expression": "neutral",
       "text": "I will leave the inn to Marta. She manages better than she lets on. Let us go before I reconsider.",
+      "next": null
+    },
+
+    "tomas-regular": {
+      "id": "tomas-regular",
+      "speaker": "tomas",
+      "expression": "happy",
+      "text": "...You noticed. I did not air it for you. Not at first. But the bed has been warm for three weeks running, and I have stopped writing the old name in the ledger when I make it up. Take it as you like.",
+      "next": "tomas-regular-2"
+    },
+    "tomas-regular-2": {
+      "id": "tomas-regular-2",
+      "speaker": "tomas",
+      "expression": "neutral",
+      "text": "The east room. Window that does not stick. No charge tonight. Pay me back by walking out the door tomorrow morning, and walking back in by nightfall. That is all I ask of regulars.",
       "next": null
     }
   }

@@ -1,0 +1,63 @@
+{
+  "id": "mira-recruitment",
+  "start": "inn-night",
+  "nodes": {
+    "inn-night": {
+      "id": "inn-night",
+      "speaker": "narrator",
+      "text": "The Lakeshore Inn at this hour is a different room. The lamps are down to embers. Tomas is asleep behind the counter, the way innkeepers sleep — half a mug from waking. She is at a corner table, hands wrapped around a wooden cup she has not drunk from. She watches you cross the room without standing.",
+      "next": "mira-greet"
+    },
+    "mira-greet": {
+      "id": "mira-greet",
+      "speaker": "mira",
+      "expression": "neutral",
+      "text": "You came. I half hoped you would not. The other half is glad you did. That is the honest answer. I have been practising honest answers since the dock.",
+      "next": "mira-pitch"
+    },
+    "mira-pitch": {
+      "id": "mira-pitch",
+      "speaker": "mira",
+      "expression": "thoughtful",
+      "text": "I am not built for hauling rope or scrubbing pots. Tomas was kind about it. So — I made a different ask. If the work is honest enough that it does not need my name on a ledger, I would walk it with you. The hands stay quick. Quick hands have other uses.",
+      "next": "mira-pitch-2"
+    },
+    "mira-pitch-2": {
+      "id": "mira-pitch-2",
+      "speaker": "mira",
+      "expression": "neutral",
+      "text": "I will not lift from your purse. I will not lift from anyone you have called by name. Outside of that — assume I have done what I needed to do. Tell me what the work is.",
+      "choices": [
+        { "text": "Walk with me. We start now.", "next": "recruit" },
+        { "text": "Not tonight. I need to think.", "next": "decline" }
+      ]
+    },
+
+    "recruit": {
+      "id": "recruit",
+      "speaker": "mira",
+      "expression": "thoughtful",
+      "text": "Aye. Then it is settled. I will pack what I have, which is not much. The cloak. A blade I should not be carrying. A small thing of my mother's, which is not yours to ask after yet.",
+      "next": "recruit-done",
+      "effects": [
+        { "type": "hire-companion", "companionKey": "mira" },
+        { "type": "set-flag", "key": "hc_mira_recruited" }
+      ]
+    },
+    "recruit-done": {
+      "id": "recruit-done",
+      "speaker": "mira",
+      "expression": "neutral",
+      "text": "One rule, and it is mine. If we find a thing worth taking, I get the first look. Not the first pick. Just the look. A girl has to see the shape of a thing before she walks past it.",
+      "next": null
+    },
+
+    "decline": {
+      "id": "decline",
+      "speaker": "mira",
+      "expression": "sad",
+      "text": "Aye. Think, then. The hearth will be down to ash by the time you decide, but I have slept on colder boards. Find me here again when the answer has settled. I am not in a hurry. I have not been in a hurry for years.",
+      "next": null
+    }
+  }
+}
