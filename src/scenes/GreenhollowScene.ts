@@ -109,10 +109,12 @@ export class GreenhollowScene extends BaseWorldScene {
       targetSpawn: 'orric',
     });
 
-    // Enemies — wolves roaming the forest.
-    this.spawnEnemy({ monsterKey: 'wolf', x: 22 * TILE, y: 10 * TILE });
+    // Enemies — wolves roaming the forest. Two of these spawn as PACKS
+    // (1 visible wolf with 1-2 extras joining the fight on contact) so
+    // the player meets multi-enemy combat early. The rest stay solo.
+    this.spawnEnemy({ monsterKey: 'wolf', x: 22 * TILE, y: 10 * TILE, extras: ['wolf'] });
     this.spawnEnemy({ monsterKey: 'wolf', x: 16 * TILE, y: 8 * TILE });
-    this.spawnEnemy({ monsterKey: 'wolf', x: 26 * TILE, y: 14 * TILE });
+    this.spawnEnemy({ monsterKey: 'wolf', x: 26 * TILE, y: 14 * TILE, extras: ['wolf', 'wolf'] });
     this.spawnEnemy({ monsterKey: 'wolf', x: 12 * TILE, y: 16 * TILE });
     this.spawnEnemy({ monsterKey: 'wolf', x: 30 * TILE, y: 18 * TILE });
 

@@ -153,6 +153,10 @@ export abstract class BaseWorldScene extends Phaser.Scene {
     baseY: number;
     patrolDir: number;
     patrolTimer: number;
+    /** Extra monster keys that join this enemy's fight as "adds". When
+     *  the player contacts this enemy, combat starts with the primary
+     *  + these extras. Empty/missing = vanilla 1v1. */
+    extras?: string[];
   }> = [];
   protected exits: Exit[] = [];
   protected prompt!: Phaser.GameObjects.Text;
@@ -2012,8 +2016,11 @@ export abstract class BaseWorldScene extends Phaser.Scene {
     });
   }
 
-  /** Spawn an enemy with patrol movement. Skips enemies killed this visit. */
-  protected spawnEnemy(cfg: { monsterKey: string; x: number; y: number; color?: number }): void {
+  /** Spawn an enemy with patrol movement. Skips enemies killed this visit.
+   *  Pass `extras: ['wolf', 'wolf']` to make this a group encounter — the
+   *  primary monster fights alongside those extras when the player makes
+   *  contact. */
+  protected spawnEnemy(cfg: { monsterKey: string; x: number; y: number; color?: number; extras?: string[] }): void {
     const enemyId = `${this.scene.key}-${cfg.monsterKey}-${cfg.x}-${cfg.y}`;
 
     // If this enemy was killed during the current zone visit, don't respawn it.
@@ -2046,6 +2053,7 @@ export abstract class BaseWorldScene extends Phaser.Scene {
       baseX: finalX, baseY: finalY,
       patrolDir: Math.random() > 0.5 ? 1 : -1,
       patrolTimer: Math.random() * 3000,
+      extras: cfg.extras,
     });
   }
 
@@ -2677,7 +2685,7 @@ export abstract class BaseWorldScene extends Phaser.Scene {
         }
         const store = useCombatStore.getState();
         store._pendingEnemyId = enemy.id;
-        store.start(enemy.monsterKey, currentSceneKey, px, py);
+        store.start(enemy.monsterKey, currentSceneKey, px, py, enemy.extras);
         // Use scene.stop + scene.start so CombatScene.create() runs fresh
         // every fight.  scene.switch only resumes the scene without calling
         // create(), which left stale sprites/state from the previous fight.

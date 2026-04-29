@@ -313,17 +313,29 @@ export function CombatOverlay() {
           skillFlash={playerSkillFlash}
         />
         <div className="combat__vs">VS</div>
-        <CombatantPanel
-          side="enemy"
-          name={monster.name}
-          hpPct={enemyHpPct}
-          hp={state.monsterHp}
-          maxHp={monster.maxHp}
-          flashKey={enemyHitFlash}
-          events={enemyEvents}
-          slash={enemySlash}
-          skillFlash={enemySkillFlash}
-        />
+        <div className="combat__enemies">
+          <CombatantPanel
+            side="enemy"
+            name={monster.name}
+            hpPct={enemyHpPct}
+            hp={state.monsterHp}
+            maxHp={monster.maxHp}
+            flashKey={enemyHitFlash}
+            events={enemyEvents}
+            slash={enemySlash}
+            skillFlash={enemySkillFlash}
+          />
+          {(state.extraEnemies ?? []).map((extra, i) => (
+            <ExtraEnemyPanel
+              key={`${extra.monster.key}-${i}`}
+              monsterName={extra.monster.name}
+              hp={extra.hp}
+              maxHp={extra.monster.maxHp}
+              alive={extra.alive}
+              status={extra.status}
+            />
+          ))}
+        </div>
       </div>
       <div className="combat__log">
         {state.log.map((entry, i) => (
@@ -579,6 +591,51 @@ function CombatantPanel({
         </div>
         <div className="combat__hp-label">{hp} / {maxHp}</div>
       </div>
+    </div>
+  );
+}
+
+/**
+ * Compact panel for an additional enemy in a multi-enemy fight.
+ * Smaller than the primary CombatantPanel — just a name, HP bar, and
+ * status badges. Greys out when the enemy falls. The primary keeps the
+ * full panel (portrait, floating numbers, slash overlay) since the
+ * camera/visuals focus on the boss in a boss-and-adds fight.
+ */
+function ExtraEnemyPanel({
+  monsterName, hp, maxHp, alive, status,
+}: {
+  monsterName: string;
+  hp: number;
+  maxHp: number;
+  alive: boolean;
+  status: StatusEffects;
+}) {
+  const pct = Math.max(0, Math.min(100, (hp / maxHp) * 100));
+  const STATUS_ICONS: Partial<Record<keyof StatusEffects, string>> = {
+    poison: '☠', burn: '🔥', bleed: '🩸', stun: '⚡', marked: '🎯',
+  };
+  const badges = (Object.entries(status) as [keyof StatusEffects, number][])
+    .filter(([k, v]) => v > 0 && STATUS_ICONS[k] !== undefined);
+  return (
+    <div className={`combat__extra${alive ? '' : ' combat__extra--down'}`}>
+      <div className="combat__extra-name">{alive ? monsterName : `${monsterName} — fallen`}</div>
+      <div className="combat__extra-hp-track">
+        <div
+          className="combat__extra-hp-fill"
+          style={{ width: `${pct}%` }}
+        />
+      </div>
+      <div className="combat__extra-hp-label">{hp} / {maxHp}</div>
+      {badges.length > 0 && (
+        <div className="combat__extra-status">
+          {badges.map(([name, turns]) => (
+            <span key={name} className={`combat__status-badge combat__status--${name}`}>
+              {STATUS_ICONS[name]} {turns}
+            </span>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

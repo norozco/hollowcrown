@@ -699,6 +699,78 @@
   100% { opacity: 0; transform: translate(-50%, -50%) scale(1.1) rotate(60deg); }
 }
 
+/* Multi-enemy layout — primary keeps its big panel; extras stack
+   below it as compact name+HP-bar rows. */
+.combat__enemies {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.4rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.combat__extra {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-rows: auto auto auto;
+  gap: 0.2rem 0.6rem;
+  background: rgba(20, 12, 8, 0.85);
+  border: 2px solid #3a2818;
+  padding: 0.35rem 0.55rem;
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+  font-size: 0.85rem;
+  color: #e6d8c0;
+  transition: opacity 200ms;
+}
+
+.combat__extra--down {
+  opacity: 0.45;
+  filter: grayscale(0.6);
+}
+
+.combat__extra-name {
+  grid-column: 1 / span 2;
+  font-family: Impact, sans-serif;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #d4a968;
+  font-size: 0.92rem;
+}
+
+.combat__extra-hp-track {
+  grid-column: 1;
+  grid-row: 2;
+  height: 8px;
+  background: #1a0e08;
+  border: 1px solid #5a3a1a;
+  overflow: hidden;
+  align-self: center;
+}
+
+.combat__extra-hp-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #c04040 0%, #a02020 100%);
+  transition: width 250ms;
+}
+
+.combat__extra-hp-label {
+  grid-column: 2;
+  grid-row: 2;
+  font-variant-numeric: tabular-nums;
+  font-size: 0.78rem;
+  color: #c0a890;
+  align-self: center;
+}
+
+.combat__extra-status {
+  grid-column: 1 / span 2;
+  grid-row: 3;
+  display: flex;
+  gap: 0.25rem;
+  flex-wrap: wrap;
+}
+
 /* Per-skill colored aura. Color is set inline from skill.visual.color so
    each skill reads visually distinct without needing a class per skill.
    The keyframes inflate from a tight ring → wide aura → fade out. */

@@ -242,6 +242,107 @@ export function getSignatureSkill(classKey: string): CombatSkill | null {
 /** Stamina regenerated each player turn that the player is *not* stunned. */
 export const STAMINA_REGEN_PER_TURN = 2;
 
+/**
+ * Pick the auto-target for single-target attacks/skills in a multi-enemy
+ * fight. Prefers the primary monster if alive (boss-first convention),
+ * otherwise the lowest-HP living extra. Returns -1 if everything's dead
+ * (caller treats that as victory). targetIndex 0 = primary, 1+ = extras.
+ */
+export function pickAutoTarget(s: CombatState): number {
+  if (s.monsterHp > 0) return 0;
+  let best = -1;
+  let bestHp = Infinity;
+  for (let i = 0; i < s.extraEnemies.length; i++) {
+    const e = s.extraEnemies[i];
+    if (e.alive && e.hp > 0 && e.hp < bestHp) {
+      bestHp = e.hp;
+      best = i + 1;
+    }
+  }
+  return best;
+}
+
+/** Skills authored to splash to all alive enemies. Single-target skills
+ *  hit only the auto-target. Kept here (not on the skill record itself)
+ *  to make the AoE list easy to find and tune. */
+const AOE_SKILL_KEYS = new Set<string>([
+  'cleave',          // sweeping swing
+  'fireball',        // explosion
+  'volley',          // 3 arrows split across enemies
+  'vicious_mockery', // mockery shames the whole group
+  'inspiration',     // marks the whole field
+]);
+
+/** True when this skill should iterate every living enemy. */
+export function isAoeSkill(skillKey: string): boolean {
+  return AOE_SKILL_KEYS.has(skillKey);
+}
+
+/** Returns the indices of every alive enemy (0 = primary, 1+ = extras). */
+export function aliveEnemyIndices(s: CombatState): number[] {
+  const out: number[] = [];
+  if (s.monsterHp > 0) out.push(0);
+  for (let i = 0; i < s.extraEnemies.length; i++) {
+    if (s.extraEnemies[i].alive && s.extraEnemies[i].hp > 0) out.push(i + 1);
+  }
+  return out;
+}
+
+/** Read the HP of the enemy at idx. 0 = primary, 1+ = extras. */
+function enemyHp(s: CombatState, idx: number): number {
+  return idx === 0 ? s.monsterHp : (s.extraEnemies[idx - 1]?.hp ?? 0);
+}
+
+/** Write the HP of the enemy at idx, clamped at 0. Marks extras dead at 0. */
+function setEnemyHp(s: CombatState, idx: number, hp: number): void {
+  const clamped = Math.max(0, hp);
+  if (idx === 0) {
+    s.monsterHp = clamped;
+  } else {
+    const extra = s.extraEnemies[idx - 1];
+    if (extra) {
+      s.extraEnemies[idx - 1] = {
+        ...extra,
+        hp: clamped,
+        alive: clamped > 0,
+      };
+    }
+  }
+}
+
+/** Read the defending flag of the enemy at idx. */
+function enemyDefending(s: CombatState, idx: number): boolean {
+  return idx === 0 ? s.monsterDefending : (s.extraEnemies[idx - 1]?.defending ?? false);
+}
+
+/** Read the Monster record at idx. Caller passes the primary as a fallback. */
+function enemyMonster(s: CombatState, primary: Monster, idx: number): Monster {
+  return idx === 0 ? primary : (s.extraEnemies[idx - 1]?.monster ?? primary);
+}
+
+/** Read the status block of the enemy at idx. Returns the same object the
+ *  caller can mutate via applyStatus — primary uses the singular field,
+ *  extras the per-entry status block. */
+function enemyStatus(s: CombatState, idx: number): StatusEffects {
+  return idx === 0
+    ? s.monsterStatus
+    : (s.extraEnemies[idx - 1]?.status ?? s.monsterStatus);
+}
+
+/** Iterate every alive enemy. Caller's `fn` is invoked with the index
+ *  (0=primary, 1+ extras) and the Monster record. Used by AoE skills. */
+function forEachAliveEnemy(
+  s: CombatState,
+  primary: Monster,
+  fn: (idx: number, mon: Monster) => void,
+): void {
+  if (s.monsterHp > 0) fn(0, primary);
+  for (let i = 0; i < s.extraEnemies.length; i++) {
+    const e = s.extraEnemies[i];
+    if (e.alive && e.hp > 0) fn(i + 1, e.monster);
+  }
+}
+
 export type CombatAction = 'attack' | 'defend' | 'flee' | 'skill';
 export type CombatPhase = 'start' | 'player_turn' | 'enemy_turn' | 'victory' | 'defeat' | 'fled';
 
@@ -263,6 +364,28 @@ export interface StatusEffects {
 }
 
 const EMPTY_STATUS: StatusEffects = { poison: 0, burn: 0, stun: 0, bleed: 0, marked: 0, stunImmune: 0 };
+
+/**
+ * One additional enemy in a multi-enemy fight ("adds" alongside the
+ * primary monster). The primary monster's state lives in the singular
+ * fields on CombatState (monsterHp, monsterStatus, monsterDefending,
+ * monsterBaseDamage) — this is the BOSS in a boss-and-adds fight, or
+ * just the only enemy in a 1v1. Extras are simpler:
+ *  - no phase transitions (boss-only behavior)
+ *  - no special abilities (the special ability budget is the primary's)
+ *  - basic attack-only AI
+ * This keeps the existing single-enemy code path intact (zero merge
+ * surface for unrelated combat work) while still letting AoE skills
+ * shine and group encounters exist.
+ */
+export interface ExtraEnemy {
+  monster: Monster;
+  hp: number;
+  status: StatusEffects;
+  defending: boolean;
+  baseDamage: number;
+  alive: boolean;
+}
 
 export interface CombatState {
   phase: CombatPhase;
@@ -296,6 +419,21 @@ export interface CombatState {
    * substrings in atmospheric copy.
    */
   lastSkillKey?: string;
+  /**
+   * Additional enemies in this fight. Empty for 1v1 combat (the default).
+   * Populated when a scene declares a group encounter — e.g. wolf-pack
+   * (primary wolf + 2 extras). The primary monster's state stays in the
+   * singular `monster*` fields above; extras are simpler stat blocks that
+   * act after the primary on enemy turns.
+   */
+  extraEnemies: ExtraEnemy[];
+  /**
+   * Player's current attack target. 0 = primary monster, 1..N = extras
+   * (extraEnemies[targetIndex - 1]). Skills that aren't AoE hit only
+   * this enemy. The UI cycles via Tab; the engine clamps to the next
+   * living enemy when the current target dies.
+   */
+  targetIndex: number;
 }
 
 const dice = new DiceRoller();
@@ -411,8 +549,19 @@ function tickStatus(
   return false;
 }
 
-/** Initialize combat — roll initiative and set up state. */
-export function initCombat(player: Character, monster: Monster): CombatState {
+/**
+ * Initialize combat — roll initiative and set up state.
+ *
+ * The optional `extras` array spawns additional enemies that fight
+ * alongside the primary monster. They use the same level-scaling but
+ * skip boss phase transitions and special abilities (those are the
+ * primary's role). Pass `[]` (or omit) for a vanilla 1v1.
+ */
+export function initCombat(
+  player: Character,
+  monster: Monster,
+  extras: Monster[] = [],
+): CombatState {
   const playerInit = dice.d(20) + modifier(player.stats.dex);
   const monsterInit = dice.d(20) + monster.speed;
 
@@ -439,6 +588,29 @@ export function initCombat(player: Character, monster: Monster): CombatState {
   const scaledHp = Math.round(monster.maxHp * levelScale * ngPlusHpScale * diffScale.monsterHp);
   const scaledDamage = Math.round(monster.baseDamage * (1 + Math.max(0, player.level - 5) * 0.05) * ngPlusDmgScale * diffScale.monsterDamage);
 
+  // Same scaling applied per-extra. Each gets its own independent HP/dmg.
+  const extraEnemies: ExtraEnemy[] = extras.map((m) => {
+    const eHp = Math.round(m.maxHp * levelScale * ngPlusHpScale * diffScale.monsterHp);
+    const eDmg = Math.round(m.baseDamage * (1 + Math.max(0, player.level - 5) * 0.05) * ngPlusDmgScale * diffScale.monsterDamage);
+    return {
+      monster: m,
+      hp: eHp,
+      status: { ...EMPTY_STATUS },
+      defending: false,
+      baseDamage: eDmg,
+      alive: true,
+    };
+  });
+
+  if (extras.length > 0) {
+    log.push({
+      text: extras.length === 1
+        ? `${extras[0].name} flanks alongside.`
+        : `${extras.length} more close in.`,
+      type: 'system',
+    });
+  }
+
   return {
     phase: playerFirst ? 'player_turn' : 'enemy_turn',
     monsterHp: scaledHp,
@@ -452,6 +624,8 @@ export function initCombat(player: Character, monster: Monster): CombatState {
     log,
     bossPhase2: false,
     monsterBaseDamage: scaledDamage,
+    extraEnemies,
+    targetIndex: 0,
   };
 }
 
@@ -507,40 +681,50 @@ export function playerAct(
   }
 
   if (action === 'attack') {
-    const equipBonus = getEquipmentBonuses();
-    const roll = dice.d(20);
-    const bonus = modifier(player.stats[player.weapon.attackStat]) + equipBonus.attack;
-    const total = roll + bonus;
-    const targetAc = monster.ac + (s.monsterDefending ? 2 : 0);
-
-    if (roll === 20 || (roll !== 1 && total >= targetAc)) {
-      // Hit!
-      let dmgBase = modifier(player.stats[player.weapon.attackStat]) + 2 + equipBonus.damage; // weapon base + equipment
-      // Ranged weapons get a +30% damage bonus so bow-wielding players can
-      // reliably finish starter monsters at level 1.
-      if (player.weapon.range === 'ranged') {
-        dmgBase = Math.ceil(dmgBase * 1.3);
-      }
-      const rawDmg = Math.max(1, roll === 20 ? dmgBase * 2 : dmgBase);
-      const dmg = applyElement(rawDmg, getAttackElement(player.characterClass.key, 'attack'), monster, s);
-      s.monsterHp = Math.max(0, s.monsterHp - dmg);
-      if (roll === 20) {
-        s.log.push({ text: `A devastating strike. ${dmg} damage.`, type: 'player_hit' });
-      } else {
-        const hitLines = [
-          `Your blade finds its mark. ${dmg} damage.`,
-          `A clean strike. ${dmg} damage.`,
-          `The blow lands true. ${dmg} damage.`,
-        ];
-        s.log.push({ text: hitLines[dice.d(3) - 1], type: 'player_hit' });
-      }
+    // Multi-enemy: auto-target the primary if alive, otherwise lowest-HP
+    // living extra. Player can't actively switch in v0; AoE skills handle
+    // splash. Once a Tab/cycle UI lands this becomes `s.targetIndex`.
+    const targetIdx = pickAutoTarget(s);
+    if (targetIdx < 0) {
+      // Nothing alive to hit (shouldn't happen \u2014 phase would already be
+      // 'victory'). Defensive no-op.
+      s.log.push({ text: 'Nothing left to strike.', type: 'info' });
     } else {
-      const missLines = [
-        'Your strike glances off armor.',
-        'The blow goes wide.',
-        'You swing \u2014 nothing.',
-      ];
-      s.log.push({ text: missLines[dice.d(3) - 1], type: 'player_miss' });
+      const targetMon = enemyMonster(s, monster, targetIdx);
+      const targetDef = enemyDefending(s, targetIdx);
+      const equipBonus = getEquipmentBonuses();
+      const roll = dice.d(20);
+      const bonus = modifier(player.stats[player.weapon.attackStat]) + equipBonus.attack;
+      const total = roll + bonus;
+      const targetAc = targetMon.ac + (targetDef ? 2 : 0);
+
+      if (roll === 20 || (roll !== 1 && total >= targetAc)) {
+        let dmgBase = modifier(player.stats[player.weapon.attackStat]) + 2 + equipBonus.damage;
+        if (player.weapon.range === 'ranged') {
+          dmgBase = Math.ceil(dmgBase * 1.3);
+        }
+        const rawDmg = Math.max(1, roll === 20 ? dmgBase * 2 : dmgBase);
+        const dmg = applyElement(rawDmg, getAttackElement(player.characterClass.key, 'attack'), targetMon, s);
+        setEnemyHp(s, targetIdx, enemyHp(s, targetIdx) - dmg);
+        const targetSuffix = targetIdx === 0 ? '' : ` ${targetMon.name} reels.`;
+        if (roll === 20) {
+          s.log.push({ text: `A devastating strike. ${dmg} damage.${targetSuffix}`, type: 'player_hit' });
+        } else {
+          const hitLines = [
+            `Your blade finds its mark. ${dmg} damage.${targetSuffix}`,
+            `A clean strike. ${dmg} damage.${targetSuffix}`,
+            `The blow lands true. ${dmg} damage.${targetSuffix}`,
+          ];
+          s.log.push({ text: hitLines[dice.d(3) - 1], type: 'player_hit' });
+        }
+      } else {
+        const missLines = [
+          'Your strike glances off armor.',
+          'The blow goes wide.',
+          'You swing \u2014 nothing.',
+        ];
+        s.log.push({ text: missLines[dice.d(3) - 1], type: 'player_miss' });
+      }
     }
   } else if (action === 'defend') {
     s.playerDefending = true;
@@ -619,17 +803,29 @@ export function playerAct(
         break;
       }
       case 'cleave': {
-        // Heavy single hit; bypasses defending bonus (the swing comes
-        // around the guard). Big damage, single roll.
+        // Sweeping blow — bypasses defending bonus AND hits every alive
+        // enemy (the swing's wide). One roll for the swing's overall
+        // accuracy; if it lands, every enemy in the arc takes damage.
         const r = dice.d(20);
         const b = modifier(player.stats.str);
         const t = r + b;
+        // Use primary's AC as the swing's reference difficulty; in a
+        // group the reach matters more than per-enemy positioning.
         const ac = monster.ac;
         if (r === 20 || (r !== 1 && t >= ac)) {
           const raw = Math.max(2, Math.round((modifier(player.stats.str) + 4) * 1.5));
-          const dmg = applyElement(raw, 'physical', monster, s);
-          s.monsterHp = Math.max(0, s.monsterHp - dmg);
-          s.log.push({ text: `Cleave — a sweeping blow. ${dmg} damage.`, type: 'player_hit' });
+          const hits: string[] = [];
+          forEachAliveEnemy(s, monster, (idx, mon) => {
+            const dmg = applyElement(raw, 'physical', mon, s);
+            setEnemyHp(s, idx, enemyHp(s, idx) - dmg);
+            hits.push(`${mon.name}: ${dmg}`);
+          });
+          s.log.push({
+            text: hits.length > 1
+              ? `Cleave — a sweeping blow catches them all. (${hits.join(', ')})`
+              : `Cleave — a sweeping blow. ${hits[0]?.split(': ')[1] ?? raw} damage.`,
+            type: 'player_hit',
+          });
         } else {
           s.log.push({ text: `Cleave — the swing whistles past.`, type: 'player_miss' });
         }
@@ -678,14 +874,28 @@ export function playerAct(
         break;
       }
       case 'volley': {
+        // 3 arrows, spread across alive enemies in a round-robin. With
+        // one enemy you get the old "3 rolls into the boss" behavior;
+        // with 3+ each takes one. Each arrow rolls its own to-hit so
+        // resists/weaknesses still matter per target.
+        const aliveIdx = aliveEnemyIndices(s);
         for (let arrow = 0; arrow < 3; arrow++) {
-          skillAttack(
-            'dex',
-            modifier(player.stats.dex) + 2,
-            'physical',
-            (d) => `Arrow finds flesh. ${d} damage.`,
-            () => `Arrow hisses past.`,
-          );
+          const idx = aliveIdx[arrow % aliveIdx.length] ?? 0;
+          const tgtMon = enemyMonster(s, monster, idx);
+          const tgtDef = enemyDefending(s, idx);
+          const r = dice.d(20);
+          const b = modifier(player.stats.dex);
+          const t = r + b;
+          const ac = tgtMon.ac + (tgtDef ? 2 : 0);
+          if (r === 20 || (r !== 1 && t >= ac)) {
+            const raw = Math.max(1, modifier(player.stats.dex) + 2);
+            const dmg = applyElement(raw, 'physical', tgtMon, s);
+            setEnemyHp(s, idx, enemyHp(s, idx) - dmg);
+            const tag = aliveIdx.length > 1 ? ` (${tgtMon.name})` : '';
+            s.log.push({ text: `Arrow finds flesh.${tag} ${dmg} damage.`, type: 'player_hit' });
+          } else {
+            s.log.push({ text: `Arrow hisses past.`, type: 'player_miss' });
+          }
         }
         break;
       }
@@ -701,10 +911,21 @@ export function playerAct(
         break;
       }
       case 'fireball': {
+        // Explosion — every alive enemy takes the fire roll, with their
+        // own resist/weakness applied via applyElement.
         const raw = 10 + modifier(player.stats.int) * 2;
-        const dmg = applyElement(raw, 'fire', monster, s);
-        s.monsterHp = Math.max(0, s.monsterHp - dmg);
-        s.log.push({ text: `Fireball erupts. ${dmg} fire damage.`, type: 'player_hit' });
+        const hits: string[] = [];
+        forEachAliveEnemy(s, monster, (idx, mon) => {
+          const dmg = applyElement(raw, 'fire', mon, s);
+          setEnemyHp(s, idx, enemyHp(s, idx) - dmg);
+          hits.push(`${mon.name}: ${dmg}`);
+        });
+        s.log.push({
+          text: hits.length > 1
+            ? `Fireball erupts. (${hits.join(', ')} fire damage)`
+            : `Fireball erupts. ${hits[0]?.split(': ')[1] ?? raw} fire damage.`,
+          type: 'player_hit',
+        });
         break;
       }
       case 'ice_lance': {
@@ -754,17 +975,32 @@ export function playerAct(
         break;
       }
       case 'vicious_mockery': {
+        // Mockery shames the whole group. Each enemy takes psychic
+        // damage and rolls independently for the stun chance.
         const raw = 3 + modifier(player.stats.cha);
-        const dmg = applyElement(raw, 'shadow', monster, s);
-        s.monsterHp = Math.max(0, s.monsterHp - dmg);
-        s.monsterDefending = false;
-        const stunRoll = dice.d(20);
-        if (stunRoll >= 16) {
-          applyStatus(s.monsterStatus, 'stun', 1);
-          s.log.push({ text: `Vicious Mockery — ${dmg} psychic damage. ${monster.name} reels.`, type: 'player_hit' });
-        } else {
-          s.log.push({ text: `Vicious Mockery — ${dmg} psychic damage.`, type: 'player_hit' });
-        }
+        const hits: string[] = [];
+        let stunned = '';
+        forEachAliveEnemy(s, monster, (idx, mon) => {
+          const dmg = applyElement(raw, 'shadow', mon, s);
+          setEnemyHp(s, idx, enemyHp(s, idx) - dmg);
+          if (idx === 0) s.monsterDefending = false;
+          else if (s.extraEnemies[idx - 1]) {
+            s.extraEnemies[idx - 1] = { ...s.extraEnemies[idx - 1], defending: false };
+          }
+          const stunRoll = dice.d(20);
+          if (stunRoll >= 16) {
+            applyStatus(enemyStatus(s, idx), 'stun', 1);
+            stunned = stunned ? `${stunned}, ${mon.name}` : mon.name;
+          }
+          hits.push(`${mon.name}: ${dmg}`);
+        });
+        const stunNote = stunned ? ` ${stunned} reels.` : '';
+        s.log.push({
+          text: hits.length > 1
+            ? `Vicious Mockery — psychic damage rakes them. (${hits.join(', ')})${stunNote}`
+            : `Vicious Mockery — ${hits[0]?.split(': ')[1] ?? raw} psychic damage.${stunNote}`,
+          type: 'player_hit',
+        });
         break;
       }
       case 'healing_word': {
@@ -774,10 +1010,20 @@ export function playerAct(
         break;
       }
       case 'inspiration': {
+        // Heal yourself + mark every living enemy.
         const heal = Math.max(1, 3 + modifier(player.stats.cha));
         s.playerHp = Math.min(maxHpWithBonuses(), s.playerHp + heal);
-        applyStatus(s.monsterStatus, 'marked', 3);
-        s.log.push({ text: `A rallying note. +${heal} HP. ${monster.name} hesitates.`, type: 'player_hit' });
+        const names: string[] = [];
+        forEachAliveEnemy(s, monster, (idx, mon) => {
+          applyStatus(enemyStatus(s, idx), 'marked', 3);
+          names.push(mon.name);
+        });
+        s.log.push({
+          text: names.length > 1
+            ? `A rallying note. +${heal} HP. They all hesitate.`
+            : `A rallying note. +${heal} HP. ${names[0] ?? monster.name} hesitates.`,
+          type: 'player_hit',
+        });
         break;
       }
       default: {
@@ -799,9 +1045,20 @@ export function playerAct(
     }
   }
 
-  // Check victory
-  if (s.monsterHp <= 0) {
+  // Check victory — primary AND all extras must be down. Log a "falls"
+  // line once per enemy that died on this tick (compare HP-before vs
+  // HP-after via state vs s).
+  if (s.monsterHp <= 0 && state.monsterHp > 0) {
     s.log.push({ text: `${monster.name} falls.`, type: 'system' });
+  }
+  for (let i = 0; i < s.extraEnemies.length; i++) {
+    const before = state.extraEnemies[i];
+    const after = s.extraEnemies[i];
+    if (after && before && before.alive && !after.alive) {
+      s.log.push({ text: `${after.monster.name} falls.`, type: 'system' });
+    }
+  }
+  if (aliveEnemyIndices(s).length === 0) {
     s.phase = 'victory';
     return s;
   }
@@ -842,15 +1099,29 @@ export function enemyAct(
   // Tick monster status effects at the start of their turn
   const monsterStunned = tickStatus(s, 'monster', monster.name);
 
-  // If monster died from status damage, victory
-  if (s.monsterHp <= 0) {
+  // If primary died from status damage, log it. Don't end combat yet —
+  // extras may still be alive (we check that after their turns below).
+  if (s.monsterHp <= 0 && state.monsterHp > 0) {
     s.log.push({ text: `${monster.name} falls.`, type: 'system' });
-    s.phase = 'victory';
-    return s;
+    if (aliveEnemyIndices(s).length === 0) {
+      s.phase = 'victory';
+      return s;
+    }
   }
 
-  // If stunned, skip turn
-  if (monsterStunned) {
+  // Primary stunned: still need to give extras their turn before flipping
+  // back to player. Skip the primary's attack block but fall through to
+  // the extras loop.
+  if (monsterStunned || s.monsterHp <= 0) {
+    // Fall through to the extras-attack block (later in this function)
+    // by jumping past the primary's attack code via a label-like flag.
+    // Simpler: directly run the extras loop here and return.
+    runExtraEnemyTurns(s, player);
+    if (s.playerHp <= 0) {
+      s.log.push({ text: 'You fall.', type: 'system' });
+      s.phase = 'defeat';
+      return s;
+    }
     s.turn++;
     s.phase = 'player_turn';
     return s;
@@ -1077,6 +1348,9 @@ export function enemyAct(
 
   } // end normal attack else
 
+  // Extras get their turn after the primary.
+  runExtraEnemyTurns(s, player);
+
   // Check defeat
   if (s.playerHp <= 0) {
     s.log.push({ text: 'You fall.', type: 'system' });
@@ -1088,4 +1362,79 @@ export function enemyAct(
   s.turn++;
   s.phase = 'player_turn';
   return s;
+}
+
+/**
+ * Run one full enemy-turn pass for all "extra" enemies (anything that
+ * isn't the primary). Each extra ticks its own status block then makes
+ * a basic attack. Mutates `s` in place — designed to be called inside
+ * enemyAct after the primary has acted (or instead of it when the
+ * primary is stunned/dead).
+ *
+ * Extras are intentionally simpler than the primary: no special
+ * abilities, no boss phase transitions, no per-monster status procs on
+ * hit. The primary holds the budget for those things.
+ */
+function runExtraEnemyTurns(s: CombatState, player: Character): void {
+  const equipBonus = getEquipmentBonuses();
+  const playerAc = player.derived.ac + (s.playerDefending ? 2 : 0) + equipBonus.ac;
+
+  for (let i = 0; i < s.extraEnemies.length; i++) {
+    const extra = s.extraEnemies[i];
+    if (!extra || !extra.alive || extra.hp <= 0) continue;
+
+    const mut: ExtraEnemy = { ...extra, status: { ...extra.status } };
+    let stunned = false;
+
+    // Inline status tick — tickStatus() targets the singular fields, so
+    // it can't be reused for extras.
+    if (mut.status.poison > 0) {
+      mut.hp = Math.max(0, mut.hp - POISON_DMG);
+      s.log.push({ text: `${mut.monster.name} — poison burns for ${POISON_DMG} damage`, type: 'system' });
+      mut.status.poison--;
+    }
+    if (mut.status.burn > 0) {
+      mut.hp = Math.max(0, mut.hp - BURN_DMG);
+      s.log.push({ text: `${mut.monster.name} — fire sears for ${BURN_DMG} damage`, type: 'system' });
+      mut.status.burn--;
+    }
+    if (mut.status.bleed > 0) {
+      mut.hp = Math.max(0, mut.hp - BLEED_DMG);
+      s.log.push({ text: `${mut.monster.name} — wound bleeds for ${BLEED_DMG} damage`, type: 'system' });
+      mut.status.bleed--;
+    }
+    if (mut.status.marked > 0) mut.status.marked--;
+    if (mut.status.stun > 0) {
+      s.log.push({ text: `${mut.monster.name} — stunned — cannot act`, type: 'system' });
+      mut.status.stun--;
+      if (mut.status.stun === 0) mut.status.stunImmune = 2;
+      stunned = true;
+    } else if (mut.status.stunImmune > 0) {
+      mut.status.stunImmune--;
+    }
+
+    if (mut.hp <= 0) {
+      mut.alive = false;
+      s.log.push({ text: `${mut.monster.name} falls.`, type: 'system' });
+      s.extraEnemies[i] = mut;
+      continue;
+    }
+    if (stunned) {
+      s.extraEnemies[i] = mut;
+      continue;
+    }
+
+    const r = dice.d(20);
+    const t = r + 2; // small fixed accuracy bonus
+    if (r === 20 || (r !== 1 && t >= playerAc)) {
+      const dmg = Math.max(1, mut.baseDamage);
+      s.playerHp = Math.max(0, s.playerHp - dmg);
+      s.log.push({ text: `${mut.monster.name} strikes. ${dmg} damage.`, type: 'enemy_hit' });
+    } else {
+      s.log.push({ text: `${mut.monster.name}'s blow goes wide.`, type: 'enemy_miss' });
+    }
+
+    s.extraEnemies[i] = mut;
+    if (s.playerHp <= 0) break;
+  }
 }

@@ -149,8 +149,16 @@ interface CombatStoreState {
   /** Remove a consumed event by id. */
   clearEvent: (id: number) => void;
 
-  /** Start combat against a monster key. */
-  start: (monsterKey: string, returnScene?: string, playerX?: number, playerY?: number) => void;
+  /** Start combat against a monster key. Optional `extraMonsterKeys`
+   *  populates "adds" — additional enemies that fight alongside the
+   *  primary. Empty array (or omitted) = vanilla 1v1. */
+  start: (
+    monsterKey: string,
+    returnScene?: string,
+    playerX?: number,
+    playerY?: number,
+    extraMonsterKeys?: string[],
+  ) => void;
   /** Player takes an action. For 'skill', pass the stable skill key
    *  (e.g. 'fireball', 'sneak_attack'). If omitted, the class signature
    *  (first skill) is used — preserves the test calls that just pass
@@ -184,15 +192,19 @@ export const useCombatStore = create<CombatStoreState>((set, get) => ({
     set((s) => ({ combatEvents: s.combatEvents.filter((e) => e.id !== id) }));
   },
 
-  start: (monsterKey, returnScene, playerX, playerY) => {
+  start: (monsterKey, returnScene, playerX, playerY, extraMonsterKeys) => {
     const character = usePlayerStore.getState().character;
     if (!character) return;
     const monster = getMonster(monsterKey);
-    const state = initCombat(character, monster);
+    const extras = (extraMonsterKeys ?? []).map((k) => getMonster(k));
+    const state = initCombat(character, monster, extras);
     set({ state, monster, _enemyActing: false, returnScene: returnScene ?? null, returnX: playerX ?? 0, returnY: playerY ?? 0 });
 
-    // Track encounter in the bestiary.
+    // Track encounter in the bestiary — primary + each extra type.
     useAchievementStore.getState().recordEncounter(monsterKey);
+    for (const ek of extraMonsterKeys ?? []) {
+      useAchievementStore.getState().recordEncounter(ek);
+    }
 
     // If enemy goes first, auto-act after a brief pause.
     if (state.phase === 'enemy_turn') {
@@ -391,14 +403,19 @@ export const useCombatStore = create<CombatStoreState>((set, get) => ({
         const enemyId = get()._pendingEnemyId;
         if (enemyId) get().killedEnemies.add(enemyId);
 
-        // Increment the persistent per-monster quest kill counter. This is
-        // what kill-objective quests read, so progress survives zone exits
-        // (which clear `killedEnemies` to let enemies respawn).
+        // Increment the persistent per-monster quest kill counter. Counts
+        // every enemy that died this fight — primary plus any extras —
+        // so wolf-pack encounters credit each wolf toward a wolf-cull
+        // quest. Survives zone exits (which clear `killedEnemies` so
+        // enemies can respawn) since this is keyed by monster key.
         const prevCounts = get().questKillCounts;
-        const newCounts: Record<string, number> = {
-          ...prevCounts,
-          [monster.key]: (prevCounts[monster.key] ?? 0) + 1,
-        };
+        const newCounts: Record<string, number> = { ...prevCounts };
+        newCounts[monster.key] = (newCounts[monster.key] ?? 0) + 1;
+        for (const extra of state.extraEnemies ?? []) {
+          if (!extra.alive) {
+            newCounts[extra.monster.key] = (newCounts[extra.monster.key] ?? 0) + 1;
+          }
+        }
         set({ questKillCounts: newCounts });
 
         // Check kill-based quest objectives with progress messages.
@@ -460,12 +477,18 @@ export const useCombatStore = create<CombatStoreState>((set, get) => ({
           window.dispatchEvent(new CustomEvent('gameEnding'));
         }
 
-        // Bounty kill tracking.
+        // Bounty kill tracking — primary plus any extras that fell.
         useBountyStore.getState().recordKill(monster.key);
+        for (const extra of state.extraEnemies ?? []) {
+          if (!extra.alive) useBountyStore.getState().recordKill(extra.monster.key);
+        }
 
-        // Achievement tracking.
+        // Achievement tracking — same.
         const achStore = useAchievementStore.getState();
         achStore.recordKill(monster.key);
+        for (const extra of state.extraEnemies ?? []) {
+          if (!extra.alive) achStore.recordKill(extra.monster.key);
+        }
         const bossKeys = ['hollow_king', 'hollow_knight', 'drowned_warden', 'crownless_one'];
         if (bossKeys.includes(monster.key)) {
           achStore.recordBossKill(monster.key);
