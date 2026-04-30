@@ -1,6 +1,9 @@
 import { useInventoryStore } from '../state/inventoryStore';
 import { useQuestStore } from '../state/questStore';
 import { useLoreStore } from '../state/loreStore';
+import { useTimeStore } from '../state/timeStore';
+import { useWorldStateStore } from '../state/worldStateStore';
+import { useCombatStore } from '../state/combatStore';
 import { BaseWorldScene, TILE, WORLD_W, WORLD_H } from './BaseWorldScene';
 import { generateTileset, TILE as T, TILE_SIZE } from './tiles/generateTiles';
 
@@ -400,6 +403,83 @@ export class GreenhollowScene extends BaseWorldScene {
     for (const [mx, myF] of [[12, 0.85], [11, 0.9], [12, 0.95]] as [number, number][]) {
       this.add.circle(mx * TILE + TILE / 2, WORLD_H * myF, 5, 0xa09068, 0.7).setDepth(3);
       this.add.circle(mx * TILE + TILE / 2 + 6, WORLD_H * myF - 4, 3, 0x80705a, 0.6).setDepth(3);
+    }
+
+    // ── SECRET BOSS: The Antlered ─────────────────────────────
+    // Hidden in a clearing west of the cabin. A twisted, lightning-split oak
+    // stands alone there. Examine it at Dusk and the stag-thing answers.
+    this.spawnAntleredTrigger();
+  }
+
+  /**
+   * The Antlered — secret boss.
+   * Trigger: examine the lightning-split oak (4, 8) while the world is at
+   * Dusk. Defeat-flag persists through `worldStateStore.pickedObjects` so
+   * the oak goes ordinary after the kill.
+   */
+  private spawnAntleredTrigger(): void {
+    const sceneKey = this.scene.key;
+    const defeatFlag = 'secret_antlered_defeated';
+    const bossX = 4 * TILE + 16;
+    const bossY = 8 * TILE + 16;
+    const bossEnemyId = `${sceneKey}-the_antlered-${bossX}-${bossY}`;
+
+    // Carry over: if the boss died on the previous visit, the kill record
+    // is in `killedEnemies` (cleared on next zone-leave). Persist it now
+    // so the secret never re-triggers across sessions.
+    if (useCombatStore.getState().killedEnemies.has(bossEnemyId)) {
+      useWorldStateStore.getState().markPicked(sceneKey, defeatFlag);
+    }
+    if (useWorldStateStore.getState().isPicked(sceneKey, defeatFlag)) return;
+
+    const oakX = 4 * TILE + 16;
+    const oakY = 8 * TILE + 16;
+    // Lightning-split oak — taller, paler than the other trees, distinctly off-path.
+    this.add.rectangle(oakX, oakY + 18, 18, 40, 0x3a2410).setDepth(4);
+    this.add.rectangle(oakX, oakY + 18, 12, 40, 0x4a3018).setDepth(4);
+    // Split scar (white-grey, top to mid)
+    this.add.rectangle(oakX, oakY + 4, 2, 28, 0xa89878).setDepth(5);
+    this.add.rectangle(oakX - 1, oakY - 4, 1, 12, 0xc8b890).setDepth(5);
+    // Bare canopy — a few black branches, no leaves
+    this.add.rectangle(oakX - 8, oakY - 12, 14, 2, 0x1a0e08).setDepth(5);
+    this.add.rectangle(oakX + 6, oakY - 16, 12, 2, 0x1a0e08).setDepth(5);
+    this.add.rectangle(oakX - 4, oakY - 22, 10, 2, 0x1a0e08).setDepth(5);
+    // Hollow at the base — small dark slot
+    this.add.rectangle(oakX, oakY + 28, 6, 6, 0x0a0808).setDepth(5);
+
+    // Collision
+    const oakBody = this.add.rectangle(oakX, oakY + 12, 24, 56, 0x000000, 0);
+    this.physics.add.existing(oakBody, true);
+    this.walls.add(oakBody);
+
+    // Interact zone (separate from the collision body — sits in front)
+    const oakProbe = this.add.rectangle(oakX, oakY + 32, 36, 24, 0x000000, 0);
+    this.spawnInteractable({
+      sprite: oakProbe as any,
+      label: 'Examine the split oak',
+      radius: 28,
+      action: () => {
+        const phase = useTimeStore.getState().phase;
+        if (phase !== 'dusk') {
+          window.dispatchEvent(new CustomEvent('gameMessage', {
+            detail: 'A lightning-split oak. Bare branches. The bark is cold. Nothing answers.',
+          }));
+          return;
+        }
+        // Dusk + examined: the Antlered emerges from the trees.
+        if (this.enemies.find((e) => e.id === bossEnemyId)) return;
+        window.dispatchEvent(new CustomEvent('gameMessage', {
+          detail: 'The wood quietens. Something tall steps out from between the trees.',
+        }));
+        this.spawnEnemy({ monsterKey: 'the_antlered', x: bossX, y: bossY });
+      },
+    });
+
+    // Subtle dusk-only cue — pale crown of bone glints faintly.
+    if (useTimeStore.getState().phase === 'dusk') {
+      const glow = this.add.circle(oakX, oakY - 4, 6, 0xe8d8a0, 0.18);
+      glow.setDepth(6);
+      this.tweens.add({ targets: glow, alpha: 0.04, scale: 1.4, duration: 1800, yoyo: true, repeat: -1 });
     }
   }
 

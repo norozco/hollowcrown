@@ -47,6 +47,12 @@ export function generateMonsterSprite(scene: Phaser.Scene, key: string, monsterK
     case 'frost_warden': drawFrostWarden(ctx); break;
     case 'crownless_one': drawCrownlessOne(ctx); break;
     case 'the_forgotten': drawTheForgotten(ctx); break;
+    // ─── Secret bosses ──────────────────────────────
+    case 'the_antlered': drawAntlered(ctx); break;
+    case 'loom_mother': drawLoomMother(ctx); break;
+    case 'the_dredged': drawDredged(ctx); break;
+    case 'last_witness': drawLastWitness(ctx); break;
+    case 'drowned_lord': drawDrownedLord(ctx); break;
     default: drawWolf(ctx); break;
   }
 
@@ -2681,6 +2687,567 @@ function drawTrainingDummy(c: Ctx) {
   px(c, 25, 20, stitch); px(c, 25, 22, stitch);
   px(c, 25, 30, stitch); px(c, 25, 32, stitch);
   px(c, 25, 34, stitch); px(c, 25, 36, stitch);
+}
+
+// ─── THE ANTLERED ─────────────────────────────────────────────
+// A stag too tall, antlers grown into a bone crown. Skull face,
+// hollow eyes, dark hide draped in moss and old leaves.
+
+function drawAntlered(c: Ctx) {
+  const hideDk = '#2a1a10';
+  const hide   = '#3a2818';
+  const hideLt = '#4a3422';
+  const skullDk = '#7a6a48';
+  const skull  = '#a89870';
+  const skullHi = '#c8b890';
+  const antlerDk = '#5a4828';
+  const antler = '#8a7848';
+  const antlerHi = '#b8a868';
+  const eyeGlow = '#f0c060';
+  const eyeCore = '#fff8c8';
+  const moss = '#3a5828';
+  const mossLt = '#587838';
+  const blood = '#5a1a18';
+
+  // Ground shadow
+  bk(c, 8, 44, 32, 4, 'rgba(20,10,5,0.3)');
+
+  // ── Antler crown (tall, branching, fills upper third) ──
+  // Left antler
+  bk(c, 14, 8, 3, 6, antlerDk);
+  bk(c, 13, 10, 3, 4, antler);
+  px(c, 12, 11, antlerDk); px(c, 11, 9, antlerDk);
+  bk(c, 10, 4, 3, 6, antlerDk);
+  bk(c, 11, 3, 2, 5, antler);
+  px(c, 10, 2, antlerHi); px(c, 9, 6, antler);
+  // Left tines (smaller branches)
+  px(c, 8, 8, antlerDk); px(c, 7, 10, antlerDk);
+  px(c, 9, 4, antlerHi); px(c, 8, 3, antler);
+  px(c, 12, 6, antlerHi);
+  // Right antler (mirror)
+  bk(c, 31, 8, 3, 6, antlerDk);
+  bk(c, 32, 10, 3, 4, antler);
+  px(c, 35, 11, antlerDk); px(c, 36, 9, antlerDk);
+  bk(c, 35, 4, 3, 6, antlerDk);
+  bk(c, 35, 3, 2, 5, antler);
+  px(c, 37, 2, antlerHi); px(c, 38, 6, antler);
+  // Right tines
+  px(c, 39, 8, antlerDk); px(c, 40, 10, antlerDk);
+  px(c, 38, 4, antlerHi); px(c, 39, 3, antler);
+  px(c, 35, 6, antlerHi);
+  // Crown ring binding the antlers (circle of bone where they meet)
+  bk(c, 18, 14, 12, 3, skullDk);
+  bk(c, 19, 14, 10, 2, skull);
+  px(c, 20, 14, skullHi); px(c, 27, 14, skullHi);
+
+  // ── Skull head ──
+  bk(c, 18, 17, 12, 14, skullDk);
+  bk(c, 19, 18, 10, 12, skull);
+  bk(c, 20, 19, 8, 10, skullHi);
+  // Long muzzle
+  bk(c, 19, 27, 10, 6, skullDk);
+  bk(c, 20, 28, 8, 5, skull);
+  bk(c, 21, 29, 6, 3, skullHi);
+  // Nose hole
+  bk(c, 23, 31, 2, 2, hideDk);
+
+  // Eye sockets (deep, glowing inside)
+  bk(c, 20, 21, 3, 3, hideDk);
+  bk(c, 25, 21, 3, 3, hideDk);
+  px(c, 21, 22, eyeGlow); px(c, 26, 22, eyeGlow);
+  px(c, 21, 23, eyeCore); px(c, 26, 23, eyeCore);
+
+  // Cheekbones
+  px(c, 19, 24, skullDk); px(c, 29, 24, skullDk);
+
+  // Jaw teeth (small ridge)
+  for (let tx = 21; tx <= 27; tx += 2) px(c, tx, 33, skullHi);
+  px(c, 22, 33, skullDk); px(c, 24, 33, skullDk); px(c, 26, 33, skullDk);
+
+  // ── Body / shoulders (under the head, draped in hide) ──
+  bk(c, 14, 30, 20, 14, hideDk);
+  bk(c, 15, 31, 18, 12, hide);
+  bk(c, 17, 33, 14, 9, hideLt);
+  // Hide texture stripes
+  px(c, 17, 35, hideDk); px(c, 30, 36, hideDk);
+  px(c, 22, 38, hideDk); px(c, 26, 40, hideDk);
+
+  // ── Moss on shoulders (clumps) ──
+  bk(c, 13, 32, 3, 3, moss);
+  bk(c, 32, 33, 3, 3, moss);
+  px(c, 14, 31, mossLt); px(c, 33, 32, mossLt);
+  px(c, 15, 34, mossLt); px(c, 31, 34, moss);
+
+  // Old leaves caught in the antlers
+  px(c, 11, 7, blood); px(c, 36, 7, blood);
+  px(c, 9, 12, mossLt); px(c, 38, 12, mossLt);
+
+  // Front legs (bone-thin)
+  bk(c, 17, 42, 3, 5, hideDk);
+  bk(c, 28, 42, 3, 5, hideDk);
+  px(c, 18, 46, skullDk); px(c, 29, 46, skullDk);
+
+  // Trickle of blood from one eye socket
+  px(c, 22, 24, blood); px(c, 22, 25, blood);
+}
+
+// ─── THE LOOM-MOTHER ──────────────────────────────────────────
+// Vast spider, swollen abdomen split with grey silk leaking,
+// eight legs spread wide, multiple cluster eyes.
+
+function drawLoomMother(c: Ctx) {
+  const bodyDk = '#1a1418';
+  const body   = '#2a2028';
+  const bodyLt = '#3a2c38';
+  const abdomenDk = '#4a3a48';
+  const abdomen = '#6a5868';
+  const abdomenLt = '#8a7888';
+  const silk = '#c8c0c0';
+  const silkLt = '#e8e0e0';
+  const legDk = '#10080c';
+  const leg = '#20141c';
+  const legHi = '#3a283a';
+  const eye = '#a01818';
+  const eyeHi = '#ff4848';
+  const fang = '#c8c0a8';
+  const blood = '#3a0808';
+
+  // Ground shadow (wide)
+  bk(c, 4, 44, 40, 4, 'rgba(10,5,15,0.35)');
+
+  // ── Eight legs (4 left, 4 right, spread wide and bent) ──
+  // Far left
+  bk(c, 2, 22, 3, 8, legDk); bk(c, 3, 21, 2, 6, leg);
+  bk(c, 0, 30, 4, 3, legDk); px(c, 1, 31, legHi);
+  // Mid-front left
+  bk(c, 5, 26, 4, 8, legDk); bk(c, 6, 25, 3, 6, leg);
+  bk(c, 3, 34, 5, 3, legDk); px(c, 4, 35, legHi);
+  // Mid-back left
+  bk(c, 8, 22, 3, 6, legDk); bk(c, 9, 21, 2, 4, leg);
+  bk(c, 6, 28, 4, 3, legDk);
+  // Near-front left (crooked, foreground)
+  bk(c, 12, 30, 4, 10, legDk); bk(c, 13, 31, 3, 8, leg);
+  bk(c, 10, 40, 5, 3, legDk);
+  // Far right
+  bk(c, 43, 22, 3, 8, legDk); bk(c, 43, 21, 2, 6, leg);
+  bk(c, 44, 30, 4, 3, legDk); px(c, 46, 31, legHi);
+  // Mid-front right
+  bk(c, 39, 26, 4, 8, legDk); bk(c, 39, 25, 3, 6, leg);
+  bk(c, 40, 34, 5, 3, legDk); px(c, 43, 35, legHi);
+  // Mid-back right
+  bk(c, 37, 22, 3, 6, legDk); bk(c, 37, 21, 2, 4, leg);
+  bk(c, 38, 28, 4, 3, legDk);
+  // Near-front right
+  bk(c, 32, 30, 4, 10, legDk); bk(c, 32, 31, 3, 8, leg);
+  bk(c, 33, 40, 5, 3, legDk);
+
+  // ── Bulbous abdomen (huge, behind) ──
+  bk(c, 14, 14, 20, 18, abdomenDk);
+  bk(c, 15, 15, 18, 16, abdomen);
+  bk(c, 17, 16, 14, 12, abdomenLt);
+  // Highlight curve top-left
+  bk(c, 18, 16, 6, 4, abdomenLt);
+  px(c, 19, 17, silkLt);
+
+  // Silk-leaking split down the middle of abdomen
+  bk(c, 23, 18, 2, 12, silk);
+  px(c, 24, 19, silkLt); px(c, 24, 23, silkLt); px(c, 24, 27, silkLt);
+  // Silk dribbling out at the bottom
+  bk(c, 22, 30, 4, 4, silk);
+  px(c, 21, 33, silk); px(c, 26, 33, silk);
+  px(c, 22, 35, silkLt); px(c, 25, 36, silkLt);
+
+  // ── Cephalothorax (head + middle, in front of abdomen) ──
+  bk(c, 17, 28, 14, 12, bodyDk);
+  bk(c, 18, 29, 12, 10, body);
+  bk(c, 19, 30, 10, 8, bodyLt);
+
+  // ── Eyes — cluster of 8, two rows ──
+  // Top row (4 small eyes — outer dark ring, bright core)
+  for (const ex of [20, 23, 25, 28]) px(c, ex - 1, 31, eye);
+  for (const ex of [20, 23, 25, 28]) px(c, ex, 31, eyeHi);
+  // Bottom row (4 larger eyes)
+  bk(c, 19, 33, 2, 2, eye); bk(c, 22, 33, 2, 2, eye);
+  bk(c, 25, 33, 2, 2, eye); bk(c, 28, 33, 2, 2, eye);
+  px(c, 19, 33, eyeHi); px(c, 22, 33, eyeHi);
+  px(c, 25, 33, eyeHi); px(c, 28, 33, eyeHi);
+
+  // ── Fangs (chelicerae) curving down ──
+  bk(c, 21, 37, 2, 4, body);
+  bk(c, 25, 37, 2, 4, body);
+  bk(c, 21, 40, 2, 2, fang);
+  bk(c, 25, 40, 2, 2, fang);
+  // Blood at fang tips
+  px(c, 22, 41, blood); px(c, 26, 41, blood);
+
+  // Pedipalps (small front-touching legs near fangs)
+  px(c, 19, 38, legHi); px(c, 29, 38, legHi);
+
+  // Silk strand trailing back from the abdomen seam
+  px(c, 24, 31, silkLt); px(c, 24, 33, silkLt);
+}
+
+// ─── THE DREDGED ──────────────────────────────────────────────
+// Shipwreck-thing of rope, barnacle, drowned sailors. Hunched,
+// trailing kelp. Anchor at its heart, broken mast for an arm.
+
+function drawDredged(c: Ctx) {
+  const hullDk = '#1a1410';
+  const hull   = '#2a2218';
+  const hullLt = '#3a3024';
+  const hullHi = '#4a3e30';
+  const ropeDk = '#3a2810';
+  const rope = '#5a4220';
+  const ropeHi = '#7a5a30';
+  const barnacleDk = '#787068';
+  const barnacle = '#a89c90';
+  const barnacleHi = '#d8ccb8';
+  const kelpDk = '#1a3018';
+  const kelp = '#284828';
+  const kelpHi = '#487048';
+  const ironDk = '#1a1820';
+  const iron = '#3a3848';
+  const ironHi = '#5a5868';
+  const eyeGlow = '#40d8d8';
+  const eyeCore = '#c8ffff';
+  const bone = '#d8c8a0';
+  const water = '#1a3848';
+
+  // Ground puddle
+  bk(c, 4, 44, 40, 4, 'rgba(10,30,50,0.4)');
+  bk(c, 6, 45, 36, 2, water);
+
+  // ── Anchor at the chest (centerpiece) ──
+  // Anchor shaft
+  bk(c, 23, 22, 2, 12, ironDk);
+  bk(c, 23, 22, 2, 12, iron);
+  px(c, 23, 23, ironHi); px(c, 23, 26, ironHi);
+  // Crossbar (stock)
+  bk(c, 19, 22, 10, 2, ironDk);
+  bk(c, 20, 22, 8, 1, iron);
+  px(c, 19, 23, ironHi); px(c, 28, 23, ironHi);
+  // Curved arms at base
+  bk(c, 19, 32, 3, 3, ironDk);
+  bk(c, 26, 32, 3, 3, ironDk);
+  px(c, 18, 33, ironDk); px(c, 29, 33, ironDk);
+  // Flukes
+  px(c, 18, 34, iron); px(c, 29, 34, iron);
+
+  // ── Body silhouette: hunched mass of hull-planks ──
+  bk(c, 12, 18, 24, 24, hullDk);
+  bk(c, 13, 19, 22, 22, hull);
+  // Plank lines (vertical seams)
+  for (const sx of [16, 20, 28, 32]) bk(c, sx, 19, 1, 22, hullDk);
+  // Plank highlights
+  bk(c, 14, 20, 1, 18, hullLt);
+  bk(c, 33, 20, 1, 18, hullLt);
+  bk(c, 17, 21, 2, 6, hullHi);
+
+  // Splintered top edge (broken planks)
+  px(c, 13, 17, hullDk); px(c, 15, 16, hullDk); px(c, 18, 17, hullDk);
+  px(c, 26, 16, hullDk); px(c, 30, 17, hullDk); px(c, 33, 16, hullDk);
+
+  // ── Rope wrapping around body ──
+  for (let rx = 13; rx < 35; rx += 4) {
+    px(c, rx, 24, ropeDk); px(c, rx + 1, 24, rope); px(c, rx + 2, 24, ropeHi);
+  }
+  for (let rx = 14; rx < 35; rx += 4) {
+    px(c, rx, 36, ropeDk); px(c, rx + 1, 36, rope); px(c, rx + 2, 36, ropeHi);
+  }
+
+  // ── Barnacle clusters ──
+  bk(c, 14, 28, 3, 3, barnacleDk);
+  px(c, 15, 29, barnacleHi);
+  bk(c, 32, 30, 3, 3, barnacleDk);
+  px(c, 33, 31, barnacle);
+  bk(c, 18, 38, 3, 3, barnacleDk);
+  px(c, 19, 39, barnacleHi);
+  bk(c, 28, 38, 3, 3, barnacleDk);
+  px(c, 29, 39, barnacle);
+
+  // ── Drowned-sailor head (hooded skull, top of mass) ──
+  bk(c, 20, 8, 8, 12, hullDk);
+  bk(c, 21, 9, 6, 10, hull);
+  // Skull face inside the hood
+  bk(c, 22, 12, 4, 6, bone);
+  // Eye sockets — glowing teal
+  px(c, 22, 14, ironDk); px(c, 23, 14, eyeGlow); px(c, 23, 15, eyeCore);
+  px(c, 26, 14, ironDk); px(c, 25, 14, eyeGlow); px(c, 25, 15, eyeCore);
+  // Jaw line
+  bk(c, 22, 17, 4, 1, hullDk);
+  // Hood drape
+  bk(c, 19, 14, 2, 4, hullDk);
+  bk(c, 27, 14, 2, 4, hullDk);
+
+  // ── Broken mast as right-arm ──
+  bk(c, 36, 16, 4, 14, hullDk);
+  bk(c, 36, 16, 3, 13, hull);
+  bk(c, 38, 28, 3, 4, hullDk);
+  // Splinter tip
+  px(c, 39, 14, hullDk); px(c, 38, 13, hullDk);
+  // Tattered sail bound to it
+  bk(c, 41, 18, 4, 8, bone);
+  px(c, 42, 18, hullLt); px(c, 44, 22, hullLt);
+  px(c, 41, 25, hullDk);
+
+  // ── Kelp draped from shoulders, legs ──
+  bk(c, 10, 22, 2, 10, kelpDk);
+  bk(c, 11, 24, 1, 8, kelp);
+  px(c, 10, 32, kelpHi); px(c, 11, 33, kelp);
+  bk(c, 36, 32, 2, 8, kelpDk);
+  bk(c, 37, 34, 1, 6, kelp);
+  bk(c, 16, 40, 2, 4, kelpDk);
+  bk(c, 30, 40, 2, 4, kelpDk);
+
+  // Bones jammed into the hull
+  px(c, 17, 34, bone); px(c, 27, 34, bone); px(c, 24, 38, bone);
+
+  // Water trickle from the body
+  px(c, 24, 42, water); px(c, 22, 43, water); px(c, 26, 43, water);
+}
+
+// ─── THE LAST WITNESS ─────────────────────────────────────────
+// Robed apprentice, two hundred years still. Pale veil, candle
+// melted to her hand, wax-streaked sleeves, hollow watching eyes.
+
+function drawLastWitness(c: Ctx) {
+  const robeDk = '#2a1a30';
+  const robe   = '#3a2840';
+  const robeLt = '#4a3850';
+  const robeHi = '#604868';
+  const veil = '#c8b8c0';
+  const veilDk = '#9888a0';
+  const veilHi = '#e8d8e0';
+  const skin = '#a89888';
+  const skinDk = '#785868';
+  const skinHi = '#c8b0a0';
+  const wax = '#e8d8b0';
+  const waxHi = '#fff0c8';
+  const flame = '#ffb030';
+  const flameHi = '#fff088';
+  const eyeDk = '#100808';
+  const eyeGlow = '#c8a8ff';
+  const ash = '#605058';
+  const trim = '#a87838';
+
+  // Ground shadow (long, robe trail)
+  bk(c, 6, 44, 36, 4, 'rgba(20,15,25,0.32)');
+
+  // ── Robe column (long, tapering) ──
+  bk(c, 14, 18, 20, 26, robeDk);
+  bk(c, 15, 19, 18, 24, robe);
+  bk(c, 17, 20, 14, 22, robeLt);
+  // Robe folds (vertical streaks)
+  bk(c, 18, 22, 1, 18, robeDk);
+  bk(c, 22, 24, 1, 16, robeDk);
+  bk(c, 28, 22, 1, 18, robeDk);
+  bk(c, 25, 26, 1, 14, robeHi);
+  // Hem (lighter, dust-bordered)
+  bk(c, 13, 42, 22, 2, robeHi);
+  px(c, 13, 43, ash); px(c, 34, 43, ash);
+
+  // Trim band at chest (gold thread, very faded)
+  bk(c, 18, 24, 12, 1, trim);
+  px(c, 19, 24, robeHi);
+
+  // ── Wax dripping down the robe (long candle held) ──
+  bk(c, 11, 28, 1, 10, wax);
+  px(c, 11, 32, waxHi); px(c, 11, 36, waxHi);
+  px(c, 11, 38, wax);
+
+  // ── Candle in left hand (molten, dripping) ──
+  bk(c, 9, 22, 3, 6, wax);
+  bk(c, 10, 22, 1, 5, waxHi);
+  // Flame (pale, persistent)
+  bk(c, 10, 19, 1, 3, flame);
+  px(c, 10, 18, flameHi);
+  px(c, 9, 20, flame); px(c, 11, 20, flame);
+
+  // Left hand around candle (skeletal, pale)
+  bk(c, 9, 28, 4, 3, skinDk);
+  px(c, 10, 30, skin); px(c, 11, 30, skinHi);
+
+  // Right hand at side
+  bk(c, 33, 26, 4, 4, skinDk);
+  bk(c, 34, 27, 2, 2, skin);
+  px(c, 34, 29, skinHi);
+
+  // ── Head ──
+  bk(c, 18, 8, 12, 12, skinDk);
+  bk(c, 19, 9, 10, 10, skin);
+  bk(c, 20, 10, 8, 8, skinHi);
+
+  // ── Veil over the head, covering the upper face ──
+  bk(c, 16, 6, 16, 5, veilDk);
+  bk(c, 17, 7, 14, 4, veil);
+  bk(c, 18, 7, 12, 3, veilHi);
+  // Veil edges falling past the cheeks
+  bk(c, 16, 11, 2, 6, veilDk);
+  bk(c, 30, 11, 2, 6, veilDk);
+  px(c, 17, 12, veil); px(c, 30, 12, veil);
+  // Veil hem stitch
+  px(c, 18, 11, trim); px(c, 29, 11, trim);
+
+  // ── Eyes — glowing through the veil (two cold pinpricks) ──
+  bk(c, 21, 11, 2, 2, eyeDk);
+  bk(c, 25, 11, 2, 2, eyeDk);
+  px(c, 21, 11, eyeGlow); px(c, 26, 11, eyeGlow);
+  px(c, 21, 12, veilHi); px(c, 26, 12, veilHi);
+
+  // Mouth — thin, pressed, exposed below the veil
+  bk(c, 23, 16, 2, 1, skinDk);
+  px(c, 23, 17, ash);
+
+  // Cheek hollow
+  px(c, 19, 14, skinDk); px(c, 28, 14, skinDk);
+
+  // ── Ash drifting around the robe (small specks) ──
+  px(c, 8, 32, ash); px(c, 40, 30, ash);
+  px(c, 6, 38, ash); px(c, 42, 40, ash);
+  px(c, 13, 14, ash); px(c, 35, 16, ash);
+
+  // ── Old burn marks on the hem (where she stood when the tower fell) ──
+  px(c, 16, 43, eyeDk); px(c, 19, 43, eyeDk);
+  px(c, 30, 43, eyeDk); px(c, 33, 43, eyeDk);
+
+  // Faint halo (pale ring around the head — the tower's last protection)
+  px(c, 17, 5, veilHi); px(c, 30, 5, veilHi);
+  px(c, 14, 9, veilHi); px(c, 33, 9, veilHi);
+}
+
+// ─── THE DROWNED LORD ─────────────────────────────────────────
+// Kraken-king. Half-coral brow, rusted iron crown. Tendrils
+// trailing back into impossible water. Vast, deep-sea, regal.
+
+function drawDrownedLord(c: Ctx) {
+  const fleshDk = '#0a141c';
+  const flesh   = '#1a2438';
+  const fleshLt = '#2a3848';
+  const fleshHi = '#3a5068';
+  const coralDk = '#5a3838';
+  const coral = '#883838';
+  const coralLt = '#b85858';
+  const coralHi = '#e88080';
+  const ironDk = '#1a0a0a';
+  const iron = '#4a2818';
+  const ironHi = '#7a4828';
+  const rust = '#a04018';
+  const eyeDk = '#000808';
+  const eyeGlow = '#80ffff';
+  const eyeCore = '#ffffff';
+  const tooth = '#c8c0a8';
+  const water = '#08182a';
+  const foam = '#c8e0f0';
+
+  // Submerged base (water all around)
+  bk(c, 0, 40, 48, 8, water);
+  // Foam around the body
+  for (const fx of [8, 14, 22, 28, 36, 42]) px(c, fx, 40, foam);
+  for (const fx of [10, 18, 26, 34, 40]) px(c, fx, 41, foam);
+
+  // ── Tendrils trailing back into water (8 of them, asymmetric) ──
+  // Left tendrils
+  bk(c, 2, 36, 4, 6, fleshDk);
+  bk(c, 3, 38, 2, 4, flesh);
+  px(c, 4, 42, fleshHi);
+  bk(c, 6, 38, 3, 6, fleshDk);
+  bk(c, 7, 40, 2, 4, flesh);
+  bk(c, 0, 42, 6, 4, fleshDk);
+  px(c, 1, 44, fleshHi);
+  // Right tendrils
+  bk(c, 42, 36, 4, 6, fleshDk);
+  bk(c, 43, 38, 2, 4, flesh);
+  px(c, 44, 42, fleshHi);
+  bk(c, 39, 38, 3, 6, fleshDk);
+  bk(c, 40, 40, 2, 4, flesh);
+  bk(c, 42, 42, 6, 4, fleshDk);
+  px(c, 46, 44, fleshHi);
+  // Front tendrils breaching forward
+  bk(c, 14, 42, 4, 5, fleshDk);
+  bk(c, 15, 43, 2, 3, flesh);
+  bk(c, 30, 42, 4, 5, fleshDk);
+  bk(c, 31, 43, 2, 3, flesh);
+
+  // ── Massive shoulder mass / mantle ──
+  bk(c, 6, 24, 36, 18, fleshDk);
+  bk(c, 8, 25, 32, 16, flesh);
+  bk(c, 10, 26, 28, 13, fleshLt);
+  // Mantle highlights
+  bk(c, 12, 27, 8, 4, fleshHi);
+  bk(c, 28, 27, 8, 4, fleshHi);
+  // Shoulder ridges (vertical streaks)
+  for (const sx of [10, 16, 24, 32, 38]) bk(c, sx, 26, 1, 14, fleshDk);
+
+  // ── Coral patches embedded in shoulders ──
+  bk(c, 9, 28, 4, 4, coralDk);
+  bk(c, 10, 29, 2, 2, coral);
+  px(c, 10, 28, coralHi);
+  bk(c, 35, 30, 4, 4, coralDk);
+  bk(c, 36, 31, 2, 2, coral);
+  px(c, 37, 30, coralHi);
+  bk(c, 14, 36, 3, 3, coralDk);
+  px(c, 15, 36, coralLt);
+  bk(c, 31, 38, 3, 3, coralDk);
+  px(c, 32, 38, coralLt);
+
+  // ── Head (broad, hammerhead-like) ──
+  bk(c, 14, 14, 20, 14, fleshDk);
+  bk(c, 15, 15, 18, 12, flesh);
+  bk(c, 16, 16, 16, 10, fleshLt);
+  // Brow ridge
+  bk(c, 14, 14, 20, 2, fleshDk);
+  px(c, 16, 15, fleshHi); px(c, 31, 15, fleshHi);
+
+  // ── Coral horns growing from the brow (forming a natural crown frame) ──
+  bk(c, 14, 11, 3, 4, coralDk);
+  px(c, 15, 10, coral); px(c, 14, 9, coralLt);
+  bk(c, 31, 11, 3, 4, coralDk);
+  px(c, 32, 10, coral); px(c, 33, 9, coralLt);
+
+  // ── Rusted iron crown set into the brow ──
+  // Crown band
+  bk(c, 17, 9, 14, 3, ironDk);
+  bk(c, 18, 9, 12, 2, iron);
+  px(c, 19, 10, ironHi); px(c, 28, 10, ironHi);
+  // Spikes (jagged, asymmetric, rust-streaked)
+  bk(c, 18, 6, 2, 3, ironDk);
+  bk(c, 18, 7, 1, 2, iron);
+  bk(c, 22, 4, 2, 5, ironDk);
+  bk(c, 22, 5, 1, 4, iron);
+  px(c, 22, 3, ironHi);
+  bk(c, 26, 6, 2, 3, ironDk);
+  bk(c, 26, 7, 1, 2, iron);
+  bk(c, 29, 5, 2, 4, ironDk);
+  bk(c, 29, 6, 1, 3, iron);
+  // Rust streaks dripping from the crown onto the brow
+  px(c, 19, 12, rust); px(c, 24, 12, rust); px(c, 28, 12, rust);
+  px(c, 19, 13, rust); px(c, 28, 13, rust);
+
+  // ── Eyes — wide-set, deep-sea glow ──
+  bk(c, 17, 18, 4, 3, eyeDk);
+  bk(c, 27, 18, 4, 3, eyeDk);
+  bk(c, 18, 19, 2, 2, eyeGlow);
+  bk(c, 28, 19, 2, 2, eyeGlow);
+  px(c, 19, 19, eyeCore); px(c, 29, 19, eyeCore);
+
+  // ── Mouth (wide, fanged) ──
+  bk(c, 19, 23, 10, 3, eyeDk);
+  bk(c, 20, 24, 8, 1, fleshDk);
+  // Fangs
+  px(c, 20, 25, tooth); px(c, 22, 25, tooth);
+  px(c, 25, 25, tooth); px(c, 27, 25, tooth);
+  // Lower jaw
+  px(c, 21, 26, fleshDk); px(c, 26, 26, fleshDk);
+
+  // ── Coral spires on the back (visible as silhouette behind shoulders) ──
+  bk(c, 4, 22, 2, 6, coralDk);
+  bk(c, 42, 22, 2, 6, coralDk);
+  px(c, 4, 21, coral); px(c, 43, 21, coral);
+  px(c, 5, 20, coralLt); px(c, 42, 20, coralLt);
+
+  // Foam around the head edges
+  px(c, 13, 16, foam); px(c, 34, 16, foam);
+  px(c, 11, 22, foam); px(c, 36, 22, foam);
 }
 
 // ─── OUTLINE ──────────────────────────────────────────────────

@@ -1,5 +1,8 @@
 import { useInventoryStore } from '../state/inventoryStore';
 import { useQuestStore } from '../state/questStore';
+import { useTimeStore } from '../state/timeStore';
+import { useWorldStateStore } from '../state/worldStateStore';
+import { useCombatStore } from '../state/combatStore';
 import { BaseWorldScene, TILE, WORLD_W } from './BaseWorldScene';
 import { generateTileset, TILE as T, TILE_SIZE } from './tiles/generateTiles';
 
@@ -230,6 +233,67 @@ export class DrownedSanctumF1Scene extends BaseWorldScene {
     // ── Quest trigger: entering the sanctum completes the objective ──
     const qs = useQuestStore.getState();
     qs.completeObjective('drowned-sanctum', 'enter-sanctum');
+
+    // ── SECRET BOSS: The Dredged ──────────────────────────────
+    // Half-buried iron anchor at the south chamber wall. Examined while
+    // the world reads stormy (dusk/night), the wreck-thing rises.
+    this.spawnDredgedTrigger();
+  }
+
+  /**
+   * The Dredged — secret boss.
+   * Trigger: examine the half-buried anchor at (15,16) while phase is
+   * dusk or night (storm-darkness proxy — the codebase has no dynamic
+   * weather state). The shipwreck-thing rises out of the flood.
+   */
+  private spawnDredgedTrigger(): void {
+    const sceneKey = this.scene.key;
+    const defeatFlag = 'secret_dredged_defeated';
+    const bossX = 10 * TILE + TILE / 2;
+    const bossY = 16 * TILE + TILE / 2;
+    const bossEnemyId = `${sceneKey}-the_dredged-${bossX}-${bossY}`;
+
+    if (useCombatStore.getState().killedEnemies.has(bossEnemyId)) {
+      useWorldStateStore.getState().markPicked(sceneKey, defeatFlag);
+    }
+    if (useWorldStateStore.getState().isPicked(sceneKey, defeatFlag)) return;
+
+    // Anchor sits in the south chamber, between the spike trap row and
+    // the sealed-gate cracked-floor band (y=16, x=13 — moss-stone walkable).
+    const anchorX = 13 * TILE + TILE / 2;
+    const anchorY = 16 * TILE + TILE / 2;
+    // Half-buried anchor — iron crossbar showing above silt, shaft sunk.
+    // Stock (crossbar)
+    this.add.rectangle(anchorX, anchorY - 6, 22, 4, 0x3a3848).setDepth(6);
+    this.add.rectangle(anchorX, anchorY - 6, 18, 2, 0x5a5868).setDepth(6);
+    // Shaft (short, going into the floor)
+    this.add.rectangle(anchorX, anchorY, 4, 8, 0x2a2838).setDepth(6);
+    // Rust/silt smear
+    this.add.rectangle(anchorX, anchorY + 4, 14, 3, 0x382820, 0.7).setDepth(5);
+    // Faint coral tuft
+    this.add.rectangle(anchorX - 8, anchorY - 4, 3, 2, 0x884040, 0.7).setDepth(6);
+
+    const probe = this.add.rectangle(anchorX, anchorY, 32, 24, 0x000000, 0);
+    this.spawnInteractable({
+      sprite: probe as any,
+      label: 'Examine the half-buried anchor',
+      radius: 26,
+      action: () => {
+        const phase = useTimeStore.getState().phase;
+        const stormy = phase === 'dusk' || phase === 'night';
+        if (!stormy) {
+          window.dispatchEvent(new CustomEvent('gameMessage', {
+            detail: 'A ship\'s anchor, half-eaten by the salt. The water is still. Nothing answers.',
+          }));
+          return;
+        }
+        if (this.enemies.find((e) => e.id === bossEnemyId)) return;
+        window.dispatchEvent(new CustomEvent('gameMessage', {
+          detail: 'The water heaves. Rope and barnacle stand up where no shape should.',
+        }));
+        this.spawnEnemy({ monsterKey: 'the_dredged', x: bossX, y: bossY });
+      },
+    });
   }
 
   protected spawnAt(name: string): { x: number; y: number } {
