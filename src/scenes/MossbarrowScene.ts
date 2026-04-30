@@ -104,12 +104,13 @@ export class MossbarrowScene extends BaseWorldScene {
       },
     });
 
-    // Enemies — risen bones guarding the cairn. One patrol comes paired;
-    // the rest stay solo so the difficulty curve is gentle.
-    this.spawnEnemy({ monsterKey: 'skeleton', x: 16 * TILE, y: 10 * TILE, extras: ['skeleton'] });
-    this.spawnEnemy({ monsterKey: 'skeleton', x: 28 * TILE, y: 12 * TILE });
+    // Enemies — risen bones guarding the cairn. The first skeleton
+    // (closest to the entrance) stays solo so the player isn't ambushed
+    // immediately. The deepest patrol (x=32) comes as a pair.
     this.spawnEnemy({ monsterKey: 'skeleton', x: 12 * TILE, y: 14 * TILE });
-    this.spawnEnemy({ monsterKey: 'skeleton', x: 32 * TILE, y: 8 * TILE });
+    this.spawnEnemy({ monsterKey: 'skeleton', x: 16 * TILE, y: 10 * TILE });
+    this.spawnEnemy({ monsterKey: 'skeleton', x: 28 * TILE, y: 12 * TILE });
+    this.spawnEnemy({ monsterKey: 'skeleton', x: 32 * TILE, y: 8 * TILE, extras: ['skeleton'] });
 
     // ── Material pickups ──
     // Iron ore vein near the hollow oak (oak is at 10,8)

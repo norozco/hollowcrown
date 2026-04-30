@@ -112,14 +112,16 @@ export class GreenhollowScene extends BaseWorldScene {
       targetSpawn: 'orric',
     });
 
-    // Enemies — wolves roaming the forest. Two of these spawn as PACKS
-    // (1 visible wolf with 1-2 extras joining the fight on contact) so
-    // the player meets multi-enemy combat early. The rest stay solo.
-    this.spawnEnemy({ monsterKey: 'wolf', x: 22 * TILE, y: 10 * TILE, extras: ['wolf'] });
-    this.spawnEnemy({ monsterKey: 'wolf', x: 16 * TILE, y: 8 * TILE });
-    this.spawnEnemy({ monsterKey: 'wolf', x: 26 * TILE, y: 14 * TILE, extras: ['wolf', 'wolf'] });
-    this.spawnEnemy({ monsterKey: 'wolf', x: 12 * TILE, y: 16 * TILE });
-    this.spawnEnemy({ monsterKey: 'wolf', x: 30 * TILE, y: 18 * TILE });
+    // Enemies — wolves roaming the forest. The first wolves the player
+    // contacts (near Ashenvale, west side, x < 20) stay solo so a fresh
+    // lvl-1 Bard / Cleric can win their first fight. Packs are gated to
+    // the deeper east side of the forest where the player has had a few
+    // levels of XP first.
+    this.spawnEnemy({ monsterKey: 'wolf', x: 12 * TILE, y: 16 * TILE });   // closest to town — solo
+    this.spawnEnemy({ monsterKey: 'wolf', x: 16 * TILE, y: 8 * TILE });    // mid-west — solo
+    this.spawnEnemy({ monsterKey: 'wolf', x: 22 * TILE, y: 10 * TILE });   // mid — solo (was: pair)
+    this.spawnEnemy({ monsterKey: 'wolf', x: 26 * TILE, y: 14 * TILE, extras: ['wolf'] });   // east — pair
+    this.spawnEnemy({ monsterKey: 'wolf', x: 30 * TILE, y: 18 * TILE, extras: ['wolf'] });   // far east — pair
 
     // Boars — southern grassy areas
     this.spawnEnemy({ monsterKey: 'boar', x: 10 * TILE, y: 18 * TILE });
