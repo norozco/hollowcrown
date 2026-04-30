@@ -131,6 +131,13 @@
           ]
         },
         {
+          "text": "You watch me longer than you used to.",
+          "next": "brenna-grown",
+          "requires": [
+            { "type": "min-level", "level": 15 }
+          ]
+        },
+        {
           "text": "I need work.",
           "next": "quest-hub"
         },
@@ -645,6 +652,21 @@
       "speaker": "brenna",
       "expression": "neutral",
       "text": "Go. The work does not wait, and neither should you.",
+      "next": null
+    },
+
+    "brenna-grown": {
+      "id": "brenna-grown",
+      "speaker": "brenna",
+      "expression": "thoughtful",
+      "text": "Aye. I do. You came in skinny and quiet, and I had you marked for the wall by spring. Now you carry yourself like the room is yours to leave standing. That is not a compliment. It is a measurement.",
+      "next": "brenna-grown-2"
+    },
+    "brenna-grown-2": {
+      "id": "brenna-grown-2",
+      "speaker": "brenna",
+      "expression": "neutral",
+      "text": "I have known three people who walked in like that. One of them is in the ground. One of them is Aldric, also in the ground. The third is still walking. I am hoping for two out of four.",
       "next": null
     },
 

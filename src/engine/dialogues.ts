@@ -9,6 +9,9 @@ import veyrinSanctum from '../data/dialogues/veyrin-sanctum.json';
 import nessaGreeting from '../data/dialogues/nessa-greeting.json';
 import torbenGreeting from '../data/dialogues/torben-greeting.json';
 import miraGreeting from '../data/dialogues/mira-greeting.json';
+import miraConfront from '../data/dialogues/mira-confront.json';
+import miraBackstory from '../data/dialogues/mira-backstory.json';
+import miraRecruitment from '../data/dialogues/mira-recruitment.json';
 import type { Dialogue } from './dialogue';
 
 /**
@@ -28,6 +31,9 @@ const DIALOGUES: Record<string, Dialogue> = {
   'nessa-greeting': nessaGreeting as unknown as Dialogue,
   'torben-greeting': torbenGreeting as unknown as Dialogue,
   'mira-greeting': miraGreeting as unknown as Dialogue,
+  'mira-confront': miraConfront as unknown as Dialogue,
+  'mira-backstory': miraBackstory as unknown as Dialogue,
+  'mira-recruitment': miraRecruitment as unknown as Dialogue,
 };
 
 export function getDialogue(id: string): Dialogue {

@@ -1,0 +1,101 @@
+{
+  "id": "mira-confront",
+  "start": "approach",
+  "nodes": {
+    "approach": {
+      "id": "approach",
+      "speaker": "narrator",
+      "text": "She is at the end of the long dock. Legs over the dark water, back to the village. She does not turn when your boots find the loose plank, but her shoulders tighten the way a cat's do when something larger crosses the room.",
+      "next": "mira-rank-check"
+    },
+
+    "mira-rank-check": {
+      "id": "mira-rank-check",
+      "speaker": "mira",
+      "expression": "neutral",
+      "text": "...So.",
+      "choices": [
+        { "text": "[Continue.]", "next": "mira-defiant", "requires": [{ "type": "max-rank", "rank": "C" }] },
+        { "text": "[Continue.]", "next": "mira-deferential", "requires": [{ "type": "min-rank", "rank": "C" }] }
+      ]
+    },
+
+    "mira-defiant": {
+      "id": "mira-defiant",
+      "speaker": "mira",
+      "expression": "neutral",
+      "text": "You found me. Faster than I would have liked. You do not look so frightening up close. Skinny shoulders. A guildless boot. So — say what you came to say, and we will see whether I run.",
+      "next": "mira-options"
+    },
+
+    "mira-deferential": {
+      "id": "mira-deferential",
+      "speaker": "mira",
+      "expression": "thoughtful",
+      "text": "You. The seal on your token caught the lamp coming up the boards. You walk softer than the others, too. I should not have lifted from someone wearing that mark. I would say I did not know. I knew. I was hungry.",
+      "next": "mira-options"
+    },
+
+    "mira-options": {
+      "id": "mira-options",
+      "speaker": "mira",
+      "expression": "neutral",
+      "text": "Well. What is it to be.",
+      "choices": [
+        { "text": "Give it back. All of it.", "next": "demand-back" },
+        { "text": "Why did you take from me?", "next": "ask-why" },
+        { "text": "[Walk away. Leave her with the lake.]", "next": "walk-away" }
+      ]
+    },
+
+    "demand-back": {
+      "id": "demand-back",
+      "speaker": "mira",
+      "expression": "thoughtful",
+      "text": "...Aye. Fair. Hold out the hand.",
+      "next": "demand-back-2"
+    },
+    "demand-back-2": {
+      "id": "demand-back-2",
+      "speaker": "narrator",
+      "text": "She pulls a small purse from inside her cloak and counts the coins back into your palm without looking down — she knows the weight of every one. The last coin she presses into your skin a moment longer than she needs to, the way one hands over a thing one was sure was already gone.",
+      "next": "demand-back-3",
+      "effects": [
+        { "type": "give-gold", "amount": 20 },
+        { "type": "set-flag", "key": "hc_mira_recovered" }
+      ]
+    },
+    "demand-back-3": {
+      "id": "demand-back-3",
+      "speaker": "mira",
+      "expression": "neutral",
+      "text": "There. We are even. Walk away clean if you like. I will not run. I have nowhere left to run to.",
+      "next": null
+    },
+
+    "ask-why": {
+      "id": "ask-why",
+      "speaker": "mira",
+      "expression": "sad",
+      "text": "...Because hunger does not ask. Because the docks were the only walls I could afford this season. Because you looked the way people look when they have eaten.",
+      "next": "ask-why-2",
+      "effects": [
+        { "type": "set-flag", "key": "hc_mira_asked_why" }
+      ]
+    },
+    "ask-why-2": {
+      "id": "ask-why-2",
+      "speaker": "mira",
+      "expression": "thoughtful",
+      "text": "If you want the long version — come back. Not now. The boards are cold and you are still angry, whether you say it or not. Find me here when the anger has gone quiet. Then I will tell it the way it should be told.",
+      "next": null
+    },
+
+    "walk-away": {
+      "id": "walk-away",
+      "speaker": "narrator",
+      "text": "You leave her at the dock's end. She does not call after you. Somewhere behind you, the lake takes a breath and lets it out. She is still there when you stop hearing the boards behind you.",
+      "next": null
+    }
+  }
+}

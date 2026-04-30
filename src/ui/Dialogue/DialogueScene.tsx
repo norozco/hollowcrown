@@ -2,7 +2,9 @@ import { useEffect, useMemo, useState } from 'react';
 import { useDialogueStore } from '../../state/dialogueStore';
 import { usePlayerStore } from '../../state/playerStore';
 import { useQuestStore } from '../../state/questStore';
-import { currentNode, meetsAllRequirements } from '../../engine/dialogue';
+import { useDialogueMemoryStore } from '../../state/dialogueMemoryStore';
+import { currentNode, meetsAllRequirements, type RequirementContext } from '../../engine/dialogue';
+import { getCurrentRank } from '../../engine/ranks';
 import { getNPC } from '../../engine/npcs';
 import { SpeakerPortrait } from './SpeakerPortrait';
 import { pickPortraitUrl } from './portraitAssets';
@@ -28,6 +30,36 @@ export function DialogueScene() {
   const end = useDialogueStore((s) => s.end);
   const character = usePlayerStore((s) => s.character);
   const quests = useQuestStore((s) => s.active);
+  const greetingCounts = useDialogueMemoryStore((s) => s.greetingCount);
+
+  /**
+   * Snapshot of the player + world data the requirement evaluator reads.
+   * Quest predicates already work off `quests`; the rest read from this
+   * context. World-flag predicates pull from localStorage so callers can
+   * gate dialogue on the same `hc_*` keys cutscenes already write.
+   */
+  const requirementCtx = useMemo<RequirementContext>(() => {
+    const questsCompleted = Object.values(quests).filter((q) => q.turnedIn).length;
+    const level = character?.level ?? 1;
+    const rank = getCurrentRank(questsCompleted, level).key as
+      'F' | 'E' | 'D' | 'C' | 'B' | 'A';
+    // Lazy localStorage read — only the keys that any authored dialogue
+    // currently checks. Adding a new flag means listing it here too.
+    const readFlag = (k: string): boolean => {
+      try {
+        return typeof localStorage !== 'undefined' && localStorage.getItem(k) === 'true';
+      } catch {
+        return false;
+      }
+    };
+    const worldFlags: Record<string, boolean> = {
+      hc_mira_recovered: readFlag('hc_mira_recovered'),
+      hc_mira_asked_why: readFlag('hc_mira_asked_why'),
+      hc_mira_help_offered: readFlag('hc_mira_help_offered'),
+      hc_mira_recruited: readFlag('hc_mira_recruited'),
+    };
+    return { level, rank, greetingCounts, worldFlags };
+  }, [character?.level, quests, greetingCounts]);
 
   /**
    * When the player picks a choice we don't immediately navigate to the
@@ -49,8 +81,8 @@ export function DialogueScene() {
     if (!node?.choices) return [];
     return node.choices
       .map((choice, idx) => ({ choice, idx }))
-      .filter(({ choice }) => meetsAllRequirements(choice.requires, quests));
-  }, [node, quests]);
+      .filter(({ choice }) => meetsAllRequirements(choice.requires, quests, requirementCtx));
+  }, [node, quests, requirementCtx]);
 
   // Are we currently showing the player's staged response line? Computed
   // up here (before the keyboard effect) because the typewriter hook needs

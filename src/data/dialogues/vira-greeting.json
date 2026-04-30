@@ -28,6 +28,13 @@
           "requires": [{ "type": "quest-not-started", "questId": "silk-trader" }]
         },
         { "text": "What are you selling?", "next": "wares" },
+        {
+          "text": "Anything off the counter for someone who has earned it?",
+          "next": "vira-rank-offer",
+          "requires": [
+            { "type": "min-rank", "rank": "C" }
+          ]
+        },
         { "text": "Where do you get your stock?", "next": "vira-supply" },
         { "text": "What have travelers been saying?", "next": "vira-travelers" },
         { "text": "What happened to your regulars?", "next": "missing" },
@@ -133,6 +140,21 @@
       "speaker": "vira",
       "expression": "neutral",
       "text": "Come back when you know what you need. I will be here.",
+      "next": null
+    },
+
+    "vira-rank-offer": {
+      "id": "vira-rank-offer",
+      "speaker": "vira",
+      "expression": "thoughtful",
+      "text": "Ranked, are you. The seal on your guild token is hard to miss when it catches the lamp. Most who wear that one stop pretending they want rope and oil. So — yes. There is a shelf I do not show to F-rank.",
+      "next": "vira-rank-offer-2"
+    },
+    "vira-rank-offer-2": {
+      "id": "vira-rank-offer-2",
+      "speaker": "vira",
+      "expression": "neutral",
+      "text": "A vial of tincture from the eastern caravan, six years ago. A whetstone that came off a man who did not finish his last contract. A small mirror that does not show the room behind you. I do not price these. I trade them for stories and for favors. When you have one, bring it.",
       "next": null
     }
   }

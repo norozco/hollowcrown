@@ -24,12 +24,27 @@ export type Expression =
 /**
  * Conditions on a DialogueChoice that gate its visibility. If any
  * requirement is unmet, the choice is hidden from the player.
+ *
+ * Quest predicates read against `questStore.active`. The post-quest
+ * predicates (level/rank/greeting-count/world-flag) read against the
+ * extra `RequirementContext` passed alongside, so authoring stays
+ * declarative — the dialogue JSON does not reach into Zustand stores.
  */
 export type DialogueRequirement =
   | { type: 'quest-complete'; questId: string }
   | { type: 'quest-active'; questId: string }
   | { type: 'quest-not-started'; questId: string }
-  | { type: 'quest-not-turned-in'; questId: string };
+  | { type: 'quest-not-turned-in'; questId: string }
+  /** Player level >= n (inclusive). */
+  | { type: 'min-level'; level: number }
+  /** Adventurer rank >= the named tier. Ranks are F < E < D < C < B < A. */
+  | { type: 'min-rank'; rank: 'F' | 'E' | 'D' | 'C' | 'B' | 'A' }
+  /** Adventurer rank < the named tier — used for "below C" defiant lines. */
+  | { type: 'max-rank'; rank: 'F' | 'E' | 'D' | 'C' | 'B' | 'A' }
+  /** dialogueMemoryStore.greetingCount[id] >= n (e.g. 3 = "you've earned this line"). */
+  | { type: 'min-greeting-count'; dialogueId: string; count: number }
+  /** A world-state flag stored either in localStorage or set explicitly. */
+  | { type: 'world-flag'; key: string };
 
 export interface DialogueChoice {
   text: string;
@@ -58,36 +73,81 @@ export type DialogueEffect =
   | { type: 'spend-gold'; amount: number }
   | { type: 'give-xp'; amount: number }
   | { type: 'remove-items'; itemKey: string; quantity: number }
-  | { type: 'hire-companion'; companionKey: string };
+  | { type: 'hire-companion'; companionKey: string }
+  /** Set a world-state flag (localStorage `key=true`). Read by the
+   *  `world-flag` requirement and by scene code that already inspects
+   *  the same `hc_*` keys. Idempotent — re-fires safely. */
+  | { type: 'set-flag'; key: string };
 
 /**
- * Pure evaluator — given a map of {questId → {isComplete, turnedIn}},
- * return whether the requirement holds. Works on the QuestState shape
- * from questStore.active without importing the store.
+ * Snapshot of the player + world data that non-quest requirements read
+ * against. Kept narrow on purpose so the predicate evaluator stays pure
+ * and tests can build minimal fixtures.
+ */
+export interface RequirementContext {
+  /** Player level (1-20). */
+  level?: number;
+  /** Current adventurer rank key (F | E | D | C | B | A). */
+  rank?: 'F' | 'E' | 'D' | 'C' | 'B' | 'A';
+  /** Greeting count per dialogue id from dialogueMemoryStore. */
+  greetingCounts?: Readonly<Record<string, number>>;
+  /** World-state flags. Predicate is true if the key is present + truthy. */
+  worldFlags?: Readonly<Record<string, boolean>>;
+}
+
+const RANK_ORDER: Record<'F' | 'E' | 'D' | 'C' | 'B' | 'A', number> = {
+  F: 0, E: 1, D: 2, C: 3, B: 4, A: 5,
+};
+
+/**
+ * Pure evaluator — given a map of {questId → {isComplete, turnedIn}}
+ * and an optional RequirementContext, return whether the requirement
+ * holds. Works on the QuestState shape from questStore.active without
+ * importing the store.
  */
 export function meetsRequirement(
   req: DialogueRequirement,
   quests: Readonly<Record<string, { isComplete: boolean; turnedIn: boolean }>>,
+  ctx?: RequirementContext,
 ): boolean {
-  const q = quests[req.questId];
   switch (req.type) {
-    case 'quest-complete':
+    case 'quest-complete': {
+      const q = quests[req.questId];
       return q !== undefined && q.isComplete;
-    case 'quest-active':
+    }
+    case 'quest-active': {
+      const q = quests[req.questId];
       return q !== undefined && !q.isComplete;
-    case 'quest-not-started':
+    }
+    case 'quest-not-started': {
+      const q = quests[req.questId];
       return q === undefined;
-    case 'quest-not-turned-in':
+    }
+    case 'quest-not-turned-in': {
+      const q = quests[req.questId];
       return q !== undefined && !q.turnedIn;
+    }
+    case 'min-level':
+      return (ctx?.level ?? 0) >= req.level;
+    case 'min-rank':
+      return ctx?.rank !== undefined && RANK_ORDER[ctx.rank] >= RANK_ORDER[req.rank];
+    case 'max-rank':
+      // Strictly below — "max-rank C" means rank is F/E/D, NOT C.
+      return ctx?.rank !== undefined && RANK_ORDER[ctx.rank] < RANK_ORDER[req.rank];
+    case 'min-greeting-count':
+      return (ctx?.greetingCounts?.[req.dialogueId] ?? 0) >= req.count;
+    case 'world-flag':
+      return !!ctx?.worldFlags?.[req.key];
   }
 }
 
 export function meetsAllRequirements(
   reqs: readonly DialogueRequirement[] | undefined,
   quests: Readonly<Record<string, { isComplete: boolean; turnedIn: boolean }>>,
+  ctx?: RequirementContext,
 ): boolean {
   if (!reqs || reqs.length === 0) return true;
-  return reqs.every((r) => meetsRequirement(r, quests));
+  return reqs.every((r) => meetsRequirement(r, quests, ctx));
 }
 
 export interface DialogueNode {

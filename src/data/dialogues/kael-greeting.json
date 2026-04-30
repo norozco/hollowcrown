@@ -34,6 +34,13 @@
           ]
         },
         { "text": "Fight alongside me. (75g)", "next": "hire-kael" },
+        {
+          "text": "Have you anything you would not show another smith?",
+          "next": "kael-rank-piece",
+          "requires": [
+            { "type": "min-rank", "rank": "B" }
+          ]
+        },
         { "text": "What can you make?", "next": "craft-info" },
         { "text": "Where do I find materials?", "next": "materials" },
         { "text": "How did you learn to smith?", "next": "kael-craft-lore" },
@@ -156,6 +163,21 @@
       "id": "kael-backstory-1-close",
       "speaker": "kael",
       "text": "You killed the thing that killed his village. I cannot repay that. But every weapon I make for you from now on — I will make it like he would have. That is the best I have.",
+      "next": null
+    },
+
+    "kael-rank-piece": {
+      "id": "kael-rank-piece",
+      "speaker": "kael",
+      "expression": "thoughtful",
+      "text": "B-rank, the seal says. That changes the conversation. There is a piece I keep wrapped in oilcloth under the anvil. I have not finished it. I have not started it, properly. Most days I tell myself I will not.",
+      "next": "kael-rank-piece-2"
+    },
+    "kael-rank-piece-2": {
+      "id": "kael-rank-piece-2",
+      "speaker": "kael",
+      "expression": "neutral",
+      "text": "Bring me a fragment of star-iron — the kind that fell east of Ashfields the year the sky cracked. I will know it when I see it. If you carry one in here, I will finish the piece. It will not be cheap. It will not be quick. But it will be yours alone.",
       "next": null
     }
   }
