@@ -7,6 +7,25 @@ export type WeaponHandedness = '1h' | '2h' | 'hands';
 export type WeaponRange = 'melee' | 'ranged';
 export type WeaponDamageKind = 'slashing' | 'piercing' | 'bludgeoning';
 
+/**
+ * Optional per-weapon perk. Hooks into the basic-attack branch of combat
+ * (see `playerAct` in `engine/combat.ts`) AFTER hit/damage resolution but
+ * BEFORE phase transition. Skill dispatch is unaffected.
+ *
+ * The discriminated union exists for things `Item.statBonus` can't
+ * capture (statuses, crit math, damage typing, drawback-bearing flat
+ * bonuses). Plain "+N attack / +N damage" weapons should keep using
+ * `Item.statBonus` instead.
+ */
+export type WeaponPerk =
+  | { kind: 'on_hit_status'; status: 'burn' | 'poison' | 'bleed'; chance: number; duration: number }
+  | { kind: 'on_hit_heal'; amount: number }
+  | { kind: 'crit_range_bonus'; bonus: number }
+  | { kind: 'crit_multiplier'; mult: number }
+  | { kind: 'damage_type'; element: string }
+  | { kind: 'damage_bonus_vs_weakness'; element: string; mult: number }
+  | { kind: 'flat_damage'; bonus: number; attackPenalty: number };
+
 export interface Weapon {
   key: string;
   name: string;
@@ -16,6 +35,8 @@ export interface Weapon {
   damageKind: WeaponDamageKind;
   range: WeaponRange;
   description: string;
+  /** Optional weapon perk — see `WeaponPerk` for the union. */
+  perk?: WeaponPerk;
 }
 
 const WEAPONS: readonly Weapon[] = weaponsData as unknown as readonly Weapon[];

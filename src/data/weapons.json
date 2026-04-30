@@ -115,5 +115,85 @@
     "damageKind": "slashing",
     "range": "melee",
     "description": "What you were born with. Sharper than it should be."
+  },
+  {
+    "key": "flamebrand",
+    "name": "Flamebrand",
+    "handedness": "1h",
+    "attackStat": "str",
+    "damageKind": "slashing",
+    "range": "melee",
+    "description": "A blade quenched in pyre-ash. The runes along the fuller still hold their warmth. Strikes carry a remembered fire.",
+    "perk": { "kind": "on_hit_status", "status": "burn", "chance": 0.30, "duration": 2 }
+  },
+  {
+    "key": "vampiric_dagger",
+    "name": "Vampiric Dagger",
+    "handedness": "1h",
+    "attackStat": "dex",
+    "damageKind": "piercing",
+    "range": "melee",
+    "description": "Black iron, thin and thirsty. A hairline groove drinks what the edge takes. The wielder feels warmer with every wound given.",
+    "perk": { "kind": "on_hit_heal", "amount": 1 }
+  },
+  {
+    "key": "stormpiercer",
+    "name": "Stormpiercer",
+    "handedness": "1h",
+    "attackStat": "dex",
+    "damageKind": "piercing",
+    "range": "melee",
+    "description": "A duelist's rapier of cold pale steel. The point seems to find the gap before the hand decides where to send it.",
+    "perk": { "kind": "crit_range_bonus", "bonus": 1 }
+  },
+  {
+    "key": "blackthorn",
+    "name": "Blackthorn",
+    "handedness": "1h",
+    "attackStat": "dex",
+    "damageKind": "piercing",
+    "range": "melee",
+    "description": "A dagger of darkwood and bone, edged with thorns soaked in marsh-poison. The cuts are small. They do not stay small.",
+    "perk": { "kind": "on_hit_status", "status": "poison", "chance": 0.25, "duration": 2 }
+  },
+  {
+    "key": "glasscutter",
+    "name": "Glasscutter",
+    "handedness": "1h",
+    "attackStat": "dex",
+    "damageKind": "slashing",
+    "range": "melee",
+    "description": "A blade so thin it barely casts a shadow. A miss is nothing. A hit is everything. The smith made one — only one.",
+    "perk": { "kind": "crit_multiplier", "mult": 3 }
+  },
+  {
+    "key": "whisper_edge",
+    "name": "Whisper-Edge",
+    "handedness": "1h",
+    "attackStat": "dex",
+    "damageKind": "piercing",
+    "range": "melee",
+    "description": "Forged in a place the sun does not reach. The cut precedes the swing. What it takes is not flesh, but the shape of it.",
+    "perk": { "kind": "damage_type", "element": "shadow" }
+  },
+  {
+    "key": "sun_forged_hammer",
+    "name": "Sun-Forged Hammer",
+    "handedness": "1h",
+    "attackStat": "str",
+    "damageKind": "bludgeoning",
+    "range": "melee",
+    "description": "A mace whose head was struck on an anvil set in the dawn-fires. It hates the dark, and the dark remembers it.",
+    "perk": { "kind": "damage_bonus_vs_weakness", "element": "shadow", "mult": 1.4 }
+  },
+  {
+    "key": "marauders_greataxe",
+    "name": "Marauder's Greataxe",
+    "handedness": "2h",
+    "attackStat": "str",
+    "damageKind": "slashing",
+    "range": "melee",
+    "description": "Pitted iron, notched like a saw. Made for a bandit who took what he wanted and missed often, but seldom missed twice.",
+    "perk": { "kind": "flat_damage", "bonus": 3, "attackPenalty": 2 }
   }
 ]

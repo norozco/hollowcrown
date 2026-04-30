@@ -23,6 +23,7 @@ import { useInventoryStore } from '../state/inventoryStore';
 import { usePlayerStore, getHeartPieceHpBonus } from '../state/playerStore';
 import { COMPANIONS } from './companion';
 import { getPerkCombatBonuses, getPerkHpBonus } from './perks';
+import { getWeapon, type Weapon } from './weapons';
 
 /** Compute total stat bonuses from all currently equipped items AND the active companion. */
 function getEquipmentBonuses(): { attack: number; damage: number; ac: number } {
@@ -49,6 +50,28 @@ function getEquipmentBonuses(): { attack: number; damage: number; ac: number } {
   attack += perkBonus.attack;
   damage += perkBonus.damage;
   return { attack, damage, ac };
+}
+
+/**
+ * Resolve the weapon whose `perk` should drive this attack. If the
+ * mainHand-equipped item carries a `weaponKey`, that wins (and is the
+ * normal path once the player picks up Flamebrand and friends). Otherwise
+ * fall back to `player.weapon` — the weapon set at character creation,
+ * which never changes after equip and so doesn't carry perks for items
+ * picked up mid-run, but is still the correct source for tests that
+ * assign `player.weapon` directly.
+ */
+function resolveEquippedWeapon(player: Character): Weapon {
+  const eq = useInventoryStore.getState().equipment;
+  const main = eq.mainHand;
+  if (main?.weaponKey) {
+    try {
+      return getWeapon(main.weaponKey);
+    } catch {
+      // Bad data — fall through to character weapon.
+    }
+  }
+  return player.weapon;
 }
 
 /**
@@ -681,33 +704,63 @@ export function playerAct(
   }
 
   if (action === 'attack') {
-    // Multi-enemy: auto-target the primary if alive, otherwise lowest-HP
-    // living extra. Player can't actively switch in v0; AoE skills handle
-    // splash. Once a Tab/cycle UI lands this becomes `s.targetIndex`.
+    // Auto-target the primary if alive, otherwise the lowest-HP living
+    // extra. Combined here with the weapon-perk path: target picking
+    // chooses *who* takes the hit, perks shape *what kind of hit* it is.
     const targetIdx = pickAutoTarget(s);
     if (targetIdx < 0) {
-      // Nothing alive to hit (shouldn't happen \u2014 phase would already be
-      // 'victory'). Defensive no-op.
+      // Nothing alive to hit (shouldn't happen \u2014 victory phase would
+      // already have flipped). Defensive no-op.
       s.log.push({ text: 'Nothing left to strike.', type: 'info' });
     } else {
       const targetMon = enemyMonster(s, monster, targetIdx);
       const targetDef = enemyDefending(s, targetIdx);
       const equipBonus = getEquipmentBonuses();
+      // Resolve perk source: equipped mainHand \u2192 weapons.json link, else
+      // fall back to character weapon. Perk may be undefined.
+      const effWeapon = resolveEquippedWeapon(player);
+      const perk = effWeapon.perk;
+      const attackStat = effWeapon.attackStat;
+
       const roll = dice.d(20);
-      const bonus = modifier(player.stats[player.weapon.attackStat]) + equipBonus.attack;
-      const total = roll + bonus;
+      const baseAttackBonus = modifier(player.stats[attackStat]) + equipBonus.attack;
+      // flat_damage perk: sacrifices accuracy for raw hit power.
+      const attackPenalty = perk?.kind === 'flat_damage' ? perk.attackPenalty : 0;
+      const total = roll + baseAttackBonus - attackPenalty;
       const targetAc = targetMon.ac + (targetDef ? 2 : 0);
 
-      if (roll === 20 || (roll !== 1 && total >= targetAc)) {
-        let dmgBase = modifier(player.stats[player.weapon.attackStat]) + 2 + equipBonus.damage;
-        if (player.weapon.range === 'ranged') {
+      // crit_range_bonus widens the natural-crit window. A perk of bonus=1
+      // means rolls of 19 or 20 all crit (still need to be a hit).
+      const critBonus = perk?.kind === 'crit_range_bonus' ? perk.bonus : 0;
+      const critThreshold = Math.max(2, 20 - critBonus);
+      const isCrit = roll >= critThreshold;
+
+      if (isCrit || (roll !== 1 && total >= targetAc)) {
+        let dmgBase = modifier(player.stats[attackStat]) + 2 + equipBonus.damage;
+        if (perk?.kind === 'flat_damage') dmgBase += perk.bonus;
+        if (effWeapon.range === 'ranged') {
           dmgBase = Math.ceil(dmgBase * 1.3);
         }
-        const rawDmg = Math.max(1, roll === 20 ? dmgBase * 2 : dmgBase);
-        const dmg = applyElement(rawDmg, getAttackElement(player.characterClass.key, 'attack'), targetMon, s);
+        const critMult = perk?.kind === 'crit_multiplier' ? perk.mult : 2;
+        let rawDmg = Math.max(1, isCrit ? Math.round(dmgBase * critMult) : dmgBase);
+        // damage_bonus_vs_weakness \u2014 multiply BEFORE applyElement so the
+        // 1.5x weakness math compounds with the perk multiplier.
+        if (
+          perk?.kind === 'damage_bonus_vs_weakness'
+          && targetMon.weakness === perk.element
+        ) {
+          rawDmg = Math.ceil(rawDmg * perk.mult);
+          s.log.push({ text: 'The dawn-iron sears the dark.', type: 'info' });
+        }
+        // damage_type perk overrides the class-derived element so shadow
+        // / radiant blades trigger weakness/resistance correctly.
+        const element = perk?.kind === 'damage_type'
+          ? perk.element
+          : getAttackElement(player.characterClass.key, 'attack');
+        const dmg = applyElement(rawDmg, element, targetMon, s);
         setEnemyHp(s, targetIdx, enemyHp(s, targetIdx) - dmg);
         const targetSuffix = targetIdx === 0 ? '' : ` ${targetMon.name} reels.`;
-        if (roll === 20) {
+        if (isCrit) {
           s.log.push({ text: `A devastating strike. ${dmg} damage.${targetSuffix}`, type: 'player_hit' });
         } else {
           const hitLines = [
@@ -716,6 +769,34 @@ export function playerAct(
             `The blow lands true. ${dmg} damage.${targetSuffix}`,
           ];
           s.log.push({ text: hitLines[dice.d(3) - 1], type: 'player_hit' });
+        }
+
+        // \u2500\u2500 Post-hit weapon perks \u2500\u2500
+        // Apply to the TARGET's status, not always the primary's, so a
+        // poison-strike weapon still ticks status onto an extra when it
+        // was the actual target.
+        if (perk?.kind === 'on_hit_status') {
+          const chanceRoll = dice.d(100);
+          if (chanceRoll <= Math.round(perk.chance * 100)) {
+            applyStatus(enemyStatus(s, targetIdx), perk.status, perk.duration);
+            const flavor: Record<'burn' | 'poison' | 'bleed', string> = {
+              burn:   'Flame catches and clings.',
+              poison: 'The wound darkens. Poison takes hold.',
+              bleed:  'The cut weeps and will not close.',
+            };
+            s.log.push({ text: flavor[perk.status], type: 'system' });
+          }
+        }
+        if (perk?.kind === 'on_hit_heal') {
+          const maxHp =
+            player.derived.maxHp
+            + getPerkHpBonus(usePlayerStore.getState().perks)
+            + getHeartPieceHpBonus(usePlayerStore.getState().heartPieces);
+          const before = s.playerHp;
+          s.playerHp = Math.min(maxHp, s.playerHp + perk.amount);
+          if (s.playerHp > before) {
+            s.log.push({ text: `The blade gives back what it takes. +${s.playerHp - before} HP.`, type: 'info' });
+          }
         }
       } else {
         const missLines = [
