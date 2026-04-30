@@ -2733,6 +2733,9 @@ export abstract class BaseWorldScene extends Phaser.Scene {
 
         // Day/night cycle — advance time on every zone transition.
         useTimeStore.getState().tick();
+        // Weather rolls one transition too; pass the destination scene
+        // key so cold zones can roll snow.
+        useTimeStore.getState().advanceWeather(exit.targetScene);
 
         // Commission system — advance the zone-transition clock.
         const commStore = useCommissionStore.getState();

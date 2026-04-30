@@ -242,9 +242,10 @@ export class DrownedSanctumF1Scene extends BaseWorldScene {
 
   /**
    * The Dredged — secret boss.
-   * Trigger: examine the half-buried anchor at (15,16) while phase is
-   * dusk or night (storm-darkness proxy — the codebase has no dynamic
-   * weather state). The shipwreck-thing rises out of the flood.
+   * Trigger: examine the half-buried anchor at (15,16) while the world
+   * weather is `'storm'`. Now that the time store carries dynamic
+   * weather, this is a real storm gate (no longer a dusk/night proxy).
+   * The shipwreck-thing rises out of the flood.
    */
   private spawnDredgedTrigger(): void {
     const sceneKey = this.scene.key;
@@ -279,11 +280,10 @@ export class DrownedSanctumF1Scene extends BaseWorldScene {
       label: 'Examine the half-buried anchor',
       radius: 26,
       action: () => {
-        const phase = useTimeStore.getState().phase;
-        const stormy = phase === 'dusk' || phase === 'night';
+        const stormy = useTimeStore.getState().weather === 'storm';
         if (!stormy) {
           window.dispatchEvent(new CustomEvent('gameMessage', {
-            detail: 'A ship\'s anchor, half-eaten by the salt. The water is still. Nothing answers.',
+            detail: 'A ship\'s anchor, half-eaten by the salt. The water is still. The wind has not come for it.',
           }));
           return;
         }

@@ -771,6 +771,83 @@
   flex-wrap: wrap;
 }
 
+/* "Tab cycles target" hint shown only when extras are present. Tucked
+   under the enemy stack so it doesn't intrude on a 1v1 fight. */
+.combat__target-hint {
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  color: #c0a890;
+  text-transform: uppercase;
+  text-align: right;
+  padding: 0.15rem 0.3rem 0;
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+  opacity: 0.75;
+}
+
+/* Click-to-target affordance — primary panel + extras both get this
+   when alive and selectable. */
+.combat__panel--enemy[role="button"],
+.combat__extra[role="button"] {
+  cursor: pointer;
+}
+
+/* Targeted enemy: red ring + slight scale lift so the reticle reads
+   instantly. The reticle element below adds the spinning crosshair. */
+.combat__panel--targeted {
+  outline: 2px solid #c81e1e;
+  outline-offset: 4px;
+  box-shadow: 0 0 0 4px rgba(200, 30, 30, 0.18), 0 0 16px rgba(200, 30, 30, 0.4);
+}
+.combat__extra--targeted {
+  border-color: #c81e1e;
+  background: rgba(40, 12, 12, 0.95);
+  box-shadow: 0 0 12px rgba(200, 30, 30, 0.45);
+}
+
+/* Reticle — four bracketing corners + a slow rotate so it reads as
+   "locked on" without being noisy. */
+.combat__reticle {
+  position: absolute;
+  top: -10px;
+  left: -10px;
+  right: -10px;
+  bottom: -10px;
+  pointer-events: none;
+  border: 2px solid transparent;
+  /* Fake corners via four conic gradients clipped to the corners of
+     the box. Cheaper than DOM children and looks the part. */
+  background:
+    linear-gradient(#c81e1e, #c81e1e) top left / 14px 2px no-repeat,
+    linear-gradient(#c81e1e, #c81e1e) top left / 2px 14px no-repeat,
+    linear-gradient(#c81e1e, #c81e1e) top right / 14px 2px no-repeat,
+    linear-gradient(#c81e1e, #c81e1e) top right / 2px 14px no-repeat,
+    linear-gradient(#c81e1e, #c81e1e) bottom left / 14px 2px no-repeat,
+    linear-gradient(#c81e1e, #c81e1e) bottom left / 2px 14px no-repeat,
+    linear-gradient(#c81e1e, #c81e1e) bottom right / 14px 2px no-repeat,
+    linear-gradient(#c81e1e, #c81e1e) bottom right / 2px 14px no-repeat;
+  animation: reticlePulse 1.4s ease-in-out infinite;
+  z-index: 3;
+}
+.combat__reticle--small {
+  top: -4px;
+  left: -4px;
+  right: -4px;
+  bottom: -4px;
+  background:
+    linear-gradient(#c81e1e, #c81e1e) top left / 8px 1px no-repeat,
+    linear-gradient(#c81e1e, #c81e1e) top left / 1px 8px no-repeat,
+    linear-gradient(#c81e1e, #c81e1e) top right / 8px 1px no-repeat,
+    linear-gradient(#c81e1e, #c81e1e) top right / 1px 8px no-repeat,
+    linear-gradient(#c81e1e, #c81e1e) bottom left / 8px 1px no-repeat,
+    linear-gradient(#c81e1e, #c81e1e) bottom left / 1px 8px no-repeat,
+    linear-gradient(#c81e1e, #c81e1e) bottom right / 8px 1px no-repeat,
+    linear-gradient(#c81e1e, #c81e1e) bottom right / 1px 8px no-repeat;
+}
+@keyframes reticlePulse {
+  0%, 100% { opacity: 0.95; }
+  50%      { opacity: 0.55; }
+}
+
 /* Per-skill colored aura. Color is set inline from skill.visual.color so
    each skill reads visually distinct without needing a class per skill.
    The keyframes inflate from a tight ring → wide aura → fade out. */

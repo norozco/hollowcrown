@@ -285,6 +285,37 @@ export function pickAutoTarget(s: CombatState): number {
   return best;
 }
 
+/**
+ * Resolve the effective target for an attack/single-target skill.
+ * Returns `s.targetIndex` if that enemy is still alive (the player's
+ * explicit choice, set via Tab/cycle), otherwise falls back to
+ * `pickAutoTarget(s)` so a single button press doesn't waste a turn
+ * when the previously-selected enemy died on the last tick.
+ */
+export function getEffectiveTarget(s: CombatState): number {
+  const idx = s.targetIndex;
+  if (idx === 0 && s.monsterHp > 0) return 0;
+  if (idx > 0) {
+    const e = s.extraEnemies[idx - 1];
+    if (e && e.alive && e.hp > 0) return idx;
+  }
+  return pickAutoTarget(s);
+}
+
+/**
+ * Compute the next/previous valid target index when the player presses
+ * Tab / Shift-Tab. Cycles through alive enemies only; if no other alive
+ * enemies exist, returns the current index unchanged.
+ */
+export function cycleTargetIndex(s: CombatState, direction: 1 | -1): number {
+  const alive = aliveEnemyIndices(s);
+  if (alive.length === 0) return s.targetIndex;
+  const cur = alive.indexOf(s.targetIndex);
+  if (cur < 0) return alive[0];
+  const next = (cur + direction + alive.length) % alive.length;
+  return alive[next];
+}
+
 /** Skills authored to splash to all alive enemies. Single-target skills
  *  hit only the auto-target. Kept here (not on the skill record itself)
  *  to make the AoE list easy to find and tune. */
@@ -704,10 +735,10 @@ export function playerAct(
   }
 
   if (action === 'attack') {
-    // Auto-target the primary if alive, otherwise the lowest-HP living
-    // extra. Combined here with the weapon-perk path: target picking
-    // chooses *who* takes the hit, perks shape *what kind of hit* it is.
-    const targetIdx = pickAutoTarget(s);
+    // Honor the player's explicit Tab-cycled target (`s.targetIndex`),
+    // falling back to auto-pick if that enemy just died. Perks shape
+    // *what kind of hit* it is; the target picks *who* takes it.
+    const targetIdx = getEffectiveTarget(s);
     if (targetIdx < 0) {
       // Nothing alive to hit (shouldn't happen \u2014 victory phase would
       // already have flipped). Defensive no-op.
@@ -843,7 +874,17 @@ export function playerAct(
 
     s.lastSkillKey = skill.key;
 
-    // Helper for skill attacks that roll-to-hit (so weakness/resist apply).
+    // Single-target skills resolve against whichever enemy the player has
+    // currently selected (Tab-cycle), with auto-fallback to the lowest-HP
+    // alive enemy if that target died on the previous tick. AoE skills
+    // ignore this and iterate every alive enemy via forEachAliveEnemy.
+    const skillTargetIdx = getEffectiveTarget(s);
+    const skillTargetMon = enemyMonster(s, monster, skillTargetIdx);
+    const skillTargetDef = enemyDefending(s, skillTargetIdx);
+
+    /** Helper for skill attacks that roll-to-hit (so weakness/resist
+     *  apply). Targets whichever enemy the player has selected; falls
+     *  back to primary in 1v1 fights since selectedTargetIdx == 0. */
     const skillAttack = (
       stat: 'str' | 'dex' | 'int' | 'wis' | 'cha',
       baseDmg: number,
@@ -851,14 +892,19 @@ export function playerAct(
       hitText: (dmg: number) => string,
       missText: () => string,
     ) => {
+      if (skillTargetIdx < 0) {
+        // Defensive — would only happen if every enemy died mid-turn.
+        s.log.push({ text: missText(), type: 'player_miss' });
+        return;
+      }
       const r = dice.d(20);
       const b = modifier(player.stats[stat]);
       const t = r + b;
-      const ac = monster.ac + (s.monsterDefending ? 2 : 0);
+      const ac = skillTargetMon.ac + (skillTargetDef ? 2 : 0);
       if (r === 20 || (r !== 1 && t >= ac)) {
         const raw = Math.max(1, baseDmg);
-        const dmg = applyElement(raw, element, monster, s);
-        s.monsterHp = Math.max(0, s.monsterHp - dmg);
+        const dmg = applyElement(raw, element, skillTargetMon, s);
+        setEnemyHp(s, skillTargetIdx, enemyHp(s, skillTargetIdx) - dmg);
         s.log.push({ text: hitText(dmg), type: 'player_hit' });
       } else {
         s.log.push({ text: missText(), type: 'player_miss' });
@@ -920,14 +966,18 @@ export function playerAct(
         break;
       }
       case 'sneak_attack': {
-        const raw = 6 + modifier(player.stats.dex) * 2;
-        const dmg = applyElement(raw, 'shadow', monster, s);
-        s.monsterHp = Math.max(0, s.monsterHp - dmg);
-        s.log.push({ text: `You strike from the shadows. ${dmg} damage.`, type: 'player_hit' });
+        if (skillTargetIdx >= 0) {
+          const raw = 6 + modifier(player.stats.dex) * 2;
+          const dmg = applyElement(raw, 'shadow', skillTargetMon, s);
+          setEnemyHp(s, skillTargetIdx, enemyHp(s, skillTargetIdx) - dmg);
+          s.log.push({ text: `You strike from the shadows. ${dmg} damage.`, type: 'player_hit' });
+        }
         break;
       }
       case 'poison_strike': {
-        applyStatus(s.monsterStatus, 'poison', 3);
+        if (skillTargetIdx >= 0) {
+          applyStatus(enemyStatus(s, skillTargetIdx), 'poison', 3);
+        }
         skillAttack(
           'dex',
           2 + modifier(player.stats.dex),
@@ -939,12 +989,16 @@ export function playerAct(
       }
       case 'vanish': {
         s.playerDefending = true;
-        applyStatus(s.monsterStatus, 'marked', 2);
+        if (skillTargetIdx >= 0) {
+          applyStatus(enemyStatus(s, skillTargetIdx), 'marked', 2);
+        }
         s.log.push({ text: `You step into shadow. They lose sight of you.`, type: 'info' });
         break;
       }
       case 'hunters_mark': {
-        applyStatus(s.monsterStatus, 'marked', 3);
+        if (skillTargetIdx >= 0) {
+          applyStatus(enemyStatus(s, skillTargetIdx), 'marked', 3);
+        }
         skillAttack(
           'dex',
           modifier(player.stats.dex) + 2 + 4,
@@ -981,7 +1035,9 @@ export function playerAct(
         break;
       }
       case 'beast_strike': {
-        applyStatus(s.monsterStatus, 'bleed', 3);
+        if (skillTargetIdx >= 0) {
+          applyStatus(enemyStatus(s, skillTargetIdx), 'bleed', 3);
+        }
         skillAttack(
           'dex',
           modifier(player.stats.dex) + 3,
@@ -1010,24 +1066,28 @@ export function playerAct(
         break;
       }
       case 'ice_lance': {
-        const raw = 7 + modifier(player.stats.int) * 2;
-        const dmg = applyElement(raw, 'ice', monster, s);
-        s.monsterHp = Math.max(0, s.monsterHp - dmg);
-        const stunRoll = dice.d(20);
-        if (stunRoll >= 15) {
-          applyStatus(s.monsterStatus, 'stun', 1);
-          s.log.push({ text: `Ice Lance — ${dmg} damage. ${monster.name} is locked in frost.`, type: 'player_hit' });
-        } else {
-          s.log.push({ text: `Ice Lance — ${dmg} damage. The cold lingers.`, type: 'player_hit' });
+        if (skillTargetIdx >= 0) {
+          const raw = 7 + modifier(player.stats.int) * 2;
+          const dmg = applyElement(raw, 'ice', skillTargetMon, s);
+          setEnemyHp(s, skillTargetIdx, enemyHp(s, skillTargetIdx) - dmg);
+          const stunRoll = dice.d(20);
+          if (stunRoll >= 15) {
+            applyStatus(enemyStatus(s, skillTargetIdx), 'stun', 1);
+            s.log.push({ text: `Ice Lance — ${dmg} damage. ${skillTargetMon.name} is locked in frost.`, type: 'player_hit' });
+          } else {
+            s.log.push({ text: `Ice Lance — ${dmg} damage. The cold lingers.`, type: 'player_hit' });
+          }
         }
         break;
       }
       case 'arcane_bolt': {
         // Cheap & reliable: lower base than fireball, no roll-to-hit,
         // bypasses fire/ice resists (raw arcane).
-        const raw = Math.max(1, 5 + modifier(player.stats.int));
-        s.monsterHp = Math.max(0, s.monsterHp - raw);
-        s.log.push({ text: `Arcane Bolt strikes true. ${raw} damage.`, type: 'player_hit' });
+        if (skillTargetIdx >= 0) {
+          const raw = Math.max(1, 5 + modifier(player.stats.int));
+          setEnemyHp(s, skillTargetIdx, enemyHp(s, skillTargetIdx) - raw);
+          s.log.push({ text: `Arcane Bolt strikes true. ${raw} damage.`, type: 'player_hit' });
+        }
         break;
       }
       case 'cure_wounds': {
@@ -1037,15 +1097,18 @@ export function playerAct(
         break;
       }
       case 'smite': {
-        // Treat 'shadow' weakness as the unholy bonus.
-        let raw = 7 + modifier(player.stats.wis) * 2;
-        if (monster.weakness === 'shadow') {
-          raw = Math.ceil(raw * 1.4);
-          s.log.push({ text: `Holy radiance pierces the dark.`, type: 'info' });
+        // Treat 'shadow' weakness as the unholy bonus. Reads the
+        // selected target so smite vs a shadow-weak extra still works.
+        if (skillTargetIdx >= 0) {
+          let raw = 7 + modifier(player.stats.wis) * 2;
+          if (skillTargetMon.weakness === 'shadow') {
+            raw = Math.ceil(raw * 1.4);
+            s.log.push({ text: `Holy radiance pierces the dark.`, type: 'info' });
+          }
+          const dmg = applyElement(raw, 'radiant', skillTargetMon, s);
+          setEnemyHp(s, skillTargetIdx, enemyHp(s, skillTargetIdx) - dmg);
+          s.log.push({ text: `Smite — ${dmg} damage.`, type: 'player_hit' });
         }
-        const dmg = applyElement(raw, 'radiant', monster, s);
-        s.monsterHp = Math.max(0, s.monsterHp - dmg);
-        s.log.push({ text: `Smite — ${dmg} damage.`, type: 'player_hit' });
         break;
       }
       case 'bless': {

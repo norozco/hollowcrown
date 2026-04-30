@@ -4,6 +4,7 @@ import {
   playerAct,
   enemyAct,
   getSkillByKey,
+  cycleTargetIndex,
   type CombatAction,
   type CombatState,
 } from '../engine/combat';
@@ -166,6 +167,11 @@ interface CombatStoreState {
   act: (action: CombatAction, skillKey?: string) => void;
   /** Use a consumable item during combat (costs the player's turn). */
   useItem: (itemKey: string) => void;
+  /** Cycle the player's selected target. +1 = next alive enemy
+   *  clockwise (Tab), -1 = previous (Shift+Tab). No-op in 1v1
+   *  fights or when only one enemy is alive. Doesn't end the
+   *  turn — purely a selection shift. */
+  cycleTarget: (direction: 1 | -1) => void;
   /** End combat — apply rewards or penalties and clean up. */
   finish: () => void;
 }
@@ -277,6 +283,14 @@ export const useCombatStore = create<CombatStoreState>((set, get) => ({
         } else { set({ _enemyActing: false }); }
       }, 600);
     }
+  },
+
+  cycleTarget: (direction) => {
+    const cur = get().state;
+    if (!cur) return;
+    const next = cycleTargetIndex(cur, direction);
+    if (next === cur.targetIndex) return; // no-op (single enemy alive)
+    set({ state: { ...cur, targetIndex: next } });
   },
 
   useItem: (itemKey) => {

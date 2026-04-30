@@ -89,6 +89,7 @@ export function CombatOverlay() {
     }, 300);
   };
   const useItem = useCombatStore((s) => s.useItem);
+  const cycleTarget = useCombatStore((s) => s.cycleTarget);
   const character = usePlayerStore((s) => s.character);
   usePlayerStore((s) => s.version); // re-render on XP/level changes
   const companionKey = usePlayerStore((s) => s.companion);
@@ -216,6 +217,13 @@ export function CombatOverlay() {
       const current = useCombatStore.getState().state;
       if (!current) return;
       if (current.phase === 'player_turn') {
+        // Tab / Shift+Tab cycles the player's target across alive enemies.
+        // No-op in 1v1 fights. Doesn't end the turn — pure selection.
+        if (e.key === 'Tab') {
+          e.preventDefault();
+          cycleTarget(e.shiftKey ? -1 : 1);
+          return;
+        }
         // Skill popup catches 1/2/3 (skill index) + Esc/2 to close
         if (skillPopupOpen) {
           if (e.key === 'Escape' || e.key === '2') {
@@ -324,17 +332,42 @@ export function CombatOverlay() {
             events={enemyEvents}
             slash={enemySlash}
             skillFlash={enemySkillFlash}
+            targeted={state.targetIndex === 0 && state.monsterHp > 0}
+            onSelect={() => {
+              // Click to target the primary. cycleTarget walks ±1, but
+              // for a direct click we set the index by emitting a tiny
+              // store edit through cycleTarget's loop equivalent: just
+              // set state.targetIndex via setState, since the engine
+              // only cares about the value.
+              if (state.monsterHp <= 0) return;
+              useCombatStore.setState((cs) =>
+                cs.state ? { state: { ...cs.state, targetIndex: 0 } } : {},
+              );
+            }}
           />
-          {(state.extraEnemies ?? []).map((extra, i) => (
-            <ExtraEnemyPanel
-              key={`${extra.monster.key}-${i}`}
-              monsterName={extra.monster.name}
-              hp={extra.hp}
-              maxHp={extra.monster.maxHp}
-              alive={extra.alive}
-              status={extra.status}
-            />
-          ))}
+          {(state.extraEnemies ?? []).map((extra, i) => {
+            const idx = i + 1;
+            return (
+              <ExtraEnemyPanel
+                key={`${extra.monster.key}-${i}`}
+                monsterName={extra.monster.name}
+                hp={extra.hp}
+                maxHp={extra.monster.maxHp}
+                alive={extra.alive}
+                status={extra.status}
+                targeted={state.targetIndex === idx && extra.alive}
+                onSelect={() => {
+                  if (!extra.alive) return;
+                  useCombatStore.setState((cs) =>
+                    cs.state ? { state: { ...cs.state, targetIndex: idx } } : {},
+                  );
+                }}
+              />
+            );
+          })}
+          {((state.extraEnemies ?? []).length > 0) && (
+            <div className="combat__target-hint">Tab cycles target</div>
+          )}
         </div>
       </div>
       <div className="combat__log">
@@ -527,6 +560,7 @@ export function CombatOverlay() {
  */
 function CombatantPanel({
   side, name, hpPct, hp, maxHp, flashKey, events, slash, skillFlash,
+  targeted, onSelect,
 }: {
   side: 'player' | 'enemy';
   name: string;
@@ -538,6 +572,11 @@ function CombatantPanel({
   slash: { id: number; crit: boolean } | null;
   /** Per-skill colored aura. Replays on each new skill event. */
   skillFlash: { id: number; color: string } | null;
+  /** Player's currently-selected target. Reticle renders when true.
+   *  Only meaningful for the enemy panel; player panel ignores it. */
+  targeted?: boolean;
+  /** Click handler — set this enemy as the active target. */
+  onSelect?: () => void;
 }) {
   // "Lag bar" — trails behind the real HP bar on damage for a Persona-5 feel
   const [lagPct, setLagPct] = useState(hpPct);
@@ -550,8 +589,21 @@ function CombatantPanel({
     setLagPct(hpPct);
   }, [hpPct, lagPct]);
 
+  const isTargetable = side === 'enemy' && !!onSelect;
   return (
-    <div className={`combat__panel combat__panel--${side}`}>
+    <div
+      className={[
+        'combat__panel',
+        `combat__panel--${side}`,
+        targeted ? 'combat__panel--targeted' : '',
+      ].filter(Boolean).join(' ')}
+      onClick={isTargetable ? onSelect : undefined}
+      role={isTargetable ? 'button' : undefined}
+      tabIndex={isTargetable ? 0 : undefined}
+    >
+      {targeted && side === 'enemy' && (
+        <span className="combat__reticle" aria-hidden />
+      )}
       <div className="combat__panel-name">{name}</div>
       <div
         key={flashKey}
@@ -603,13 +655,15 @@ function CombatantPanel({
  * camera/visuals focus on the boss in a boss-and-adds fight.
  */
 function ExtraEnemyPanel({
-  monsterName, hp, maxHp, alive, status,
+  monsterName, hp, maxHp, alive, status, targeted, onSelect,
 }: {
   monsterName: string;
   hp: number;
   maxHp: number;
   alive: boolean;
   status: StatusEffects;
+  targeted?: boolean;
+  onSelect?: () => void;
 }) {
   const pct = Math.max(0, Math.min(100, (hp / maxHp) * 100));
   const STATUS_ICONS: Partial<Record<keyof StatusEffects, string>> = {
@@ -618,7 +672,17 @@ function ExtraEnemyPanel({
   const badges = (Object.entries(status) as [keyof StatusEffects, number][])
     .filter(([k, v]) => v > 0 && STATUS_ICONS[k] !== undefined);
   return (
-    <div className={`combat__extra${alive ? '' : ' combat__extra--down'}`}>
+    <div
+      className={[
+        'combat__extra',
+        alive ? '' : 'combat__extra--down',
+        targeted && alive ? 'combat__extra--targeted' : '',
+      ].filter(Boolean).join(' ')}
+      onClick={alive && onSelect ? onSelect : undefined}
+      role={alive && onSelect ? 'button' : undefined}
+      tabIndex={alive && onSelect ? 0 : undefined}
+    >
+      {targeted && alive && <span className="combat__reticle combat__reticle--small" aria-hidden />}
       <div className="combat__extra-name">{alive ? monsterName : `${monsterName} — fallen`}</div>
       <div className="combat__extra-hp-track">
         <div

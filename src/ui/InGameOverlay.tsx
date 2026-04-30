@@ -43,7 +43,7 @@ import { DungeonMap } from './DungeonMap/DungeonMap';
 import { useDungeonMapStore } from '../state/dungeonMapStore';
 import { DialogueHistory } from './Dialogue/DialogueHistory';
 import { useMapMarkerStore } from '../state/mapMarkerStore';
-import { useTimeStore, getPhaseIcon } from '../state/timeStore';
+import { useTimeStore, getPhaseIcon, getWeatherIcon } from '../state/timeStore';
 import { Sfx, unlockAudio, playMusic } from '../engine/audio';
 import { initGamepadSupport } from '../engine/gamepad';
 import { useGameStatsStore } from '../state/gameStatsStore';
@@ -149,6 +149,7 @@ export function InGameOverlay() {
   const resetDungeonMap = useDungeonMapStore((s) => s.reset);
   const resetTime = useTimeStore((s) => s.reset);
   const timePhase = useTimeStore((s) => s.phase);
+  const weather = useTimeStore((s) => s.weather);
   const resetLore = useLoreStore((s) => s.reset);
 
   const [menuOpen, setMenuOpen] = useState(false);
@@ -881,6 +882,7 @@ export function InGameOverlay() {
               {' '}<span className="ig__rank" style={{ color: rank.color }}>{rank.name}</span>
               {newGamePlus && <span className="ig__ngplus">NG+</span>}
               <span className="ig__time" title={`Time: ${timePhase}`}>{getPhaseIcon(timePhase)}</span>
+              <span className="ig__time" title={`Weather: ${weather}`}>{getWeatherIcon(weather)}</span>
             </span>
           </div>
         </div>

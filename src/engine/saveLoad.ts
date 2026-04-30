@@ -11,7 +11,7 @@ import { useAchievementStore } from '../state/achievementStore';
 import { useGameStatsStore } from '../state/gameStatsStore';
 import { useBountyStore } from '../state/bountyStore';
 import { useCommissionStore } from '../state/commissionStore';
-import { useTimeStore, type TimePhase } from '../state/timeStore';
+import { useTimeStore, type TimePhase, type Weather } from '../state/timeStore';
 import { useLoreStore } from '../state/loreStore';
 import { useDungeonItemStore } from '../state/dungeonItemStore';
 import { useWorldStateStore } from '../state/worldStateStore';
@@ -83,6 +83,9 @@ interface SaveData {
   time?: {
     phase: TimePhase;
     transitionsSincePhase: number;
+    /** Dynamic weather (added post-v1, optional for compat — missing
+     *  field defaults to `'clear'` on load). */
+    weather?: Weather;
   };
   /** Per-dialogue greeting counts so NPCs keep their familiarity across
    *  reloads (added post-v1, optional for compat — missing field defaults
@@ -171,6 +174,7 @@ export function saveGame(slot: string, currentScene = 'TownScene'): boolean {
     time: {
       phase: useTimeStore.getState().phase,
       transitionsSincePhase: useTimeStore.getState().transitionsSincePhase,
+      weather: useTimeStore.getState().weather,
     },
     dialogueMemory: useDialogueMemoryStore.getState().snapshot(),
   };
@@ -344,6 +348,7 @@ export function loadGame(slot: string): boolean {
       useTimeStore.setState({
         phase: data.time.phase,
         transitionsSincePhase: data.time.transitionsSincePhase,
+        weather: data.time.weather ?? 'clear',
       });
     }
 

@@ -24,6 +24,11 @@ import { Sfx } from '../engine/audio';
 export class CombatScene extends Phaser.Scene {
   private playerSprite!: Phaser.GameObjects.Sprite;
   private enemySprite!: Phaser.GameObjects.Sprite;
+  /** Sprites for additional enemies in a multi-enemy fight. Index 0
+   *  in this array maps to extraEnemies[0] in CombatState. */
+  private extraSprites: Phaser.GameObjects.Sprite[] = [];
+  /** Targeting reticle (8 corner brackets composed via graphics). */
+  private reticleGfx!: Phaser.GameObjects.Graphics;
   private playerHpBar!: Phaser.GameObjects.Graphics;
   private enemyHpBar!: Phaser.GameObjects.Graphics;
   private statusIconsGfx!: Phaser.GameObjects.Graphics;
@@ -173,10 +178,40 @@ export class CombatScene extends Phaser.Scene {
       stroke: '#1a1008', strokeThickness: 3,
     }).setOrigin(0.5).setDepth(20);
 
+    // Extra enemy sprites — render adds in a column along the right edge,
+    // smaller than the primary so the boss stays visually dominant. Each
+    // gets its own simple shadow + name. Texture generation reuses the
+    // same generateMonsterSprite path as the primary.
+    const combatStateInit = useCombatStore.getState().state;
+    const extras = combatStateInit?.extraEnemies ?? [];
+    extras.forEach((extra, i) => {
+      const exKey = extra.monster.key;
+      const exSpriteKey = `monster-${exKey}-extra-${i}`;
+      if (this.textures.exists(exSpriteKey)) this.textures.remove(exSpriteKey);
+      generateMonsterSprite(this, exSpriteKey, exKey);
+      const exScale = 2; // smaller than primary's 3-4x
+      // Stack vertically along the right side, offset from primary.
+      const exX = this.enemyBaseX + 110 + (i % 2) * 60;
+      const exY = enemyY - 60 + Math.floor(i / 2) * 90 + (i % 2 === 0 ? 0 : 50);
+      const exSprite = this.add.sprite(exX, exY, exSpriteKey, 0);
+      exSprite.setScale(exScale);
+      exSprite.setDepth(10);
+      this.add.ellipse(exX, exY + 24 * exScale * 0.5, 32 * exScale * 0.8, 10, 0x000000)
+        .setAlpha(0.2).setDepth(9);
+      this.add.text(exX, exY - 24 * exScale - 14, extra.monster.name, {
+        fontFamily: 'Courier New', fontSize: '11px', color: '#ff8888',
+        stroke: '#1a1008', strokeThickness: 2,
+      }).setOrigin(0.5).setDepth(20);
+      this.extraSprites.push(exSprite);
+    });
+
     // HP bars (Phaser graphics — updated each frame)
     this.playerHpBar = this.add.graphics().setDepth(20);
     this.enemyHpBar = this.add.graphics().setDepth(20);
     this.statusIconsGfx = this.add.graphics().setDepth(22);
+    // Targeting reticle — drawn over whichever enemy sprite the player
+    // has selected. Updated in update() since target can change anytime.
+    this.reticleGfx = this.add.graphics().setDepth(23);
     this.playerHpText = this.add.text(this.playerBaseX, playerY - SPRITE_H * 1.5, '', {
       fontFamily: 'Courier New', fontSize: '13px', color: '#ffffff',
       stroke: '#000000', strokeThickness: 2,
@@ -349,6 +384,33 @@ export class CombatScene extends Phaser.Scene {
     this.statusIconsGfx.clear();
     this.drawStatusIcons(this.playerBaseX - 40, this.playerSprite.y - SPRITE_H * 1.3, state.playerStatus);
     this.drawStatusIcons(this.enemyBaseX - 40, eY - eHalfH - 4, state.monsterStatus);
+
+    // Sync extra-enemy sprite alphas with their alive flag so a fallen
+    // extra fades but stays visible. (Full destroy is deferred to combat
+    // end so the React panel can keep rendering its "fallen" state.)
+    const extras = state.extraEnemies ?? [];
+    for (let i = 0; i < this.extraSprites.length; i++) {
+      const ex = extras[i];
+      const sp = this.extraSprites[i];
+      if (!ex || !sp) continue;
+      sp.setAlpha(ex.alive ? 1 : 0.35);
+      if (!ex.alive) sp.setTint(0x444444);
+    }
+
+    // Targeting reticle — corner brackets on whichever enemy is selected.
+    // 0 = primary, 1+ = extras[i-1]. Hidden when nothing alive (combat
+    // already transitioning to victory).
+    this.reticleGfx.clear();
+    const tIdx = state.targetIndex ?? 0;
+    if (tIdx === 0 && state.monsterHp > 0) {
+      this.drawReticleAt(this.enemySprite.x, this.enemySprite.y, 60);
+    } else if (tIdx > 0) {
+      const ex = extras[tIdx - 1];
+      const sp = this.extraSprites[tIdx - 1];
+      if (ex && ex.alive && sp) {
+        this.drawReticleAt(sp.x, sp.y, 36);
+      }
+    }
 
     // Per-skill visuals — colored camera flash + SFX driven by skill events.
     // Reading from combatEvents (rather than text-matching log entries the
@@ -892,6 +954,31 @@ export class CombatScene extends Phaser.Scene {
       this.statusIconsGfx.strokeCircle(x + offsetX + 5, y + 5, 5);
       offsetX += 14;
     }
+  }
+
+  /**
+   * Draw four corner brackets around (cx, cy) at the given half-size,
+   * pulsing red. Used as the targeting reticle for the player's selected
+   * enemy. Cleared and redrawn each frame in update().
+   */
+  private drawReticleAt(cx: number, cy: number, half: number): void {
+    const t = (typeof performance !== 'undefined' ? performance.now() : Date.now()) / 1000;
+    const alpha = 0.6 + Math.sin(t * 4) * 0.25;
+    const len = 18;
+    const w = 3;
+    this.reticleGfx.lineStyle(w, 0xc81e1e, alpha);
+    // Top-left
+    this.reticleGfx.lineBetween(cx - half, cy - half, cx - half + len, cy - half);
+    this.reticleGfx.lineBetween(cx - half, cy - half, cx - half, cy - half + len);
+    // Top-right
+    this.reticleGfx.lineBetween(cx + half, cy - half, cx + half - len, cy - half);
+    this.reticleGfx.lineBetween(cx + half, cy - half, cx + half, cy - half + len);
+    // Bottom-left
+    this.reticleGfx.lineBetween(cx - half, cy + half, cx - half + len, cy + half);
+    this.reticleGfx.lineBetween(cx - half, cy + half, cx - half, cy + half - len);
+    // Bottom-right
+    this.reticleGfx.lineBetween(cx + half, cy + half, cx + half - len, cy + half);
+    this.reticleGfx.lineBetween(cx + half, cy + half, cx + half, cy + half - len);
   }
 
   /**
