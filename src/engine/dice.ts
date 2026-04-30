@@ -17,9 +17,14 @@ export class DiceRoller {
 
   /**
    * @param seed  Optional seed. If omitted, uses Math.random (non-deterministic).
+   *
+   * Note: when no seed is given we wrap Math.random in a closure rather
+   * than capturing the function reference directly. That way vitest's
+   * `vi.spyOn(Math, 'random')` is observable from inside this instance —
+   * crucial for combat tests that mock dice rolls.
    */
   constructor(seed?: number) {
-    this.rng = seed !== undefined ? mulberry32(seed) : Math.random;
+    this.rng = seed !== undefined ? mulberry32(seed) : () => Math.random();
   }
 
   /** Roll a single die with `sides` faces. Returns an integer in [1, sides]. */

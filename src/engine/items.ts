@@ -31,6 +31,13 @@ export interface Item {
   effect?: ItemEffect;
   /** Stack limit (consumables/materials). Equipment doesn't stack. */
   stackable?: boolean;
+  /**
+   * Optional link from a weapon-type item to its `Weapon` definition in
+   * `data/weapons.json`. When present and equipped to mainHand, combat
+   * resolves the weapon's `perk` through this key. Plain weapon items
+   * (iron_sword, etc.) leave this unset and use only `statBonus`.
+   */
+  weaponKey?: string;
 }
 
 export interface InventorySlot {
@@ -218,6 +225,47 @@ const ITEMS: Record<string, Item> = {
     key: 'silver_rapier', name: 'Silver Rapier', type: 'weapon', rarity: 'uncommon',
     buyPrice: 190, description: 'Thin, precise, elegant. Words fail where this succeeds.',
     equipSlot: 'mainHand', statBonus: { attack: 2, damage: 3 },
+  },
+  // ── Perked weapons (link to weapons.json via weaponKey for the perk hook) ──
+  flamebrand: {
+    key: 'flamebrand', name: 'Flamebrand', type: 'weapon', rarity: 'rare',
+    buyPrice: 420, description: 'A blade quenched in pyre-ash. The runes along the fuller still hold their warmth.',
+    equipSlot: 'mainHand', statBonus: { attack: 2, damage: 3 }, weaponKey: 'flamebrand',
+  },
+  vampiric_dagger: {
+    key: 'vampiric_dagger', name: 'Vampiric Dagger', type: 'weapon', rarity: 'rare',
+    buyPrice: 360, description: 'Black iron, thin and thirsty. A hairline groove drinks what the edge takes.',
+    equipSlot: 'mainHand', statBonus: { attack: 2, damage: 1 }, weaponKey: 'vampiric_dagger',
+  },
+  stormpiercer: {
+    key: 'stormpiercer', name: 'Stormpiercer', type: 'weapon', rarity: 'rare',
+    buyPrice: 400, description: 'A duelist\'s rapier of cold pale steel. The point seems to find the gap before the hand sends it.',
+    equipSlot: 'mainHand', statBonus: { attack: 3, damage: 2 }, weaponKey: 'stormpiercer',
+  },
+  blackthorn: {
+    key: 'blackthorn', name: 'Blackthorn', type: 'weapon', rarity: 'rare',
+    buyPrice: 340, description: 'Darkwood and bone, edged with thorns soaked in marsh-poison. The cuts are small. They do not stay small.',
+    equipSlot: 'mainHand', statBonus: { attack: 2, damage: 2 }, weaponKey: 'blackthorn',
+  },
+  glasscutter: {
+    key: 'glasscutter', name: 'Glasscutter', type: 'weapon', rarity: 'epic',
+    buyPrice: 600, description: 'So thin it barely casts a shadow. A miss is nothing. A hit is everything.',
+    equipSlot: 'mainHand', statBonus: { attack: 2, damage: 1 }, weaponKey: 'glasscutter',
+  },
+  whisper_edge: {
+    key: 'whisper_edge', name: 'Whisper-Edge', type: 'weapon', rarity: 'rare',
+    buyPrice: 380, description: 'Forged where the sun does not reach. The cut precedes the swing.',
+    equipSlot: 'mainHand', statBonus: { attack: 3, damage: 2 }, weaponKey: 'whisper_edge',
+  },
+  sun_forged_hammer: {
+    key: 'sun_forged_hammer', name: 'Sun-Forged Hammer', type: 'weapon', rarity: 'rare',
+    buyPrice: 410, description: 'Its head was struck on an anvil set in the dawn-fires. It hates the dark, and the dark remembers it.',
+    equipSlot: 'mainHand', statBonus: { attack: 2, damage: 4 }, weaponKey: 'sun_forged_hammer',
+  },
+  marauders_greataxe: {
+    key: 'marauders_greataxe', name: "Marauder's Greataxe", type: 'weapon', rarity: 'rare',
+    buyPrice: 390, description: 'Pitted iron, notched like a saw. Made for a man who missed often, but seldom missed twice.',
+    equipSlot: 'mainHand', statBonus: { attack: 2, damage: 3 }, weaponKey: 'marauders_greataxe',
   },
   // ── Kael's Masterwork (commission results) ──
   kael_iron_sword: {
