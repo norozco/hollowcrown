@@ -127,6 +127,9 @@ const MONSTERS: Record<string, Monster> = {
       { itemKey: 'health_potion', chance: 0.5 },
       { itemKey: 'shadow_essence', chance: 0.3 },
       { itemKey: 'troll_heart', chance: 0.2 },
+      // Rare: a blade forged where the sun does not reach. The hollow
+      // ones carry it like a relic, though no one remembers why.
+      { itemKey: 'whisper_edge', chance: 0.15 },
     ],
     special: { name: 'Shield Bash', chance: 0.3, damageMult: 1.4, applyStatus: { effect: 'stun', value: 1 }, text: '{name} drives its shield forward. The world rings.' },
   },
@@ -149,6 +152,10 @@ const MONSTERS: Record<string, Monster> = {
       { itemKey: 'health_potion', chance: 0.15 },
       { itemKey: 'spider_silk', chance: 0.5 },
       { itemKey: 'dungeon_key', chance: 0.15 },
+      // Rare: a thorned dagger the cairn-spiders sometimes carry, edged
+      // with their own marsh-poison. Thematic match for the on-hit
+      // poison perk.
+      { itemKey: 'blackthorn', chance: 0.10 },
     ],
     special: { name: 'Web Spit', chance: 0.3, damageMult: 0.5, applyStatus: { effect: 'stun', value: 1 }, text: '{name} spits a web. You struggle to move.' },
   },
@@ -173,6 +180,9 @@ const MONSTERS: Record<string, Monster> = {
       { itemKey: 'moonpetal', chance: 0.2 },
       { itemKey: 'wraith_dust', chance: 0.35 },
       { itemKey: 'boss_key', chance: 0.2 },
+      // Rare: thirsty black iron the wraiths sometimes leave behind.
+      // The dagger wants the warmth they no longer have.
+      { itemKey: 'vampiric_dagger', chance: 0.08 },
     ],
     special: { name: 'Soul Drain', chance: 0.25, damageMult: 1.2, selfHeal: 5, text: '{name} reaches through you. Something tears.' },
   },
@@ -216,6 +226,9 @@ const MONSTERS: Record<string, Monster> = {
       { itemKey: 'health_potion', chance: 0.3 },
       { itemKey: 'iron_sword', chance: 0.1 },
       { itemKey: 'leather_cap', chance: 0.15 },
+      // Rare: a notched greataxe the larger forest bandits favour.
+      // Made for a man who missed often, but seldom missed twice.
+      { itemKey: 'marauders_greataxe', chance: 0.12 },
     ],
     special: { name: 'Cheap Shot', chance: 0.2, damageMult: 1.3, applyStatus: { effect: 'poison', value: 2 }, text: '{name} feints, then strikes from below. A coated blade.' },
   },
@@ -417,6 +430,11 @@ const MONSTERS: Record<string, Monster> = {
       { itemKey: 'steel_sword', chance: 0.5 },
       { itemKey: 'chainmail', chance: 0.4 },
       { itemKey: 'kings_crown', chance: 0.3 },
+      // Thematic boss drop: the hammer was struck on a dawn-fire anvil
+      // and was the king's own undoing. The dark remembers it. Boss
+      // drops sit higher than overworld fauna — players who beat the
+      // shadow-weak king should be able to claim its anti-shadow mace.
+      { itemKey: 'sun_forged_hammer', chance: 0.5 },
     ],
     special: { name: 'Dark Command', chance: 0.2, damageMult: 2.0, text: '{name} raises one hand. Dark energy obeys.' },
   },

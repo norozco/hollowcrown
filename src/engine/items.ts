@@ -468,4 +468,8 @@ export const SHOP_INVENTORY: string[] = [
   'traveler_boots', 'iron_sword', 'steel_sword', 'oak_staff',
   'wooden_shield', 'copper_ring',
   'grilled_pike', 'smoked_eel', 'lake_tonic',
+  // Vira's curiosity stock — a single perked blade kept under the
+  // counter for the player who can afford it. The smith made one;
+  // she priced it accordingly.
+  'glasscutter',
 ];

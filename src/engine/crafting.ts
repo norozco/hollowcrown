@@ -162,6 +162,39 @@ export const RECIPES: CraftingRecipe[] = [
     resultQuantity: 1,
     goldCost: 10,
   },
+  // ── Perked weapons (smithy work; flavor delivered in description). Each
+  //    sources from materials already in the world — no new ingredient
+  //    keys were introduced. The gold costs sit below the buyPrice on the
+  //    item record (420g, 400g) so crafting remains the cheaper path for
+  //    a player willing to gather.
+  {
+    key: 'craft_flamebrand',
+    name: 'Forge Flamebrand',
+    description: 'Iron quenched in pyre-ash. The troll-heart keeps the steel warm long after the coals go grey.',
+    ingredients: [
+      { itemKey: 'iron_ore',     quantity: 4 },
+      { itemKey: 'troll_heart',  quantity: 1 },
+      { itemKey: 'wraith_dust',  quantity: 1 },
+    ],
+    resultItemKey: 'flamebrand',
+    resultQuantity: 1,
+    goldCost: 220,
+    requiredRank: 'D',
+  },
+  {
+    key: 'craft_stormpiercer',
+    name: 'Forge Stormpiercer',
+    description: 'Cold pale steel drawn through silver. The point finds the gap before the hand decides to send it.',
+    ingredients: [
+      { itemKey: 'silver_ore',      quantity: 2 },
+      { itemKey: 'iron_ore',        quantity: 2 },
+      { itemKey: 'shadow_essence',  quantity: 1 },
+    ],
+    resultItemKey: 'stormpiercer',
+    resultQuantity: 1,
+    goldCost: 240,
+    requiredRank: 'D',
+  },
 ];
 
 /** The pieces that make up a full leather set. Used by the Smithy
