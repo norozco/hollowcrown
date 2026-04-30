@@ -1,6 +1,6 @@
 # Hollowcrown — Project Status & Collaborator Guide
 
-**For AzuXo + fluffybunnies + future collaborators.** This is the single source of truth for current project state. Everything in SESSION_LOG.md through 2025-04 is historical; everything below is what's actually in `main` right now. Last sweep against `main`: 2026-04-28 (HEAD around the multi-skill + stamina drop).
+**For AzuXo + fluffybunnies + future collaborators.** This is the single source of truth for current project state. Everything in SESSION_LOG.md through 2025-04 is historical; everything below is what's actually in `main` right now. Last sweep against `main`: 2026-04-30 (HEAD = `e0022b8`, after the multi-enemy + secret-bosses + weapons + reactive-dialogue parallel-agent drop).
 
 ---
 
@@ -86,6 +86,7 @@ Key architecture notes:
 ### Core gameplay
 - **Character creation**: 4 races × 6 classes × difficulty × gender × playerChoice + random-hero skip button, 8 Persona-style SVG portraits (→ `src/assets/portraits/player/`)
 - **Combat**: turn-based, 5 actions (attack/skill/defend/flee/item). **3 skills per class × 6 classes = 18 skills** (`src/engine/combat.ts:CLASS_SKILLS`), each keyed by stable `skill.key` + a `cost: { mp?, stamina? }` object + a `visual` block (color/flashMs/shake/particle/target). Skill button opens a submenu picker (mirrors the Item submenu); keys 1/2/3 inside the submenu select skill, Esc closes. Elements + weaknesses/resistances (physical/fire/ice/shadow/poison/radiant/arcane), status effects (stun/burn/bleed/poison/marked/stunImmune), companion heal-per-turn, difficulty scaling on monster HP/damage + gold/XP rewards, phase-2 transitions on 4 bosses (double/triple attacks, status procs).
+- **Multi-enemy fights** (NEW): a primary monster + optional `extraEnemies: ExtraEnemy[]` array on `CombatState`. Spawned via `spawnEnemy({ ..., extras: ['wolf', 'wolf'] })` in scene `layout()` — one world sprite triggers a 1+N fight. Primary keeps full bookkeeping (boss phase transitions, special abilities, status procs); extras are simpler (basic attack-only AI, no specials). **AoE skills now have targets**: Cleave / Volley / Fireball / Vicious Mockery / Inspiration iterate every alive enemy via `forEachAliveEnemy`. Single-target attacks/skills auto-target the primary if alive, else the lowest-HP living extra (`pickAutoTarget`). Victory requires all enemies dead. Quest kill counts + bounty + achievement kills credit every fallen enemy in a fight (so wolf-pack kills count for wolf-cull). Two early-game packs seeded: a wolf-pair + wolf-trio in Greenhollow, a skeleton-pair in Mossbarrow Ruins. Tab/cycle target UI is deferred (v0 has no manual target switch); Phaser-side extra sprites are deferred (React panel layer shows them).
 - **Two resource pools**:
   - **MP** (caster classes — wizard/cleric/bard, governed by `mpStat: int|wis|cha`). Existing pool, `5 + mpStat × level`. Spent by spell skills.
   - **Stamina** (martial classes — fighter/rogue/ranger, governed by `staminaStat: str|dex`). New pool, `8 + staminaStat × level`. Spent by martial skills (3-6 cost). **Regenerates +2 per player turn** (`STAMINA_REGEN_PER_TURN` in combat.ts) so small skills are usable repeatedly without bottoming out. Ranger flipped from MP-driven to stamina-driven on this drop — old saves with ranger MP are clamped on load (`saveLoad.ts`).
@@ -123,6 +124,13 @@ Four shipped, two more on the roadmap. Each ships with tutorial banner on acquis
 - 🚧 Mirror Shard, Flame Amulet (planned for Ashen Tower + Frozen Hollow)
 
 ### Secrets & collectibles
+- **5 secret zone bosses** (NEW) — optional end-of-zone fights, harder than the main boss in each zone, hidden behind discovery conditions:
+  - **The Antlered** (Greenhollow) — examine the lightning-split oak at dusk → drops Crown of Bone (epic head, +ac 2/+atk 2/+dmg 3)
+  - **The Loom-Mother** (Mossbarrow Depths F1) — Echo Stone reveals a hollow wall in the east alcove → drops Loom-Mother's Eye (rare amulet, +mp 6/+atk 2)
+  - **The Dredged** (Drowned Sanctum F1) — examine the half-buried anchor at dusk/night → drops Salt-Eaten Hook (epic mainHand, +atk 4/+dmg 6)
+  - **The Last Witness** (Ashen Tower F1) — light all four corner braziers → drops Witness's Veil (epic head, +ac 2/+atk 1/+mp 12)
+  - **The Drowned Lord** (Shattered Coast) — examine the tide-pool at night → drops The Drowned Crown (legendary head, +ac 3/+atk 2/+dmg 3/+hp 8/+mp 8)
+  - Persistence: defeat marks `secret_<key>_defeated` in `worldStateStore.pickedObjects`. No respawn.
 - **Heart Pieces**: scattered across world, +5 max HP each (tracked in `playerStore.heartPiecesCollected`)
 - **Ancient Coins**: 12 hidden across world, collecting triggers rewards (tracked in `ancientCoins`)
 - **Hollow walls**: cyan-highlighted on Echo Stone pulse, attack to break → hidden rooms with loot/heart pieces/coins
@@ -148,6 +156,27 @@ Four shipped, two more on the roadmap. Each ships with tutorial banner on acquis
 - **Waypoint arrow** — directional indicator pointing to next objective
 - **NEW item indicator** — pulsing top-right button, tooltip on hover
 - **Gold milestone banners** — 6 tiers (100/500/1k/5k/10k/50k)
+
+### Weapons & build identity (NEW)
+- **8 new weapons with per-weapon perks** (`src/data/weapons.json` + `src/engine/items.ts` linked via `weaponKey`). The Weapon record gained an optional `perk?: WeaponPerk` discriminated union (`src/engine/weapons.ts`):
+  - `on_hit_status` — % chance to apply burn/poison/bleed (Flamebrand 30% burn(2), Blackthorn 25% poison(2))
+  - `on_hit_heal` — flat HP per hit (Vampiric Dagger +1)
+  - `crit_range_bonus` — widens natural-crit window (Stormpiercer +1, crits on 19-20)
+  - `crit_multiplier` — replaces 2× crit damage (Glasscutter 3×)
+  - `damage_type` — overrides element so weakness/resist applies (Whisper-Edge → shadow)
+  - `damage_bonus_vs_weakness` — multiplier vs a weakness element, compounds with applyElement's 1.5× (Sun-Forged Hammer +40% vs shadow-weak)
+  - `flat_damage` — +damage paired with -accuracy (Marauder's Greataxe +3 dmg / -2 attack)
+- Combat hook in `playerAct` attack branch (~50 lines). Perks read the TARGETED enemy in multi-enemy fights (a Blackthorn hit on an extra ticks poison onto that extra, not the primary).
+- Weapons drop / sell / craft per existing pipelines — not yet placed in shops or boss loot tables (the secret-bosses drop hand-authored items; future drops can wire any of these in).
+
+### Reactive dialogue (NEW)
+- **`dialogueMemoryStore` now persists to saves** — NPCs remember how often you've talked to them across reloads. Was a known issue.
+- **Reactive dialogue branches** for 6 NPCs (Brenna/Tomas/Vira/Orric/Kael/Veyrin), each gated on level / rank / quest state / greeting count. Authored in JSON via 5 new declarative `requires:` predicates (`min-level`, `min-rank`, `min-greeting-count`, `quest-active`, `world-flag`) — no Zustand reach-ins from JSON.
+- **Mira arc continuation** — three new dialogue files (`mira-confront.json`, `mira-backstory.json`, `mira-recruitment.json`) extend the theft cutscene into a real arc:
+  1. Confront Mira on the Duskmere dock (rank-aware tone): demand item back / ask why / walk away.
+  2. If you ask why, return later for her backstory: lost parents, Duskmere survival.
+  3. If you offer to help, find her at the Lakeshore Inn at night → recruit as a companion (entry already existed in `companion.ts`).
+- World flags written from dialogue effects use the existing `hc_*` localStorage convention (`hc_mira_recovered`, `hc_mira_asked_why`, `hc_mira_help_offered`, `hc_mira_recruited`).
 
 ### Audio
 - **Web Audio procedural engine** (`src/engine/audio.ts`) — 7 music tracks (town/forest/dungeon/combat/boss/menu/ending) with drones + arpeggios + crossfade via `musicToken`
@@ -177,7 +206,8 @@ Keep reading this section after pulling new changes. Each line = one commit.
 
 | Commit | What it fixed / shipped |
 |---|---|
-| _(this drop)_ | **Combat content drop**: 3 skills per class (18 total), Stamina resource for martial classes (fighter/rogue/ranger), skill submenu picker, per-skill colored flash + SFX, +2 stamina regen per turn. Replaces the strictly-better-than-attack 0-MP martial skill spam. Fixes the no-distinct-animation complaint by routing skill visuals through a structured `'skill'` CombatEvent instead of log-text matching. |
+| _(this drop, parallel-agent run)_ | **Four-feature simultaneous drop** orchestrated across 3 background agents (worktree-isolated) + main session. Pushed as 5 commits + 3 merge commits. Net: ~2700 lines added across combat, world content, items, and dialogue.<br>1. **Multi-enemy fights** (main, `0c367bb`) — `extraEnemies[]` on CombatState, AoE skill iteration, auto-target on attack, group-encounter spawn. Two early packs seeded.<br>2. **Reactive dialogue + persist memoryStore + Mira arc** (agent-dialogue, merged via `ffb2771` + `6d66337`) — 5 new declarative requirement predicates, 6 NPC reactive lines, 3-beat Mira arc with companion recruit. +17 tests.<br>3. **5 secret zone bosses** (agent-bosses, merged via `fb0caaa`) — 5 hidden-trigger bosses with procedural sprites + 5 unique drops, persisted via worldStateStore.pickedObjects.<br>4. **8 weapons + perk system** (agent-weapons, merged via `bfea348` + `e0022b8`) — discriminated-union `WeaponPerk` (on_hit_status, on_hit_heal, crit_range/mult, damage_type, damage_bonus_vs_weakness, flat_damage). Manual conflict resolution in combat.ts attack branch to compose perks with multi-enemy auto-targeting. +3 tests.<br>**Verified**: typecheck clean, **324/324 tests pass** (was 305), `npm run build` green. |
+| _(prior drop)_ | **Combat content drop**: 3 skills per class (18 total), Stamina resource for martial classes (fighter/rogue/ranger), skill submenu picker, per-skill colored flash + SFX, +2 stamina regen per turn. Replaces the strictly-better-than-attack 0-MP martial skill spam. Fixes the no-distinct-animation complaint by routing skill visuals through a structured `'skill'` CombatEvent instead of log-text matching. |
 | `61248fa` | Fix pseudo3d Y-sort cast — `obj as Transform & Depth` was rejected by `tsc` (TS2352, GameObject doesn't sufficiently overlap). Cast through `unknown` first. **Was blocking `npm run build` since `19ad98a`** — would have failed every deploy on a clean clone. |
 | `105c129` | **CRITICAL: TDZ crash on NPC interaction.** `DialogueScene.tsx` deps array referenced `tw` 27 lines before its `useTypewriter` declaration. ReferenceError fired the instant a dialogue mounted → React error boundary → "THE WORLD BROKE" on every NPC click. Introduced by `3d9ab8f` (dialogue-skip rewrite added `tw.skip()` calls in the keyboard effect but didn't move the hook up). Fix: relocate the typewriter hook above the keyboard effect, optional-chain on `node`. |
 | `39bac98` | **Music: replace dungeon/interior buzz with stacked detuned sine pads.** Two issues — (1) routing: `InteriorScene` had no music route so guild/inn/shop/smithy played the dungeon drone; (2) texture: drones were single low-pitched osc (tri/saw/sq at 65-110 Hz) which read as "buzz" even with the 1100Hz lowpass. Added a new `interior` track + an optional `pad` field on MusicTrack (array of frequency multipliers spawning sine voices for warm chorus). |
