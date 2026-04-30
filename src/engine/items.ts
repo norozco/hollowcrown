@@ -374,6 +374,35 @@ const ITEMS: Record<string, Item> = {
     buyPrice: 0, description: 'Cold metal. The finger it was on dissolved long ago. The ring endures.',
     equipSlot: 'ring1', statBonus: { hp: 15, mp: 10 },
   },
+  // ── Secret-boss unique drops ──────────────────────────────────
+  // Each is the guaranteed drop of a hidden zone boss. Stat bonuses
+  // adapted to the existing item schema (no STR/INT/WIS fields —
+  // those translate to attack/damage/mp/hp where appropriate).
+  crown_of_bone: {
+    key: 'crown_of_bone', name: 'Crown of Bone', type: 'armor', rarity: 'epic',
+    buyPrice: 0, description: 'A circlet grown, not forged. Antler tines fused at the temples. It hums when the wearer breathes out.',
+    equipSlot: 'head', statBonus: { ac: 2, attack: 2, damage: 3 },
+  },
+  loom_mothers_eye: {
+    key: 'loom_mothers_eye', name: "Loom-Mother's Eye", type: 'armor', rarity: 'rare',
+    buyPrice: 0, description: 'A black bead the size of a knucklebone. It still tracks movement no one else can see.',
+    equipSlot: 'amulet', statBonus: { mp: 6, attack: 2 },
+  },
+  salt_eaten_hook: {
+    key: 'salt_eaten_hook', name: 'Salt-Eaten Hook', type: 'weapon', rarity: 'epic',
+    buyPrice: 0, description: 'Iron and barnacle. The barbs are sharper for the rust. Wounds it opens forget how to close.',
+    equipSlot: 'mainHand', statBonus: { attack: 4, damage: 6 },
+  },
+  witnesss_veil: {
+    key: 'witnesss_veil', name: "Witness's Veil", type: 'armor', rarity: 'epic',
+    buyPrice: 0, description: 'Pale cloth that has watched two hundred years from the same room. It remembers what the wearer is supposed to be doing.',
+    equipSlot: 'head', statBonus: { ac: 2, mp: 12, attack: 1 },
+  },
+  the_drowned_crown: {
+    key: 'the_drowned_crown', name: 'The Drowned Crown', type: 'armor', rarity: 'legendary',
+    buyPrice: 0, description: 'Iron the colour of old blood. Coral has grown into the prongs. It crowns no kingdom now — but it crowns.',
+    equipSlot: 'head', statBonus: { ac: 3, attack: 2, damage: 3, hp: 8, mp: 8 },
+  },
 };
 
 export function getItem(key: string): Item {

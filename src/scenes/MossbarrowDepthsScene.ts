@@ -1,6 +1,8 @@
 import { useInventoryStore } from '../state/inventoryStore';
 import { useLoreStore } from '../state/loreStore';
 import { useDungeonItemStore } from '../state/dungeonItemStore';
+import { useWorldStateStore } from '../state/worldStateStore';
+import { useCombatStore } from '../state/combatStore';
 import { BaseWorldScene, TILE, WORLD_W } from './BaseWorldScene';
 import { generateTileset, TILE as T, TILE_SIZE } from './tiles/generateTiles';
 
@@ -312,6 +314,53 @@ export class MossbarrowDepthsScene extends BaseWorldScene {
     // Behind/beside the boulder — a heart piece (the boulder gates it
     // physically; once shattered the player can walk up and grab it).
     this.spawnHeartPiece(12 * TILE + TILE / 2, 17 * TILE + TILE / 2, 'MossbarrowDepths-boulder-cache');
+
+    // ── SECRET BOSS: The Loom-Mother ──────────────────────────
+    // Hollow wall on the east hall edge (col 13, row 11). Echo Stone
+    // pulse reveals it — the player breaks through into a silk-choked
+    // alcove and the Loom-Mother is waiting.
+    this.spawnLoomMotherTrigger();
+  }
+
+  /**
+   * The Loom-Mother — secret boss.
+   * Trigger: Echo-Stone pulse reveals a silk-coated hollow wall in the
+   * back of the east alcove (16,7 — walkable FC); breaking it the
+   * Loom-Mother climbs out of the wall she spent a long time webbing.
+   */
+  private spawnLoomMotherTrigger(): void {
+    const sceneKey = this.scene.key;
+    const defeatFlag = 'secret_loom_mother_defeated';
+    // Spawn inside the walkable east alcove (cols 13-17, rows 5-8).
+    const bossX = 15 * TILE + TILE / 2;
+    const bossY = 7 * TILE + TILE / 2;
+    const bossEnemyId = `${sceneKey}-loom_mother-${bossX}-${bossY}`;
+
+    if (useCombatStore.getState().killedEnemies.has(bossEnemyId)) {
+      useWorldStateStore.getState().markPicked(sceneKey, defeatFlag);
+    }
+    if (useWorldStateStore.getState().isPicked(sceneKey, defeatFlag)) return;
+
+    // Hollow wall at the back of the east alcove (col 17 row 7), one tile
+    // wide and tall. Echo Stone pulse in the alcove glows it cyan.
+    this.spawnHollowWall({
+      x: 17 * TILE, y: 7 * TILE, w: TILE, h: TILE,
+      onBreak: () => {
+        // Silk curtain spilling out where the wall was.
+        for (let i = 0; i < 5; i++) {
+          this.add.rectangle(
+            17 * TILE + TILE / 2 + (i - 2) * 4,
+            7 * TILE + i * 2,
+            2, 22, 0xe8e0d0, 0.25,
+          ).setDepth(6);
+        }
+        window.dispatchEvent(new CustomEvent('gameMessage', {
+          detail: 'A nest, behind the wall. The silk is wet. Something old has been waiting in it.',
+        }));
+        if (this.enemies.find((e) => e.id === bossEnemyId)) return;
+        this.spawnEnemy({ monsterKey: 'loom_mother', x: bossX, y: bossY });
+      },
+    });
   }
 
   protected spawnAt(name: string): { x: number; y: number } {

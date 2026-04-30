@@ -1,3 +1,5 @@
+import { useWorldStateStore } from '../state/worldStateStore';
+import { useCombatStore } from '../state/combatStore';
 import { BaseWorldScene, TILE, WORLD_W } from './BaseWorldScene';
 import { generateTileset, TILE as T, TILE_SIZE } from './tiles/generateTiles';
 
@@ -124,6 +126,65 @@ export class AshenTowerF1Scene extends BaseWorldScene {
     this.add.text(stairX, stairY + 10, 'The Ember Forge', {
       fontFamily: 'Courier New', fontSize: '10px', color: '#a06830',
     }).setOrigin(0.5).setDepth(4);
+
+    // ── SECRET BOSS: The Last Witness ────────────────────────
+    // Light all four tower braziers (corners of Floor 1). The vigil ends
+    // and the apprentice steps down from the wall.
+    this.spawnLastWitnessTrigger();
+  }
+
+  /**
+   * The Last Witness — secret boss.
+   * Trigger: spawn four braziers in the four corners; when all are lit
+   * (any visit, persistence by `worldStateStore.litTorches`), the boss
+   * descends. Defeat-flag stops re-spawn after victory.
+   */
+  private spawnLastWitnessTrigger(): void {
+    const sceneKey = this.scene.key;
+    const defeatFlag = 'secret_last_witness_defeated';
+    const bossX = 9 * TILE + TILE / 2;
+    const bossY = 11 * TILE + TILE / 2;
+    const bossEnemyId = `${sceneKey}-last_witness-${bossX}-${bossY}`;
+
+    if (useCombatStore.getState().killedEnemies.has(bossEnemyId)) {
+      useWorldStateStore.getState().markPicked(sceneKey, defeatFlag);
+    }
+
+    // Four braziers — corners of the floor. NW, NE, SW, SE relative to
+    // walkable tiles. Existing scene uses cols 7-12 for the corridor;
+    // place braziers at the alcove corners and the corridor ends.
+    const braziers: Array<{ id: string; x: number; y: number }> = [
+      { id: 'ashen_tower_brazier_nw', x: 4 * TILE + TILE / 2, y: 13 * TILE + TILE / 2 },
+      { id: 'ashen_tower_brazier_ne', x: 17 * TILE + TILE / 2, y: 5 * TILE + TILE / 2 },
+      { id: 'ashen_tower_brazier_sw', x: 4 * TILE + TILE / 2, y: 16 * TILE + TILE / 2 },
+      { id: 'ashen_tower_brazier_se', x: 17 * TILE + TILE / 2, y: 8 * TILE + TILE / 2 },
+    ];
+    for (const b of braziers) {
+      // Brazier dish — wide, dark iron, rust-flecked.
+      this.add.rectangle(b.x, b.y + 6, 18, 4, 0x3a2a18).setDepth(5);
+      this.add.rectangle(b.x, b.y + 4, 22, 3, 0x6a4a28).setDepth(5);
+      // Tripod legs
+      this.add.rectangle(b.x - 8, b.y + 10, 2, 6, 0x2a1a10).setDepth(5);
+      this.add.rectangle(b.x + 8, b.y + 10, 2, 6, 0x2a1a10).setDepth(5);
+      // The torch handler treats the rectangle at (x, y+4) as the base —
+      // use the existing spawnTorch wrapper so lighting flows through the
+      // shared lantern / Sfx / persistence path.
+      this.spawnTorch({ id: b.id, x: b.x, y: b.y });
+    }
+
+    if (useWorldStateStore.getState().isPicked(sceneKey, defeatFlag)) {
+      // Boss already dead — keep the braziers but skip the puzzle hook.
+      return;
+    }
+
+    this.registerTorchPuzzle(braziers.map((b) => b.id), () => {
+      // Don't double-spawn if already on the floor.
+      if (this.enemies.find((e) => e.id === bossEnemyId)) return;
+      window.dispatchEvent(new CustomEvent('gameMessage', {
+        detail: 'Four flames stand. A figure steps out of the shadow she has worn for two centuries.',
+      }));
+      this.spawnEnemy({ monsterKey: 'last_witness', x: bossX, y: bossY });
+    });
   }
 
   protected spawnAt(name: string): { x: number; y: number } {

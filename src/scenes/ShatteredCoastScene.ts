@@ -1,6 +1,9 @@
 import { useInventoryStore } from '../state/inventoryStore';
 import { useLoreStore } from '../state/loreStore';
 import { useQuestStore } from '../state/questStore';
+import { useTimeStore } from '../state/timeStore';
+import { useWorldStateStore } from '../state/worldStateStore';
+import { useCombatStore } from '../state/combatStore';
 import { BaseWorldScene, TILE, WORLD_W, WORLD_H } from './BaseWorldScene';
 import { generateTileset, TILE as T, TILE_SIZE } from './tiles/generateTiles';
 
@@ -288,6 +291,68 @@ export class ShatteredCoastScene extends BaseWorldScene {
         fontFamily: 'Courier New', fontSize: '12px', color: '#506878',
       })
       .setOrigin(0.5).setAlpha(0.4).setDepth(15);
+
+    // ── SECRET BOSS: The Drowned Lord ─────────────────────────
+    // A specific tide-pool at the cliff edge. At Night, the water in it
+    // is too still — and then it isn't.
+    this.spawnDrownedLordTrigger();
+  }
+
+  /**
+   * The Drowned Lord — secret boss.
+   * Trigger: examine the tide-pool at (6, 11) while phase is night.
+   */
+  private spawnDrownedLordTrigger(): void {
+    const sceneKey = this.scene.key;
+    const defeatFlag = 'secret_drowned_lord_defeated';
+    const bossX = 6 * TILE + TILE / 2;
+    const bossY = 11 * TILE + TILE / 2;
+    const bossEnemyId = `${sceneKey}-drowned_lord-${bossX}-${bossY}`;
+
+    if (useCombatStore.getState().killedEnemies.has(bossEnemyId)) {
+      useWorldStateStore.getState().markPicked(sceneKey, defeatFlag);
+    }
+    if (useWorldStateStore.getState().isPicked(sceneKey, defeatFlag)) return;
+
+    const poolX = 6 * TILE + TILE / 2;
+    const poolY = 11 * TILE + TILE / 2;
+    // Tide-pool — small dark oval, rim of paler stone, rusted iron ring at edge.
+    this.add.ellipse(poolX, poolY, 30, 18, 0x506878).setDepth(4);
+    this.add.ellipse(poolX, poolY, 22, 12, 0x182838).setDepth(5);
+    this.add.ellipse(poolX, poolY, 14, 8, 0x081420).setDepth(5);
+    // Rusted iron ring (a mooring relic) at the rim
+    this.add.circle(poolX + 10, poolY - 2, 3, 0x5a3018).setDepth(6);
+    this.add.circle(poolX + 10, poolY - 2, 2, 0x3a2010).setDepth(6);
+    // Faint nighttime cue: a single ripple, only visible in darker phases
+    const phase = useTimeStore.getState().phase;
+    if (phase === 'night') {
+      const ripple = this.add.circle(poolX, poolY, 4, 0x80ffff, 0.18).setDepth(5);
+      this.tweens.add({
+        targets: ripple, scale: 2.4, alpha: 0,
+        duration: 2400, repeat: -1, ease: 'Quad.easeOut',
+      });
+    }
+
+    const probe = this.add.rectangle(poolX, poolY, 40, 28, 0x000000, 0);
+    this.spawnInteractable({
+      sprite: probe as any,
+      label: 'Examine the tide-pool',
+      radius: 28,
+      action: () => {
+        const ph = useTimeStore.getState().phase;
+        if (ph !== 'night') {
+          window.dispatchEvent(new CustomEvent('gameMessage', {
+            detail: 'A tide-pool. Salt, kelp, an old iron ring. The water moves with the tide. That is all.',
+          }));
+          return;
+        }
+        if (this.enemies.find((e) => e.id === bossEnemyId)) return;
+        window.dispatchEvent(new CustomEvent('gameMessage', {
+          detail: 'The pool does not move with the tide. The pool moves against it. Something below has decided to come up.',
+        }));
+        this.spawnEnemy({ monsterKey: 'drowned_lord', x: bossX, y: bossY });
+      },
+    });
   }
 
   protected spawnAt(name: string): { x: number; y: number } {

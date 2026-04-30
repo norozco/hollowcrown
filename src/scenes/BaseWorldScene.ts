@@ -2041,7 +2041,7 @@ export abstract class BaseWorldScene extends Phaser.Scene {
     // Pseudo-3D: drop shadow + Y-sort
     if (this.pseudo3d) {
       // Boss-sized enemies get a bigger shadow
-      const isBoss = /king|warden|forgotten|crownless/i.test(cfg.monsterKey);
+      const isBoss = /king|warden|forgotten|crownless|antlered|loom_mother|dredged|witness|drowned_lord/i.test(cfg.monsterKey);
       const width = isBoss ? 36 : 18;
       const height = isBoss ? 9 : 5;
       this.pseudo3d.addShadow(enemy, { width, height, offsetY: 12, alpha: 0.5 });
