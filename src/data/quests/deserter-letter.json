@@ -1,0 +1,14 @@
+{
+  "id": "deserter-letter",
+  "category": "side",
+  "title": "The Deserter's Letter",
+  "summary": "Brenna has lost contact with a guild member named Hesta on a Greenhollow patrol. Find her, or what's left of her, and bring word back.",
+  "objectives": [
+    { "id": "find-hesta", "description": "Find Hesta in the Greenhollow woods." },
+    { "id": "report-to-brenna", "description": "Return to Brenna with what you found." }
+  ],
+  "reward": {
+    "gold": 220,
+    "xp": 320
+  }
+}

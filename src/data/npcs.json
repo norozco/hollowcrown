@@ -138,5 +138,21 @@
       "sad": "portraits/mira/sad.png",
       "angry": "portraits/mira/angry.png"
     }
+  },
+  "hesta": {
+    "key": "hesta",
+    "name": "Hesta",
+    "title": "Deserter",
+    "portraitColor": "#3a3028",
+    "accentColor": "#a08868",
+    "description": "Thin in the cheeks, threadbare at the cuffs. The guild crest on her sleeve has been picked at with a knife and never sewn back."
+  },
+  "halden": {
+    "key": "halden",
+    "name": "Halden",
+    "title": "Fisherman of Duskmere",
+    "portraitColor": "#3a4858",
+    "accentColor": "#88a0b8",
+    "description": "Hands raw from line-work. Eyes red. He has the look of a man who has run out of weather to blame."
   }
 }

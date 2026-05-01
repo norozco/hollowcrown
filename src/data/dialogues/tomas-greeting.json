@@ -27,6 +27,22 @@
           "next": "herb-offer",
           "requires": [{ "type": "quest-not-started", "questId": "herb-gathering" }]
         },
+        {
+          "text": "About the room you keep — there is a guest who is not coming back.",
+          "next": "empty-room-offer",
+          "requires": [
+            { "type": "quest-not-started", "questId": "empty-room" },
+            { "type": "quest-complete", "questId": "herb-gathering" }
+          ]
+        },
+        {
+          "text": "I found his pack in Mossbarrow. The journal is here.",
+          "next": "empty-room-tomas-decision",
+          "requires": [
+            { "type": "quest-active", "questId": "empty-room" },
+            { "type": "world-flag", "key": "hc_journal_found" }
+          ]
+        },
         { "text": "Fight alongside me. (60g)", "next": "hire-tomas" },
         {
           "text": "[The room you keep aired. For me, now?]",
@@ -189,6 +205,97 @@
       "speaker": "tomas",
       "expression": "neutral",
       "text": "The east room. Window that does not stick. No charge tonight. Pay me back by walking out the door tomorrow morning, and walking back in by nightfall. That is all I ask of regulars.",
+      "next": null
+    },
+
+    "empty-room-offer": {
+      "id": "empty-room-offer",
+      "speaker": "tomas",
+      "expression": "sad",
+      "text": "...You read me well. The east room. Pre-paid through the season. The man slept three nights in it before he left for Mossbarrow with a notebook and a fresh shave. That was thirty-eight days ago. The bed is still made.",
+      "next": "empty-room-offer-2"
+    },
+    "empty-room-offer-2": {
+      "id": "empty-room-offer-2",
+      "speaker": "tomas",
+      "expression": "thoughtful",
+      "text": "I cannot let the room rot. I cannot let the next traveler sleep on a stranger's pillow. Find his pack in those ruins, if it is still where he dropped it. Bring me what is in it. After that, I can fold the bedding without lying to myself.",
+      "next": "empty-room-accept",
+      "effects": [
+        { "type": "accept-quest", "questId": "empty-room" }
+      ]
+    },
+    "empty-room-accept": {
+      "id": "empty-room-accept",
+      "speaker": "tomas",
+      "expression": "neutral",
+      "text": "He kept his belongings tidy. The pack will not be hard to spot for someone who is looking. The hard part will be reading what he wrote in it.",
+      "next": null
+    },
+
+    "empty-room-tomas-decision": {
+      "id": "empty-room-tomas-decision",
+      "speaker": "narrator",
+      "text": "You set the pack on the counter. The leather is salt-streaked, the strap chewed at one end by something with patience. Tomas does not open it. He looks at the journal you have set beside it — the one you read by lantern in the ruins, the one whose last page is a poem.",
+      "next": "empty-room-tomas-decision-2"
+    },
+    "empty-room-tomas-decision-2": {
+      "id": "empty-room-tomas-decision-2",
+      "speaker": "tomas",
+      "expression": "sad",
+      "text": "A poem. To Vira. Of course it is to Vira. He paid in moonlight silver, and now I know why. The merchants travel together, and the ones who do not come home travel furthest. I should have guessed.",
+      "next": "empty-room-tomas-decision-3"
+    },
+    "empty-room-tomas-decision-3": {
+      "id": "empty-room-tomas-decision-3",
+      "speaker": "tomas",
+      "expression": "thoughtful",
+      "text": "What you do with that book is not for me to say. I have his pack and that is what I asked you to bring. The page... is between you and her.",
+      "choices": [
+        { "text": "I'll give the journal to Vira.", "next": "empty-room-tomas-defer" },
+        { "text": "Take it. The dead are yours to bury here.", "next": "empty-room-tomas-keep" }
+      ]
+    },
+    "empty-room-tomas-defer": {
+      "id": "empty-room-tomas-defer",
+      "speaker": "tomas",
+      "expression": "neutral",
+      "text": "Thank you. The pack stays with me. The journal goes to her. That is the right shape of it. Three hundred and twenty gold for the work, and a meal whenever the road brings you back. It is the most I can give without taking from someone else.",
+      "effects": [
+        { "type": "complete-objective", "questId": "empty-room", "objectiveId": "deliver-journal" },
+        { "type": "turn-in-quest", "questId": "empty-room" },
+        { "type": "give-gold", "amount": 280 },
+        { "type": "give-xp", "amount": 420 },
+        { "type": "set-flag", "key": "hc_journal_to_vira" }
+      ],
+      "next": "empty-room-tomas-defer-close"
+    },
+    "empty-room-tomas-defer-close": {
+      "id": "empty-room-tomas-defer-close",
+      "speaker": "tomas",
+      "expression": "sad",
+      "text": "Walk softly to her shop. She will know what you are bringing before you put it on the counter. She always does.",
+      "next": null
+    },
+    "empty-room-tomas-keep": {
+      "id": "empty-room-tomas-keep",
+      "speaker": "tomas",
+      "expression": "sad",
+      "text": "Then I will read the page tonight. And tomorrow I will fold the bedding, and the room will be airing for the next stranger by the week's end. That is how this trade closes its accounts.",
+      "next": "empty-room-tomas-keep-2",
+      "effects": [
+        { "type": "complete-objective", "questId": "empty-room", "objectiveId": "deliver-journal" },
+        { "type": "turn-in-quest", "questId": "empty-room" },
+        { "type": "give-gold", "amount": 320 },
+        { "type": "give-xp", "amount": 380 },
+        { "type": "set-flag", "key": "hc_journal_to_tomas" }
+      ]
+    },
+    "empty-room-tomas-keep-2": {
+      "id": "empty-room-tomas-keep-2",
+      "speaker": "tomas",
+      "expression": "neutral",
+      "text": "Three hundred and twenty gold. Three hundred and eighty experience. The room pays its own debts, in time. Thank you. Truly.",
       "next": null
     }
   }

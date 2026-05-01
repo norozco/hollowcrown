@@ -2,6 +2,7 @@ import { useDialogueStore } from '../state/dialogueStore';
 import { getDialogue } from '../engine/dialogues';
 import { useInventoryStore } from '../state/inventoryStore';
 import { usePlayerStore } from '../state/playerStore';
+import { useQuestStore } from '../state/questStore';
 import { useTimeStore } from '../state/timeStore';
 import { useCombatStore } from '../state/combatStore';
 import { BaseWorldScene, TILE, WORLD_W, WORLD_H } from './BaseWorldScene';
@@ -79,6 +80,22 @@ export class InteriorScene extends BaseWorldScene {
         key: 'mira', dialogueId: 'mira-recruitment',
         x: oX + 3 * TILE + TILE / 2, y: oY + 6 * TILE + TILE / 2,
       });
+    }
+
+    // Hesta — the deserter from Brenna's "Deserter's Letter" quest. She
+    // sits in the corner of Orric's cabin near the spare bed while the
+    // quest is active and the player has not yet closed it. Once the
+    // player has reported back to Brenna (either lying or telling the
+    // truth), she is no longer in the cabin — she has moved on.
+    if (layoutId === 'orric') {
+      const deserter = useQuestStore.getState().active['deserter-letter'];
+      if (deserter && !deserter.turnedIn) {
+        // Corner near the spare bed (tiles 10,3 / 11,3 — the bed cluster).
+        this.spawnNpc({
+          key: 'hesta', dialogueId: 'hesta-hiding',
+          x: oX + 10 * TILE + TILE / 2, y: oY + 4 * TILE + TILE / 2,
+        });
+      }
     }
 
     for (const ix of layout.interactables) {

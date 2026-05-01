@@ -22,6 +22,28 @@
           "requires": [
             { "type": "min-greeting-count", "dialogueId": "veyrin-sanctum", "count": 2 }
           ]
+        },
+        {
+          "text": "You look worse. How long have you been like this?",
+          "next": "last-seal-offer",
+          "requires": [
+            { "type": "quest-not-started", "questId": "last-seal" },
+            { "type": "quest-complete", "questId": "what-remains" }
+          ]
+        },
+        {
+          "text": "I have the materials. Silver, shadow essence, wraith dust.",
+          "next": "last-seal-reinforce",
+          "requires": [
+            { "type": "quest-active", "questId": "last-seal" }
+          ]
+        },
+        {
+          "text": "I have come to end your watch.",
+          "next": "last-seal-mercy",
+          "requires": [
+            { "type": "quest-active", "questId": "last-seal" }
+          ]
         }
       ]
     },
@@ -115,6 +137,131 @@
       "speaker": "veyrin",
       "expression": "neutral",
       "text": "Do not stop coming. The visits steady me. A keeper without a witness eventually becomes the thing he keeps. I have watched it happen, in the inscriptions. I would prefer not to be a footnote.",
+      "next": null
+    },
+
+    "last-seal-offer": {
+      "id": "last-seal-offer",
+      "speaker": "veyrin",
+      "expression": "sad",
+      "text": "Long enough. The seal has been drinking from me — slowly at first, then more. I cough out paper and wake with my hand still on the stone. I am not the man you found here. I am what is left after the man was poured into the lock.",
+      "next": "last-seal-offer-2"
+    },
+    "last-seal-offer-2": {
+      "id": "last-seal-offer-2",
+      "speaker": "veyrin",
+      "expression": "thoughtful",
+      "text": "I am not asking for rescue. There is no rescue. There is only what shape the ending takes, and how soon. I will lay it plain to you, because plain is the only courtesy I have left in me.",
+      "next": "last-seal-choice"
+    },
+    "last-seal-choice": {
+      "id": "last-seal-choice",
+      "speaker": "veyrin",
+      "expression": "neutral",
+      "text": "Path one. Reinforce the lock. The inscriptions name three things — silver from the deep ore, shadow essence from the wraiths beneath, wraith dust from the same. Bring them to me. I work them into the stone. I survive — weaker, but standing — and the seal holds for years.",
+      "next": "last-seal-choice-2"
+    },
+    "last-seal-choice-2": {
+      "id": "last-seal-choice-2",
+      "speaker": "veyrin",
+      "expression": "sad",
+      "text": "Path two. End me. End the keeper. The seal cracks the moment the breath leaves my body, and what is below begins its slow turning toward the surface. The world will not love you for it. I will. I will love you for the kindness of the choosing.",
+      "next": "last-seal-choice-3"
+    },
+    "last-seal-choice-3": {
+      "id": "last-seal-choice-3",
+      "speaker": "veyrin",
+      "expression": "thoughtful",
+      "text": "I will not push you toward either. I have weighed both for thirty-one nights. The scales do not settle. Decide. Do not decide tonight if tonight is not the night for it. I will be here. I am always here.",
+      "next": "last-seal-accept",
+      "effects": [
+        { "type": "accept-quest", "questId": "last-seal" }
+      ]
+    },
+    "last-seal-accept": {
+      "id": "last-seal-accept",
+      "speaker": "narrator",
+      "text": "He turns back to the altar. His hand finds the stone the way another man's hand finds a wife's shoulder in sleep — without looking, without thinking. The chamber hums. You take the stairs slowly.",
+      "next": null
+    },
+
+    "last-seal-reinforce": {
+      "id": "last-seal-reinforce",
+      "speaker": "narrator",
+      "text": "Veyrin takes the silver first, and the wraith dust second, and the shadow essence last. He arranges them along the altar's seam — the small bright thing, the dim grey thing, the thing that drinks the light from your lantern.",
+      "next": "last-seal-reinforce-2",
+      "effects": [
+        { "type": "remove-items", "itemKey": "silver_ore", "quantity": 1 },
+        { "type": "remove-items", "itemKey": "shadow_essence", "quantity": 1 },
+        { "type": "remove-items", "itemKey": "wraith_dust", "quantity": 1 }
+      ]
+    },
+    "last-seal-reinforce-2": {
+      "id": "last-seal-reinforce-2",
+      "speaker": "narrator",
+      "text": "He works in silence for a long time. The chamber's hum changes pitch — lower, slower, steadier. Veyrin sags against the altar when it is done, paler by half, but the shaking in his hands has stopped.",
+      "next": "last-seal-reinforce-3"
+    },
+    "last-seal-reinforce-3": {
+      "id": "last-seal-reinforce-3",
+      "speaker": "veyrin",
+      "expression": "thoughtful",
+      "text": "It will hold. Years, perhaps. I will hold with it. I am the seal now in a way I was not yesterday, and there is no taking that back. Thank you. The rescue you did not bring was the better word for it.",
+      "next": "last-seal-reinforce-4"
+    },
+    "last-seal-reinforce-4": {
+      "id": "last-seal-reinforce-4",
+      "speaker": "veyrin",
+      "expression": "neutral",
+      "text": "Six hundred gold from a coin-purse Brenna left with me three years ago. One thousand one hundred experience. The numbers are not balanced. Nothing here is balanced. Take them.",
+      "effects": [
+        { "type": "complete-objective", "questId": "last-seal", "objectiveId": "decide-veyrin" },
+        { "type": "turn-in-quest", "questId": "last-seal" },
+        { "type": "give-gold", "amount": 600 },
+        { "type": "give-xp", "amount": 1100 },
+        { "type": "set-flag", "key": "hc_seal_reinforced" }
+      ],
+      "next": "last-seal-reinforce-close"
+    },
+    "last-seal-reinforce-close": {
+      "id": "last-seal-reinforce-close",
+      "speaker": "veyrin",
+      "expression": "thoughtful",
+      "text": "Come back. Not for the seal. For the company. The thing beneath the stone is patient. So is loneliness. Both kill the keeper, given time. Only one of them lets a friend at the door.",
+      "next": null
+    },
+
+    "last-seal-mercy": {
+      "id": "last-seal-mercy",
+      "speaker": "veyrin",
+      "expression": "sad",
+      "text": "...Yes. You see it the way I see it. There are no good answers. Only the answer that lets a man stop being the lock he was poured into. Sit with me a moment. Then do it cleanly. I have been clean about most things in my life. Let the last be no different.",
+      "next": "last-seal-mercy-2"
+    },
+    "last-seal-mercy-2": {
+      "id": "last-seal-mercy-2",
+      "speaker": "narrator",
+      "text": "He turns to face the altar one last time. He places both hands flat on the stone. He whispers something in a language that is not quite speech — the same sound the chamber has been making, only softer. Then he is still. You do what was asked. The chamber's hum falters and is gone.",
+      "next": "last-seal-mercy-3"
+    },
+    "last-seal-mercy-3": {
+      "id": "last-seal-mercy-3",
+      "speaker": "narrator",
+      "text": "The altar cracks once across the centre. Not loud. Not dramatic. A long thin line, like a hair laid on stone. From beneath it, far down, something turns its attention toward the warmth of the chamber, and pauses. Patient. Waiting.",
+      "next": "last-seal-mercy-4",
+      "effects": [
+        { "type": "complete-objective", "questId": "last-seal", "objectiveId": "decide-veyrin" },
+        { "type": "turn-in-quest", "questId": "last-seal" },
+        { "type": "give-gold", "amount": 800 },
+        { "type": "give-xp", "amount": 1400 },
+        { "type": "set-flag", "key": "hc_veyrin_dead" },
+        { "type": "set-flag", "key": "hc_seal_failed" }
+      ]
+    },
+    "last-seal-mercy-4": {
+      "id": "last-seal-mercy-4",
+      "speaker": "narrator",
+      "text": "On the altar, in coin-shape, eight hundred gold. The keeper had been preparing the payment for some time. The way up is still open. The way up is, for the moment, still open.",
       "next": null
     }
   }

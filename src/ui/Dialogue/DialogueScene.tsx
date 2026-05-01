@@ -57,6 +57,22 @@ export function DialogueScene() {
       hc_mira_asked_why: readFlag('hc_mira_asked_why'),
       hc_mira_help_offered: readFlag('hc_mira_help_offered'),
       hc_mira_recruited: readFlag('hc_mira_recruited'),
+      // NPC-quest flags (deserter / cloak / journal / debtor / forge / seal)
+      hc_hesta_met: readFlag('hc_hesta_met'),
+      hc_hesta_lied_for: readFlag('hc_hesta_lied_for'),
+      hc_hesta_reported: readFlag('hc_hesta_reported'),
+      hc_orric_daughter_known: readFlag('hc_orric_daughter_known'),
+      hc_journal_found: readFlag('hc_journal_found'),
+      hc_journal_to_tomas: readFlag('hc_journal_to_tomas'),
+      hc_journal_to_vira: readFlag('hc_journal_to_vira'),
+      hc_debt_collected: readFlag('hc_debt_collected'),
+      hc_debt_forgiven: readFlag('hc_debt_forgiven'),
+      hc_vira_marked_kind: readFlag('hc_vira_marked_kind'),
+      hc_roa_grave_visited: readFlag('hc_roa_grave_visited'),
+      hc_roa_remembered: readFlag('hc_roa_remembered'),
+      hc_seal_reinforced: readFlag('hc_seal_reinforced'),
+      hc_seal_failed: readFlag('hc_seal_failed'),
+      hc_veyrin_dead: readFlag('hc_veyrin_dead'),
     };
     return { level, rank, greetingCounts, worldFlags };
   }, [character?.level, quests, greetingCounts]);

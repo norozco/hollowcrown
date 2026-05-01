@@ -1,0 +1,100 @@
+{
+  "id": "halden-debtor",
+  "start": "enter",
+  "nodes": {
+    "enter": {
+      "id": "enter",
+      "speaker": "narrator",
+      "text": "The cabin smells of fish-oil smoke and a sickroom. A man in a stained linen shirt stands when you cross the doorway, hands raw from line-work, eyes red. Behind him a small cot, a small shape under a blanket, a small breath that comes too quickly.",
+      "next": "halden-look"
+    },
+    "halden-look": {
+      "id": "halden-look",
+      "speaker": "halden",
+      "expression": "sad",
+      "text": "...You walked from Ashenvale. I can tell by the boots. She sent you. Of course she sent you. I have been waiting all month to hear the latch.",
+      "next": "halden-question"
+    },
+    "halden-question": {
+      "id": "halden-question",
+      "speaker": "halden",
+      "expression": "thoughtful",
+      "text": "I owe forty gold. I have eleven. The rest is in the lake somewhere with a net I lost in the storm three weeks back. If you have come for it, I have nothing to give but the offer of the work I do not yet have.",
+      "choices": [
+        { "text": "[Look at the child.]", "next": "halden-child" },
+        { "text": "Forty gold. Now. Or Vira closes the matter the hard way.", "next": "halden-collect" },
+        { "text": "Keep your eleven. The debt is paid. I'll cover it.", "next": "halden-pay" }
+      ]
+    },
+    "halden-child": {
+      "id": "halden-child",
+      "speaker": "narrator",
+      "text": "The child cannot be more than five. Skin too tight on the bones at the temples. A thin braid of hair, gone limp, lies on the pillow beside her. She does not stir when you cross the room. She does not stir when Halden touches her shoulder, very gently, the way one touches a candle one is afraid to wake.",
+      "next": "halden-question"
+    },
+    "halden-collect": {
+      "id": "halden-collect",
+      "speaker": "narrator",
+      "text": "Halden does not argue. He turns to a chest in the corner — the only piece of furniture not weighted with sickroom things. He counts out copper, then thin silver, then the eleven he was honest about. Then he looks at the cot for a long moment, and at the small jar of moonpetal salve on the shelf above it, and at the apothecary's coin-mark on the lid.",
+      "next": "halden-collect-2"
+    },
+    "halden-collect-2": {
+      "id": "halden-collect-2",
+      "speaker": "halden",
+      "expression": "sad",
+      "text": "Take the eleven. The other twenty-nine — I had set it aside for the next month of the salve. I will manage. We have managed. Tell Vira the matter is closed. Tell her I held no grudge. The grudge is between me and the lake.",
+      "next": "halden-collect-3"
+    },
+    "halden-collect-3": {
+      "id": "halden-collect-3",
+      "speaker": "narrator",
+      "text": "He hands you the forty gold in three small purses, in three different weights, the way a man hands over the last clean thing he owns. He does not look at the cot when he does it. He has trained himself out of looking.",
+      "effects": [
+        { "type": "complete-objective", "questId": "last-ledger", "objectiveId": "find-debtor" },
+        { "type": "set-flag", "key": "hc_debt_collected" }
+      ],
+      "next": "halden-collect-close"
+    },
+    "halden-collect-close": {
+      "id": "halden-collect-close",
+      "speaker": "halden",
+      "expression": "neutral",
+      "text": "Cross the lake before the wind picks up. The boatman is honest. The boatman will not ask you what you carry.",
+      "next": null
+    },
+
+    "halden-pay": {
+      "id": "halden-pay",
+      "speaker": "narrator",
+      "text": "Halden does not move. He has the look of a man who is waiting for the trap-line to spring. When the trap does not spring, he sits down on the chest — slow, the way one sits when the legs go before the will does. Behind him the child's breath catches and steadies and catches again.",
+      "next": "halden-pay-2",
+      "effects": [
+        { "type": "spend-gold", "amount": 40 }
+      ]
+    },
+    "halden-pay-2": {
+      "id": "halden-pay-2",
+      "speaker": "halden",
+      "expression": "shocked",
+      "text": "...You. You did not have to. I do not know who you are. I do not know your name. I will know it. I will write it on the inside of the door so the next thing that comes through will read it before it touches my child. I will know it the rest of my life.",
+      "next": "halden-pay-3"
+    },
+    "halden-pay-3": {
+      "id": "halden-pay-3",
+      "speaker": "narrator",
+      "text": "He does not weep. He breathes — a long ragged unsteady breath — and the small breath in the cot evens by a fraction in answer, the way a child's breathing always finds its parent's in a small room. He does not say anything else for a while. There is nothing else that needs saying.",
+      "effects": [
+        { "type": "complete-objective", "questId": "last-ledger", "objectiveId": "find-debtor" },
+        { "type": "set-flag", "key": "hc_debt_forgiven" }
+      ],
+      "next": "halden-pay-close"
+    },
+    "halden-pay-close": {
+      "id": "halden-pay-close",
+      "speaker": "halden",
+      "expression": "thoughtful",
+      "text": "Tell her. Tell her exactly what you did. She will not believe it the first time. Make her believe it the second.",
+      "next": null
+    }
+  }
+}

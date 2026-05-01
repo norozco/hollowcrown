@@ -1,0 +1,13 @@
+{
+  "id": "last-seal",
+  "category": "side",
+  "title": "The Last Seal",
+  "summary": "The seal beneath the sanctum is killing Veyrin one breath at a time. He asks for either a hand or a mercy. Choose, and choose carefully.",
+  "objectives": [
+    { "id": "decide-veyrin", "description": "Decide what to do for Veyrin at the altar." }
+  ],
+  "reward": {
+    "gold": 600,
+    "xp": 1100
+  }
+}

@@ -19,6 +19,12 @@ import deepHook from '../data/quests/deep-hook.json';
 import frosthollowExplorer from '../data/quests/frosthollow-explorer.json';
 import theFinalGate from '../data/quests/the-final-gate.json';
 import theCrownlessOne from '../data/quests/the-crownless-one.json';
+import deserterLetter from '../data/quests/deserter-letter.json';
+import cloakInBramble from '../data/quests/cloak-in-bramble.json';
+import emptyRoom from '../data/quests/empty-room.json';
+import lastLedger from '../data/quests/last-ledger.json';
+import forgeUnlit from '../data/quests/forge-unlit.json';
+import lastSeal from '../data/quests/last-seal.json';
 import type { Quest } from './quest';
 
 /**
@@ -48,6 +54,12 @@ const QUESTS: Record<string, Quest> = {
   'frosthollow-explorer': frosthollowExplorer as unknown as Quest,
   'the-final-gate': theFinalGate as unknown as Quest,
   'the-crownless-one': theCrownlessOne as unknown as Quest,
+  'deserter-letter': deserterLetter as unknown as Quest,
+  'cloak-in-bramble': cloakInBramble as unknown as Quest,
+  'empty-room': emptyRoom as unknown as Quest,
+  'last-ledger': lastLedger as unknown as Quest,
+  'forge-unlit': forgeUnlit as unknown as Quest,
+  'last-seal': lastSeal as unknown as Quest,
 };
 
 export function getQuest(id: string): Quest {
