@@ -148,19 +148,53 @@ export function renderDecoration(
 }
 
 /**
- * Pick a stable tree variant for a position so re-entering a scene
- * yields the same forest. xorshift-ish hash on (x, y).
+ * Stable hash for (x, y). Used by both pickTreeVariant and the
+ * density culling — same input, same output across reloads.
  */
-export function pickTreeVariant(x: number, y: number): keyof typeof DECORATION_LIBRARY {
-  const variants: Array<keyof typeof DECORATION_LIBRARY> = [
-    'deco_tree_oak', 'deco_tree_oak2',
-    'deco_tree_autumn', 'deco_tree_autumn2',
-    'deco_tree_pine', 'deco_tree_pine2',
-  ];
+function cellHash(x: number, y: number): number {
   let h = (x * 73856093) ^ (y * 19349663);
   h = (h ^ (h >>> 13)) >>> 0;
   h = Math.imul(h, 1274126177) >>> 0;
-  return variants[h % variants.length];
+  return h;
+}
+
+/**
+ * Decide whether a given BUSH cell should render a full tree at all.
+ * Returns true for ~55% of cells, false for the rest. Without culling,
+ * Greenhollow's tile data (which uses BUSH for most non-path cells)
+ * fills every single cell with a 3-tall tree, leaving no grass
+ * visible — playtest report: "everything looks like randomly placed
+ * trees, there is no coherence." Skipping ~half gives visible
+ * grass + clearings between trees.
+ *
+ * The hash is biased so adjacent cells DON'T cluster predictably:
+ * we mix in a checker pattern so even/odd rows get different bias.
+ */
+export function shouldRenderTreeHere(x: number, y: number): boolean {
+  const h = cellHash(x, y);
+  // ~55% chance of tree, 45% chance of plain grass. Higher than 50%
+  // so the forest still reads as forest, just with breathing room.
+  return (h % 100) < 55;
+}
+
+/**
+ * Pick a stable tree variant for a position. Mostly oaks (the
+ * canonical forest look) with a sprinkle of autumn + pine for
+ * texture. The previous 1-in-6 spread of variants made the forest
+ * look like "every tree is a different species" — a more natural
+ * forest is dominantly one species with occasional accents.
+ */
+export function pickTreeVariant(x: number, y: number): keyof typeof DECORATION_LIBRARY {
+  // Weighted pool: 6 oak entries (mostly oak), 2 autumn (sprinkled),
+  // 1 pine (rare conifer). Hash mod 9 picks an index.
+  const weighted: Array<keyof typeof DECORATION_LIBRARY> = [
+    'deco_tree_oak', 'deco_tree_oak', 'deco_tree_oak',
+    'deco_tree_oak2', 'deco_tree_oak2', 'deco_tree_oak2',
+    'deco_tree_autumn', 'deco_tree_autumn2',
+    'deco_tree_pine',
+  ];
+  const h = cellHash(x, y);
+  return weighted[h % weighted.length];
 }
 
 /**
@@ -234,15 +268,17 @@ export function applyTreeOverlays(
 ): Phaser.GameObjects.Image[] {
   const created: Phaser.GameObjects.Image[] = [];
   layer.forEachTile((tile) => {
-    if (tile.index === TILE.BUSH) {
-      const variant = pickTreeVariant(tile.x, tile.y);
-      // Tile pixel center in world space — Phaser tile.pixelX/Y is
-      // the top-left of the cell; add half the tile width to centre.
-      const wx = tile.pixelX + tile.width / 2;
-      const wy = tile.pixelY + tile.height / 2;
-      const img = renderDecoration(scene, variant, wx, wy);
-      if (img) created.push(img);
-    }
+    if (tile.index !== TILE.BUSH) return;
+    // Density gate — only ~55% of bush cells become full trees so
+    // the forest has visible grass between them.
+    if (!shouldRenderTreeHere(tile.x, tile.y)) return;
+    const variant = pickTreeVariant(tile.x, tile.y);
+    // Tile pixel center in world space — Phaser tile.pixelX/Y is
+    // the top-left of the cell; add half the tile width to centre.
+    const wx = tile.pixelX + tile.width / 2;
+    const wy = tile.pixelY + tile.height / 2;
+    const img = renderDecoration(scene, variant, wx, wy);
+    if (img) created.push(img);
   });
   return created;
 }
