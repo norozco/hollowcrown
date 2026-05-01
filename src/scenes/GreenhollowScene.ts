@@ -294,6 +294,85 @@ export class GreenhollowScene extends BaseWorldScene {
     // ── Fairy Fountain (hidden in the far south-west, behind bushes) ──
     this.spawnFairyFountain({ x: 3 * TILE, y: 20 * TILE });
 
+    // ── Hidden-glade gravestones (4) ──
+    // Souls-tone weathered markers tucked off the main paths. Each one
+    // dispatches a single line via gameMessage + adds a lore entry.
+    // Persisted via worldStateStore.pickedObjects so they only fire on the
+    // first read — the stones stay visible thereafter for re-reading via
+    // the codex.
+    this.spawnGravestone({
+      x: 5 * TILE + TILE / 2, y: 9 * TILE + TILE / 2,
+      objectId: 'grave_bren_no_house',
+      loreKey: 'grave-bren-no-house',
+      title: 'BREN, OF NO HOUSE',
+      line: 'BREN, OF NO HOUSE. Made the road shorter.',
+      bodyText:
+        'A flat slab leaned against a beech. The chisel-work is plain, the lettering small.\n\n' +
+        'BREN, OF NO HOUSE\nMade the road shorter.\n\n' +
+        'No date. No prayer. Someone laid a wolf-tooth at the base. The moss has grown around it.',
+    });
+
+    this.spawnGravestone({
+      x: 9 * TILE + TILE / 2, y: 19 * TILE + TILE / 2,
+      objectId: 'grave_carys',
+      loreKey: 'grave-carys-greenhollow',
+      title: 'CARYS — Walked West',
+      line: 'CARYS. Walked west. Did not return. The road remembers her step.',
+      bodyText:
+        'A cairn-stone, knee-high, set where the south path forks toward the lake.\n\n' +
+        'CARYS\nWalked west. Did not return.\nThe road remembers her step.\n\n' +
+        'There is no body beneath. Only the marker, and the rule the village made of it: do not say her name twice in a season.',
+    });
+
+    this.spawnGravestone({
+      x: 24 * TILE + TILE / 2, y: 17 * TILE + TILE / 2,
+      objectId: 'grave_ansel',
+      loreKey: 'grave-ansel-greenhollow',
+      title: 'ANSEL',
+      line: 'ANSEL. He laughed when laughter was rare. The wood has gone quiet since.',
+      bodyText:
+        'A wooden marker, the carving still legible under a skin of lichen.\n\n' +
+        'ANSEL\nHe laughed when laughter was rare.\nThe wood has gone quiet since.\n\n' +
+        'A small carved fox sits where his hand would have rested. It has been touched often enough that its nose is worn smooth.',
+    });
+
+    this.spawnGravestone({
+      x: 35 * TILE + TILE / 2, y: 5 * TILE + TILE / 2,
+      objectId: 'grave_unmarked_greenhollow',
+      loreKey: 'grave-unmarked-greenhollow',
+      title: 'Unmarked Stone',
+      line: 'The name has worn smooth. Below it, in a steadier hand: who tried.',
+      bodyText:
+        'A small stone, set well off the path. Whoever cut the name into it cut shallow.\n\n' +
+        '[name worn smooth]\nwho tried.\n\n' +
+        'The second line was carved later, by a different hand. Deeper. As if to make sure that part, at least, would last.',
+    });
+
+    // ── Broken waystones (2) — half-eroded inscriptions on old roads ──
+    this.spawnBrokenSign({
+      x: 17 * TILE + TILE / 2, y: 11 * TILE + TILE / 2,
+      objectId: 'waystone_mar_old_road',
+      loreKey: 'waystone-mar-old-road',
+      title: 'Waystone Fragment',
+      line: 'MAR—   /   ON THE OLD ROAD   /   [the rest is moss]',
+      bodyText:
+        'A broken waystone, sunk to the shoulder in moss. Three lines were cut into the face.\n\n' +
+        'MAR—\nON THE OLD ROAD\n[the rest is moss]\n\n' +
+        'The road it once named does not run here any more. The trees have closed over it like a wound that took.',
+    });
+
+    this.spawnBrokenSign({
+      x: 23 * TILE + TILE / 2, y: 4 * TILE + TILE / 2,
+      objectId: 'waystone_count_your_steps',
+      loreKey: 'waystone-count-your-steps',
+      title: 'Half-Buried Stone',
+      line: 'COUNT YOUR STEPS   /   —— TO THE STONE   /   AND NO FURTHER',
+      bodyText:
+        'A waystone fallen on its side. The face is up; the back has been lost to root and rain.\n\n' +
+        'COUNT YOUR STEPS\n—— TO THE STONE\nAND NO FURTHER\n\n' +
+        'The number was carved between the second and third line. It is gone. Whoever needed to know it knew it.',
+    });
+
     // Zone marker.
     this.add
       .text(WORLD_W / 2, WORLD_H - TILE * 4, 'GREENHOLLOW WOODS', {

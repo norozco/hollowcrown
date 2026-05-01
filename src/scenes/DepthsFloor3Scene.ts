@@ -189,6 +189,21 @@ export class DepthsFloor3Scene extends BaseWorldScene {
       },
     });
 
+    // ── Aelia Ren's third page — the cartographer's voice frays here.
+    //    Tucked off-throne where the player drifts before the boss.
+    this.spawnJournalPage({
+      x: 7 * TILE + TILE / 2, y: 17 * TILE + TILE / 2,
+      objectId: 'journal_aelia_3',
+      loreKey: 'journal-aelia-ren-3',
+      title: "Aelia Ren's Page — III",
+      teaser: 'A torn page, half-burnt at the edge: "The seal listens now. It has begun to listen back."',
+      bodyText:
+        'Day eighty-two. The seal listens now. It has begun to listen back.\n\n' +
+        'The cartographers’ bench has been quiet for a season. I am the last who can read the lower marks, and even I am no longer sure what I am reading.\n\n' +
+        'I have stopped pretending the work will end. There will be a wall, and we will be inside it, and that will have to be enough.\n\n' +
+        '— A.R., who is tired',
+    });
+
     // ── Lore interactable ──
     // Pile of broken weapons near the throne
     const weaponPile = this.add.circle(11 * TILE + TILE / 2, 14 * TILE + TILE / 2, 5, 0xa09878, 0.6);
