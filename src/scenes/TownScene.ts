@@ -54,8 +54,17 @@ export class TownScene extends BaseWorldScene {
 
     // Outdoor collision — scan tilemap for solid objects (bushes, plants,
     // torches, benches, barrels, crates) and add physics bodies.
+    //
+    // ROOF + ROOF_EDGE are also in this set: each building's tilemap
+    // renders a roof tile on the row ABOVE the building's `yTile`
+    // (see tileAt() — the `y === b.y - 1` branch). `addBuilding` only
+    // creates collision around the building rectangle itself, so without
+    // this entry the player could walk freely on the visible rooftops.
+    // Reported by playtest: "you can walk on what should be the roof of
+    // the buildings."
     const outdoorSolid = new Set<number>([
       T.BUSH, T.PLANT, T.TORCH, T.CHAIR, T.CRATE, T.BARREL, T.WELL, T.FENCE,
+      T.ROOF, T.ROOF_EDGE,
     ]);
     for (let ty = 0; ty < MAP_H; ty++) {
       for (let tx = 0; tx < MAP_W; tx++) {
