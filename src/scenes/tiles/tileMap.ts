@@ -26,19 +26,16 @@ import { TILE } from './generateTiles';
  *     because architectural tiles (wall/roof/door/window/column) don't
  *     tile across multiple cells.
  *   - 19bc3c4: re-flipped true on a narrower map (architecture-free).
- *     Reverted again because the Kenney sprites have transparent edges
- *     around decorations, and the procedural painter doesn't lay down
- *     a base ground colour underneath. Result: every grass cell with a
- *     flower/bush variant rendered with black voids around it, and the
- *     overall map looked broken. Playtester report:
- *       "It doesn't look good at all, it literally looks like just a
- *        kindergartener drew it"
- *
- *  To re-enable cleanly the renderer needs a TWO-layer pipeline: paint
- *  the procedural base-colour tile, THEN composite the Kenney sprite on
- *  top so transparency reveals the green grass beneath. That's not in
- *  generateTiles.ts today. Until that lands, stay procedural. */
-export const USE_SPRITE_TILES = false;
+ *     Reverted in 91d4aef because Kenney sprites have transparent edges
+ *     and the renderer was clearing the procedural base colour before
+ *     compositing — every flora cell rendered with black voids.
+ *   - THIS commit: third attempt. Two fixes landed alongside:
+ *      1. Removed the clearRect in generateTiles.ts overlaySpriteTiles
+ *         so the procedural biome-colour base shows through Kenney
+ *         transparency (real 2-layer pipeline).
+ *      2. Tuned TILE_VARIANT_POOL down from 50/50 plain/flora to ~10%
+ *         flora — sparse accents instead of "every cell has a flower". */
+export const USE_SPRITE_TILES = true;
 
 /** Legacy export — kept for the Tiny Dungeon sheet's 12-wide layout. */
 export const KENNEY_COLS = 12;
@@ -200,12 +197,25 @@ export const TILE_SPRITE_MAP: Partial<Record<number, SpriteTileRef>> = {
  * the biome stays coherent (no brown dirt dropped into green grass).
  */
 export const TILE_VARIANT_POOL: Partial<Record<number, number[]>> = {
-  [TILE.GRASS_DARK]: [TILE.GRASS_DARK, TILE.GRASS_DARK, TILE.GRASS_DARK,
-                      TILE.GRASS_FLOWER_RED, TILE.GRASS_FLOWER_YELLOW, TILE.GRASS_TUFT],
-  [TILE.GRASS_LIGHT]: [TILE.GRASS_LIGHT, TILE.GRASS_LIGHT, TILE.GRASS_LIGHT,
-                       TILE.GRASS_FLOWER_BLUE, TILE.GRASS_TUFT],
-  [TILE.PATH]: [TILE.PATH, TILE.PATH, TILE.PATH, TILE.COBBLE],
-  [TILE.FLOOR_STONE]: [TILE.FLOOR_STONE, TILE.FLOOR_STONE, TILE.COBBLE],
+  // Grass: ~10% flora, 90% plain. The previous 50/50 pool put a flower
+  // or tuft on every other cell which read as chaotic ("kindergartener"
+  // playtest report). Sparse accents look hand-placed; dense flora
+  // looks like a flower shop.
+  [TILE.GRASS_DARK]: [
+    TILE.GRASS_DARK, TILE.GRASS_DARK, TILE.GRASS_DARK, TILE.GRASS_DARK,
+    TILE.GRASS_DARK, TILE.GRASS_DARK, TILE.GRASS_DARK, TILE.GRASS_DARK,
+    TILE.GRASS_DARK, TILE.GRASS_FLOWER_YELLOW,
+  ],
+  [TILE.GRASS_LIGHT]: [
+    TILE.GRASS_LIGHT, TILE.GRASS_LIGHT, TILE.GRASS_LIGHT, TILE.GRASS_LIGHT,
+    TILE.GRASS_LIGHT, TILE.GRASS_LIGHT, TILE.GRASS_LIGHT, TILE.GRASS_LIGHT,
+    TILE.GRASS_LIGHT, TILE.GRASS_FLOWER_BLUE,
+  ],
+  // Path: occasional cobble accent, mostly plain dirt.
+  [TILE.PATH]: [TILE.PATH, TILE.PATH, TILE.PATH, TILE.PATH, TILE.PATH, TILE.COBBLE],
+  // Stone floor: occasional cobble accent.
+  [TILE.FLOOR_STONE]: [TILE.FLOOR_STONE, TILE.FLOOR_STONE, TILE.FLOOR_STONE,
+                       TILE.FLOOR_STONE, TILE.COBBLE],
 };
 
 /**

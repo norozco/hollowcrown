@@ -138,9 +138,12 @@ function overlaySpriteTiles(scene: Phaser.Scene, ctx: Ctx): void {
     const geom = SHEET_GEOM[ref.sheet];
     const sx = ref.col * geom.pitch;
     const sy = ref.row * geom.pitch;
-    // Clear the slot first so procedural art doesn't bleed through
-    // transparent Kenney pixels (many dungeon tiles have alpha borders).
-    ctx.clearRect(ox(semantic), 0, S, S);
+    // 2-layer pipeline: keep the procedural biome-colour base painted by
+    // drawKenneyFallbacks/drawGrassDark/etc. UNDERNEATH, then composite
+    // the Kenney sprite on top via default source-over. Transparent
+    // pixels in the Kenney sprite (tree edges, flower outlines) reveal
+    // the green grass beneath instead of clearing to canvas-black —
+    // which was the visible bug in the previous re-enable attempt.
     ctx.drawImage(img, sx, sy, geom.tilePx, geom.tilePx, ox(semantic), 0, S, S);
   }
 
