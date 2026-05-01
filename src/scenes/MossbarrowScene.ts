@@ -187,6 +187,58 @@ export class MossbarrowScene extends BaseWorldScene {
     // ── Fairy Fountain (near the hollow oak, partially hidden) ──
     this.spawnFairyFountain({ x: 8 * TILE, y: 9 * TILE });
 
+    // ── Cairn-side gravestones (3) ──
+    // Tucked among the standing stones. The cairn-keepers buried more
+    // here than the village admits.
+    this.spawnGravestone({
+      x: 17 * TILE + TILE / 2, y: 12 * TILE + TILE / 2,
+      objectId: 'grave_owain_mossbarrow',
+      loreKey: 'grave-owain-mossbarrow',
+      title: 'OWAIN',
+      line: 'OWAIN. He laughed once. We held it. We hold it still.',
+      bodyText:
+        'A smaller stone set inside the cairn ring, leaning against a larger one as if for company.\n\n' +
+        'OWAIN\nHe laughed once.\nWe held it. We hold it still.\n\n' +
+        'The carving is recent — the moss has not yet gone to seed in the letters. Whoever cut it pressed too hard at the end.',
+    });
+
+    this.spawnGravestone({
+      x: 26 * TILE + TILE / 2, y: 13 * TILE + TILE / 2,
+      objectId: 'grave_stillborn_host',
+      loreKey: 'grave-stillborn-host-mossbarrow',
+      title: 'THE STILLBORN HOST',
+      line: 'THE STILLBORN HOST. Counted, not named.',
+      bodyText:
+        'A long, low stone, set flat in the earth. The face is divided into rows of small notches. Some rows are full. Some are not.\n\n' +
+        'THE STILLBORN HOST\nCounted, not named.\n\n' +
+        'A line at the foot of the slab, in a steadier hand: forgive the count, we did not have time for the names.',
+    });
+
+    this.spawnGravestone({
+      x: 31 * TILE + TILE / 2, y: 6 * TILE + TILE / 2,
+      objectId: 'grave_elspeth_ker',
+      loreKey: 'grave-elspeth-ker-mossbarrow',
+      title: 'ELSPETH KER',
+      line: 'ELSPETH KER. Spoke for the cairn. Her line still walks.',
+      bodyText:
+        'A taller stone, set apart from the others, the back of it polished where a hand has rested often.\n\n' +
+        'ELSPETH KER\nSpoke for the cairn.\nHer line still walks.\n\n' +
+        'A small iron bead has been left at the foot, recent enough that the rain has not yet beaten the shine off it.',
+    });
+
+    // ── Broken arch above the cairn approach (1 inscription) ──
+    this.spawnBrokenSign({
+      x: 7 * TILE + TILE / 2, y: 9 * TILE + TILE / 2,
+      objectId: 'arch_order_of_the_cairn',
+      loreKey: 'arch-order-of-the-cairn',
+      title: 'Broken Arch',
+      line: 'BUILT FOR THE LIVING / KEPT FOR THE DEAD / —order of the cairn',
+      bodyText:
+        'Two pillars of weathered grey stone with the lintel cracked between them. The lower line is half-eaten by lichen.\n\n' +
+        'BUILT FOR THE LIVING\nKEPT FOR THE DEAD\n—order of the cairn\n\n' +
+        'There is no door. The arch frames the cairn ring beyond it like a question that has long since stopped expecting an answer.',
+    });
+
     // Zone marker.
     this.add
       .text(2 * TILE, WORLD_H / 2, 'MOSSBARROW CAIRN', {

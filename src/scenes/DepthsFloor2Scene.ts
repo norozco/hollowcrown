@@ -180,6 +180,21 @@ export class DepthsFloor2Scene extends BaseWorldScene {
       },
     });
 
+    // ── Aelia Ren's second page — the cartographer keeps notes on the
+    //    south sarcophagus chamber. The voice has hardened a turn.
+    this.spawnJournalPage({
+      x: 9 * TILE + TILE / 2, y: 4 * TILE + TILE / 2,
+      objectId: 'journal_aelia_2',
+      loreKey: 'journal-aelia-ren-2',
+      title: "Aelia Ren's Page — II",
+      teaser: 'A torn page in a tighter hand: "We lost Halvar today. The seal took him cleanly."',
+      bodyText:
+        'Day forty-one. We lost Halvar today. The seal took him cleanly — there was no time for a name, or for a stone over the place he stopped being a man.\n\n' +
+        'The work goes on. The catacombs are not the trouble. It is the lower water that does not hold its line; the corridor we sealed at dawn is wet again by dusk.\n\n' +
+        'I have stopped sending letters. The road back is too long, and the ink runs slow in this damp.\n\n' +
+        '— A.R.',
+    });
+
     // ── Lore interactable ──
     // Open sarcophagus lid — south chamber sarcophagus, lid pushed aside
     const sarcLid = this.add.circle(6 * TILE + TILE / 2, 14 * TILE + TILE / 2, 5, 0xa09878, 0.6);

@@ -920,6 +920,174 @@ export abstract class BaseWorldScene extends Phaser.Scene {
     }
   }
 
+  /**
+   * Spawn a gravestone — small grey stone marker the player can examine.
+   * On first read, dispatches the one-line `gameMessage` and adds an
+   * entry to `loreStore` (so it shows up in the codex). The stone stays
+   * visible afterwards but does not re-trigger the banner — re-reads are
+   * silent. Persistence: `worldStateStore.pickedObjects`. Discovered keys
+   * dedupe inside `loreStore` itself, but we use `pickedObjects` to gate
+   * the message banner so the player isn't spammed on re-entry.
+   *
+   * Style: weathered grey rounded slab + a small darker plaque + a
+   * `GRAVE` hint above (matches the existing waystone register and reads
+   * cleanly on the warm-earth palette).
+   */
+  protected spawnGravestone(cfg: {
+    x: number; y: number;
+    /** Stable id within the scene (used for the picked-object key). */
+    objectId: string;
+    /** Stable lore key — also used to title the codex entry. */
+    loreKey: string;
+    /** Codex title (rendered in the journal heading). */
+    title: string;
+    /** One-line atmospheric reading shown on the message banner. */
+    line: string;
+    /** Full codex text (longer; multi-line allowed). */
+    bodyText: string;
+  }): void {
+    const sceneKey = this.scene.key;
+    // Headstone — a soft-grey rounded slab with a darker base.
+    const stone = this.add.rectangle(cfg.x, cfg.y, 18, 24, 0x8a8478);
+    stone.setStrokeStyle(1, 0x4a4338);
+    stone.setDepth(6);
+    // Slight lighter cap so it reads as a curved top in pixel-art.
+    this.add.rectangle(cfg.x, cfg.y - 9, 14, 4, 0x9a948a).setDepth(6);
+    // Darker plaque suggesting an inscription.
+    this.add.rectangle(cfg.x, cfg.y, 12, 14, 0x5a544a, 0.6).setDepth(7);
+    // Hint label.
+    this.add.text(cfg.x, cfg.y - 22, 'GRAVE', {
+      fontFamily: 'Courier New', fontSize: '8px', color: '#6a6358',
+    }).setOrigin(0.5).setAlpha(0.55).setDepth(7);
+
+    this.spawnInteractable({
+      sprite: stone as any,
+      label: 'Examine gravestone',
+      radius: 22,
+      action: () => {
+        const ws = useWorldStateStore.getState();
+        if (ws.isPicked(sceneKey, cfg.objectId)) return;
+        window.dispatchEvent(new CustomEvent('gameMessage', { detail: cfg.line }));
+        useLoreStore.getState().discover({
+          key: cfg.loreKey,
+          title: cfg.title,
+          text: cfg.bodyText,
+          location: this.getZoneName() ?? sceneKey,
+        });
+        ws.markPicked(sceneKey, cfg.objectId);
+      },
+    });
+  }
+
+  /**
+   * Spawn a torn journal page — a small cream-coloured pickup the
+   * player can grab with E. Pickup destroys the sprite, fires a single
+   * gameMessage, and adds the page text to `loreStore`. Persisted via
+   * `worldStateStore.pickedObjects` so re-entry doesn't respawn the
+   * page. The body text is short prose (3-5 sentences) — the recurring
+   * voice belongs to the Sundering-era cartographer Aelia Ren.
+   */
+  protected spawnJournalPage(cfg: {
+    x: number; y: number;
+    /** Stable id within the scene (used for the picked-object key). */
+    objectId: string;
+    /** Stable lore key. */
+    loreKey: string;
+    /** Codex title (e.g. "Aelia Ren's Page — I"). */
+    title: string;
+    /** One-line teaser shown on the message banner at pickup. */
+    teaser: string;
+    /** Full page text (3-5 sentences). */
+    bodyText: string;
+  }): void {
+    const sceneKey = this.scene.key;
+    if (useWorldStateStore.getState().isPicked(sceneKey, cfg.objectId)) return;
+
+    // Page — a small cream-yellow rectangle with a torn edge feel
+    // (slight upper offset second rect = "fold"). Subtle red-brown
+    // stroke so it reads against floor stone.
+    const page = this.add.rectangle(cfg.x, cfg.y, 12, 14, 0xe8dcb0);
+    page.setStrokeStyle(1, 0x705038);
+    page.setDepth(7);
+    // Torn fold detail
+    this.add.rectangle(cfg.x - 1, cfg.y - 6, 8, 2, 0xd0c498).setDepth(7);
+    // Faint ink line
+    this.add.rectangle(cfg.x, cfg.y, 8, 1, 0x4a3828, 0.6).setDepth(8);
+    // Hint label
+    this.add.text(cfg.x, cfg.y - 14, 'PAGE', {
+      fontFamily: 'Courier New', fontSize: '8px', color: '#6a5838',
+    }).setOrigin(0.5).setAlpha(0.6).setDepth(8);
+
+    this.spawnInteractable({
+      sprite: page as any,
+      label: 'Pick up torn page',
+      radius: 22,
+      action: () => {
+        window.dispatchEvent(new CustomEvent('gameMessage', { detail: cfg.teaser }));
+        useLoreStore.getState().discover({
+          key: cfg.loreKey,
+          title: cfg.title,
+          text: cfg.bodyText,
+          location: this.getZoneName() ?? sceneKey,
+        });
+        useWorldStateStore.getState().markPicked(sceneKey, cfg.objectId);
+        page.destroy();
+      },
+    });
+  }
+
+  /**
+   * Spawn a broken sign / inscription — a weathered wooden post or
+   * carved fragment. Examines like a gravestone (banner + lore on first
+   * read, silent thereafter), but visually it's a weathered post with a
+   * cracked plank rather than a stone. Use for waystone fragments,
+   * inscribed arches, slab-etched warnings, etc.
+   */
+  protected spawnBrokenSign(cfg: {
+    x: number; y: number;
+    objectId: string;
+    loreKey: string;
+    title: string;
+    /** One-line atmospheric reading shown on the message banner. */
+    line: string;
+    /** Full codex text. */
+    bodyText: string;
+  }): void {
+    const sceneKey = this.scene.key;
+    // Weathered wooden post — short, dark, with a leaning crossbar.
+    this.add.rectangle(cfg.x, cfg.y + 6, 4, 22, 0x4a3018).setDepth(6);
+    // Crack down the post.
+    this.add.rectangle(cfg.x + 1, cfg.y + 4, 1, 16, 0x2a1a08, 0.7).setDepth(6);
+    // Cracked plank, set slightly off-square so it reads broken.
+    const plank = this.add.rectangle(cfg.x, cfg.y - 6, 28, 12, 0x5a4028);
+    plank.setStrokeStyle(1, 0x2a1a08);
+    plank.setDepth(7);
+    plank.setAngle(-4);
+    // Faint inscription suggestion.
+    this.add.rectangle(cfg.x, cfg.y - 6, 22, 1, 0x2a1a08, 0.5).setDepth(8);
+    this.add.text(cfg.x, cfg.y - 18, 'INSCRIPTION', {
+      fontFamily: 'Courier New', fontSize: '7px', color: '#6a5838',
+    }).setOrigin(0.5).setAlpha(0.55).setDepth(8);
+
+    this.spawnInteractable({
+      sprite: plank as any,
+      label: 'Read inscription',
+      radius: 22,
+      action: () => {
+        const ws = useWorldStateStore.getState();
+        if (ws.isPicked(sceneKey, cfg.objectId)) return;
+        window.dispatchEvent(new CustomEvent('gameMessage', { detail: cfg.line }));
+        useLoreStore.getState().discover({
+          key: cfg.loreKey,
+          title: cfg.title,
+          text: cfg.bodyText,
+          location: this.getZoneName() ?? sceneKey,
+        });
+        ws.markPicked(sceneKey, cfg.objectId);
+      },
+    });
+  }
+
   /** Spawn a spike trap that damages the player on contact. */
   protected spawnTrap(cfg: { x: number; y: number; damage: number; label?: string }): void {
     const trap = this.add.rectangle(cfg.x, cfg.y, 24, 24, 0x808080, 0.4);

@@ -165,6 +165,62 @@ export class MossbarrowDepthsScene extends BaseWorldScene {
       },
     });
 
+    // ── Catacomb-wall gravestones (3) ──
+    // Carved niches set into the stone of the main hall and west alcove.
+    // Each is a small slab placed against the wall — the spiders have
+    // built around them but not over them.
+    this.spawnGravestone({
+      x: 5 * TILE + TILE / 2, y: 4 * TILE + TILE / 2,
+      objectId: 'grave_eight_sisters_loom',
+      loreKey: 'grave-eight-sisters-loom-depths',
+      title: 'EIGHT SISTERS OF THE LOOM',
+      line: 'EIGHT SISTERS OF THE LOOM. They wove until the wall took them.',
+      bodyText:
+        'A row of niches in the corridor wall. The slab covering them is one piece, with eight small initials cut into it.\n\n' +
+        'EIGHT SISTERS OF THE LOOM\nThey wove until the wall took them.\n\n' +
+        'Strands of pale silk thread the slab from end to end. Some are old. Some are not. None of them were placed here by a hand that liked the work.',
+    });
+
+    this.spawnGravestone({
+      x: 12 * TILE + TILE / 2, y: 11 * TILE + TILE / 2,
+      objectId: 'grave_tomas_ren_depths',
+      loreKey: 'grave-tomas-ren-depths',
+      title: 'TOMAS REN',
+      line: 'TOMAS REN. Took the lantern down. Did not bring it up.',
+      bodyText:
+        'A square plaque, set into the stone at chest height. The carving is careful and even — done by someone who took their time.\n\n' +
+        'TOMAS REN\n[year worn smooth]\nTook the lantern down. Did not bring it up.\n\n' +
+        'A second name was added below in a tighter, later hand: ren — for whatever brother she had left.',
+    });
+
+    this.spawnGravestone({
+      x: 2 * TILE + TILE / 2, y: 15 * TILE + TILE / 2,
+      objectId: 'grave_bell_ringer_depths',
+      loreKey: 'grave-bell-ringer-depths',
+      title: 'The Bell-Ringer',
+      line: 'Carried the bell. Rang it once.',
+      bodyText:
+        'A flat stone set into the floor of the west alcove. The salt has eaten the name down to the first letter.\n\n' +
+        '[name eaten by salt]\nCarried the bell. Rang it once.\n\n' +
+        'The shape of a small handbell is gouged into the stone above the inscription. Whoever buried them buried the bell as well.',
+    });
+
+    // ── Aelia Ren's first page — Sundering-era cartographer.
+    // Tucked into a damp corner of the east alcove. The voice begins
+    // hopeful: a woman with a commission and a fresh ink horn.
+    this.spawnJournalPage({
+      x: 13 * TILE + TILE / 2, y: 7 * TILE + TILE / 2,
+      objectId: 'journal_aelia_1',
+      loreKey: 'journal-aelia-ren-1',
+      title: "Aelia Ren's Page — I",
+      teaser: 'A torn page. A cartographer’s small, careful hand: "If the catacombs hold, the rest will hold."',
+      bodyText:
+        'Day fourteen. The chartwork goes well. The catacombs are deeper than the surveyors guessed, but the stone is true and the air is dry enough for ink.\n\n' +
+        'I have signed the seal-warrant for the lower vault. It is a small thing — a hand-print and a date — and I do not yet feel the weight of it.\n\n' +
+        'If the catacombs hold, the rest will hold. The Sundering taught us that much: build down before you build out.\n\n' +
+        '— A. Ren, of the Cartographers’ Bench',
+    });
+
     // Enemies — spiders along the corridor (positions unchanged, on walkable tiles)
     this.spawnEnemy({ monsterKey: 'spider', x: 8 * TILE, y: 5 * TILE });
     this.spawnEnemy({ monsterKey: 'spider', x: 9 * TILE, y: 10 * TILE });

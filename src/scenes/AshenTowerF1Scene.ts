@@ -97,6 +97,22 @@ export class AshenTowerF1Scene extends BaseWorldScene {
       },
     });
 
+    // ── Aelia Ren's final page — left in the burning halls long after
+    //    the work was done. Whoever carried it here died for it. The
+    //    last page is short.
+    this.spawnJournalPage({
+      x: 11 * TILE + TILE / 2, y: 4 * TILE + TILE / 2,
+      objectId: 'journal_aelia_6',
+      loreKey: 'journal-aelia-ren-6',
+      title: "Aelia Ren's Page — VI",
+      teaser: 'A torn page, scorched at the edge: "What we made was not a wall."',
+      bodyText:
+        'What we made was not a wall.\n\n' +
+        'It was a door. We cannot reopen it. We chose not to teach the next bench how.\n\n' +
+        'Forgive us if you can. We did the work twice — once with stone, once with what we left out of the records.\n\n' +
+        '— A. Ren, last',
+    });
+
     // ── The Watcher ──
     this.spawnWatcher(8 * TILE, 2 * TILE);
 

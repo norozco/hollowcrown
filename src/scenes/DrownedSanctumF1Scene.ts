@@ -176,6 +176,75 @@ export class DrownedSanctumF1Scene extends BaseWorldScene {
       },
     });
 
+    // ── Waterlogged crypt gravestones (2) ──
+    // Slabs set into the chamber walls, the carving still legible above
+    // the waterline.
+    this.spawnGravestone({
+      x: 11 * TILE + TILE / 2, y: 3 * TILE + TILE / 2,
+      objectId: 'grave_inkname_drowned',
+      loreKey: 'grave-inkname-drowned-sanctum',
+      title: 'Inked Name',
+      line: 'Her name was written in ink. The water did the rest.',
+      bodyText:
+        'A slab set against the north chamber wall. The chisel-work is shallow — what was named here was named in ink first, and only later cut.\n\n' +
+        'HER NAME WAS WRITTEN IN INK\nThe water did the rest.\n\n' +
+        'A small, cleaner patch of stone at the centre suggests the inscription was touched often by a thumb that did not want to forget.',
+    });
+
+    this.spawnGravestone({
+      x: 10 * TILE + TILE / 2, y: 17 * TILE + TILE / 2,
+      objectId: 'grave_marrik_seal',
+      loreKey: 'grave-marrik-seal-drowned',
+      title: 'MARRIK',
+      line: 'MARRIK. Held the seal. The seal held.',
+      bodyText:
+        'A square plaque set high above the south chamber waterline so the salt cannot reach it.\n\n' +
+        'MARRIK\nHeld the seal. The seal held.\n\n' +
+        'The line beneath has been deliberately scored through — whatever it once added has been judged, by some later hand, as more than the dead deserved to carry.',
+    });
+
+    // ── Slab inscription on the sealed-gate wall ──
+    this.spawnBrokenSign({
+      x: 7 * TILE + TILE / 2, y: 15 * TILE + TILE / 2,
+      objectId: 'slab_sea_is_a_roof',
+      loreKey: 'slab-sea-is-a-roof',
+      title: 'Etched Slab',
+      line: 'DOWN HERE THE SEA / IS A ROOF / DO NOT LOOK UP',
+      bodyText:
+        'A slab of greenish stone set just before the sealed gate. The letters were cut deep so the salt could not eat them quickly.\n\n' +
+        'DOWN HERE THE SEA\nIS A ROOF\nDO NOT LOOK UP\n\n' +
+        'Whoever cut it cut the third line last and pressed harder for it.',
+    });
+
+    // ── Aelia Ren's pages — the cartographer's last surface notes.
+    //    Two pages on F1: the seal at the heart of the sanctum has begun
+    //    to require a keeper; she is choosing whether to be one.
+    this.spawnJournalPage({
+      x: 7 * TILE + TILE / 2, y: 4 * TILE + TILE / 2,
+      objectId: 'journal_aelia_4',
+      loreKey: 'journal-aelia-ren-4',
+      title: "Aelia Ren's Page — IV",
+      teaser: 'A torn page, the ink running: "The sea is rising into the seals. We knew it would."',
+      bodyText:
+        'Day one hundred and ten. The sea is rising into the seals. We knew it would. We did not know it would happen so cleanly, as if it had been waiting for the pretext.\n\n' +
+        'The Sundering opened the lower water. The seals are what we made to keep the lower water from finishing what it started. They are not enough.\n\n' +
+        'I have asked the bench to send no one else. There is a stone here that already knows the shape of one more name.\n\n' +
+        '— A.R., the Sanctum',
+    });
+
+    this.spawnJournalPage({
+      x: 13 * TILE + TILE / 2, y: 16 * TILE + TILE / 2,
+      objectId: 'journal_aelia_5',
+      loreKey: 'journal-aelia-ren-5',
+      title: "Aelia Ren's Page — V",
+      teaser: 'A torn page, the ink stained dark: "If I stay, the seal stays. That is the bargain."',
+      bodyText:
+        'If I stay, the seal stays. That is the bargain. The other cartographers will not write it down so I will write it for them.\n\n' +
+        'I am not afraid. I am tired in a way that fear cannot reach. I have sealed forty corridors and forty-one doors and the work has come down to one room and one breath.\n\n' +
+        'My brother went under at Mossbarrow. I will go under at the Sanctum. The line stays unbroken, in its own way.\n\n' +
+        '— A.R.',
+    });
+
     // ── The Watcher ──
     this.spawnWatcher(11 * TILE, 3 * TILE);
 
