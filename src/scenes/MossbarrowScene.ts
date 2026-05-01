@@ -187,6 +187,32 @@ export class MossbarrowScene extends BaseWorldScene {
     // ── Fairy Fountain (near the hollow oak, partially hidden) ──
     this.spawnFairyFountain({ x: 8 * TILE, y: 9 * TILE });
 
+    // ── Lyra Ashen — guild deserter at the hollow cairn ──
+    // Sits beside the southwestern cairn stone (19,14). Picked from the
+    // arc state via the same hc_* flag pattern Mira uses on the dock.
+    //
+    //   - first interaction → lyra-encounter (suspicious approach, beat 1)
+    //   - after she has spoken civilly (hc_lyra_guild_known or hc_lyra_civil)
+    //     → lyra-confess (the bog-job backstory, beat 2)
+    //   - after the player has named Brenna's good word (hc_lyra_forgiven)
+    //     → lyra-recruit (she stands up, ready for a road, beat 3)
+    //
+    // Suppressed once recruited so the companion isn't simultaneously
+    // walking with the player and standing at the cairn.
+    const lyraRecruited = localStorage.getItem('hc_lyra_recruited');
+    if (lyraRecruited !== 'true') {
+      const lyraGuildKnown = localStorage.getItem('hc_lyra_guild_known') === 'true';
+      const lyraCivil = localStorage.getItem('hc_lyra_civil') === 'true';
+      const lyraForgiven = localStorage.getItem('hc_lyra_forgiven') === 'true';
+      let lyraDialogueId = 'lyra-encounter';
+      if (lyraForgiven) lyraDialogueId = 'lyra-recruit';
+      else if (lyraGuildKnown || lyraCivil) lyraDialogueId = 'lyra-confess';
+      this.spawnNpc({
+        key: 'lyra', dialogueId: lyraDialogueId,
+        x: 17 * TILE + TILE / 2, y: 14 * TILE + TILE / 2,
+      });
+    }
+
     // Zone marker.
     this.add
       .text(2 * TILE, WORLD_H / 2, 'MOSSBARROW CAIRN', {

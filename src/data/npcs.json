@@ -138,5 +138,29 @@
       "sad": "portraits/mira/sad.png",
       "angry": "portraits/mira/angry.png"
     }
+  },
+  "lyra": {
+    "key": "lyra",
+    "name": "Lyra Ashen",
+    "title": "Guild Deserter",
+    "portraitColor": "#3a3028",
+    "accentColor": "#b89868",
+    "description": "Hard-jawed and watchful. Carries a sergeant's bearing and a sergeant's silence."
+  },
+  "halvor": {
+    "key": "halvor",
+    "name": "Halvor Trent",
+    "title": "Scholar of the Sundering",
+    "portraitColor": "#283848",
+    "accentColor": "#a8c0d8",
+    "description": "Soft-spoken, thin-fingered, carrying a notebook the size of a small book and a thesis the size of a kingdom."
+  },
+  "quill": {
+    "key": "quill",
+    "name": "Quill",
+    "title": "Former Keeper",
+    "portraitColor": "#2a1a30",
+    "accentColor": "#806890",
+    "description": "Hooded, hollow-eyed, slow with words. The drink has been holding him together. The drink has not been kind."
   }
 }

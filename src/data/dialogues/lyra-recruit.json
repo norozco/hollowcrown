@@ -1,0 +1,50 @@
+{
+  "id": "lyra-recruit",
+  "start": "return",
+  "nodes": {
+    "return": {
+      "id": "return",
+      "speaker": "narrator",
+      "text": "She is on her feet this time. The sword is sheathed; the cairn is at her back; the cloak is fastened the way one fastens it for a road, not for a wait. She nods once when she sees you — the nod of someone who has decided ahead of you and is waiting to be asked.",
+      "next": "lyra-decision"
+    },
+    "lyra-decision": {
+      "id": "lyra-decision",
+      "speaker": "lyra",
+      "expression": "neutral",
+      "text": "I have done my thinking. The cairn is no place to spend another winter. If you still mean it — the second blade, the honest road — I will walk with you. The price is not gold. The price is that you do not lie to me about the work. I have had enough lies about the work to last me.",
+      "choices": [
+        { "text": "Walk with me. We start now.", "next": "recruit" },
+        { "text": "Not yet. I need to think.", "next": "decline" }
+      ]
+    },
+
+    "recruit": {
+      "id": "recruit",
+      "speaker": "lyra",
+      "expression": "thoughtful",
+      "text": "Aye. Then it is settled. I will hold the rise this time. I will not call the line back from the bog. I will not call it forward into one either. We march on what we can see.",
+      "next": "recruit-done",
+      "effects": [
+        { "type": "spend-gold", "amount": 200 },
+        { "type": "hire-companion", "companionKey": "lyra" },
+        { "type": "set-flag", "key": "hc_lyra_recruited" }
+      ]
+    },
+    "recruit-done": {
+      "id": "recruit-done",
+      "speaker": "lyra",
+      "expression": "neutral",
+      "text": "One thing. If a name of mine comes up on the road — you tell me before you answer for me. I will not have another sergeant write a word for me without my hand on the page. That is the only condition. Lead, then. I will follow.",
+      "next": null
+    },
+
+    "decline": {
+      "id": "decline",
+      "speaker": "lyra",
+      "expression": "neutral",
+      "text": "Fair. Think. The cairn is here. So am I. The wind has not changed in a year — it will not change in a day. Find me when the answer is settled.",
+      "next": null
+    }
+  }
+}

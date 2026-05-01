@@ -45,9 +45,15 @@ export function DialogueScene() {
       'F' | 'E' | 'D' | 'C' | 'B' | 'A';
     // Lazy localStorage read — only the keys that any authored dialogue
     // currently checks. Adding a new flag means listing it here too.
+    // `set-flag` writes the literal string 'true', so most flags are
+    // checked that way. Boss-defeat flags (e.g. hc_hollow_king_defeated)
+    // are written by combatStore.finish() with the string '1' for legacy
+    // reasons, so we accept either truthy form.
     const readFlag = (k: string): boolean => {
       try {
-        return typeof localStorage !== 'undefined' && localStorage.getItem(k) === 'true';
+        if (typeof localStorage === 'undefined') return false;
+        const v = localStorage.getItem(k);
+        return v === 'true' || v === '1';
       } catch {
         return false;
       }
@@ -57,6 +63,19 @@ export function DialogueScene() {
       hc_mira_asked_why: readFlag('hc_mira_asked_why'),
       hc_mira_help_offered: readFlag('hc_mira_help_offered'),
       hc_mira_recruited: readFlag('hc_mira_recruited'),
+      // Companion arc flags (Lyra / Halvor / Quill)
+      hc_lyra_guild_known: readFlag('hc_lyra_guild_known'),
+      hc_lyra_civil: readFlag('hc_lyra_civil'),
+      hc_lyra_forgiven: readFlag('hc_lyra_forgiven'),
+      hc_lyra_recruited: readFlag('hc_lyra_recruited'),
+      hc_halvor_curious: readFlag('hc_halvor_curious'),
+      hc_halvor_agreed: readFlag('hc_halvor_agreed'),
+      hc_halvor_recruited: readFlag('hc_halvor_recruited'),
+      hc_quill_open: readFlag('hc_quill_open'),
+      hc_quill_atone: readFlag('hc_quill_atone'),
+      hc_quill_recruited: readFlag('hc_quill_recruited'),
+      // Boss flag — written as '1' by combatStore.finish().
+      hc_hollow_king_defeated: readFlag('hc_hollow_king_defeated'),
     };
     return { level, rank, greetingCounts, worldFlags };
   }, [character?.level, quests, greetingCounts]);

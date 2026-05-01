@@ -1,0 +1,63 @@
+{
+  "id": "halvor-recruit",
+  "start": "inn-corner",
+  "nodes": {
+    "inn-corner": {
+      "id": "inn-corner",
+      "speaker": "narrator",
+      "text": "He is at a small table near the hearth, the notebook open and a second smaller satchel at his feet. He has put on a heavier coat for the road. The pencil tucks itself away again as you cross the room. He stands when he sees you, then half-sits, then stands again — the small unrehearsed dance of a man who is unused to being expected.",
+      "next": "halvor-greet"
+    },
+    "halvor-greet": {
+      "id": "halvor-greet",
+      "speaker": "halvor",
+      "expression": "neutral",
+      "text": "You came. I had the satchel packed by noon and have been re-packing it ever since. There is no graceful way to admit that. Sit, please. There is one more thing I owe you before we speak of any road.",
+      "next": "halvor-warning"
+    },
+    "halvor-warning": {
+      "id": "halvor-warning",
+      "speaker": "halvor",
+      "expression": "sad",
+      "text": "I will bring you danger. The thesis is not a thing one carries quietly. If I am right — and I am almost sure I am right — then the names I have written will start finding ways into the same conversations as you. The watchers in the deep do not like being read.",
+      "next": "halvor-offer"
+    },
+    "halvor-offer": {
+      "id": "halvor-offer",
+      "speaker": "halvor",
+      "expression": "thoughtful",
+      "text": "I will also bring you knowledge. I have herbs and bandages, and a tongue that has read the names of every wall we will walk past. I cannot ask gold for that — knowledge for hire is the kind of bargain my old tutors warned against. So I am offering it freely, for the road, for as long as you will keep me from being foolish on it.",
+      "choices": [
+        { "text": "Walk with me. The road is yours.", "next": "recruit" },
+        { "text": "Not tonight. Hold the satchel. I will return.", "next": "decline" }
+      ]
+    },
+
+    "recruit": {
+      "id": "recruit",
+      "speaker": "halvor",
+      "expression": "shocked",
+      "text": "...Aye. Then it is a road. Forgive me — I had a small speech prepared and forgot every word of it the moment you said yes. Let me say only this. I will not slow you. I will know what we are looking at. I will keep the bandages dry. That is the bargain.",
+      "next": "recruit-done",
+      "effects": [
+        { "type": "hire-companion", "companionKey": "halvor" },
+        { "type": "set-flag", "key": "hc_halvor_recruited" }
+      ]
+    },
+    "recruit-done": {
+      "id": "recruit-done",
+      "speaker": "halvor",
+      "expression": "neutral",
+      "text": "One small thing. If we find a wall that hums, or a stone that does not feel like stone — let me read it before we strike it. A second of reading has saved a great many lives. I am hoping it will save ours, often, in the months ahead.",
+      "next": null
+    },
+
+    "decline": {
+      "id": "decline",
+      "speaker": "halvor",
+      "expression": "sad",
+      "text": "Of course. The satchel will keep. The notebook will keep. I will keep, for a little longer. Find me here when the road is decided. I will not pack again until you do. It saves wear on the strap.",
+      "next": null
+    }
+  }
+}

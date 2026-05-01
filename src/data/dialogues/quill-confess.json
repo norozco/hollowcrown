@@ -1,0 +1,78 @@
+{
+  "id": "quill-confess",
+  "start": "return",
+  "nodes": {
+    "return": {
+      "id": "return",
+      "speaker": "narrator",
+      "text": "He is at the same corner. The hood is back this time. His face is older than you would have guessed and more tired than you would have wanted. The cup is empty. He has been waiting, but slowly, the way a man waits who has stopped expecting to be answered.",
+      "next": "settle"
+    },
+    "settle": {
+      "id": "settle",
+      "speaker": "quill",
+      "expression": "neutral",
+      "text": "Sit. The corner has held for me a long while. It will hold for both of us a moment. I owe you the long answer. I will keep it shorter than it deserves.",
+      "next": "story-1"
+    },
+
+    "story-1": {
+      "id": "story-1",
+      "speaker": "quill",
+      "expression": "sad",
+      "text": "I was one of his. The Hollow King — yes, that name. I wore the same mark you wore. Mine sat on the throat. Theirs sat on the back of the hand. We did not call ourselves a cult, the way the chronicles will. We called ourselves the keepers. The keepers of a quiet that had decided to wake up.",
+      "next": "story-2"
+    },
+    "story-2": {
+      "id": "story-2",
+      "speaker": "quill",
+      "expression": "thoughtful",
+      "text": "The price was small at the start. A name forgotten. A memory traded for a quieter one. He took only what we did not miss. The keepers smiled about it. We had read the texts. We were ready for a great change. Most of us did not notice he was taking the names that mattered, slowly, until our wives sounded like strangers in the lamplight.",
+      "next": "story-3"
+    },
+    "story-3": {
+      "id": "story-3",
+      "speaker": "quill",
+      "expression": "sad",
+      "text": "I left the night I could not remember my mother's voice. I had given her name without asking after the price. I have been at this corner since. The drink is to keep the rest from leaving me. It has not been working as well as I had hoped.",
+      "next": "story-options"
+    },
+
+    "story-options": {
+      "id": "story-options",
+      "speaker": "quill",
+      "expression": "neutral",
+      "text": "So. There it is. I would like to atone. I do not know what shape that takes for a man who can no longer name his own dead. Will you let me try.",
+      "choices": [
+        { "text": "Yes. Walk the road with me.", "next": "yes-atone" },
+        { "text": "[Walk away. Some debts are not yours to absolve.]", "next": "walk-away" }
+      ]
+    },
+
+    "yes-atone": {
+      "id": "yes-atone",
+      "speaker": "quill",
+      "expression": "thoughtful",
+      "text": "...Yes. Then yes. I will not promise to be quick. I will not promise to be brave on every road. I have spent so long forgetting that remembering takes a cost I have only just begun paying. But I know the traps. I know the marks. I know what to listen for in the quiet before a stone moves.",
+      "next": "yes-atone-2",
+      "effects": [
+        { "type": "set-flag", "key": "hc_quill_atone" }
+      ]
+    },
+    "yes-atone-2": {
+      "id": "yes-atone-2",
+      "speaker": "quill",
+      "expression": "neutral",
+      "text": "Find me at this corner one more time when the road is ready. I will leave the cup behind. It has had enough of me, and I of it. We will walk out of this room together. That alone will be more than I have done in three winters.",
+      "next": null
+    },
+
+    "walk-away": {
+      "id": "walk-away",
+      "speaker": "quill",
+      "expression": "sad",
+      "text": "...Aye. That is the truer answer, perhaps. Some debts are not for strangers to take on. Walk on. The corner will hold me. It always has. I am sorry to have asked.",
+      "next": null
+    }
+  }
+}
