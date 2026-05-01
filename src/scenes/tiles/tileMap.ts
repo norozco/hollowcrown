@@ -21,13 +21,23 @@
 import { TILE } from './generateTiles';
 
 /** Master switch. Set to false to go back to the procedural tileset.
- *  HISTORY: temporarily flipped true by the LttP handoff in 3d7324c; the
- *  Kenney overlay broke building composition (each TILE slot renders a
- *  whole 16×16 sprite, but scenes assume procedural blocks that tile
- *  continuously across multiple cells — roof/wall/window sprites land
- *  as disjoint icons instead of a coherent building, and decoration
- *  sprites sit where solid collision was expected). Reverted. */
-export const USE_SPRITE_TILES = false;
+ *  HISTORY: flipped true by the LttP handoff in 3d7324c; the Kenney
+ *  overlay broke building composition because architectural tiles
+ *  (wall / roof / door / window / column) render as individual full-
+ *  edge sprites that don't tile across multiple cells, so a 3-wide
+ *  wall became 3 disjoint chunks instead of one continuous wall.
+ *  Reverted in 0150e8c.
+ *
+ *  Re-enabled here on a NARROWER mapping: only ground tiles (grass,
+ *  paths, water, sand, stone), decorations (trees, rocks, fences,
+ *  signs, lamps), single-cell furniture (tables, chairs), and dungeon
+ *  atmospherics (lava, bones, torches) get sprite-rendered. Walls,
+ *  roofs, doors, windows, and columns are intentionally REMOVED from
+ *  TILE_SPRITE_MAP below so they fall back to procedural rectangles
+ *  (which tile cleanly as continuous building shapes). The
+ *  Kenney-aware metatile work (option a from the revert) can land
+ *  later for those without affecting this baseline. */
+export const USE_SPRITE_TILES = true;
 
 /** Legacy export — kept for the Tiny Dungeon sheet's 12-wide layout. */
 export const KENNEY_COLS = 12;
@@ -91,12 +101,15 @@ export const TILE_SPRITE_MAP: Partial<Record<number, SpriteTileRef>> = {
   [TILE.WELL]:        t('town',  6, 32), // stone feature (approx)
 
   // ─── Buildings (Roguelike/RPG Pack) ──────────────────────────
-  [TILE.WALL_STONE]:  t('town', 13, 20), // grey brick wall center
-  [TILE.WALL_WOOD]:   t('town',  0, 14), // wooden plank wall
-  [TILE.ROOF]:        t('town', 26, 13), // terracotta solid
-  [TILE.ROOF_EDGE]:   t('town', 25, 13), // terracotta 9-slice top edge
-  [TILE.DOOR]:        t('town',  1, 15), // wooden door
-  [TILE.WINDOW]:      t('town',  1, 19), // paned window
+  // ARCHITECTURAL TILES INTENTIONALLY OMITTED: WALL_STONE, WALL_WOOD,
+  // ROOF, ROOF_EDGE, DOOR, WINDOW. These tiles in scenes are painted
+  // as multi-cell rectangles that visually merge into one continuous
+  // wall/roof/etc when the underlying tile is a flat color. Kenney's
+  // sprites for them have full-edge shading drawn into each cell, so
+  // tiling 3 of them in a row produces 3 disjoint icons with gaps
+  // (see commit 0150e8c — "Revert USE_SPRITE_TILES — Kenney overlay
+  // broke building composition"). Falling back to procedural for
+  // these keeps buildings looking like buildings.
   [TILE.FLOOR_WOOD]:  t('town', 14,  7), // plank floor warm tan
   [TILE.FLOOR_STONE]: t('town', 26,  4), // plain light grey
 
@@ -136,26 +149,16 @@ export const TILE_SPRITE_MAP: Partial<Record<number, SpriteTileRef>> = {
   [TILE.STUMP]:               t('town', 10, 27),
 
   // ─── Architecture variants ───────────────────────────────────
-  [TILE.ROOF_RED]:            t('town', 26, 13), // terracotta
-  [TILE.ROOF_BLUE]:           t('town', 26, 16), // teal-blue pack block
-  [TILE.ROOF_GREEN]:          t('town', 29, 13), // lower terracotta variant (darker)
-  [TILE.ROOF_THATCH]:         t('town',  0, 12), // thatched roof tile
-  [TILE.ROOF_EDGE_L]:         t('town', 26, 12),
-  [TILE.ROOF_EDGE_R]:         t('town', 26, 14),
-  [TILE.ROOF_PEAK]:           t('town', 24, 13),
-  [TILE.COLUMN]:              t('town',  4, 31),
-  [TILE.COLUMN_TOP]:          t('town',  3, 31),
-  [TILE.COLUMN_BASE]:         t('town',  5, 31),
+  // ROOF_*, COLUMN_*, DOOR_IRON, DOOR_ARCH, WINDOW_ROUND, WINDOW_BARRED
+  // are intentionally OMITTED — same multi-cell-tiling problem as the
+  // base architectural tiles above. Single-cell decorative props
+  // (fences, signs, lamps) are safe and stay mapped.
   [TILE.FENCE_H]:             t('town',  8, 38),
   [TILE.FENCE_V]:             t('town',  9, 37),
   [TILE.FENCE_GATE]:          t('town', 10, 37),
   [TILE.SIGN]:                t('town',  7, 32),
   [TILE.LAMP_POST]:           t('town',  5, 32),
   [TILE.LANTERN]:             t('town',  5, 33),
-  [TILE.DOOR_IRON]:           t('town',  2, 15),
-  [TILE.DOOR_ARCH]:           t('town',  1, 16),
-  [TILE.WINDOW_ROUND]:        t('town',  2, 19),
-  [TILE.WINDOW_BARRED]:       t('town',  3, 19),
 
   // ─── Interior / furniture extras ─────────────────────────────
   [TILE.FLOOR_PLANK_V]:       t('town', 14,  7),
@@ -176,8 +179,9 @@ export const TILE_SPRITE_MAP: Partial<Record<number, SpriteTileRef>> = {
   [TILE.CHAINS]:        t('dungeon', 8, 4),
   [TILE.COBWEB]:        t('dungeon', 7, 11),
   [TILE.BLOOD_STONE]:   t('dungeon', 0, 8),
-  [TILE.WALL_INNER]:    t('dungeon', 1, 0),
-  [TILE.WALL_CORNER]:   t('dungeon', 1, 1),
+  // WALL_INNER, WALL_CORNER omitted — same architectural-tiling issue
+  // as the town walls. Procedural rendering produces continuous walls;
+  // sprite rendering would break the dungeon layouts.
   [TILE.TORCH]:         t('dungeon', 9, 1),
   [TILE.BARREL]:        t('dungeon', 8, 0),
   [TILE.CRATE]:         t('dungeon', 8, 1),
