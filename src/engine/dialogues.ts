@@ -12,6 +12,7 @@ import miraGreeting from '../data/dialogues/mira-greeting.json';
 import miraConfront from '../data/dialogues/mira-confront.json';
 import miraBackstory from '../data/dialogues/mira-backstory.json';
 import miraRecruitment from '../data/dialogues/mira-recruitment.json';
+import brennaRevelation from '../data/dialogues/brenna-revelation.json';
 import type { Dialogue } from './dialogue';
 
 /**
@@ -34,6 +35,7 @@ const DIALOGUES: Record<string, Dialogue> = {
   'mira-confront': miraConfront as unknown as Dialogue,
   'mira-backstory': miraBackstory as unknown as Dialogue,
   'mira-recruitment': miraRecruitment as unknown as Dialogue,
+  'brenna-revelation': brennaRevelation as unknown as Dialogue,
 };
 
 export function getDialogue(id: string): Dialogue {

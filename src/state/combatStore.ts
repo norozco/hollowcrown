@@ -16,6 +16,68 @@ import { useQuestStore } from './questStore';
 import { useAchievementStore } from './achievementStore';
 import { useBountyStore } from './bountyStore';
 import { rollPerkChoices, getPerkHpBonus, getPerkMpBonus } from '../engine/perks';
+import { useLoreStore } from './loreStore';
+
+/**
+ * Codex entries for each of the four main-story bosses. Auto-unlock
+ * when the player defeats that boss. Together they form the spine —
+ * read in order, they describe the four-fold seal that bound the king
+ * who is now the Crownless One. Each entry is intentionally a fragment
+ * — the player has to assemble the truth across all four kills.
+ */
+const BOSS_CODEX: Record<string, { title: string; location: string; text: string }> = {
+  hollow_king: {
+    title: 'The Crown',
+    location: 'Throne Beneath',
+    text: [
+      "The first of the four seals — *The Crown* — bound the body of a king who refused to die.",
+      "When the Sundering came, the order of mages did not destroy him. They could not.",
+      "They split him into four. The Crown holds the body. Without it the body kneels.",
+      "I broke the Crown. The body is dust now. Three remain.",
+    ].join('\n\n'),
+  },
+  drowned_warden: {
+    title: 'The Pact',
+    location: 'Drowned Sanctum',
+    text: [
+      "*The Pact* — the second seal — held the king's promises. The oaths he swore and unswore.",
+      "The order made the Warden from these. A jailer of words. He stood under salt water for an age.",
+      "Now the water is still. The promises are loose. They drift like rope on a current.",
+    ].join('\n\n'),
+  },
+  the_forgotten: {
+    title: 'The Memory',
+    location: 'Voidrift',
+    text: [
+      "*The Memory* — the third seal. What the king was before the throne.",
+      "The order could not destroy his name, so they hid it. They put it in the void between things.",
+      "The Forgotten was never a creature. It was an *erasure*. Now the erasure is gone.",
+      "Three of four are open. I do not understand what I have done.",
+    ].join('\n\n'),
+  },
+  crownless_one: {
+    title: 'The Will',
+    location: 'Throne Beneath',
+    text: [
+      "*The Will* — the fourth seal — was the king himself. What was left when his body, his oaths, and his memory were taken from him.",
+      "He was the throne. Empty. Waiting.",
+      "Killing him does not end him. The seals were not a prison; they were a *shape*.",
+      "I gave him back his shape, piece by piece. And then I broke the last of him.",
+      "I do not know what I freed. I do not know if the world held it before or held it back.",
+    ].join('\n\n'),
+  },
+};
+
+function unlockBossCodex(bossKey: string): void {
+  const entry = BOSS_CODEX[bossKey];
+  if (!entry) return;
+  useLoreStore.getState().discover({
+    key: `boss_codex_${bossKey}`,
+    title: entry.title,
+    text: entry.text,
+    location: entry.location,
+  });
+}
 import { getHeartPieceHpBonus } from './playerStore';
 import { DIFFICULTY_SCALES } from '../engine/character';
 import { Sfx } from '../engine/audio';
@@ -462,17 +524,15 @@ export const useCombatStore = create<CombatStoreState>((set, get) => ({
         if (monster.key === 'spider') checkKillQuest(['spider'], 'spider-nest', 'kill-spiders', 3, 'Spider Nest');
         if (monster.key === 'wraith') checkKillQuest(['wraith'], 'wraith-hunt', 'kill-wraiths', 2, 'Wraith Hunt');
 
-        // Hollow King slayer: kill the boss.
+        // Hollow King slayer: kill the boss. Auto-unlocks the codex
+        // entry for this boss + dispatches a `mainBossDefeated` event so
+        // the world can react (NPC reflections, story-spine triggers).
         if (monster.key === 'hollow_king') {
           qs.completeObjective('hollow-king-slayer', 'kill-hollow-king');
           msg('The Hollow Crown shatters. The curse lifts.');
-          // Persistent world-state flag — survives zone-exit clearing of
-          // the killedEnemies Set. Without this the boss sprite would
-          // respawn every time the player re-entered DepthsFloor3Scene,
-          // leaving a visible dead boss stuck at low HP. Consumed by
-          // DepthsFloor3Scene.layout() on spawn to skip the boss + lift
-          // darkness + spawn reward chests.
           localStorage.setItem('hc_hollow_king_defeated', '1');
+          unlockBossCodex('hollow_king');
+          window.dispatchEvent(new CustomEvent('mainBossDefeated', { detail: 'hollow_king' }));
         }
 
         // Drowned Warden slayer: kill the bog boss.
@@ -480,6 +540,18 @@ export const useCombatStore = create<CombatStoreState>((set, get) => ({
           qs.completeObjective('warden-slayer', 'kill-drowned-warden');
           msg('The Warden sinks. The water stills.');
           localStorage.setItem('hc_drowned_warden_defeated', '1');
+          unlockBossCodex('drowned_warden');
+          window.dispatchEvent(new CustomEvent('mainBossDefeated', { detail: 'drowned_warden' }));
+        }
+
+        // The Forgotten — extraplanar void boss. Lacked a defeat flag
+        // before; story spine needs one so the codex + revelation can
+        // count it.
+        if (monster.key === 'the_forgotten') {
+          msg('The Forgotten is unmade. Reality settles.');
+          localStorage.setItem('hc_the_forgotten_defeated', '1');
+          unlockBossCodex('the_forgotten');
+          window.dispatchEvent(new CustomEvent('mainBossDefeated', { detail: 'the_forgotten' }));
         }
 
         // The Crownless One: final boss.
@@ -488,6 +560,8 @@ export const useCombatStore = create<CombatStoreState>((set, get) => ({
           msg('The Crownless One falls. The throne is empty. It always was.');
           localStorage.setItem('hc_game_complete', '1');
           localStorage.setItem('hc_crownless_one_defeated', '1');
+          unlockBossCodex('crownless_one');
+          window.dispatchEvent(new CustomEvent('mainBossDefeated', { detail: 'crownless_one' }));
           window.dispatchEvent(new CustomEvent('gameEnding'));
         }
 

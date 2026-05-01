@@ -1,0 +1,146 @@
+{
+  "id": "brenna-revelation",
+  "start": "summon",
+  "nodes": {
+    "summon": {
+      "id": "summon",
+      "speaker": "narrator",
+      "text": "Brenna is not at the counter. She is at a table by the back window, sitting straight, hands folded over a small book bound in dark leather. The fire is unlit. She watches you cross the room without standing.",
+      "next": "open"
+    },
+    "open": {
+      "id": "open",
+      "speaker": "brenna",
+      "expression": "thoughtful",
+      "text": "Sit. I should have called you sooner. I told myself I would not. I have been lying to myself.",
+      "next": "preface"
+    },
+    "preface": {
+      "id": "preface",
+      "speaker": "brenna",
+      "expression": "thoughtful",
+      "text": "You have killed two of them now. You came back for water and bread and a new sword. You did not come back to ask what you were doing. That was on me to ask.",
+      "choices": [
+        { "text": "What I was doing was hunting monsters.", "next": "correction" },
+        { "text": "Then ask.", "next": "ask-now" }
+      ]
+    },
+    "correction": {
+      "id": "correction",
+      "speaker": "brenna",
+      "expression": "sad",
+      "text": "They were not monsters. Not the four. They were the shape of something the world had agreed to forget.",
+      "next": "ask-now"
+    },
+    "ask-now": {
+      "id": "ask-now",
+      "speaker": "brenna",
+      "expression": "thoughtful",
+      "text": "My great-aunt Yorath was a sealer. The Sealing Order. She was one of the women who did the work that the world calls the Sundering. They did not call it that. They called it dividing the king.",
+      "next": "the-king"
+    },
+    "the-king": {
+      "id": "the-king",
+      "speaker": "brenna",
+      "expression": "thoughtful",
+      "text": "There was a king who would not die. Two centuries ago. They could not destroy him. So they split him into four — the body, the oaths, the memory, the will. Each part holding the others. They called it not a prison but a shape.",
+      "next": "you"
+    },
+    "you": {
+      "id": "you",
+      "speaker": "brenna",
+      "expression": "sad",
+      "text": "You have broken two parts of the shape. The Hollow King wore the body. The Drowned Warden held the oaths. Or — the Forgotten was the memory. Whichever two it was. They were the locks. You broke them.",
+      "next": "weight"
+    },
+    "weight": {
+      "id": "weight",
+      "speaker": "brenna",
+      "expression": "sad",
+      "text": "I knew what was in the cairns. I sent you to them. I told myself that was the right work. The world has been rotting for two hundred years and the seams have been showing. I thought the shape was already failing. I thought killing the rot was the same as keeping it.",
+      "choices": [
+        { "text": "It might still be.", "next": "maybe" },
+        { "text": "What did you do, Brenna?", "next": "what" },
+        { "text": "Why are you telling me now?", "next": "why-now" }
+      ]
+    },
+    "maybe": {
+      "id": "maybe",
+      "speaker": "brenna",
+      "expression": "thoughtful",
+      "text": "It might. I do not know. I am too close to it to know. That is the honest answer.",
+      "next": "choice"
+    },
+    "what": {
+      "id": "what",
+      "speaker": "brenna",
+      "expression": "sad",
+      "text": "I sent a stranger into the dark to do a thing my family helped to make. I did not warn the stranger. I am telling them now. That is what I did.",
+      "next": "choice"
+    },
+    "why-now": {
+      "id": "why-now",
+      "speaker": "brenna",
+      "expression": "thoughtful",
+      "text": "Because two of four is enough that you would have stopped guessing. And because if I waited until three of four, there would be only one path left.",
+      "next": "choice"
+    },
+    "choice": {
+      "id": "choice",
+      "speaker": "brenna",
+      "expression": "neutral",
+      "text": "There are two seals you have not broken. Whichever ones they are. The Crownless One sits the throne. He has had two centuries to think. If you go to him with the shape unmade, you will be facing what those four parts were supposed to hold.",
+      "next": "ask"
+    },
+    "ask": {
+      "id": "ask",
+      "speaker": "brenna",
+      "expression": "thoughtful",
+      "text": "I am not going to tell you to stop. The seals were already failing — slowly, but they were. I do not know if leaving the last two intact will buy us a year or a hundred. I do not know if breaking them will be the end or a beginning. I am telling you what I know. The choice is yours.",
+      "choices": [
+        {
+          "text": "I'll finish what I started.",
+          "next": "continue",
+          "effects": [{ "kind": "set-flag", "flag": "hc_revelation_continue" }]
+        },
+        {
+          "text": "I'll stop. I won't break the last seals.",
+          "next": "stop",
+          "effects": [{ "kind": "set-flag", "flag": "hc_revelation_stop" }]
+        },
+        {
+          "text": "I need to think.",
+          "next": "later"
+        }
+      ]
+    },
+    "continue": {
+      "id": "continue",
+      "speaker": "brenna",
+      "expression": "thoughtful",
+      "text": "Then go. I will not pretend it is the right choice. I will not pretend I know it is the wrong one. The road is the road. Walk it well.",
+      "next": "close"
+    },
+    "stop": {
+      "id": "stop",
+      "speaker": "brenna",
+      "expression": "thoughtful",
+      "text": "Then we live with what we have done. Two seals broken. Two still holding. The world goes on. The king does not return. You and I will be the only ones who know why the wind got worse this year.",
+      "next": "close"
+    },
+    "later": {
+      "id": "later",
+      "speaker": "brenna",
+      "expression": "neutral",
+      "text": "Take the time. The seals have stood two hundred years. They will stand the week you spend deciding.",
+      "next": "close"
+    },
+    "close": {
+      "id": "close",
+      "speaker": "brenna",
+      "expression": "neutral",
+      "text": "Yorath's notebook is on the table. You can read it if you wish. I have not opened it in a long time. There is not much in it. There is enough.",
+      "effects": [{ "kind": "set-flag", "flag": "hc_revelation_seen" }]
+    }
+  }
+}

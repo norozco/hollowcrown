@@ -340,6 +340,23 @@ function getLayout(id: string): InteriorLayout {
 // Weapon racks, quest board, rough dining tables, battle trophies.
 // NO bookshelves — adventurers fight, they don't read.
 
+/**
+ * Count how many of the four MAIN-STORY bosses the player has felled.
+ * Read from localStorage so this runs at layout-time without pulling in
+ * a Zustand subscription. Used to gate the Brenna revelation cutscene
+ * — when count >= 2 and revelation hasn't fired yet, Brenna's dialogue
+ * routes to `brenna-revelation` instead of `guild-greeting`.
+ */
+function mainBossesKilled(): number {
+  if (typeof localStorage === 'undefined') return 0;
+  let n = 0;
+  if (localStorage.getItem('hc_hollow_king_defeated') === '1') n++;
+  if (localStorage.getItem('hc_drowned_warden_defeated') === '1') n++;
+  if (localStorage.getItem('hc_the_forgotten_defeated') === '1') n++;
+  if (localStorage.getItem('hc_crownless_one_defeated') === '1') n++;
+  return n;
+}
+
 function guildLayout(): InteriorLayout {
   const _ = FW; // warm brick floor
   // 20×16 with 2-tile thick ALTTP borders
@@ -368,7 +385,20 @@ function guildLayout(): InteriorLayout {
   return {
     name: "Adventurers' Guild", roomW: 20, roomH: 16, tiles,
     solidTiles: SOLID,
-    npcs: [{ key: 'brenna', dialogueId: 'guild-greeting', tileX: 10, tileY: 3 }],
+    npcs: [{
+      key: 'brenna',
+      // Story spine: once the player has felled 2+ of the four main
+      // bosses, Brenna's first interaction routes to the revelation
+      // cutscene (where she explains the four-fold seal). After that
+      // it returns to the normal greeting.
+      dialogueId: (
+        mainBossesKilled() >= 2
+        && (typeof localStorage === 'undefined'
+          || localStorage.getItem('hc_revelation_seen') !== 'true')
+      ) ? 'brenna-revelation' : 'guild-greeting',
+      tileX: 10,
+      tileY: 3,
+    }],
     interactables: [
       { tileX: 14, tileY: 1, label: 'Check the quest board', dialogueId: '__questboard__' },
       { tileX: 2, tileY: 4, label: 'Spar with the training dummy', dialogueId: '__training_dummy__' },
