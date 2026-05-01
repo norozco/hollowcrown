@@ -6,6 +6,7 @@ import {
   DUNGEON_KEY,
   DUNGEON_URL,
 } from './tiles/tileMap';
+import { bakeDecorationTextures } from './tiles/decorationOverlays';
 
 /**
  * First scene the game boots into. Responsible for loading foundational
@@ -40,6 +41,13 @@ export class BootScene extends Phaser.Scene {
   }
 
   create(): void {
+    if (USE_SPRITE_TILES) {
+      // Pre-bake the multi-cell decoration sprites (3-tall trees, wall
+      // tops, etc.) by compositing slices of the Kenney sheet onto
+      // standalone Phaser textures. Done once at boot; consumed at
+      // every scene's layout phase via applyTreeOverlays.
+      bakeDecorationTextures(this);
+    }
     this.scene.start('PlaceholderScene');
   }
 }

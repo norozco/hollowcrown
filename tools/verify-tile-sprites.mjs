@@ -183,6 +183,86 @@ async function main() {
     console.log(`Wrote ${out} (${(buf.length / 1024).toFixed(1)} KB)`);
   }
 
+  // ── Zoom 1: trees/flora section (rows 9-11, cols 12-30) ──
+  {
+    const SCALE = 8;
+    const CELL = TILE * SCALE;
+    const COL_START = 12, COL_END = 30;
+    const ROW_START = 9, ROW_END = 11;
+    const COLS_TO_SHOW = COL_END - COL_START + 1;
+    const ROWS_TO_SHOW = ROW_END - ROW_START + 1;
+    const PAD = 2;
+    const LABEL_W = 28;
+    const LABEL_H = 18;
+    const W = LABEL_W + COLS_TO_SHOW * (CELL + PAD);
+    const H = LABEL_H + ROWS_TO_SHOW * (CELL + PAD);
+    const cv = createCanvas(W, H);
+    const ctx = cv.getContext('2d');
+    ctx.imageSmoothingEnabled = false;
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, W, H);
+    ctx.font = '11px monospace';
+    ctx.fillStyle = '#000';
+    for (let c = 0; c < COLS_TO_SHOW; c++) {
+      ctx.fillText(String(c + COL_START), LABEL_W + c * (CELL + PAD) + 4, 12);
+    }
+    for (let r = 0; r < ROWS_TO_SHOW; r++) {
+      ctx.fillText(String(r + ROW_START), 4, LABEL_H + r * (CELL + PAD) + 14);
+      for (let c = 0; c < COLS_TO_SHOW; c++) {
+        const sx = (c + COL_START) * PITCH;
+        const sy = (r + ROW_START) * PITCH;
+        const dx = LABEL_W + c * (CELL + PAD);
+        const dy = LABEL_H + r * (CELL + PAD);
+        ctx.fillStyle = '#ff00ff';
+        ctx.fillRect(dx, dy, CELL, CELL);
+        ctx.drawImage(img, sx, sy, TILE, TILE, dx, dy, CELL, CELL);
+      }
+    }
+    const buf = cv.toBuffer('image/png');
+    writeFileSync(join(OUT_DIR, 'zoom-flora.png'), buf);
+    console.log(`Wrote zoom-flora.png`);
+  }
+
+  // ── Zoom 2: walls/buildings section (rows 12-22, cols 14-30) ──
+  {
+    const SCALE = 6;
+    const CELL = TILE * SCALE;
+    const COL_START = 14, COL_END = 30;
+    const ROW_START = 12, ROW_END = 22;
+    const COLS_TO_SHOW = COL_END - COL_START + 1;
+    const ROWS_TO_SHOW = ROW_END - ROW_START + 1;
+    const PAD = 2;
+    const LABEL_W = 28;
+    const LABEL_H = 18;
+    const W = LABEL_W + COLS_TO_SHOW * (CELL + PAD);
+    const H = LABEL_H + ROWS_TO_SHOW * (CELL + PAD);
+    const cv = createCanvas(W, H);
+    const ctx = cv.getContext('2d');
+    ctx.imageSmoothingEnabled = false;
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, W, H);
+    ctx.font = '11px monospace';
+    ctx.fillStyle = '#000';
+    for (let c = 0; c < COLS_TO_SHOW; c++) {
+      ctx.fillText(String(c + COL_START), LABEL_W + c * (CELL + PAD) + 4, 12);
+    }
+    for (let r = 0; r < ROWS_TO_SHOW; r++) {
+      ctx.fillText(String(r + ROW_START), 4, LABEL_H + r * (CELL + PAD) + 14);
+      for (let c = 0; c < COLS_TO_SHOW; c++) {
+        const sx = (c + COL_START) * PITCH;
+        const sy = (r + ROW_START) * PITCH;
+        const dx = LABEL_W + c * (CELL + PAD);
+        const dy = LABEL_H + r * (CELL + PAD);
+        ctx.fillStyle = '#ff00ff';
+        ctx.fillRect(dx, dy, CELL, CELL);
+        ctx.drawImage(img, sx, sy, TILE, TILE, dx, dy, CELL, CELL);
+      }
+    }
+    const buf = cv.toBuffer('image/png');
+    writeFileSync(join(OUT_DIR, 'zoom-walls.png'), buf);
+    console.log(`Wrote zoom-walls.png`);
+  }
+
   // ── Contact sheet 3: full grid right half (cols 31-56) ──
   {
     const SCALE = 4;

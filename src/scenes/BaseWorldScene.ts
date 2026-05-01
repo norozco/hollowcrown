@@ -17,7 +17,8 @@ import { useDungeonMapStore } from '../state/dungeonMapStore';
 import { useTimeStore, getPhaseTint } from '../state/timeStore';
 import { useGameStatsStore } from '../state/gameStatsStore';
 import { spawnWeather, getWeatherForScene } from './weather';
-import { applyTileVariants } from './tiles/tileMap';
+import { applyTileVariants, USE_SPRITE_TILES } from './tiles/tileMap';
+import { applyTreeOverlays, applyWallTopOverlays } from './tiles/decorationOverlays';
 import { Pseudo3d, USE_PSEUDO_3D } from './pseudo3d';
 import {
   generateCharacterSprite,
@@ -315,6 +316,15 @@ export abstract class BaseWorldScene extends Phaser.Scene {
       const layer = obj as Phaser.Tilemaps.TilemapLayer;
       if (layer && typeof (layer as unknown as { forEachTile?: unknown }).forEachTile === 'function') {
         applyTileVariants(layer as unknown as Parameters<typeof applyTileVariants>[0]);
+        // Multi-cell decoration overlays — render proper 3-tall Kenney
+        // trees over BUSH cells, and "top of wall" sprites above the
+        // top edge of every wall run for the depth illusion. Only
+        // fires when the Kenney sheet is loaded; otherwise cells stay
+        // as procedural bushes / flat walls drawn in the tilemap.
+        if (USE_SPRITE_TILES) {
+          applyTreeOverlays(this, layer);
+          applyWallTopOverlays(this, layer);
+        }
       }
       return null;
     });
