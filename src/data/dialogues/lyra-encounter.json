@@ -1,0 +1,97 @@
+{
+  "id": "lyra-encounter",
+  "start": "approach",
+  "nodes": {
+    "approach": {
+      "id": "approach",
+      "speaker": "narrator",
+      "text": "She is sitting against the hollow cairn, a sword across her knees and her cloak pulled flat against the stone behind her. She hears your boot before she sees you. The blade is half-drawn before her shoulders even turn.",
+      "next": "lyra-warning"
+    },
+    "lyra-warning": {
+      "id": "lyra-warning",
+      "speaker": "lyra",
+      "expression": "angry",
+      "text": "Stand where you are. One more step and I find out whether the rumours about my reflexes are still true. State a name, state a road, and pick your words like they cost you.",
+      "next": "lyra-options"
+    },
+
+    "lyra-options": {
+      "id": "lyra-options",
+      "speaker": "lyra",
+      "expression": "neutral",
+      "text": "Well. I am waiting.",
+      "choices": [
+        { "text": "Brenna sent me. The guild knows you are out here.", "next": "guild-claim", "requires": [{ "type": "min-rank", "rank": "D" }] },
+        { "text": "[Lie about the guild.] Brenna sent me.", "next": "guild-bluff", "requires": [{ "type": "max-rank", "rank": "D" }] },
+        { "text": "I am no one. Just passing the cairn.", "next": "no-name" },
+        { "text": "[Walk away. Leave her with the stones.]", "next": "walk-away" }
+      ]
+    },
+
+    "guild-claim": {
+      "id": "guild-claim",
+      "speaker": "lyra",
+      "expression": "thoughtful",
+      "text": "...Brenna. Aye, I would believe that, the way you stand. I trained on the same yard. The token at your belt has the right wear on it. Lower the hand. The blade is going back in the scabbard, slow.",
+      "next": "guild-claim-2",
+      "effects": [
+        { "type": "set-flag", "key": "hc_lyra_guild_known" }
+      ]
+    },
+    "guild-claim-2": {
+      "id": "guild-claim-2",
+      "speaker": "lyra",
+      "expression": "neutral",
+      "text": "Lyra Ashen. Used to be Sergeant Lyra Ashen, before the Mossbarrow job. You will not find me on the ledger any more. Brenna was kind enough to leave the page blank rather than write the word she should have written.",
+      "next": "guild-claim-3"
+    },
+    "guild-claim-3": {
+      "id": "guild-claim-3",
+      "speaker": "lyra",
+      "expression": "thoughtful",
+      "text": "If she sent you, she sent you for a reason. I am not coming back to a yard. But — sit, if you like. The cairn is poor company and worse cover. Come back when the shaking in your sword arm settles. We can talk then about why I am still out here.",
+      "next": null
+    },
+
+    "guild-bluff": {
+      "id": "guild-bluff",
+      "speaker": "lyra",
+      "expression": "angry",
+      "text": "...No. You wear no token. Your boots are too clean. The guild does not send rank-F children after deserters, and you flinched the way someone flinches who has not stood for a name in their life.",
+      "next": "guild-bluff-2"
+    },
+    "guild-bluff-2": {
+      "id": "guild-bluff-2",
+      "speaker": "lyra",
+      "expression": "neutral",
+      "text": "Walk on. The cairn is older than you and it will be older than me. Come back when you have a true thing to say. I am still here. I am always still here.",
+      "next": null
+    },
+
+    "no-name": {
+      "id": "no-name",
+      "speaker": "lyra",
+      "expression": "thoughtful",
+      "text": "...A no-one walking past a cairn. Strange company for a Tuesday. The blade is going down because you have not lied yet, and that is rare in this stretch of the moor.",
+      "next": "no-name-2"
+    },
+    "no-name-2": {
+      "id": "no-name-2",
+      "speaker": "lyra",
+      "expression": "neutral",
+      "text": "Lyra. That is the only name you need from me today. Sit, if your legs are tired. Walk on, if they are not. Come back when you have a question you actually want to ask. I am not in a hurry. The hurry left me a year ago.",
+      "next": null,
+      "effects": [
+        { "type": "set-flag", "key": "hc_lyra_civil" }
+      ]
+    },
+
+    "walk-away": {
+      "id": "walk-away",
+      "speaker": "narrator",
+      "text": "You step back the way you came. The cairn keeps her. The stones keep their silence. Somewhere behind you, you hear the faint scrape of the blade going back into the scabbard, slow as a held breath.",
+      "next": null
+    }
+  }
+}

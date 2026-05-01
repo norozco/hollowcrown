@@ -1,0 +1,64 @@
+{
+  "id": "quill-encounter",
+  "start": "approach",
+  "nodes": {
+    "approach": {
+      "id": "approach",
+      "speaker": "narrator",
+      "text": "He is at the corner table the inn keeps clear out of habit, hooded, hands wrapped around a cup that has not been refilled in a long while. He does not look up when you sit. He looks up only when the lamp catches a thing on you he was not expecting to see again.",
+      "next": "quill-recognise"
+    },
+    "quill-recognise": {
+      "id": "quill-recognise",
+      "speaker": "quill",
+      "expression": "shocked",
+      "text": "...That. The mark on your hand. The shape under your collar. Where did you find that. Speak slowly. The answer matters more than you know.",
+      "next": "quill-options"
+    },
+
+    "quill-options": {
+      "id": "quill-options",
+      "speaker": "quill",
+      "expression": "neutral",
+      "text": "I will know if you lie. The mark only sits that way on a thing taken from the throne. Choose.",
+      "choices": [
+        { "text": "I took it from the throne. I know what I wore.", "next": "knew" },
+        { "text": "What are you talking about? It is just an old keepsake.", "next": "deny" },
+        { "text": "[Stand up. Walk away from the table.]", "next": "leave" }
+      ]
+    },
+
+    "knew": {
+      "id": "knew",
+      "speaker": "quill",
+      "expression": "sad",
+      "text": "...Aye. You knew. I can see it now in the way you do not flinch from the word. Sit, please. Sit a moment longer. I had thought I would not see that mark on a living person again. I had hoped not to.",
+      "next": "knew-2",
+      "effects": [
+        { "type": "set-flag", "key": "hc_quill_open" }
+      ]
+    },
+    "knew-2": {
+      "id": "knew-2",
+      "speaker": "quill",
+      "expression": "thoughtful",
+      "text": "I cannot say all of it tonight. The hood is for a reason and the cup is for a reason. But you should come back. There is a thing I owe a stranger, and you appear to be the stranger. Find me at this corner. I will be here. I will always be here.",
+      "next": null
+    },
+
+    "deny": {
+      "id": "deny",
+      "speaker": "quill",
+      "expression": "sad",
+      "text": "...Aye. A keepsake. Of course. Forgive an old drunk for staring. The lamp does strange things to a tired man's eye. Walk on. The corner is only a corner. Forget you saw me here.",
+      "next": null
+    },
+
+    "leave": {
+      "id": "leave",
+      "speaker": "narrator",
+      "text": "You leave him with his cup. He does not call after you. When you reach the door, you glance back — he has not moved. The hood has not lifted. Whatever you wore on your collar, it has gone back to being, for him, a thing seen and not believed.",
+      "next": null
+    }
+  }
+}

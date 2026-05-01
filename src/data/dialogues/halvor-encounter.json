@@ -1,0 +1,72 @@
+{
+  "id": "halvor-encounter",
+  "start": "approach",
+  "nodes": {
+    "approach": {
+      "id": "approach",
+      "speaker": "narrator",
+      "text": "He is on a stump in the clearing, a soft-spoken sort, mid-thirties, with a leather notebook open across one knee and a pencil that has been sharpened too many times. He looks up before you have stopped walking — not startled, just attentive. The pencil tucks itself into the binding without a glance.",
+      "next": "halvor-greet"
+    },
+    "halvor-greet": {
+      "id": "halvor-greet",
+      "speaker": "halvor",
+      "expression": "neutral",
+      "text": "Forgive me. I do not get many visitors out here who arrive on purpose. I am Halvor — Halvor Trent, if titles still matter to you. I came for the trees, and the trees have been kind enough not to throw me out yet.",
+      "next": "halvor-question"
+    },
+    "halvor-question": {
+      "id": "halvor-question",
+      "speaker": "halvor",
+      "expression": "thoughtful",
+      "text": "May I ask you something strange? You have the look of someone who has been below ground recently. The dust on your boots is the wrong colour for surface earth. Have you seen anything — odd — down there? A wall that did not feel like a wall? A thing that hummed when nothing was striking it?",
+      "choices": [
+        { "text": "I have seen things below. Hollow walls. Strange humming.", "next": "yes-seen", "requires": [{ "type": "min-level", "level": 5 }] },
+        { "text": "[Lie.] I have seen wonders. The deep is full of them.", "next": "lie-seen", "requires": [{ "type": "max-rank", "rank": "C" }] },
+        { "text": "No. Nothing that did not look like stone and damp.", "next": "no-seen" },
+        { "text": "[Leave him to his notebook.]", "next": "leave" }
+      ]
+    },
+
+    "yes-seen": {
+      "id": "yes-seen",
+      "speaker": "halvor",
+      "expression": "shocked",
+      "text": "...Then you have seen what I have only sketched. The hollow walls. The hum. The places where the stone forgets it is stone. I am not mad after all. Or I am, and you are too, and we can be useful to each other.",
+      "next": "yes-seen-2",
+      "effects": [
+        { "type": "set-flag", "key": "hc_halvor_curious" }
+      ]
+    },
+    "yes-seen-2": {
+      "id": "yes-seen-2",
+      "speaker": "halvor",
+      "expression": "thoughtful",
+      "text": "Come back when you have time to sit. I have a thesis. It is the kind of thing you should hear sitting down. I will be here — the trees are unhurried and so, increasingly, am I.",
+      "next": null
+    },
+
+    "lie-seen": {
+      "id": "lie-seen",
+      "speaker": "halvor",
+      "expression": "thoughtful",
+      "text": "...Wonders. Yes. I am sure. Forgive me — wonders are a word travellers use when they have not seen anything that did not have a clear name. It is alright. Most have not. Come back when the deep has bitten you, and I will know what to ask.",
+      "next": null
+    },
+
+    "no-seen": {
+      "id": "no-seen",
+      "speaker": "halvor",
+      "expression": "neutral",
+      "text": "Honestly answered. Most who walk past me say yes for the conversation. Stone and damp is the truth of most dungeons. The other thing is rarer. Walk on, then. I will be here, on this stump, for a long while yet. Come back if the world gets stranger.",
+      "next": null
+    },
+
+    "leave": {
+      "id": "leave",
+      "speaker": "narrator",
+      "text": "He nods, the small forgiving nod of a man used to being left to his work. The pencil is already back in his hand by the time you reach the tree-line. The forest takes him the way it takes everything quiet.",
+      "next": null
+    }
+  }
+}

@@ -253,6 +253,24 @@ export class GreenhollowScene extends BaseWorldScene {
       },
     });
 
+    // ── Halvor Trent — Sundering scholar in a forest clearing ──
+    // He sits on a stump in a small clearing west of the north road,
+    // away from wolf packs and the cabin. Once he agrees to come along
+    // (`hc_halvor_agreed`), he relocates to the Whispering Hollow Inn
+    // and disappears from the woods. Once recruited he is gone for good.
+    const halvorAgreed = localStorage.getItem('hc_halvor_agreed') === 'true';
+    const halvorRecruited = localStorage.getItem('hc_halvor_recruited') === 'true';
+    if (!halvorAgreed && !halvorRecruited) {
+      const halvorCurious = localStorage.getItem('hc_halvor_curious') === 'true';
+      const halvorDialogueId = halvorCurious ? 'halvor-thesis' : 'halvor-encounter';
+      // Stump in the clearing at tile (10, 12) — open grass, off-path,
+      // safely west of the wolves at (12, 16).
+      this.spawnNpc({
+        key: 'halvor', dialogueId: halvorDialogueId,
+        x: 10 * TILE + TILE / 2, y: 12 * TILE + TILE / 2,
+      });
+    }
+
     // Carved tree (small circle marker on a tree position)
     const carvedTree = this.add.circle(7 * TILE, 10 * TILE, 5, 0xa09878, 0.6);
     carvedTree.setDepth(6);

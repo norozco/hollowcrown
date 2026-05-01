@@ -1,0 +1,78 @@
+{
+  "id": "halvor-thesis",
+  "start": "return",
+  "nodes": {
+    "return": {
+      "id": "return",
+      "speaker": "narrator",
+      "text": "He is in the same place, on the same stump, but the notebook is closed this time and his hands are flat across the cover the way one keeps something steady that wants to lift. He smiles when he sees you — small, apologetic, like a man who already knows he is about to talk for too long.",
+      "next": "settle"
+    },
+    "settle": {
+      "id": "settle",
+      "speaker": "halvor",
+      "expression": "neutral",
+      "text": "Sit, please. The light is good. I have been waiting to say this aloud to someone who would not laugh. I am almost sure I am right. That is the worst sort of certainty for a scholar. It tends to mean one is wrong in a more interesting way.",
+      "next": "thesis-1"
+    },
+
+    "thesis-1": {
+      "id": "thesis-1",
+      "speaker": "halvor",
+      "expression": "thoughtful",
+      "text": "The Sundering. Every text says cataclysm. Every text says the world cracked, and the cracks are what we now call the deep. I have been reading the wrong texts for a year, the way one does, before I read a stone instead. The hollow walls do not crack outward. They crack inward. They are not the result of a break. They are the result of a seal.",
+      "next": "thesis-2"
+    },
+    "thesis-2": {
+      "id": "thesis-2",
+      "speaker": "halvor",
+      "expression": "sad",
+      "text": "Something was held under, once. Something old enough that the stone learned to hold it. The Sundering was not the world breaking. The Sundering was the seal failing. The cracks are where the seal used to be. The hum is what is still trying to keep it shut.",
+      "next": "thesis-3"
+    },
+    "thesis-3": {
+      "id": "thesis-3",
+      "speaker": "halvor",
+      "expression": "neutral",
+      "text": "And here is the part I cannot prove from a stump in a forest. The thing on the throne — the Hollow King, the one whose name they whisper in Ashenvale — he is not the breaker of the seal. He is what the seal was for. He has been below for longer than any of the kingdoms we have given names. He is only just remembering how to walk again.",
+      "next": "thesis-options"
+    },
+
+    "thesis-options": {
+      "id": "thesis-options",
+      "speaker": "halvor",
+      "expression": "thoughtful",
+      "text": "So. There it is. I have written it in the notebook. It does no good in a notebook. What would you have me do with it.",
+      "choices": [
+        { "text": "Come with me. The notebook is no good without legs.", "next": "agree-come" },
+        { "text": "Stay here. This is academic. Leave the seal to scholars.", "next": "stay-here" }
+      ]
+    },
+
+    "agree-come": {
+      "id": "agree-come",
+      "speaker": "halvor",
+      "expression": "shocked",
+      "text": "...Come with you. Yes. I think — yes. The trees have been good to me, but the trees do not test a thesis. I will need a day to put my notes in order. I cannot promise I will be useful in a fight. I can promise I will know what we are looking at when we find it.",
+      "next": "agree-come-2",
+      "effects": [
+        { "type": "set-flag", "key": "hc_halvor_agreed" }
+      ]
+    },
+    "agree-come-2": {
+      "id": "agree-come-2",
+      "speaker": "halvor",
+      "expression": "thoughtful",
+      "text": "Find me at the Whispering Hollow Inn when you are next in Ashenvale. I will take a room there while I pack the notebook properly. I have herbs and bandages enough for two — I have been alone with these woods long enough to learn the small medicines. We will speak again, indoors, where the wind cannot hear us.",
+      "next": null
+    },
+
+    "stay-here": {
+      "id": "stay-here",
+      "speaker": "halvor",
+      "expression": "sad",
+      "text": "...Aye. The notebook is the safer place for it. Some theses are best kept on stumps in forests, where they cannot be tested into being true. I will be here. The forest is unhurried. So am I. Walk well.",
+      "next": null
+    }
+  }
+}

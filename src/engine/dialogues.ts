@@ -13,6 +13,15 @@ import miraConfront from '../data/dialogues/mira-confront.json';
 import miraBackstory from '../data/dialogues/mira-backstory.json';
 import miraRecruitment from '../data/dialogues/mira-recruitment.json';
 import brennaRevelation from '../data/dialogues/brenna-revelation.json';
+import lyraEncounter from '../data/dialogues/lyra-encounter.json';
+import lyraConfess from '../data/dialogues/lyra-confess.json';
+import lyraRecruit from '../data/dialogues/lyra-recruit.json';
+import halvorEncounter from '../data/dialogues/halvor-encounter.json';
+import halvorThesis from '../data/dialogues/halvor-thesis.json';
+import halvorRecruit from '../data/dialogues/halvor-recruit.json';
+import quillEncounter from '../data/dialogues/quill-encounter.json';
+import quillConfess from '../data/dialogues/quill-confess.json';
+import quillRecruit from '../data/dialogues/quill-recruit.json';
 import type { Dialogue } from './dialogue';
 
 /**
@@ -36,6 +45,15 @@ const DIALOGUES: Record<string, Dialogue> = {
   'mira-backstory': miraBackstory as unknown as Dialogue,
   'mira-recruitment': miraRecruitment as unknown as Dialogue,
   'brenna-revelation': brennaRevelation as unknown as Dialogue,
+  'lyra-encounter': lyraEncounter as unknown as Dialogue,
+  'lyra-confess': lyraConfess as unknown as Dialogue,
+  'lyra-recruit': lyraRecruit as unknown as Dialogue,
+  'halvor-encounter': halvorEncounter as unknown as Dialogue,
+  'halvor-thesis': halvorThesis as unknown as Dialogue,
+  'halvor-recruit': halvorRecruit as unknown as Dialogue,
+  'quill-encounter': quillEncounter as unknown as Dialogue,
+  'quill-confess': quillConfess as unknown as Dialogue,
+  'quill-recruit': quillRecruit as unknown as Dialogue,
 };
 
 export function getDialogue(id: string): Dialogue {

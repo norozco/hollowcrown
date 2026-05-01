@@ -81,6 +81,47 @@ export class InteriorScene extends BaseWorldScene {
       });
     }
 
+    // Halvor recruitment beat — once he has agreed to come along
+    // (`hc_halvor_agreed`) he leaves the Greenhollow stump and takes a
+    // table at the Whispering Hollow Inn. Suppressed once recruited.
+    if (layoutId === 'inn'
+      && localStorage.getItem('hc_halvor_agreed') === 'true'
+      && localStorage.getItem('hc_halvor_recruited') !== 'true') {
+      // Hearth-side floor — tile (5, 5) is open floor in the inn layout
+      // (between the counter and the rug, away from the dining chairs).
+      this.spawnNpc({
+        key: 'halvor', dialogueId: 'halvor-recruit',
+        x: oX + 5 * TILE + TILE / 2, y: oY + 5 * TILE + TILE / 2,
+      });
+    }
+
+    // Quill — former Hollow King keeper, hooded at a corner table.
+    // Only present after the Hollow King has been defeated (the boss
+    // flag combatStore.finish() writes as `hc_hollow_king_defeated=1`).
+    // Picked from the arc state via the same hc_* flag pattern.
+    //
+    //   - first interaction → quill-encounter (he sees the mark, beat 1)
+    //   - after hc_quill_open → quill-confess (the keepers, beat 2)
+    //   - after hc_quill_atone → quill-recruit (he packs, leaves the cup, beat 3)
+    //
+    // Suppressed once recruited.
+    if (layoutId === 'inn'
+      && (localStorage.getItem('hc_hollow_king_defeated') === '1'
+        || localStorage.getItem('hc_hollow_king_defeated') === 'true')
+      && localStorage.getItem('hc_quill_recruited') !== 'true') {
+      const quillOpen = localStorage.getItem('hc_quill_open') === 'true';
+      const quillAtone = localStorage.getItem('hc_quill_atone') === 'true';
+      let quillDialogueId = 'quill-encounter';
+      if (quillAtone) quillDialogueId = 'quill-recruit';
+      else if (quillOpen) quillDialogueId = 'quill-confess';
+      // Far corner away from Tomas (who's at tile 6,3). Tile (14, 8)
+      // is empty floor in the south-east of the room.
+      this.spawnNpc({
+        key: 'quill', dialogueId: quillDialogueId,
+        x: oX + 14 * TILE + TILE / 2, y: oY + 8 * TILE + TILE / 2,
+      });
+    }
+
     for (const ix of layout.interactables) {
       const sprite = this.add.rectangle(
         oX + ix.tileX * TILE + TILE / 2, oY + ix.tileY * TILE + TILE / 2,

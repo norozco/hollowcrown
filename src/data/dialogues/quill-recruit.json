@@ -1,0 +1,56 @@
+{
+  "id": "quill-recruit",
+  "start": "return",
+  "nodes": {
+    "return": {
+      "id": "return",
+      "speaker": "narrator",
+      "text": "The cup is gone from the table. So is the hood. He looks smaller without it, and older, and somehow more here than the corner has seen him be. A small bundle is on the chair beside him — wrapped cloth, a knife, a stone with a worn carving. A whole life, packed for a stranger.",
+      "next": "quill-greet"
+    },
+    "quill-greet": {
+      "id": "quill-greet",
+      "speaker": "quill",
+      "expression": "neutral",
+      "text": "I am ready. I have been ready since the moment you said yes, but I needed the hours to believe it. Tell me only that you mean it. I will not be left behind in this corner a second time.",
+      "next": "quill-promise"
+    },
+    "quill-promise": {
+      "id": "quill-promise",
+      "speaker": "quill",
+      "expression": "thoughtful",
+      "text": "I will keep watch the way the keepers used to keep watch — but for you, not for him. I know where his people set their snares. I know which stones do not strike back when struck. The careful eye of an old conspirator, turned around. That is what I have to offer.",
+      "choices": [
+        { "text": "Walk with me. We leave the corner.", "next": "recruit" },
+        { "text": "Hold a little longer. The road is not ready.", "next": "decline" }
+      ]
+    },
+
+    "recruit": {
+      "id": "recruit",
+      "speaker": "quill",
+      "expression": "sad",
+      "text": "...Aye. Then we leave. The corner will be a corner again, without me in it. I would say something fitting. I cannot find the words. The drink took most of the words. The road will have to ask the rest of them out of me.",
+      "next": "recruit-done",
+      "effects": [
+        { "type": "hire-companion", "companionKey": "quill" },
+        { "type": "set-flag", "key": "hc_quill_recruited" }
+      ]
+    },
+    "recruit-done": {
+      "id": "recruit-done",
+      "speaker": "quill",
+      "expression": "neutral",
+      "text": "One thing. If we pass a shrine of his — and we will, the road keeps several — let me walk past it without speaking. There are names of mine still tangled with that wood. I would rather they came home to me quietly, in their own time, than be called out by a stranger's curiosity.",
+      "next": null
+    },
+
+    "decline": {
+      "id": "decline",
+      "speaker": "quill",
+      "expression": "sad",
+      "text": "Of course. The corner has held me three winters; it can hold me a night more. I will not pack the bundle away. It has waited longer than that for a road. Find me when you are ready.",
+      "next": null
+    }
+  }
+}

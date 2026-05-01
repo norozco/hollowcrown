@@ -48,6 +48,27 @@ export const COMPANIONS: Record<string, Companion> = {
     hireCost: 0,
     effect: { bonusAc: 3, bonusDamage: 2 },
   },
+  lyra: {
+    key: 'lyra',
+    name: 'Lyra Ashen',
+    description: 'A guild deserter. The yard wrote one word against her. The cairn wrote nothing.',
+    hireCost: 200,
+    effect: { bonusDamage: 4 },
+  },
+  halvor: {
+    key: 'halvor',
+    name: 'Halvor Trent',
+    description: 'A scholar of the Sundering. He carries herbs, bandages, and a thesis the world should rather he forgot.',
+    hireCost: 0,
+    effect: { healPerTurn: 2 },
+  },
+  quill: {
+    key: 'quill',
+    name: 'Quill',
+    description: 'A keeper who walked away. The drink took most of his names. The road may yet give some back.',
+    hireCost: 0,
+    effect: { bonusAc: 2 },
+  },
 };
 
 /** Friendly summary of a companion's combat contribution for the HUD/overlay. */

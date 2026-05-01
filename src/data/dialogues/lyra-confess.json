@@ -1,0 +1,78 @@
+{
+  "id": "lyra-confess",
+  "start": "return",
+  "nodes": {
+    "return": {
+      "id": "return",
+      "speaker": "narrator",
+      "text": "She has not moved from the cairn. The light is different now — long and red on the stones — but her shape is the same, the sword across the same knees. She watches you cross the moor without rising. The watching is its own answer.",
+      "next": "settle"
+    },
+    "settle": {
+      "id": "settle",
+      "speaker": "lyra",
+      "expression": "neutral",
+      "text": "You came back. I half wagered you would not. Sit, then. The stone is cold and the wind is honest. Better company than I have had this season.",
+      "next": "story-1"
+    },
+
+    "story-1": {
+      "id": "story-1",
+      "speaker": "lyra",
+      "expression": "sad",
+      "text": "There were five of us, on the bog job. I had the rank. I had the orders. The mark we were chasing did not run the way the briefing said he would. He ran toward the water, and the water was not water — it was the kind of bog that does not give a body back.",
+      "next": "story-2"
+    },
+    "story-2": {
+      "id": "story-2",
+      "speaker": "lyra",
+      "expression": "thoughtful",
+      "text": "I called the line back. I called it twice. Bren — my second — went in after the mark anyway. The other three followed her, the way younger blades do. I held the rise alone, because someone had to hold the rise. By the time the bog was done, I had a sword and four names to write down and no one to write them with.",
+      "next": "story-3"
+    },
+    "story-3": {
+      "id": "story-3",
+      "speaker": "lyra",
+      "expression": "neutral",
+      "text": "The sergeant on the muster yard listened to my report and said one word. 'Cowardice.' That was all. I gave him my token. I left the yard before he could write the word into the ledger. I have been hunting bandits along this stretch since. The work does not need a token. It does not ask after my name.",
+      "next": "story-options"
+    },
+
+    "story-options": {
+      "id": "story-options",
+      "speaker": "lyra",
+      "expression": "neutral",
+      "text": "So. There it is. The short version, since you asked.",
+      "choices": [
+        { "text": "Brenna spoke well of you. She did not use that word.", "next": "forgiven" },
+        { "text": "[Say nothing. Let her hear her own silence.]", "next": "silence" }
+      ]
+    },
+
+    "forgiven": {
+      "id": "forgiven",
+      "speaker": "lyra",
+      "expression": "thoughtful",
+      "text": "...Brenna said that. Out loud. To you. Hm. She always was the only one on that yard who counted the names before she counted the win. I will not call it forgiveness. I will call it weight off a stone I did not know I was carrying.",
+      "next": "forgiven-2",
+      "effects": [
+        { "type": "set-flag", "key": "hc_lyra_forgiven" }
+      ]
+    },
+    "forgiven-2": {
+      "id": "forgiven-2",
+      "speaker": "lyra",
+      "expression": "neutral",
+      "text": "If you have honest work and a road that needs a second blade — find me here again. I am not promising a yes. I am promising I will hear the question. That is more than I have given anyone in a year.",
+      "next": null
+    },
+
+    "silence": {
+      "id": "silence",
+      "speaker": "lyra",
+      "expression": "sad",
+      "text": "...Aye. Silence is the right answer too. There are stories that ask for it. Walk on, then. The cairn keeps me. It will keep me a while yet.",
+      "next": null
+    }
+  }
+}
