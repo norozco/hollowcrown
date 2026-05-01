@@ -22,6 +22,8 @@ import halvorRecruit from '../data/dialogues/halvor-recruit.json';
 import quillEncounter from '../data/dialogues/quill-encounter.json';
 import quillConfess from '../data/dialogues/quill-confess.json';
 import quillRecruit from '../data/dialogues/quill-recruit.json';
+import hestaHiding from '../data/dialogues/hesta-hiding.json';
+import haldenDebtor from '../data/dialogues/halden-debtor.json';
 import type { Dialogue } from './dialogue';
 
 /**
@@ -54,6 +56,8 @@ const DIALOGUES: Record<string, Dialogue> = {
   'quill-encounter': quillEncounter as unknown as Dialogue,
   'quill-confess': quillConfess as unknown as Dialogue,
   'quill-recruit': quillRecruit as unknown as Dialogue,
+  'hesta-hiding': hestaHiding as unknown as Dialogue,
+  'halden-debtor': haldenDebtor as unknown as Dialogue,
 };
 
 export function getDialogue(id: string): Dialogue {

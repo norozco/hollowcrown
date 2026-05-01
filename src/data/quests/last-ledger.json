@@ -1,0 +1,14 @@
+{
+  "id": "last-ledger",
+  "category": "side",
+  "title": "The Last Ledger",
+  "summary": "Vira holds a debt note for a man in Duskmere who cannot pay. She wants the matter closed — collected or settled, but closed.",
+  "objectives": [
+    { "id": "find-debtor", "description": "Speak to the debtor in Duskmere." },
+    { "id": "report-to-vira", "description": "Return to Vira and tell her how the matter was closed." }
+  ],
+  "reward": {
+    "gold": 320,
+    "xp": 460
+  }
+}

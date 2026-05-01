@@ -201,6 +201,17 @@ export class DuskmereScene extends BaseWorldScene {
       x: 14 * TILE, y: 7 * TILE,
     });
 
+    // Halden — the debtor in Vira's "Last Ledger" quest. Stands by his
+    // small cabin at the south edge of the village. Only present once
+    // the quest is active and not yet closed.
+    const lastLedgerState = useQuestStore.getState().active['last-ledger'];
+    if (lastLedgerState && !lastLedgerState.turnedIn) {
+      this.spawnNpc({
+        key: 'halden', dialogueId: 'halden-debtor',
+        x: 6 * TILE, y: 18 * TILE,
+      });
+    }
+
     // Mira — on the far dock (only after the theft event, until she has
     // moved on to the inn for recruitment).
     //

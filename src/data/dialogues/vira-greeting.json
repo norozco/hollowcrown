@@ -27,6 +27,38 @@
           "next": "silk-offer",
           "requires": [{ "type": "quest-not-started", "questId": "silk-trader" }]
         },
+        {
+          "text": "There is a debt note in your ledger you have not collected on.",
+          "next": "ledger-offer",
+          "requires": [
+            { "type": "quest-not-started", "questId": "last-ledger" },
+            { "type": "quest-complete", "questId": "silk-trader" }
+          ]
+        },
+        {
+          "text": "The matter of the debtor in Duskmere is closed.",
+          "next": "ledger-turnin",
+          "requires": [
+            { "type": "quest-active", "questId": "last-ledger" },
+            { "type": "world-flag", "key": "hc_debt_collected" }
+          ]
+        },
+        {
+          "text": "The matter of the debtor in Duskmere is closed.",
+          "next": "ledger-turnin",
+          "requires": [
+            { "type": "quest-active", "questId": "last-ledger" },
+            { "type": "world-flag", "key": "hc_debt_forgiven" }
+          ]
+        },
+        {
+          "text": "I read the journal. It was for you.",
+          "next": "vira-journal-deliver",
+          "requires": [
+            { "type": "quest-active", "questId": "empty-room" },
+            { "type": "world-flag", "key": "hc_journal_found" }
+          ]
+        },
         { "text": "What are you selling?", "next": "wares" },
         {
           "text": "Anything off the counter for someone who has earned it?",
@@ -155,6 +187,158 @@
       "speaker": "vira",
       "expression": "neutral",
       "text": "A vial of tincture from the eastern caravan, six years ago. A whetstone that came off a man who did not finish his last contract. A small mirror that does not show the room behind you. I do not price these. I trade them for stories and for favors. When you have one, bring it.",
+      "next": null
+    },
+
+    "ledger-offer": {
+      "id": "ledger-offer",
+      "speaker": "vira",
+      "expression": "thoughtful",
+      "text": "...You went looking. I should be angry. I am tired instead. The note is for one Halden, fisherman, Duskmere. Forty gold owed against rope and salt and a winter of credit I should not have given. He has not crossed the lake to pay it.",
+      "next": "ledger-offer-2"
+    },
+    "ledger-offer-2": {
+      "id": "ledger-offer-2",
+      "speaker": "vira",
+      "expression": "sad",
+      "text": "He has a child. The child is sick — has been all year. I know because his wife used to walk over for the moonpetal salve before the road went bad. That is why the note is still in my drawer and not on the slate behind me.",
+      "next": "ledger-offer-3"
+    },
+    "ledger-offer-3": {
+      "id": "ledger-offer-3",
+      "speaker": "vira",
+      "expression": "neutral",
+      "text": "Cross the lake. Find Halden. Close the matter — collect the forty, or pay it yourself, or write it off in some fashion you can live with. I am asking you because I cannot decide, and a shopkeeper who cannot decide loses her shop. Go.",
+      "next": "ledger-accept",
+      "effects": [
+        { "type": "accept-quest", "questId": "last-ledger" }
+      ]
+    },
+    "ledger-accept": {
+      "id": "ledger-accept",
+      "speaker": "vira",
+      "expression": "thoughtful",
+      "text": "Bring me the answer. Whatever shape it takes. Do not bring me sorries. I have a drawer of those already.",
+      "next": null
+    },
+
+    "ledger-turnin": {
+      "id": "ledger-turnin",
+      "speaker": "narrator",
+      "text": "Vira looks at you for a long moment without speaking. Whatever she sees in your face she puts into the ledger first — a small mark in the margin of the page she has been keeping open for thirty-two days.",
+      "next": "ledger-turnin-branch"
+    },
+    "ledger-turnin-branch": {
+      "id": "ledger-turnin-branch",
+      "speaker": "vira",
+      "expression": "thoughtful",
+      "text": "Tell me how it closed.",
+      "choices": [
+        {
+          "text": "I collected. Forty gold. Halden paid.",
+          "next": "ledger-collected",
+          "requires": [{ "type": "world-flag", "key": "hc_debt_collected" }]
+        },
+        {
+          "text": "I paid the debt myself. Out of my own purse.",
+          "next": "ledger-forgiven",
+          "requires": [{ "type": "world-flag", "key": "hc_debt_forgiven" }]
+        }
+      ]
+    },
+    "ledger-collected": {
+      "id": "ledger-collected",
+      "speaker": "vira",
+      "expression": "neutral",
+      "text": "Forty gold. Counted clean. Good. The book closes properly, and the door of his cabin still opens, and somewhere a child sleeps a little hungrier tonight. Trade is trade. I will not pretend it is anything else.",
+      "next": "ledger-collected-2"
+    },
+    "ledger-collected-2": {
+      "id": "ledger-collected-2",
+      "speaker": "vira",
+      "expression": "thoughtful",
+      "text": "Three hundred and twenty gold for the work. Four hundred and sixty experience. The inflated rate is not for the errand — it is for what the errand cost you to run. I have known the cost. Do not refuse the coin.",
+      "effects": [
+        { "type": "complete-objective", "questId": "last-ledger", "objectiveId": "report-to-vira" },
+        { "type": "turn-in-quest", "questId": "last-ledger" },
+        { "type": "give-gold", "amount": 320 },
+        { "type": "give-xp", "amount": 460 }
+      ],
+      "next": null
+    },
+    "ledger-forgiven": {
+      "id": "ledger-forgiven",
+      "speaker": "vira",
+      "expression": "shocked",
+      "text": "...Out of your own purse. Forty gold of yours, on a man you do not know, for a child who will not remember your face. Why did you do that.",
+      "next": "ledger-forgiven-2"
+    },
+    "ledger-forgiven-2": {
+      "id": "ledger-forgiven-2",
+      "speaker": "narrator",
+      "text": "She does not wait for your answer. She picks up the ledger, draws a clean line through Halden's row, and closes the book. Her hand stays flat on the cover for several breaths.",
+      "next": "ledger-forgiven-3"
+    },
+    "ledger-forgiven-3": {
+      "id": "ledger-forgiven-3",
+      "speaker": "vira",
+      "expression": "thoughtful",
+      "text": "One hundred and ninety gold from the drawer. Five hundred and forty experience. The forty you are out, I cannot return — that was your choice, and a shopkeeper does not undo a customer's choice. The rest is what I would have lost twice over if I had sat on that note one more month.",
+      "effects": [
+        { "type": "complete-objective", "questId": "last-ledger", "objectiveId": "report-to-vira" },
+        { "type": "turn-in-quest", "questId": "last-ledger" },
+        { "type": "give-gold", "amount": 190 },
+        { "type": "give-xp", "amount": 540 },
+        { "type": "set-flag", "key": "hc_vira_marked_kind" }
+      ],
+      "next": "ledger-forgiven-close"
+    },
+    "ledger-forgiven-close": {
+      "id": "ledger-forgiven-close",
+      "speaker": "vira",
+      "expression": "neutral",
+      "text": "I will tell you something. I have not paid for a stranger in eleven years. I had begun to forget what kind of person does. Walk in here whenever you like. The shelf I do not show to F-rank — show it to yourself.",
+      "next": null
+    },
+
+    "vira-journal-deliver": {
+      "id": "vira-journal-deliver",
+      "speaker": "narrator",
+      "text": "You set the journal on the counter. You do not open it. Vira looks at the cover, at the salt-stains, at the small pressed petal slipped between two pages near the back. Her hand stops halfway to it. She does not pick it up.",
+      "next": "vira-journal-2"
+    },
+    "vira-journal-2": {
+      "id": "vira-journal-2",
+      "speaker": "vira",
+      "expression": "shocked",
+      "text": "...Edrik. Of course it is Edrik. He bought a flint from me the morning he left, and I told him it was a poor flint, and he laughed and bought it anyway. I had wondered why I remembered a sale that small.",
+      "next": "vira-journal-3"
+    },
+    "vira-journal-3": {
+      "id": "vira-journal-3",
+      "speaker": "narrator",
+      "text": "Vira opens the back of the book. She reads the last page once. She closes it. She does not read it again. She holds it against her chest for a long count of breaths. When she sets it down, the small mole at the corner of her mouth is the only thing on her face that has not changed.",
+      "next": "vira-journal-4"
+    },
+    "vira-journal-4": {
+      "id": "vira-journal-4",
+      "speaker": "vira",
+      "expression": "sad",
+      "text": "He never said the word. Not once across a winter. He paid in moonlight silver, which I should have read as a question, and I priced it instead. That is the kind of woman a shop makes of you. I am sorry, Edrik. I am sorry I read the book later than the writing.",
+      "next": "vira-journal-5"
+    },
+    "vira-journal-5": {
+      "id": "vira-journal-5",
+      "speaker": "vira",
+      "expression": "thoughtful",
+      "text": "Two hundred and eighty gold. Four hundred and twenty experience. Tell Tomas his guest is at peace. Tell him from me, please. I cannot say it across the square. The shelves need watching.",
+      "effects": [
+        { "type": "complete-objective", "questId": "empty-room", "objectiveId": "deliver-journal" },
+        { "type": "turn-in-quest", "questId": "empty-room" },
+        { "type": "give-gold", "amount": 280 },
+        { "type": "give-xp", "amount": 420 },
+        { "type": "set-flag", "key": "hc_journal_to_vira" }
+      ],
       "next": null
     }
   }

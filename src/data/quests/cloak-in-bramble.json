@@ -1,0 +1,13 @@
+{
+  "id": "cloak-in-bramble",
+  "category": "side",
+  "title": "The Cloak in the Bramble",
+  "summary": "Orric saw a wolf wearing a scrap of his daughter's cloak. He cannot say the rest. Bring three wolf pelts so he can find the one that carried it.",
+  "objectives": [
+    { "id": "bring-pelts", "description": "Bring 3 wolf pelts to Orric." }
+  ],
+  "reward": {
+    "gold": 260,
+    "xp": 380
+  }
+}

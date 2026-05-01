@@ -1,0 +1,14 @@
+{
+  "id": "empty-room",
+  "category": "side",
+  "title": "The Empty Room",
+  "summary": "A regular at the Whispering Hollow never came back from Mossbarrow. Tomas wants his belongings recovered before the room is let to someone else.",
+  "objectives": [
+    { "id": "find-pack", "description": "Recover the missing guest's pack from Mossbarrow Cairn." },
+    { "id": "deliver-journal", "description": "Decide who should receive the journal." }
+  ],
+  "reward": {
+    "gold": 280,
+    "xp": 420
+  }
+}

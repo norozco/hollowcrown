@@ -2,6 +2,8 @@ import { useDialogueStore } from '../state/dialogueStore';
 import { getDialogue } from '../engine/dialogues';
 import { useInventoryStore } from '../state/inventoryStore';
 import { useLoreStore } from '../state/loreStore';
+import { useQuestStore } from '../state/questStore';
+import { useWorldStateStore } from '../state/worldStateStore';
 import { BaseWorldScene, TILE, WORLD_H } from './BaseWorldScene';
 import { generateTileset, TILE as T, TILE_SIZE } from './tiles/generateTiles';
 
@@ -463,6 +465,93 @@ export class MossbarrowScene extends BaseWorldScene {
         window.dispatchEvent(new CustomEvent('gameMessage', {
           detail: '"...the crown was not taken. It was given. And the one who gave it..."',
         }));
+      },
+    });
+
+    // ── Journal pack (Tomas's "The Empty Room" quest) ──
+    // A salt-streaked leather pack tucked against a cairn stone on the
+    // first floor. Visible only while the quest is active and not yet
+    // delivered. Examining it sets the world flag the inn dialogue reads.
+    const emptyRoomState = useQuestStore.getState().active['empty-room'];
+    const journalPicked = useWorldStateStore.getState().isPicked(this.scene.key, 'empty_room_pack');
+    if (emptyRoomState && !emptyRoomState.turnedIn && !journalPicked) {
+      const packX = 7 * TILE;
+      const packY = 16 * TILE;
+      const pack = this.add.rectangle(packX, packY, 20, 14, 0x6a4a28);
+      pack.setStrokeStyle(2, 0x3a2810);
+      pack.setDepth(7);
+      // Buckle detail
+      this.add.rectangle(packX, packY + 2, 6, 4, 0xb09058).setDepth(8);
+      this.spawnInteractable({
+        sprite: pack as any,
+        label: "Examine the dead guest's pack",
+        radius: 22,
+        action: () => {
+          this.spawnPickupParticles(packX, packY, 0xc8b078);
+          useWorldStateStore.getState().markPicked(this.scene.key, 'empty_room_pack');
+          localStorage.setItem('hc_journal_found', 'true');
+          useQuestStore.getState().completeObjective('empty-room', 'find-pack');
+          useLoreStore.getState().discover({
+            key: 'empty-room-journal',
+            title: "Edrik's Journal",
+            text: "A traveler's journal, water-stained but intact. The last page is a poem in a careful hand. It is addressed simply: 'For Vira. Who priced the flint. Who knew.'",
+            location: 'Mossbarrow Cairn',
+          });
+          window.dispatchEvent(new CustomEvent('gameMessage', {
+            detail: "You find the pack and a journal. The last page is a poem to Vira.",
+          }));
+          pack.destroy();
+        },
+      });
+    }
+
+    // ── Roa's Grave (Kael's "The Forge He Couldn't Light" quest) ──
+    // A small weathered stone with a rough top, second row from the path.
+    // Always visible as a lore object after the player has gathered Kael's
+    // materials; before that, it reads as one more grave among many.
+    // Laying the sword on it (when the gather objective is complete and
+    // the lay objective is still open) sets the world flag and discovers
+    // a small remembrance entry in the lore codex.
+    const graveX = 25 * TILE;
+    const graveY = 12 * TILE;
+    const graveStone = this.add.rectangle(graveX, graveY, 16, 24, 0x807868);
+    graveStone.setStrokeStyle(1, 0x504838);
+    graveStone.setDepth(6);
+    // Rough cut at the top — a slightly lighter triangle nub
+    this.add.triangle(graveX, graveY - 11, -6, 4, 6, 4, 0, -3, 0xa09888).setDepth(7);
+    this.spawnInteractable({
+      sprite: graveStone as any,
+      label: "Examine weathered grave",
+      radius: 22,
+      action: () => {
+        const forge = useQuestStore.getState().active['forge-unlit'];
+        const gathered = forge?.completedObjectiveIds.includes('gather-materials');
+        const visited = useWorldStateStore.getState().isPicked(this.scene.key, 'roa_grave_visited');
+        if (forge && gathered && !forge.turnedIn && !visited) {
+          // Lay the finished sword on the grave.
+          this.spawnPickupParticles(graveX, graveY, 0xd4c878);
+          useWorldStateStore.getState().markPicked(this.scene.key, 'roa_grave_visited');
+          localStorage.setItem('hc_roa_grave_visited', 'true');
+          useLoreStore.getState().discover({
+            key: 'roa-grave-mossbarrow',
+            title: "Roa's Grave",
+            text: "A young adventurer who walked north out of Ashenvale at eighteen and was buried at nineteen. The blade you laid here was hers, finished two summers late.",
+            location: 'Mossbarrow Cairn',
+          });
+          window.dispatchEvent(new CustomEvent('gameMessage', {
+            detail: 'You lay the sword across the grave. The wind does not stir.',
+          }));
+        } else {
+          useLoreStore.getState().discover({
+            key: 'unmarked-grave-mossbarrow',
+            title: 'Weathered Grave',
+            text: "A small weathered stone, second row from the path. The name has long since worn away. The rough cut at the top is the only mark left.",
+            location: 'Mossbarrow Cairn',
+          });
+          window.dispatchEvent(new CustomEvent('gameMessage', {
+            detail: 'A small weathered grave. The name is long gone. The rough cut at the top is the only mark.',
+          }));
+        }
       },
     });
   }

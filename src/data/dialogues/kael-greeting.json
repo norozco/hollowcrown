@@ -27,6 +27,29 @@
           "requires": [{ "type": "quest-not-started", "questId": "iron-delivery" }]
         },
         {
+          "text": "There is a piece on your bench you do not finish.",
+          "next": "forge-offer",
+          "requires": [
+            { "type": "quest-not-started", "questId": "forge-unlit" },
+            { "type": "quest-complete", "questId": "iron-delivery" }
+          ]
+        },
+        {
+          "text": "I brought the materials. Iron, bone, moonpetal.",
+          "next": "forge-materials-turnin",
+          "requires": [
+            { "type": "quest-active", "questId": "forge-unlit" }
+          ]
+        },
+        {
+          "text": "I laid the sword on her grave.",
+          "next": "forge-grave-done",
+          "requires": [
+            { "type": "quest-active", "questId": "forge-unlit" },
+            { "type": "world-flag", "key": "hc_roa_grave_visited" }
+          ]
+        },
+        {
           "text": "Your weapons are different now, Kael.",
           "next": "kael-backstory-1",
           "requires": [
@@ -178,6 +201,92 @@
       "speaker": "kael",
       "expression": "neutral",
       "text": "Bring me a fragment of star-iron — the kind that fell east of Ashfields the year the sky cracked. I will know it when I see it. If you carry one in here, I will finish the piece. It will not be cheap. It will not be quick. But it will be yours alone.",
+      "next": null
+    },
+
+    "forge-offer": {
+      "id": "forge-offer",
+      "speaker": "narrator",
+      "text": "Kael's hammer pauses. He sets it down on the anvil with a small precise sound and reaches under the bench for an oilcloth bundle. He lays it on the counter and unwraps it: a sword, mid-build. The blade is half-shaped, the tang bare, the crossguard not yet inlaid. It is the only unfinished piece on the wall.",
+      "next": "forge-offer-2"
+    },
+    "forge-offer-2": {
+      "id": "forge-offer-2",
+      "speaker": "kael",
+      "expression": "sad",
+      "text": "Roa. Eighteen years old. Came in with her own coin and her own design — a hand-and-a-half, lighter than her arm wanted, balanced where her wrist liked it. She walked north before the moonpetal was in. She did not walk back.",
+      "next": "forge-offer-3"
+    },
+    "forge-offer-3": {
+      "id": "forge-offer-3",
+      "speaker": "kael",
+      "expression": "thoughtful",
+      "text": "I held off finishing it. Two summers now. I am not a man who lets work sit. The blade does not let me sleep. Bring me what she paid for: two iron ore, one bone shard, one moonpetal. I will finish the piece. After that — there is one more thing I will ask.",
+      "next": "forge-accept",
+      "effects": [
+        { "type": "accept-quest", "questId": "forge-unlit" }
+      ]
+    },
+    "forge-accept": {
+      "id": "forge-accept",
+      "speaker": "kael",
+      "expression": "neutral",
+      "text": "Plain materials. Nothing special. The honoring is in the finishing of it, not the price of the metal. Go.",
+      "next": null
+    },
+
+    "forge-materials-turnin": {
+      "id": "forge-materials-turnin",
+      "speaker": "narrator",
+      "text": "Kael takes the materials one at a time. The iron weighs fair. The bone shard he turns once between his fingers — a habit, not an inspection. The moonpetal he sets aside on a square of clean linen. He does not say anything for a long moment.",
+      "next": "forge-materials-turnin-2",
+      "effects": [
+        { "type": "remove-items", "itemKey": "iron_ore", "quantity": 2 },
+        { "type": "remove-items", "itemKey": "bone_shard", "quantity": 1 },
+        { "type": "remove-items", "itemKey": "moonpetal", "quantity": 1 },
+        { "type": "complete-objective", "questId": "forge-unlit", "objectiveId": "gather-materials" }
+      ]
+    },
+    "forge-materials-turnin-2": {
+      "id": "forge-materials-turnin-2",
+      "speaker": "kael",
+      "expression": "thoughtful",
+      "text": "Come back at dusk. I will work it through. The blade does not need an audience for the hammering — the rest is between me and the metal.",
+      "next": "forge-materials-turnin-3"
+    },
+    "forge-materials-turnin-3": {
+      "id": "forge-materials-turnin-3",
+      "speaker": "kael",
+      "expression": "neutral",
+      "text": "When you return: take her sword. Lay it on her grave in Mossbarrow Cairn — the stone with the rough cut at the top, second row from the path. Do not bury it. She wanted it carried. Carry it the last step of the way.",
+      "next": null
+    },
+
+    "forge-grave-done": {
+      "id": "forge-grave-done",
+      "speaker": "narrator",
+      "text": "Kael does not ask. He has been watching the door since dusk. When you walk in empty-handed, he reads it in your shoulders.",
+      "next": "forge-grave-done-2"
+    },
+    "forge-grave-done-2": {
+      "id": "forge-grave-done-2",
+      "speaker": "kael",
+      "expression": "sad",
+      "text": "Aye. The blade is where it should be. I will not go look at it. The going would not be for her — it would be for me. The piece stays where you put it.",
+      "next": "forge-grave-done-3"
+    },
+    "forge-grave-done-3": {
+      "id": "forge-grave-done-3",
+      "speaker": "kael",
+      "expression": "neutral",
+      "text": "Three hundred and eighty gold. Five hundred and forty experience. Two summers of unfinished work, closed in three nights and one walk to the cairn. Take the coin and do not refuse it. The forge will run cleaner for the rest of the year.",
+      "effects": [
+        { "type": "complete-objective", "questId": "forge-unlit", "objectiveId": "lay-on-grave" },
+        { "type": "turn-in-quest", "questId": "forge-unlit" },
+        { "type": "give-gold", "amount": 380 },
+        { "type": "give-xp", "amount": 540 },
+        { "type": "set-flag", "key": "hc_roa_remembered" }
+      ],
       "next": null
     }
   }

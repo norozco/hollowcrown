@@ -138,6 +138,14 @@
           ]
         },
         {
+          "text": "I have news of Hesta.",
+          "next": "deserter-found",
+          "requires": [
+            { "type": "quest-active", "questId": "deserter-letter" },
+            { "type": "world-flag", "key": "hc_hesta_met" }
+          ]
+        },
+        {
           "text": "I need work.",
           "next": "quest-hub"
         },
@@ -175,10 +183,133 @@
           "requires": [{ "type": "quest-not-started", "questId": "hollow-king-slayer" }]
         },
         {
+          "text": "Have you lost anyone lately?",
+          "next": "deserter-offer",
+          "requires": [{ "type": "quest-not-started", "questId": "deserter-letter" }]
+        },
+        {
           "text": "Never mind.",
           "next": null
         }
       ]
+    },
+
+    "deserter-offer": {
+      "id": "deserter-offer",
+      "speaker": "brenna",
+      "expression": "sad",
+      "text": "One. Hesta. E-rank, two summers in. She drew a routine patrol through Greenhollow eleven days ago and did not come back to sign the ledger. No body, no note. The patrol partner she left behind says she wandered off the path in the second night.",
+      "next": "deserter-offer-2"
+    },
+    "deserter-offer-2": {
+      "id": "deserter-offer-2",
+      "speaker": "brenna",
+      "expression": "thoughtful",
+      "text": "Find her, or find what is left of her. Tell me the truth — whatever shape it comes in. I have written enough false certainties on that wall.",
+      "next": "deserter-accept",
+      "effects": [
+        { "type": "accept-quest", "questId": "deserter-letter" }
+      ]
+    },
+    "deserter-accept": {
+      "id": "deserter-accept",
+      "speaker": "brenna",
+      "expression": "neutral",
+      "text": "Start at Orric's cabin. He notices what passes through his woods, and what does not. Walk softly. Hesta was not careless. If she went off the path, something put her there.",
+      "next": null
+    },
+
+    "deserter-found": {
+      "id": "deserter-found",
+      "speaker": "narrator",
+      "text": "Brenna does not look up from the ledger. The quill stops moving. Her knuckles whiten on the shaft. She waits.",
+      "next": "deserter-found-2"
+    },
+    "deserter-found-2": {
+      "id": "deserter-found-2",
+      "speaker": "brenna",
+      "expression": "thoughtful",
+      "text": "Tell me, then. Whatever it is. I have heard worse and signed it.",
+      "choices": [
+        { "text": "She is dead. Killed in the woods.", "next": "deserter-lie" },
+        { "text": "She deserted. She is alive, hiding.", "next": "deserter-truth" }
+      ]
+    },
+    "deserter-lie": {
+      "id": "deserter-lie",
+      "speaker": "narrator",
+      "text": "You give her the lie. It is a small thing in your mouth. It will be a larger thing in hers.",
+      "next": "deserter-lie-2"
+    },
+    "deserter-lie-2": {
+      "id": "deserter-lie-2",
+      "speaker": "brenna",
+      "expression": "sad",
+      "text": "...Hesta. Hesta of the long laugh. Hesta who could not keep a hood on in the rain. I will write her on the wall myself. I owe her that much.",
+      "next": "deserter-lie-3"
+    },
+    "deserter-lie-3": {
+      "id": "deserter-lie-3",
+      "speaker": "brenna",
+      "expression": "neutral",
+      "text": "One hundred and twenty gold from the guild purse. Three hundred and twenty experience. The bringer of bad news always gets paid more than the work asks. That is the only honest part of this trade.",
+      "effects": [
+        { "type": "complete-objective", "questId": "deserter-letter", "objectiveId": "report-to-brenna" },
+        { "type": "turn-in-quest", "questId": "deserter-letter" },
+        { "type": "give-gold", "amount": 120 },
+        { "type": "give-xp", "amount": 320 },
+        { "type": "set-flag", "key": "hc_hesta_lied_for" }
+      ],
+      "next": "deserter-lie-close"
+    },
+    "deserter-lie-close": {
+      "id": "deserter-lie-close",
+      "speaker": "brenna",
+      "expression": "thoughtful",
+      "text": "Thank you for the truth. The lying ones smile a little when they say it. You did not. That is something. Go.",
+      "next": null
+    },
+
+    "deserter-truth": {
+      "id": "deserter-truth",
+      "speaker": "narrator",
+      "text": "Brenna sets the quill down. She closes the ledger. She does not look surprised — only old, suddenly, in a way you had not seen before.",
+      "next": "deserter-truth-2"
+    },
+    "deserter-truth-2": {
+      "id": "deserter-truth-2",
+      "speaker": "brenna",
+      "expression": "thoughtful",
+      "text": "Hiding. Of course she is. The smart ones run. The dutiful ones die. She was always going to live.",
+      "next": "deserter-truth-3"
+    },
+    "deserter-truth-3": {
+      "id": "deserter-truth-3",
+      "speaker": "brenna",
+      "expression": "sad",
+      "text": "I cannot leave a deserter on the rolls. The notice will go up by sundown. The other ranks will read it. Some of them will go looking. I will not stop them. That is the price of the cloth she signed for.",
+      "next": "deserter-truth-4"
+    },
+    "deserter-truth-4": {
+      "id": "deserter-truth-4",
+      "speaker": "brenna",
+      "expression": "neutral",
+      "text": "Two hundred and twenty gold. Two hundred and forty experience. The truth pays heavier than the lie in coin, lighter in everything else. That is the trade.",
+      "effects": [
+        { "type": "complete-objective", "questId": "deserter-letter", "objectiveId": "report-to-brenna" },
+        { "type": "turn-in-quest", "questId": "deserter-letter" },
+        { "type": "give-gold", "amount": 220 },
+        { "type": "give-xp", "amount": 240 },
+        { "type": "set-flag", "key": "hc_hesta_reported" }
+      ],
+      "next": "deserter-truth-close"
+    },
+    "deserter-truth-close": {
+      "id": "deserter-truth-close",
+      "speaker": "brenna",
+      "expression": "neutral",
+      "text": "Good. Go. The work does not wait. Neither, apparently, does Hesta.",
+      "next": null
     },
 
     "spider-nest-offer": {

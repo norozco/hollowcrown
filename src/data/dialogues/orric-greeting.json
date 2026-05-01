@@ -35,6 +35,21 @@
           "requires": [{ "type": "quest-not-started", "questId": "bone-ritual" }]
         },
         {
+          "text": "I have three wolf pelts. The one you are looking for is among them.",
+          "next": "cloak-turnin",
+          "requires": [
+            { "type": "quest-active", "questId": "cloak-in-bramble" }
+          ]
+        },
+        {
+          "text": "Tell me what the woods took from you.",
+          "next": "cloak-offer",
+          "requires": [
+            { "type": "quest-not-started", "questId": "cloak-in-bramble" },
+            { "type": "quest-complete", "questId": "iron-token" }
+          ]
+        },
+        {
           "text": "Why did you stop?",
           "next": "orric-backstory-2",
           "requires": [
@@ -57,6 +72,20 @@
           ]
         },
         { "text": "Have you seen an Elven scholar named Veyrin?", "next": "veyrin-seen" },
+        {
+          "text": "Brenna has lost a guild member. Hesta. Have you seen her?",
+          "next": "hesta-pointer",
+          "requires": [
+            { "type": "quest-active", "questId": "deserter-letter" }
+          ]
+        },
+        {
+          "text": "[Stand a moment with him.]",
+          "next": "orric-named-line",
+          "requires": [
+            { "type": "world-flag", "key": "hc_orric_daughter_known" }
+          ]
+        },
         { "text": "What is wrong with the woods?", "next": "woods" },
         { "text": "I'm just passing through.", "next": "passing" }
       ]
@@ -203,6 +232,96 @@
       "speaker": "orric",
       "expression": "neutral",
       "text": "Do not let the change make you proud. The woods do not respect proud men. They tolerate the quiet ones a little longer. That is the most you can ask of them.",
+      "next": null
+    },
+
+    "cloak-offer": {
+      "id": "cloak-offer",
+      "speaker": "narrator",
+      "text": "Orric does not answer at first. He sets the axe down across his knees, slowly, the way a man does when he is buying himself a moment. Then he reaches inside his coat and brings out a bundle of cloth — green wool, faded, the hem torn ragged. He lays it on the porch boards between you.",
+      "next": "cloak-offer-2"
+    },
+    "cloak-offer-2": {
+      "id": "cloak-offer-2",
+      "speaker": "orric",
+      "expression": "sad",
+      "text": "My daughter wore this into Greenhollow nineteen years ago. The cloak came back six days later, tied to the throat of a wolf, like a flag. The wolf ran before I could put a shaft in it.",
+      "next": "cloak-offer-3"
+    },
+    "cloak-offer-3": {
+      "id": "cloak-offer-3",
+      "speaker": "orric",
+      "expression": "thoughtful",
+      "text": "I have seen it again. Older now. Slower. Still wearing what is left of it. I do not know which of the wolves out there it is, and my eyes are not what they were. Bring me three pelts. I will know the one. I will know it by the weight.",
+      "next": "cloak-accept",
+      "effects": [
+        { "type": "accept-quest", "questId": "cloak-in-bramble" }
+      ]
+    },
+    "cloak-accept": {
+      "id": "cloak-accept",
+      "speaker": "orric",
+      "expression": "neutral",
+      "text": "Whole pelts. Not torn through the spine. The one that wore her cloth will smell of her, and the others will not. That is all I ask.",
+      "next": null
+    },
+    "cloak-turnin": {
+      "id": "cloak-turnin",
+      "speaker": "narrator",
+      "text": "Orric takes the pelts in both hands, one at a time. He weighs them. He brings the second one to his face for a long moment, and his eyes close, and his shoulders go very still. When he opens his eyes again the porch is the same and the world is the same and he is not.",
+      "next": "cloak-turnin-2",
+      "effects": [
+        { "type": "remove-items", "itemKey": "wolf_pelt", "quantity": 3 }
+      ]
+    },
+    "cloak-turnin-2": {
+      "id": "cloak-turnin-2",
+      "speaker": "orric",
+      "expression": "sad",
+      "text": "It is this one. I am sure of it. ...Thank you. I will not say her name to you. She has been dead nineteen years and I have not earned the breath for it yet.",
+      "next": "cloak-turnin-3"
+    },
+    "cloak-turnin-3": {
+      "id": "cloak-turnin-3",
+      "speaker": "narrator",
+      "text": "He carries the pelt and the cloak both around the back of the cabin. The smoke that rises a moment later is not the cookfire's. He returns with empty hands and the smell of wool burning on him.",
+      "next": "cloak-turnin-4"
+    },
+    "cloak-turnin-4": {
+      "id": "cloak-turnin-4",
+      "speaker": "orric",
+      "expression": "neutral",
+      "text": "Two hundred and sixty gold from a tin I keep under the hearth. Three hundred and eighty of your experience, for what that is worth to a man your age. The rest of what I owe you cannot be paid in coin.",
+      "effects": [
+        { "type": "complete-objective", "questId": "cloak-in-bramble", "objectiveId": "bring-pelts" },
+        { "type": "turn-in-quest", "questId": "cloak-in-bramble" },
+        { "type": "give-gold", "amount": 260 },
+        { "type": "give-xp", "amount": 380 },
+        { "type": "set-flag", "key": "hc_orric_daughter_known" }
+      ],
+      "next": "cloak-turnin-close"
+    },
+    "cloak-turnin-close": {
+      "id": "cloak-turnin-close",
+      "speaker": "orric",
+      "expression": "thoughtful",
+      "text": "Walk gently in my woods from now on. They are quieter than they were this morning. So am I.",
+      "next": null
+    },
+
+    "orric-named-line": {
+      "id": "orric-named-line",
+      "speaker": "orric",
+      "expression": "thoughtful",
+      "text": "...You walk like she did. Heel first, weight back. I had not noticed before. I notice now. I am sorry — that was not for you. I have not used a name for anyone in a long time. I will use yours, friend. Come and go as you please.",
+      "next": null
+    },
+
+    "hesta-pointer": {
+      "id": "hesta-pointer",
+      "speaker": "orric",
+      "expression": "thoughtful",
+      "text": "Hesta. Aye. She came through the trees three nights running, slept in the bramble, would not knock. On the fourth morning I left the spare bed turned down and the door unbarred. She has been sweeping my porch since. She does not speak. She will speak to you, perhaps. The cabin is open. Walk in slow.",
       "next": null
     }
   }

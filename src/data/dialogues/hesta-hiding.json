@@ -1,0 +1,75 @@
+{
+  "id": "hesta-hiding",
+  "start": "enter",
+  "nodes": {
+    "enter": {
+      "id": "enter",
+      "speaker": "narrator",
+      "text": "A figure sits in the corner near the spare bed, knees drawn up, a wool blanket pulled around her shoulders. She has the gauntness of someone who has not slept properly in a week. The guild crest on her sleeve has been picked at with a knife — the threads still hang.",
+      "next": "hesta-look"
+    },
+    "hesta-look": {
+      "id": "hesta-look",
+      "speaker": "hesta",
+      "expression": "sad",
+      "text": "...You came from the hall. I knew someone would. I told myself it would not be soon, and that was not true, and now it is. Sit down. Or do not. I do not know how to do this part.",
+      "next": "hesta-question"
+    },
+    "hesta-question": {
+      "id": "hesta-question",
+      "speaker": "hesta",
+      "expression": "thoughtful",
+      "text": "Brenna sent you. So she still thinks of me as missing. That is a kindness she does not owe me.",
+      "effects": [
+        { "type": "complete-objective", "questId": "deserter-letter", "objectiveId": "find-hesta" },
+        { "type": "set-flag", "key": "hc_hesta_met" }
+      ],
+      "choices": [
+        { "text": "What happened on the patrol?", "next": "hesta-patrol" },
+        { "text": "Why did you run?", "next": "hesta-why" },
+        { "text": "You're going back with me.", "next": "hesta-return" }
+      ]
+    },
+    "hesta-patrol": {
+      "id": "hesta-patrol",
+      "speaker": "hesta",
+      "expression": "sad",
+      "text": "Three of us went in. Wolves on the second night. Not the ordinary kind — bigger, quieter, the eyes wrong. My partner went down before he saw them. I held the ridge until I did not. I ran. The other one — Marek — I do not know. I did not look back long enough to know.",
+      "next": "hesta-why-soft"
+    },
+    "hesta-why-soft": {
+      "id": "hesta-why-soft",
+      "speaker": "hesta",
+      "expression": "sad",
+      "text": "I sat in the bramble until morning. When I stopped shaking, I was not the woman who had walked into those woods. The badge on my sleeve felt heavier than the blade. I cut the threads. I came here because Orric does not ask. I have been sweeping his porch for my keep.",
+      "next": "hesta-question"
+    },
+    "hesta-why": {
+      "id": "hesta-why",
+      "speaker": "hesta",
+      "expression": "sad",
+      "text": "Because the next time I would have run anyway, and I knew it. The guild does not need a swordhand who knows she will run. The guild has enough of those buried already.",
+      "next": "hesta-plea"
+    },
+    "hesta-plea": {
+      "id": "hesta-plea",
+      "speaker": "hesta",
+      "expression": "thoughtful",
+      "text": "I am asking you. Not telling. Tell Brenna I died in the wolves. Tell her my partner held me and told me to go. Tell her anything but the truth, because the truth puts a notice on the wall and a price on a back I cannot turn fast enough anymore.",
+      "next": "hesta-question"
+    },
+    "hesta-return": {
+      "id": "hesta-return",
+      "speaker": "hesta",
+      "expression": "sad",
+      "text": "I cannot. I will not lift a sword again, and a guild without a sword is a coward in cloth. Walk out the door and choose what to say. I will be here, or I will be gone. Either way it is no longer your problem after the saying.",
+      "next": "hesta-met-flag"
+    },
+    "hesta-met-flag": {
+      "id": "hesta-met-flag",
+      "speaker": "narrator",
+      "text": "She turns her face to the wall. The blanket settles around her like the shoulders of something already buried. The cabin is very quiet.",
+      "next": null
+    }
+  }
+}

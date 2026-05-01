@@ -1,0 +1,14 @@
+{
+  "id": "forge-unlit",
+  "category": "side",
+  "title": "The Forge He Couldn't Light",
+  "summary": "Kael started a sword for a young adventurer named Roa. She did not live to claim it. He needs the materials he never finished gathering, and the courage to lay it where it should rest.",
+  "objectives": [
+    { "id": "gather-materials", "description": "Bring Kael 2 iron ore, 1 bone shard, and 1 moonpetal." },
+    { "id": "lay-on-grave", "description": "Lay the finished sword on Roa's grave in Mossbarrow Cairn." }
+  ],
+  "reward": {
+    "gold": 380,
+    "xp": 540
+  }
+}
