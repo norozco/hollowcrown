@@ -21,21 +21,38 @@
 import { TILE } from './generateTiles';
 
 /** Master switch. Set to false to go back to the procedural tileset.
- *  HISTORY:
- *   - 3d7324c: flipped true by the LttP handoff. Reverted in 0150e8c
- *     because architectural tiles (wall/roof/door/window/column) don't
- *     tile across multiple cells.
- *   - 19bc3c4: re-flipped true on a narrower map (architecture-free).
- *     Reverted in 91d4aef because Kenney sprites have transparent edges
- *     and the renderer was clearing the procedural base colour before
- *     compositing — every flora cell rendered with black voids.
- *   - THIS commit: third attempt. Two fixes landed alongside:
- *      1. Removed the clearRect in generateTiles.ts overlaySpriteTiles
- *         so the procedural biome-colour base shows through Kenney
- *         transparency (real 2-layer pipeline).
- *      2. Tuned TILE_VARIANT_POOL down from 50/50 plain/flora to ~10%
- *         flora — sparse accents instead of "every cell has a flower". */
-export const USE_SPRITE_TILES = true;
+ *  HISTORY (3 attempts, all reverted):
+ *   - 3d7324c: flipped true by the LttP handoff. Reverted in 0150e8c —
+ *     architectural tiles (wall/roof/door/window) don't tile cleanly.
+ *   - 19bc3c4: re-flipped on architecture-free narrower map. Reverted
+ *     in 91d4aef — clearRect was wiping the procedural base, leaving
+ *     black voids around every transparent decoration edge.
+ *   - 598578d: third attempt with two-layer pipeline + sparse variants.
+ *     Reverted in this commit — the sprite-coord MAPPINGS in
+ *     TILE_SPRITE_MAP below were never pixel-verified. Playtest hit:
+ *       a. "Trees look super bland" — TILE.BUSH (used as forest trees
+ *          in GreenhollowScene's tileAt) maps to a small isolated
+ *          shrub sprite rather than a real tree.
+ *       b. "Random chest icons everywhere" — TILE.GRASS_FLOWER_YELLOW
+ *          maps to (9,36) which is apparently a barrel/crate, not
+ *          a flower. With the variant pool putting 10% yellow flowers
+ *          on grass cells, the world filled with chest-shaped sprites.
+ *       c. "Random guards in buildings" — interior tile mappings
+ *          (DOOR/WINDOW/FLOOR variants) point at character sprite
+ *          locations on the sheet. Chibi figures rendered everywhere
+ *          they were used.
+ *       d. Affected interactivity — the false-positive sprites sit
+ *          where the player expects to interact, breaking the input
+ *          layer.
+ *
+ *  To re-enable cleanly the TILE_SPRITE_MAP below needs every (row,col)
+ *  pair pixel-verified against the actual roguelike-rpg_packed.png
+ *  sheet. The TILEMAP.md file already warned: "Low-confidence single-
+ *  tile identification … look plausible from Preview.png but have not
+ *  been pixel-verified as 'clean' tiles." That verification work has
+ *  not been done. Until it is, stay procedural — the procedural
+ *  tileset, while less detailed, is at least correct. */
+export const USE_SPRITE_TILES = false;
 
 /** Legacy export — kept for the Tiny Dungeon sheet's 12-wide layout. */
 export const KENNEY_COLS = 12;
