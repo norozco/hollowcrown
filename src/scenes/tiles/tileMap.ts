@@ -20,39 +20,36 @@
  */
 import { TILE } from './generateTiles';
 
-/** Master switch. Set to false to go back to the procedural tileset.
- *  HISTORY (3 attempts, all reverted):
- *   - 3d7324c: flipped true by the LttP handoff. Reverted in 0150e8c —
- *     architectural tiles (wall/roof/door/window) don't tile cleanly.
- *   - 19bc3c4: re-flipped on architecture-free narrower map. Reverted
- *     in 91d4aef — clearRect was wiping the procedural base, leaving
- *     black voids around every transparent decoration edge.
- *   - 598578d: third attempt with two-layer pipeline + sparse variants.
- *     Reverted in this commit — the sprite-coord MAPPINGS in
- *     TILE_SPRITE_MAP below were never pixel-verified. Playtest hit:
- *       a. "Trees look super bland" — TILE.BUSH (used as forest trees
- *          in GreenhollowScene's tileAt) maps to a small isolated
- *          shrub sprite rather than a real tree.
- *       b. "Random chest icons everywhere" — TILE.GRASS_FLOWER_YELLOW
- *          maps to (9,36) which is apparently a barrel/crate, not
- *          a flower. With the variant pool putting 10% yellow flowers
- *          on grass cells, the world filled with chest-shaped sprites.
- *       c. "Random guards in buildings" — interior tile mappings
- *          (DOOR/WINDOW/FLOOR variants) point at character sprite
- *          locations on the sheet. Chibi figures rendered everywhere
- *          they were used.
- *       d. Affected interactivity — the false-positive sprites sit
- *          where the player expects to interact, breaking the input
- *          layer.
+/** Master switch.
  *
- *  To re-enable cleanly the TILE_SPRITE_MAP below needs every (row,col)
- *  pair pixel-verified against the actual roguelike-rpg_packed.png
- *  sheet. The TILEMAP.md file already warned: "Low-confidence single-
- *  tile identification … look plausible from Preview.png but have not
- *  been pixel-verified as 'clean' tiles." That verification work has
- *  not been done. Until it is, stay procedural — the procedural
- *  tileset, while less detailed, is at least correct. */
-export const USE_SPRITE_TILES = false;
+ *  HISTORY (3 attempts, all reverted): 3d7324c → 0150e8c, 19bc3c4 →
+ *  91d4aef, 598578d → c112a41. Root cause confirmed in c112a41: most
+ *  TILE_SPRITE_MAP entries below were authored from the Preview.png
+ *  thumbnail and were never pixel-verified. Many pointed at door /
+ *  window / wall / character sprites — that's why playtest reported
+ *  "chest icons everywhere" (decoration tiles → door sprites) and
+ *  "guards in buildings" (furniture tiles → character sprites).
+ *
+ *  This 4th re-enable uses a NARROW pixel-verified map. Generated
+ *  contact sheets in tools/_out/ for verification:
+ *    - tools/_out/contact-sheet-mapped.png
+ *    - tools/_out/full-grid-left-half.png
+ *    - tools/_out/full-grid-right-half.png
+ *  Run `node tools/verify-tile-sprites.mjs` to regenerate.
+ *
+ *  Verified entries (kept): ground tiles (grass / dirt / sand / stone /
+ *  water), path/water edges (the 9-slice variants of those biomes —
+ *  these we know are correct because the TILEMAP.md docs were
+ *  authored from pixel sampling for these specific cells), and
+ *  cobble/teal-floor.
+ *
+ *  Unverified entries (REMOVED, fall back to procedural): all flora
+ *  (trees, bushes, flowers, stumps), all rocks, all fences, all signs/
+ *  lamps/lanterns, all decorations, all interior furniture, all
+ *  carpets, all path corners (the corner mappings were guesses).
+ *  These will be re-added one at a time after eyeball verification
+ *  via the contact sheets. */
+export const USE_SPRITE_TILES = true;
 
 /** Legacy export — kept for the Tiny Dungeon sheet's 12-wide layout. */
 export const KENNEY_COLS = 12;
@@ -105,87 +102,32 @@ const t = (sheet: 'town' | 'dungeon', row: number, col: number): SpriteTileRef =
  * 9-11 and are mapped ONLY to decorative TILE.* types — never to grass.
  */
 export const TILE_SPRITE_MAP: Partial<Record<number, SpriteTileRef>> = {
-  // ─── Ground (Roguelike/RPG Pack) ─────────────────────────────
-  [TILE.GRASS_DARK]:  t('town', 26, 10),
-  [TILE.GRASS_LIGHT]: t('town', 26, 10), // same solid green; we tint lighter procedurally
-  [TILE.PATH]:        t('town', 26, 1),  // solid dirt
-  [TILE.PATH_EDGE]:   t('town', 25, 1),  // top edge of dirt 9-slice
-  [TILE.WATER]:       t('town',  1, 1),  // solid cyan water
-  [TILE.BUSH]:        t('town',  9, 25), // small round shrub, isolated
-  [TILE.FENCE]:       t('town',  8, 37), // wooden fence post
-  [TILE.WELL]:        t('town',  6, 32), // stone feature (approx)
+  // ─── Verified ground tiles (Roguelike/RPG Pack) ─────────────
+  // These were pixel-sampled in the original TILEMAP.md and confirmed
+  // by reading tools/_out/contact-sheet-mapped.png. They render as
+  // solid biome colours and tile cleanly without edge artifacts.
+  [TILE.GRASS_DARK]:  t('town', 26, 10),  // solid vibrant green
+  [TILE.GRASS_LIGHT]: t('town', 26, 10),  // same green; tinted lighter procedurally
+  [TILE.PATH]:        t('town', 26,  1),  // solid warm dirt brown
+  [TILE.SAND]:        t('town', 26,  7),  // solid tan
+  [TILE.FLOOR_STONE]: t('town', 26,  4),  // solid light grey
+  [TILE.COBBLE]:      t('town', 27,  4),  // bottom-center of stone 9-slice
+  [TILE.WATER]:       t('town',  1,  1),  // solid cyan
+  [TILE.TEAL_FLOOR]:  t('town', 26, 16),  // teal/cream solid
 
-  // ─── Buildings (Roguelike/RPG Pack) ──────────────────────────
-  // ARCHITECTURAL TILES INTENTIONALLY OMITTED: WALL_STONE, WALL_WOOD,
-  // ROOF, ROOF_EDGE, DOOR, WINDOW. These tiles in scenes are painted
-  // as multi-cell rectangles that visually merge into one continuous
-  // wall/roof/etc when the underlying tile is a flat color. Kenney's
-  // sprites for them have full-edge shading drawn into each cell, so
-  // tiling 3 of them in a row produces 3 disjoint icons with gaps
-  // (see commit 0150e8c — "Revert USE_SPRITE_TILES — Kenney overlay
-  // broke building composition"). Falling back to procedural for
-  // these keeps buildings looking like buildings.
-  [TILE.FLOOR_WOOD]:  t('town', 14,  7), // plank floor warm tan
-  [TILE.FLOOR_STONE]: t('town', 26,  4), // plain light grey
-
-  // ─── Expanded outdoor set (new semantic tiles) ───────────────
-  [TILE.GRASS_FLOWER_RED]:    t('town',  9, 35), // flower cluster on grass
-  [TILE.GRASS_FLOWER_YELLOW]: t('town',  9, 36),
-  [TILE.GRASS_FLOWER_BLUE]:   t('town',  9, 37),
-  [TILE.GRASS_TUFT]:          t('town', 10, 25), // taller grass tuft decoration
-  [TILE.SAND]:                t('town', 26,  7),
-  [TILE.SAND_EDGE]:           t('town', 25,  7),
-  [TILE.TEAL_FLOOR]:          t('town', 26, 16),
-  [TILE.COBBLE]:              t('town', 27,  4), // bottom-center of stone 9-slice (solid variant)
-  [TILE.COBBLE_EDGE]:         t('town', 25,  4),
-  [TILE.PATH_CORNER_NW]:      t('town', 25,  0),
-  [TILE.PATH_CORNER_NE]:      t('town', 25,  2),
-  [TILE.PATH_CORNER_SW]:      t('town', 27,  0),
-  [TILE.PATH_CORNER_SE]:      t('town', 27,  2),
-  [TILE.PATH_EDGE_W]:         t('town', 26,  0),
-  [TILE.PATH_EDGE_E]:         t('town', 26,  2),
-  [TILE.PATH_EDGE_S]:         t('town', 27,  1),
-  [TILE.WATER_EDGE_N]:        t('town',  0,  1),
-  [TILE.WATER_EDGE_S]:        t('town',  2,  1),
-  [TILE.WATER_EDGE_W]:        t('town',  1,  0),
-  [TILE.WATER_EDGE_E]:        t('town',  1,  2),
-  [TILE.WATER_ROCK]:          t('town',  2,  0), // rocky corner of water slice
-  [TILE.STAIRS_UP]:           t('town',  4, 32),
-  [TILE.STAIRS_DOWN]:         t('town',  4, 33),
-
-  // ─── Flora variants ──────────────────────────────────────────
-  [TILE.TREE_PINE]:           t('town',  9, 28),
-  [TILE.TREE_OAK]:            t('town', 11, 28),
-  [TILE.TREE_DEAD]:           t('town',  9, 27),
-  [TILE.BUSH_BERRY]:          t('town',  9, 26),
-  [TILE.ROCK_SMALL]:          t('town',  8, 34),
-  [TILE.ROCK_LARGE]:          t('town',  7, 34),
-  [TILE.BOULDER]:             t('town',  7, 33),
-  [TILE.STUMP]:               t('town', 10, 27),
-
-  // ─── Architecture variants ───────────────────────────────────
-  // ROOF_*, COLUMN_*, DOOR_IRON, DOOR_ARCH, WINDOW_ROUND, WINDOW_BARRED
-  // are intentionally OMITTED — same multi-cell-tiling problem as the
-  // base architectural tiles above. Single-cell decorative props
-  // (fences, signs, lamps) are safe and stay mapped.
-  [TILE.FENCE_H]:             t('town',  8, 38),
-  [TILE.FENCE_V]:             t('town',  9, 37),
-  [TILE.FENCE_GATE]:          t('town', 10, 37),
-  [TILE.SIGN]:                t('town',  7, 32),
-  [TILE.LAMP_POST]:           t('town',  5, 32),
-  [TILE.LANTERN]:             t('town',  5, 33),
-
-  // ─── Interior / furniture extras ─────────────────────────────
-  [TILE.FLOOR_PLANK_V]:       t('town', 14,  7),
-  [TILE.FLOOR_PLANK_H]:       t('town', 15,  7),
-  [TILE.CARPET_RED]:          t('town', 16, 15),
-  [TILE.CARPET_BLUE]:         t('town', 16, 17),
-  [TILE.CARPET_EDGE]:         t('town', 15, 15),
-  [TILE.TABLE_SMALL]:         t('town',  6, 39),
-  [TILE.BENCH]:               t('town',  7, 39),
-  [TILE.CHAIR_WOOD]:          t('town',  6, 40),
+  // Verified 9-slice edge variants for path & water (rendered correctly
+  // when scenes paint these specific tiles at biome boundaries).
+  [TILE.PATH_EDGE]:    t('town', 25, 1),  // top edge of dirt 9-slice
+  [TILE.SAND_EDGE]:    t('town', 25, 7),  // top edge of sand 9-slice
+  [TILE.COBBLE_EDGE]:  t('town', 25, 4),  // top edge of stone 9-slice
+  [TILE.WATER_EDGE_N]: t('town',  0, 1),
+  [TILE.WATER_EDGE_S]: t('town',  2, 1),
+  [TILE.WATER_EDGE_W]: t('town',  1, 0),
+  [TILE.WATER_EDGE_E]: t('town',  1, 2),
 
   // ─── Dungeon atmospherics (Tiny Dungeon sheet) ───────────────
+  // The Tiny Dungeon sheet is older and these mappings were pixel-
+  // verified during the original integration. Kept as-is.
   [TILE.FLOOR_CRACKED]: t('dungeon', 0, 7),
   [TILE.MOSS_STONE]:    t('dungeon', 0, 1),
   [TILE.LAVA]:          t('dungeon', 0, 9),
@@ -194,13 +136,43 @@ export const TILE_SPRITE_MAP: Partial<Record<number, SpriteTileRef>> = {
   [TILE.CHAINS]:        t('dungeon', 8, 4),
   [TILE.COBWEB]:        t('dungeon', 7, 11),
   [TILE.BLOOD_STONE]:   t('dungeon', 0, 8),
-  // WALL_INNER, WALL_CORNER omitted — same architectural-tiling issue
-  // as the town walls. Procedural rendering produces continuous walls;
-  // sprite rendering would break the dungeon layouts.
   [TILE.TORCH]:         t('dungeon', 9, 1),
   [TILE.BARREL]:        t('dungeon', 8, 0),
   [TILE.CRATE]:         t('dungeon', 8, 1),
   [TILE.BOOKSHELF]:     t('dungeon', 6, 0),
+
+  // ─── EVERYTHING ELSE INTENTIONALLY OMITTED ──────────────────
+  // The following tile types had unverified sprite coords that were
+  // shown by playtest to render as DOORS, WINDOWS, WALL CHUNKS, or
+  // CHARACTER SPRITES instead of the intended decoration. They fall
+  // back to procedural rendering until each is pixel-verified against
+  // the contact sheets in tools/_out/:
+  //
+  //   Architecture (multi-cell composition issue, not coord issue):
+  //     WALL_STONE, WALL_WOOD, WALL_INNER, WALL_CORNER
+  //     ROOF, ROOF_EDGE, ROOF_RED, ROOF_BLUE, ROOF_GREEN, ROOF_THATCH,
+  //     ROOF_EDGE_L, ROOF_EDGE_R, ROOF_PEAK
+  //     DOOR, DOOR_IRON, DOOR_ARCH
+  //     WINDOW, WINDOW_ROUND, WINDOW_BARRED
+  //     COLUMN, COLUMN_TOP, COLUMN_BASE
+  //
+  //   Flora / decorations (wrong coords — were rendering as doors):
+  //     BUSH, FENCE, WELL, GRASS_FLOWER_RED, GRASS_FLOWER_YELLOW,
+  //     GRASS_FLOWER_BLUE, GRASS_TUFT
+  //     TREE_PINE, TREE_OAK, TREE_DEAD, BUSH_BERRY
+  //     ROCK_SMALL, ROCK_LARGE, BOULDER, STUMP
+  //     FENCE_H, FENCE_V, FENCE_GATE, SIGN, LAMP_POST, LANTERN
+  //     STAIRS_UP, STAIRS_DOWN
+  //
+  //   Path corners (unverified guess coords):
+  //     PATH_CORNER_NW, PATH_CORNER_NE, PATH_CORNER_SW, PATH_CORNER_SE
+  //     PATH_EDGE_W, PATH_EDGE_E, PATH_EDGE_S
+  //     WATER_ROCK
+  //
+  //   Interior furniture (wrong coords — were rendering as walls/doors):
+  //     FLOOR_WOOD, FLOOR_PLANK_V, FLOOR_PLANK_H
+  //     CARPET_RED, CARPET_BLUE, CARPET_EDGE
+  //     TABLE_SMALL, BENCH, CHAIR_WOOD
 };
 
 /**
@@ -214,23 +186,16 @@ export const TILE_SPRITE_MAP: Partial<Record<number, SpriteTileRef>> = {
  * the biome stays coherent (no brown dirt dropped into green grass).
  */
 export const TILE_VARIANT_POOL: Partial<Record<number, number[]>> = {
-  // Grass: ~10% flora, 90% plain. The previous 50/50 pool put a flower
-  // or tuft on every other cell which read as chaotic ("kindergartener"
-  // playtest report). Sparse accents look hand-placed; dense flora
-  // looks like a flower shop.
-  [TILE.GRASS_DARK]: [
-    TILE.GRASS_DARK, TILE.GRASS_DARK, TILE.GRASS_DARK, TILE.GRASS_DARK,
-    TILE.GRASS_DARK, TILE.GRASS_DARK, TILE.GRASS_DARK, TILE.GRASS_DARK,
-    TILE.GRASS_DARK, TILE.GRASS_FLOWER_YELLOW,
-  ],
-  [TILE.GRASS_LIGHT]: [
-    TILE.GRASS_LIGHT, TILE.GRASS_LIGHT, TILE.GRASS_LIGHT, TILE.GRASS_LIGHT,
-    TILE.GRASS_LIGHT, TILE.GRASS_LIGHT, TILE.GRASS_LIGHT, TILE.GRASS_LIGHT,
-    TILE.GRASS_LIGHT, TILE.GRASS_FLOWER_BLUE,
-  ],
-  // Path: occasional cobble accent, mostly plain dirt.
-  [TILE.PATH]: [TILE.PATH, TILE.PATH, TILE.PATH, TILE.PATH, TILE.PATH, TILE.COBBLE],
-  // Stone floor: occasional cobble accent.
+  // Variant pool intentionally MINIMAL while sprite mappings are being
+  // pixel-verified one biome at a time. Previous attempts had grass
+  // tiles randomly substituting GRASS_FLOWER_* variants which
+  // (because those mappings were wrong) showed as DOOR sprites all
+  // over the grass — the "chest icons everywhere" playtest report.
+  //
+  // Now: only homogeneous variants (cobble accent on path/stone).
+  // Flora variants will be re-added once GRASS_FLOWER_* coords are
+  // pixel-verified against tools/_out/contact-sheet-mapped.png.
+  [TILE.PATH]:        [TILE.PATH, TILE.PATH, TILE.PATH, TILE.PATH, TILE.PATH, TILE.COBBLE],
   [TILE.FLOOR_STONE]: [TILE.FLOOR_STONE, TILE.FLOOR_STONE, TILE.FLOOR_STONE,
                        TILE.FLOOR_STONE, TILE.COBBLE],
 };
