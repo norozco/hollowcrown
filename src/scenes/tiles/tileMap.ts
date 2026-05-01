@@ -21,23 +21,24 @@
 import { TILE } from './generateTiles';
 
 /** Master switch. Set to false to go back to the procedural tileset.
- *  HISTORY: flipped true by the LttP handoff in 3d7324c; the Kenney
- *  overlay broke building composition because architectural tiles
- *  (wall / roof / door / window / column) render as individual full-
- *  edge sprites that don't tile across multiple cells, so a 3-wide
- *  wall became 3 disjoint chunks instead of one continuous wall.
- *  Reverted in 0150e8c.
+ *  HISTORY:
+ *   - 3d7324c: flipped true by the LttP handoff. Reverted in 0150e8c
+ *     because architectural tiles (wall/roof/door/window/column) don't
+ *     tile across multiple cells.
+ *   - 19bc3c4: re-flipped true on a narrower map (architecture-free).
+ *     Reverted again because the Kenney sprites have transparent edges
+ *     around decorations, and the procedural painter doesn't lay down
+ *     a base ground colour underneath. Result: every grass cell with a
+ *     flower/bush variant rendered with black voids around it, and the
+ *     overall map looked broken. Playtester report:
+ *       "It doesn't look good at all, it literally looks like just a
+ *        kindergartener drew it"
  *
- *  Re-enabled here on a NARROWER mapping: only ground tiles (grass,
- *  paths, water, sand, stone), decorations (trees, rocks, fences,
- *  signs, lamps), single-cell furniture (tables, chairs), and dungeon
- *  atmospherics (lava, bones, torches) get sprite-rendered. Walls,
- *  roofs, doors, windows, and columns are intentionally REMOVED from
- *  TILE_SPRITE_MAP below so they fall back to procedural rectangles
- *  (which tile cleanly as continuous building shapes). The
- *  Kenney-aware metatile work (option a from the revert) can land
- *  later for those without affecting this baseline. */
-export const USE_SPRITE_TILES = true;
+ *  To re-enable cleanly the renderer needs a TWO-layer pipeline: paint
+ *  the procedural base-colour tile, THEN composite the Kenney sprite on
+ *  top so transparency reveals the green grass beneath. That's not in
+ *  generateTiles.ts today. Until that lands, stay procedural. */
+export const USE_SPRITE_TILES = false;
 
 /** Legacy export — kept for the Tiny Dungeon sheet's 12-wide layout. */
 export const KENNEY_COLS = 12;
