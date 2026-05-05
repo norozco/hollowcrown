@@ -74,25 +74,6 @@ export class Pseudo3d {
   }
 
   /**
-   * Add an ambient lighting vignette that darkens the scene edges so the
-   * camera center feels "lit" and corners fall off — subtle depth cue.
-   */
-  addAmbientVignette(color = 0x0a0605, edgeAlpha = 0.35, cam?: Phaser.Cameras.Scene2D.Camera): void {
-    const c = cam ?? this.scene.cameras.main;
-    // Four rectangles fade from transparent at center to the edge alpha
-    // at the border. Simpler than a true radial gradient but effective.
-    const top = this.scene.add.rectangle(c.centerX, 40, c.width, 80, color, edgeAlpha);
-    const bot = this.scene.add.rectangle(c.centerX, c.height - 40, c.width, 80, color, edgeAlpha);
-    const left = this.scene.add.rectangle(40, c.centerY, 80, c.height, color, edgeAlpha * 0.7);
-    const right = this.scene.add.rectangle(c.width - 40, c.centerY, 80, c.height, color, edgeAlpha * 0.7);
-    for (const r of [top, bot, left, right]) {
-      r.setScrollFactor(0);
-      r.setDepth(298);  // above world, below HUD modals
-      r.setBlendMode(Phaser.BlendModes.MULTIPLY);
-    }
-  }
-
-  /**
    * Add a soft warm ambient overlay (dawn/dusk tint). Set alpha low
    * (0.08-0.15). Call with color = 0xfff0b0 for warm, 0x4060a0 for cool.
    */

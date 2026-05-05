@@ -412,17 +412,15 @@ export abstract class BaseWorldScene extends Phaser.Scene {
     if (this.player) this.cameras.main.startFollow(this.player, true, 0.15, 0.15);
     this.cameras.main.fadeIn(FADE_MS, 0, 0, 0);
 
-    // Pseudo-3D ambient: subtle vignette always, plus warm/cool tint
-    // based on time of day. Dark dungeons already have their own
-    // darkness overlay from the lantern system — skip the tint there.
-    if (this.pseudo3d) {
-      this.pseudo3d.addAmbientVignette(0x0a0605, 0.28);
-      if (!this.isDarkRoom) {
-        const phase = useTimeStore.getState().phase;
-        if (phase === 'dawn') this.pseudo3d.addAmbientTint(0xffc880, 0.12);
-        else if (phase === 'dusk') this.pseudo3d.addAmbientTint(0xe0826a, 0.14);
-        else if (phase === 'night') this.pseudo3d.addAmbientTint(0x2a3868, 0.18);
-      }
+    // Time-of-day ambient tint only. The previous "vignette" was four
+    // hard-edged 80px slabs (top/bot/left/right) at 0.28 alpha — it read
+    // as visible gray rectangles, especially over a dark interior void,
+    // not the soft falloff it was meant to suggest.
+    if (this.pseudo3d && !this.isDarkRoom) {
+      const phase = useTimeStore.getState().phase;
+      if (phase === 'dawn') this.pseudo3d.addAmbientTint(0xffc880, 0.12);
+      else if (phase === 'dusk') this.pseudo3d.addAmbientTint(0xe0826a, 0.14);
+      else if (phase === 'night') this.pseudo3d.addAmbientTint(0x2a3868, 0.18);
     }
 
     // Weather — zone-specific ambient particles
