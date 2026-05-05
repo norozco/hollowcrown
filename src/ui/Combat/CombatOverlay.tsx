@@ -666,6 +666,18 @@ function ExtraEnemyPanel({
   onSelect?: () => void;
 }) {
   const pct = Math.max(0, Math.min(100, (hp / maxHp) * 100));
+  // Match the green→yellow→red threshold ramp used by the player HP fill in
+  // InGameOverlay (>50% green, >25% yellow, else red) so add enemies visibly
+  // shift color as they get low — the primary panel's gradient already
+  // implies this via a green/red authored gradient, so we keep the extras
+  // consistent with the player bar's stepwise treatment.
+  const hpFrac = maxHp > 0 ? hp / maxHp : 0;
+  const hpFillBg =
+    hpFrac > 0.5
+      ? 'linear-gradient(90deg, #2ecc71 0%, #27ae60 100%)'
+      : hpFrac > 0.25
+        ? 'linear-gradient(90deg, #ffd43a 0%, #c0a040 100%)'
+        : 'linear-gradient(90deg, #ff5040 0%, #c04040 100%)';
   const STATUS_ICONS: Partial<Record<keyof StatusEffects, string>> = {
     poison: '☠', burn: '🔥', bleed: '🩸', stun: '⚡', marked: '🎯',
   };
@@ -687,7 +699,7 @@ function ExtraEnemyPanel({
       <div className="combat__extra-hp-track">
         <div
           className="combat__extra-hp-fill"
-          style={{ width: `${pct}%` }}
+          style={{ width: `${pct}%`, background: hpFillBg }}
         />
       </div>
       <div className="combat__extra-hp-label">{hp} / {maxHp}</div>
