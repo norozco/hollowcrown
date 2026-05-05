@@ -16,41 +16,103 @@ interface Connection {
   to: string;
 }
 
+// Layout intent: Town is the hub at center-left. Surface zones fan out
+// north-east → east → south-east, with the volcanic / coastal arc curving
+// down on the far right. Dungeons hang off (or descend below) their parent
+// surface zone rather than stacking in fixed columns. Ironveil / Frosthollow
+// branch *upward* from Mossbarrow; the Frozen Hollow dungeon strings further
+// east from the peaks. Bog Dungeon hangs off Ashenmere on the south side
+// (matching the in-game stair-down). Forgotten Cave is a small post-game
+// secret tucked above Greenhollow.
+//
+// Note: Ironveil is described in IronveilScene.ts as an "abandoned mine
+// carved into a mountainside" — using 'mountain' type rather than 'forest'
+// since its biome is rocky / cave-like (it sits between Mossbarrow and the
+// Frosthollow peaks).
 const ZONES: Zone[] = [
-  { key: 'TownScene',              name: 'Ashenvale',       x: 100, y: 120, type: 'town' },
-  { key: 'GreenhollowScene',       name: 'Greenhollow',     x: 250, y: 120, type: 'forest' },
-  { key: 'MossbarrowScene',        name: 'Mossbarrow',      x: 400, y: 120, type: 'swamp' },
-  { key: 'MossbarrowDepthsScene',  name: 'Depths F1',       x: 400, y: 210, type: 'dungeon' },
-  { key: 'DepthsFloor2Scene',      name: 'Catacombs',       x: 400, y: 280, type: 'dungeon' },
-  { key: 'DepthsFloor3Scene',      name: 'Hollow Throne',   x: 400, y: 350, type: 'dungeon' },
-  { key: 'AshenmereScene',         name: 'Ashenmere',       x: 560, y: 120, type: 'town' },
-  { key: 'DrownedSanctumF1Scene',  name: 'Sanctum F1',      x: 560, y: 210, type: 'dungeon' },
-  { key: 'DrownedSanctumF2Scene',  name: 'Sanctum Heart',   x: 560, y: 280, type: 'dungeon' },
-  { key: 'DuskmereScene',          name: 'Duskmere',        x: 250, y: 230, type: 'forest' },
-  { key: 'AshfieldsScene',         name: 'Ashfields',       x: 700, y: 120, type: 'volcano' },
-  { key: 'AshenTowerF1Scene',      name: 'Ashen Tower F1',  x: 700, y: 210, type: 'mountain' },
-  { key: 'AshenTowerF2Scene',      name: 'Ashen Tower F2',  x: 700, y: 280, type: 'mountain' },
-  { key: 'AshenTowerF3Scene',      name: 'Mirror Chamber',  x: 700, y: 350, type: 'mountain' },
-  { key: 'ShatteredCoastScene',    name: 'Shattered Coast', x: 840, y: 120, type: 'coast' },
-  { key: 'ThroneBeneathF1Scene',   name: 'The Descent',     x: 840, y: 210, type: 'dungeon' },
-  { key: 'ThroneBeneathF2Scene',   name: 'Hall of Names',   x: 840, y: 280, type: 'dungeon' },
-  { key: 'ThroneBeneathF3Scene',   name: 'Forgotten Throne',x: 840, y: 350, type: 'dungeon' },
+  // ── Hub ──
+  { key: 'TownScene',              name: 'Ashenvale',       x: 105, y: 215, type: 'town' },
+
+  // ── Western forest fork ──
+  { key: 'GreenhollowScene',       name: 'Greenhollow',     x: 210, y: 145, type: 'forest' },
+  { key: 'ForgottenCaveScene',     name: 'Forgotten Cave',  x: 235, y:  75, type: 'dungeon' },
+  { key: 'DuskmereScene',          name: 'Duskmere',        x: 175, y: 305, type: 'forest' },
+
+  // ── Mossbarrow swamp & its depths (descending south) ──
+  { key: 'MossbarrowScene',        name: 'Mossbarrow',      x: 320, y: 195, type: 'swamp' },
+  { key: 'MossbarrowDepthsScene',  name: 'Depths F1',       x: 290, y: 270, type: 'dungeon' },
+  { key: 'DepthsFloor2Scene',      name: 'Catacombs',       x: 270, y: 335, type: 'dungeon' },
+  { key: 'DepthsFloor3Scene',      name: 'Hollow Throne',   x: 240, y: 390, type: 'dungeon' },
+
+  // ── Northern mountain branch (Ironveil → Frosthollow → Frozen Hollow) ──
+  { key: 'IronveilScene',          name: 'Ironveil Mines',  x: 365, y: 105, type: 'mountain' },
+  { key: 'FrosthollowScene',       name: 'Frosthollow Peaks', x: 470, y:  60, type: 'mountain' },
+  { key: 'FrozenHollowF1Scene',    name: 'Ice Caverns',     x: 545, y:  95, type: 'dungeon' },
+  { key: 'FrozenHollowF2Scene',    name: 'Frost Vault',     x: 600, y:  60, type: 'dungeon' },
+  { key: 'FrozenHollowF3Scene',    name: 'Heart of Winter', x: 670, y:  85, type: 'dungeon' },
+
+  // ── Ashenmere & its bog dungeon (descending south-east) ──
+  { key: 'AshenmereScene',         name: 'Ashenmere',       x: 445, y: 200, type: 'town' },
+  { key: 'BogDungeonF1Scene',      name: 'Sunken Halls',    x: 410, y: 280, type: 'dungeon' },
+  { key: 'BogDungeonF2Scene',      name: 'Drowned Gallery', x: 445, y: 345, type: 'dungeon' },
+  { key: 'BogDungeonF3Scene',      name: "Warden's Pool",   x: 510, y: 385, type: 'dungeon' },
+
+  // ── Drowned Sanctum (off Ashenmere, separate dungeon line) ──
+  { key: 'DrownedSanctumF1Scene',  name: 'Sanctum F1',      x: 540, y: 270, type: 'dungeon' },
+  { key: 'DrownedSanctumF2Scene',  name: 'Sanctum Heart',   x: 590, y: 320, type: 'dungeon' },
+
+  // ── Ashfields & the Ashen Tower (rising up-east) ──
+  { key: 'AshfieldsScene',         name: 'Ashfields',       x: 615, y: 195, type: 'volcano' },
+  { key: 'AshenTowerF1Scene',      name: 'Ashen Tower F1',  x: 660, y: 145, type: 'mountain' },
+  { key: 'AshenTowerF2Scene',      name: 'Ashen Tower F2',  x: 720, y: 130, type: 'mountain' },
+  { key: 'AshenTowerF3Scene',      name: 'Mirror Chamber',  x: 780, y: 155, type: 'mountain' },
+
+  // ── Shattered Coast & the Throne Beneath (descending south-east) ──
+  { key: 'ShatteredCoastScene',    name: 'Shattered Coast', x: 730, y: 240, type: 'coast' },
+  { key: 'ThroneBeneathF1Scene',   name: 'The Descent',     x: 790, y: 295, type: 'dungeon' },
+  { key: 'ThroneBeneathF2Scene',   name: 'Hall of Names',   x: 840, y: 340, type: 'dungeon' },
+  { key: 'ThroneBeneathF3Scene',   name: 'Forgotten Throne',x: 870, y: 390, type: 'dungeon' },
 ];
 
 const CONNECTIONS: Connection[] = [
+  // Town → forest fork
   { from: 'TownScene',             to: 'GreenhollowScene' },
+  { from: 'TownScene',             to: 'DuskmereScene' },
+  // Greenhollow secret upward to the post-game cave
+  { from: 'GreenhollowScene',      to: 'ForgottenCaveScene' },
+
+  // Greenhollow → Mossbarrow → its depths
   { from: 'GreenhollowScene',      to: 'MossbarrowScene' },
   { from: 'MossbarrowScene',       to: 'MossbarrowDepthsScene' },
   { from: 'MossbarrowDepthsScene', to: 'DepthsFloor2Scene' },
   { from: 'DepthsFloor2Scene',     to: 'DepthsFloor3Scene' },
+
+  // Mossbarrow north → Ironveil mines → Frosthollow peaks → Frozen Hollow chain
+  { from: 'MossbarrowScene',       to: 'IronveilScene' },
+  { from: 'IronveilScene',         to: 'FrosthollowScene' },
+  { from: 'FrosthollowScene',      to: 'FrozenHollowF1Scene' },
+  { from: 'FrozenHollowF1Scene',   to: 'FrozenHollowF2Scene' },
+  { from: 'FrozenHollowF2Scene',   to: 'FrozenHollowF3Scene' },
+
+  // Mossbarrow east → Ashenmere
   { from: 'MossbarrowScene',       to: 'AshenmereScene' },
+
+  // Ashenmere south → Bog Dungeon descent (3 floors)
+  { from: 'AshenmereScene',        to: 'BogDungeonF1Scene' },
+  { from: 'BogDungeonF1Scene',     to: 'BogDungeonF2Scene' },
+  { from: 'BogDungeonF2Scene',     to: 'BogDungeonF3Scene' },
+
+  // Ashenmere south-east → Drowned Sanctum
   { from: 'AshenmereScene',        to: 'DrownedSanctumF1Scene' },
   { from: 'DrownedSanctumF1Scene', to: 'DrownedSanctumF2Scene' },
-  { from: 'TownScene',             to: 'DuskmereScene' },
+
+  // Ashenmere → Ashfields → Ashen Tower (rising)
   { from: 'AshenmereScene',        to: 'AshfieldsScene' },
   { from: 'AshfieldsScene',        to: 'AshenTowerF1Scene' },
   { from: 'AshenTowerF1Scene',     to: 'AshenTowerF2Scene' },
   { from: 'AshenTowerF2Scene',     to: 'AshenTowerF3Scene' },
+
+  // Ashfields → Shattered Coast → Throne Beneath descent
   { from: 'AshfieldsScene',        to: 'ShatteredCoastScene' },
   { from: 'ShatteredCoastScene',   to: 'ThroneBeneathF1Scene' },
   { from: 'ThroneBeneathF1Scene',  to: 'ThroneBeneathF2Scene' },
