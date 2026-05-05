@@ -57,6 +57,35 @@ import './InGameOverlay.css';
  *   - Corner menu (Esc or click) for returning to main menu
  *   - Dialogue overlay when a dialogue is active
  */
+
+/**
+ * Smooth green → yellow → red interpolation for HP fill.
+ * pct is a 0..1 ratio (current/max). Returns a CSS rgb() string.
+ *
+ * Anchors:
+ *   1.0  → green  (#40a060 = 64,160,96)
+ *   0.5  → yellow (#c0a040 = 192,160,64)
+ *   0.0  → red    (#c04040 = 192,64,64)
+ */
+function hpRampColor(pct: number): string {
+  const p = Math.max(0, Math.min(1, pct));
+  let r: number, g: number, b: number;
+  if (p >= 0.5) {
+    // Interpolate from yellow (192,160,64) at 0.5 → green (64,160,96) at 1.0
+    const t = (p - 0.5) / 0.5;
+    r = Math.round(192 + (64 - 192) * t);
+    g = Math.round(160 + (160 - 160) * t);
+    b = Math.round(64 + (96 - 64) * t);
+  } else {
+    // Interpolate from red (192,64,64) at 0.0 → yellow (192,160,64) at 0.5
+    const t = p / 0.5;
+    r = Math.round(192 + (192 - 192) * t);
+    g = Math.round(64 + (160 - 64) * t);
+    b = Math.round(64 + (64 - 64) * t);
+  }
+  return `rgb(${r}, ${g}, ${b})`;
+}
+
 function getNextObjective(): string | null {
   const quests = useQuestStore.getState().active;
   const character = usePlayerStore.getState().character;
@@ -370,6 +399,21 @@ export function InGameOverlay() {
   }, [menuOpen, inventoryOpen, shopOpen, craftingOpen, cookingOpen, questBoardOpen,
       optionsOpen, achievementsOpen, worldMapOpen, bestiaryOpen,
       journalOpen, statScreenOpen, fastTravelOpen, dungeonMapOpen, pendingPerkChoices]);
+
+  // Lock body scroll while any modal/pause overlay is open so the page
+  // doesn't sprout native scrollbars behind the dialog (B4).
+  useEffect(() => {
+    const anyModalOpen =
+      menuOpen || optionsOpen || statScreenOpen || journalOpen ||
+      achievementsOpen || bestiaryOpen || worldMapOpen || dungeonMapOpen ||
+      questBoardOpen || fastTravelOpen || dialogueHistoryOpen || endingOpen;
+    if (!anyModalOpen) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = prev; };
+  }, [menuOpen, optionsOpen, statScreenOpen, journalOpen, achievementsOpen,
+      bestiaryOpen, worldMapOpen, dungeonMapOpen, questBoardOpen,
+      fastTravelOpen, dialogueHistoryOpen, endingOpen]);
 
   // Gold milestone banner listener.
   useEffect(() => {
@@ -882,7 +926,9 @@ export function InGameOverlay() {
               {' '}<span className="ig__rank" style={{ color: rank.color }}>{rank.name}</span>
               {newGamePlus && <span className="ig__ngplus">NG+</span>}
               <span className="ig__time" title={`Time: ${timePhase}`}>{getPhaseIcon(timePhase)}</span>
-              <span className="ig__time" title={`Weather: ${weather}`}>{getWeatherIcon(weather)}</span>
+              {getWeatherIcon(weather) !== getPhaseIcon(timePhase) && (
+                <span className="ig__time" title={`Weather: ${weather}`}>{getWeatherIcon(weather)}</span>
+              )}
             </span>
           </div>
         </div>
@@ -895,17 +941,13 @@ export function InGameOverlay() {
                   className="ig__hp-fill"
                   style={{
                     width: `${Math.max(0, (character.hp / effectiveMaxHp) * 100)}%`,
-                    background: character.hp / effectiveMaxHp > 0.5
-                      ? '#40a060'
-                      : character.hp / effectiveMaxHp > 0.25
-                        ? '#c0a040'
-                        : '#c04040',
+                    background: hpRampColor(character.hp / effectiveMaxHp),
                   }}
                 />
               </div>
               <span className="ig__bar-val">{character.hp}/{effectiveMaxHp}</span>
             </div>
-            {effectiveMaxMp > 0 && (
+            {effectiveMaxMp > 0 ? (
               <div className="ig__bar-group">
                 <span className="ig__bar-label">MP</span>
                 <div className="ig__hp-bar">
@@ -916,8 +958,16 @@ export function InGameOverlay() {
                 </div>
                 <span className="ig__bar-val">{character.mp}/{effectiveMaxMp}</span>
               </div>
+            ) : (
+              // Reserve the slot so the row doesn't reflow when MP doesn't
+              // apply (fighter / rogue / ranger). Hidden but takes space.
+              <div className="ig__bar-group is-placeholder" aria-hidden="true">
+                <span className="ig__bar-label">MP</span>
+                <div className="ig__hp-bar" />
+                <span className="ig__bar-val">0/0</span>
+              </div>
             )}
-            {d.maxStamina > 0 && (
+            {d.maxStamina > 0 ? (
               <div className="ig__bar-group">
                 <span className="ig__bar-label">STA</span>
                 <div className="ig__hp-bar">
@@ -927,6 +977,12 @@ export function InGameOverlay() {
                   />
                 </div>
                 <span className="ig__bar-val">{character.stamina}/{d.maxStamina}</span>
+              </div>
+            ) : (
+              <div className="ig__bar-group is-placeholder" aria-hidden="true">
+                <span className="ig__bar-label">STA</span>
+                <div className="ig__hp-bar" />
+                <span className="ig__bar-val">0/0</span>
               </div>
             )}
             <div className="ig__bar-group">
@@ -1120,92 +1176,89 @@ export function InGameOverlay() {
                 World Map
               </button>
             </div>
-            <div className="ig__menu-group">
-              <div className="ig__menu-group-label">Cheats (Playtest)</div>
-              <form
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  const raw = cheatInput.trim();
-                  if (!raw) return;
-                  // Accept shorthand: "all", "level 20", "gold 1000", etc.
-                  // Or full JS: "cheats.level(10)"
-                  const parts = raw.split(/\s+/);
-                  const cmd = parts[0].toLowerCase();
-                  const arg1 = parts[1];
-                  const arg2 = parts[2];
-                  const w = window as unknown as { cheats?: Record<string, (...a: unknown[]) => unknown> };
-                  try {
-                    let result: unknown = null;
-                    if (raw.startsWith('cheats.') || raw.includes('(')) {
-                      // Full expression — eval it
-                      // eslint-disable-next-line no-new-func
-                      result = (new Function('return ' + raw))();
-                    } else if (w.cheats && cmd in w.cheats) {
-                      const fn = w.cheats[cmd];
-                      const n = arg1 ? Number(arg1) : undefined;
-                      result = n != null && !Number.isNaN(n)
-                        ? fn(n)
-                        : arg1
-                          ? fn(arg1, arg2)
-                          : fn();
-                    } else {
-                      result = `Unknown cheat "${cmd}". Try: help, all, level 10, gold 1000, heal, gear, keyitems, reveal, tp TownScene, beatboss hollow_king, god, wipe`;
-                    }
-                    setCheatResult(typeof result === 'string' ? result : JSON.stringify(result));
-                  } catch (err) {
-                    setCheatResult(`Error: ${(err as Error).message}`);
-                  }
-                  setCheatInput('');
-                }}
-                style={{ display: 'flex', flexDirection: 'column', gap: 4 }}
-              >
-                <input
-                  type="text"
-                  value={cheatInput}
-                  onChange={(e) => setCheatInput(e.target.value)}
-                  placeholder="e.g. all, level 20, gear, tp DuskmereScene"
-                  className="ig__menu-btn2"
-                  style={{
-                    width: '100%', boxSizing: 'border-box',
-                    background: 'rgba(10,6,4,0.9)', color: '#f4d488',
-                    fontFamily: 'Courier New, monospace', fontSize: 13,
-                    border: '2px solid #6a5838', padding: '6px 10px',
-                  }}
-                  autoComplete="off"
-                  spellCheck={false}
-                />
-                <div style={{ display: 'flex', gap: 4 }}>
-                  <button type="submit" className="ig__menu-btn2 is-primary" style={{ flex: 1 }}>Run</button>
-                  <button
-                    type="button"
-                    className="ig__menu-btn2"
-                    onClick={() => {
-                      const w = window as unknown as { cheats?: { all: () => unknown } };
-                      if (w.cheats) {
-                        try { w.cheats.all(); setCheatResult('Applied: level 20 + gear + items + gold + reveal'); }
-                        catch (err) { setCheatResult((err as Error).message); }
+            {import.meta.env.DEV && (
+              <div className="ig__menu-group">
+                <div className="ig__menu-group-label">Cheats (Playtest)</div>
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    const raw = cheatInput.trim();
+                    if (!raw) return;
+                    // Named cheats only — no JS eval. e.g. "level 20", "gold 1000".
+                    const parts = raw.split(/\s+/);
+                    const cmd = parts[0].toLowerCase();
+                    const arg1 = parts[1];
+                    const arg2 = parts[2];
+                    const w = window as unknown as { cheats?: Record<string, (...a: unknown[]) => unknown> };
+                    try {
+                      let result: unknown = null;
+                      if (w.cheats && cmd in w.cheats) {
+                        const fn = w.cheats[cmd];
+                        const n = arg1 ? Number(arg1) : undefined;
+                        result = n != null && !Number.isNaN(n)
+                          ? fn(n)
+                          : arg1
+                            ? fn(arg1, arg2)
+                            : fn();
+                      } else {
+                        result = `Unknown cheat "${cmd}". Try: help, all, level 10, gold 1000, heal, gear, keyitems, reveal, tp TownScene, beatboss hollow_king, god, wipe`;
                       }
+                      setCheatResult(typeof result === 'string' ? result : JSON.stringify(result));
+                    } catch (err) {
+                      setCheatResult(`Error: ${(err as Error).message}`);
+                    }
+                    setCheatInput('');
+                  }}
+                  style={{ display: 'flex', flexDirection: 'column', gap: 4 }}
+                >
+                  <input
+                    type="text"
+                    value={cheatInput}
+                    onChange={(e) => setCheatInput(e.target.value)}
+                    placeholder="e.g. all, level 20, gear, tp DuskmereScene"
+                    className="ig__menu-btn2"
+                    style={{
+                      width: '100%', boxSizing: 'border-box',
+                      background: 'rgba(10,6,4,0.9)', color: '#f4d488',
+                      fontFamily: 'Courier New, monospace', fontSize: 13,
+                      border: '2px solid #6a5838', padding: '6px 10px',
                     }}
-                    style={{ flex: 1 }}
-                  >
-                    All
-                  </button>
-                </div>
-                {cheatResult && (
-                  <div style={{
-                    fontFamily: 'Courier New, monospace', fontSize: 11,
-                    color: '#d4a968', padding: '4px 6px',
-                    background: 'rgba(30,20,10,0.8)', border: '1px solid #4a3818',
-                    maxHeight: 80, overflowY: 'auto', wordBreak: 'break-word',
-                  }}>
-                    {cheatResult}
+                    autoComplete="off"
+                    spellCheck={false}
+                  />
+                  <div style={{ display: 'flex', gap: 4 }}>
+                    <button type="submit" className="ig__menu-btn2 is-primary" style={{ flex: 1 }}>Run</button>
+                    <button
+                      type="button"
+                      className="ig__menu-btn2"
+                      onClick={() => {
+                        const w = window as unknown as { cheats?: { all: () => unknown } };
+                        if (w.cheats) {
+                          try { w.cheats.all(); setCheatResult('Applied: level 20 + gear + items + gold + reveal'); }
+                          catch (err) { setCheatResult((err as Error).message); }
+                        }
+                      }}
+                      style={{ flex: 1 }}
+                    >
+                      All
+                    </button>
                   </div>
-                )}
-                <div style={{ fontSize: 10, color: '#8a7a48', fontStyle: 'italic' }}>
-                  help · all · level N · gold N · heal · gear · keyitems · reveal · tp SCENE · beatboss KEY · god · wipe
-                </div>
-              </form>
-            </div>
+                  {cheatResult && (
+                    <div style={{
+                      fontFamily: 'Courier New, monospace', fontSize: 11,
+                      color: '#d4a968', padding: '4px 6px',
+                      background: 'rgba(30,20,10,0.8)', border: '1px solid #4a3818',
+                      maxHeight: 80, overflowY: 'auto', wordBreak: 'break-word',
+                    }}>
+                      {cheatResult}
+                    </div>
+                  )}
+                  <div style={{ fontSize: 10, color: '#8a7a48', fontStyle: 'italic' }}>
+                    help · all · level N · gold N · heal · gear · keyitems · reveal · tp SCENE · beatboss KEY · god · wipe
+                  </div>
+                </form>
+              </div>
+            )}
             <div className="ig__menu-group">
               <div className="ig__menu-group-label">Exit</div>
               <button type="button" className="ig__menu-btn2 is-danger" onClick={returnToMenu}>
