@@ -33,3 +33,4 @@ scripts/_tmp/
 scripts/crop-*.mjs
 scripts/inspect-*.mjs
 scripts/peek*.mjs
+tools/_out/
