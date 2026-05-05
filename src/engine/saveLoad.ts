@@ -93,6 +93,95 @@ interface SaveData {
   dialogueMemory?: Record<string, number>;
 }
 
+/**
+ * Same shape as `SaveData` but with every post-v1 optional field promoted
+ * to non-optional. Produced by `normalizeSaveData` so the load path can
+ * read every field without nullish guards.
+ *
+ * NOTE: The on-disk JSON is still raw `SaveData` — we never persist this
+ * shape. Normalization is purely a load-time defensive layer.
+ */
+type NormalizedSaveData = Required<Omit<SaveData, 'bounty' | 'companion' | 'activeDungeonItem' | 'worldState' | 'time' | 'achievements' | 'commissions'>> & {
+  // Nullable-but-required fields keep their nullability after normalize.
+  bounty: NonNullable<SaveData['bounty']> | null;
+  companion: string | null;
+  activeDungeonItem: string | null;
+  worldState: {
+    litTorches: string[];
+    minedObjects: string[];
+    pickedObjects: string[];
+    unlockedDoors: string[];
+  };
+  time: {
+    phase: TimePhase;
+    transitionsSincePhase: number;
+    weather: Weather;
+  };
+  achievements: NonNullable<SaveData['achievements']>;
+  commissions: NonNullable<SaveData['commissions']>;
+};
+
+/**
+ * Promote a raw parsed save (which may be a v1 save missing every
+ * post-v1 field) to a fully-populated object. This is the single
+ * choke point for backward-compat defaults; every field added with
+ * `// added post-v1, optional for backward compat` MUST get a default
+ * here so the load path can consume it without nullish guards.
+ *
+ * Defaults are chosen to match the empty-state each store would have
+ * on a fresh game so consumers see a consistent shape.
+ */
+function normalizeSaveData(raw: SaveData): NormalizedSaveData {
+  return {
+    version: raw.version,
+    timestamp: raw.timestamp,
+    characterInit: raw.characterInit,
+    quests: raw.quests ?? {},
+    inventory: raw.inventory ?? { slots: [], equipment: {} },
+    killedEnemies: raw.killedEnemies ?? [],
+    questKillCounts: raw.questKillCounts ?? {},
+    currentScene: raw.currentScene ?? 'TownScene',
+    perks: raw.perks ?? [],
+    heartPieces: raw.heartPieces ?? 0,
+    heartPiecesCollected: raw.heartPiecesCollected ?? [],
+    ancientCoins: raw.ancientCoins ?? [],
+    companion: raw.companion ?? null,
+    playTimeMs: raw.playTimeMs ?? 0,
+    achievements: raw.achievements ?? {
+      unlocked: [],
+      totalKills: 0,
+      totalDeaths: 0,
+      itemsCrafted: 0,
+      chestsOpened: 0,
+      bossesKilled: [],
+      zonesVisited: [],
+      monstersEncountered: {},
+    },
+    dungeonItems: raw.dungeonItems ?? [],
+    activeDungeonItem: raw.activeDungeonItem ?? null,
+    lanternLit: raw.lanternLit ?? false,
+    worldState: {
+      litTorches: raw.worldState?.litTorches ?? [],
+      minedObjects: raw.worldState?.minedObjects ?? [],
+      pickedObjects: raw.worldState?.pickedObjects ?? [],
+      unlockedDoors: raw.worldState?.unlockedDoors ?? [],
+    },
+    lore: raw.lore ?? [],
+    commissions: raw.commissions ?? { commissions: [], transitionCount: 0 },
+    bounty: raw.bounty ?? null,
+    newGamePlus: raw.newGamePlus ?? false,
+    time: {
+      phase: raw.time?.phase ?? 'day',
+      transitionsSincePhase: raw.time?.transitionsSincePhase ?? 0,
+      weather: raw.time?.weather ?? 'clear',
+    },
+    dialogueMemory: raw.dialogueMemory ?? {},
+  };
+}
+
+// Exported for unit testing only — not part of the public save API.
+export const __test__ = { normalizeSaveData };
+
 const SAVE_PREFIX = 'hollowcrown_save_';
 
 export function saveGame(slot: string, currentScene = 'TownScene'): boolean {
@@ -195,8 +284,13 @@ export function loadGame(slot: string): boolean {
   try {
     const raw = localStorage.getItem(SAVE_PREFIX + slot);
     if (!raw) return false;
-    const data: SaveData = JSON.parse(raw);
-    if (data.version !== 1) return false;
+    const parsed: SaveData = JSON.parse(raw);
+    if (parsed.version !== 1) return false;
+
+    // Centralized backward-compat layer: every post-v1 optional field is
+    // promoted to a safe default here, so the rest of this function can
+    // assume a fully-populated shape and never has to nullish-guard.
+    const data = normalizeSaveData(parsed);
 
     // Restore character
     const init = data.characterInit;
@@ -226,13 +320,12 @@ export function loadGame(slot: string): boolean {
       char.stamina = Math.min(char.stamina, char.derived.maxStamina);
       // Restore perks — re-apply stat mutations (stat-boost perks modify
       // the character's stats directly, so we replay them on load).
-      const savedPerks = data.perks ?? [];
-      if (savedPerks.length > 0) {
-        for (const pk of savedPerks) {
+      if (data.perks.length > 0) {
+        for (const pk of data.perks) {
           const perk = ALL_PERKS.find((p) => p.key === pk);
           if (perk) perk.apply(char);
         }
-        usePlayerStore.setState({ perks: savedPerks });
+        usePlayerStore.setState({ perks: data.perks });
       }
       usePlayerStore.getState().notify();
     }
@@ -260,77 +353,58 @@ export function loadGame(slot: string): boolean {
     // Zustand updates.
     useCombatStore.setState({
       killedEnemies: new Set(data.killedEnemies),
-      questKillCounts: { ...(data.questKillCounts ?? {}) },
+      questKillCounts: { ...data.questKillCounts },
     });
 
     // Restore heart pieces
-    if (data.heartPieces != null) {
-      usePlayerStore.setState({
-        heartPieces: data.heartPieces,
-        heartPiecesCollected: new Set(data.heartPiecesCollected ?? []),
-      });
-    }
+    usePlayerStore.setState({
+      heartPieces: data.heartPieces,
+      heartPiecesCollected: new Set(data.heartPiecesCollected),
+    });
 
     // Restore ancient coins
-    if (data.ancientCoins) {
-      usePlayerStore.setState({ ancientCoins: new Set(data.ancientCoins) });
-    }
+    usePlayerStore.setState({ ancientCoins: new Set(data.ancientCoins) });
 
     // Restore companion
-    if (data.companion !== undefined) {
-      usePlayerStore.setState({ companion: data.companion });
-    }
+    usePlayerStore.setState({ companion: data.companion });
 
     // Restore achievements
-    if (data.achievements) {
-      useAchievementStore.setState({
-        unlocked: new Set(data.achievements.unlocked),
-        totalKills: data.achievements.totalKills,
-        totalDeaths: data.achievements.totalDeaths,
-        itemsCrafted: data.achievements.itemsCrafted,
-        chestsOpened: data.achievements.chestsOpened,
-        bossesKilled: data.achievements.bossesKilled,
-        zonesVisited: new Set(data.achievements.zonesVisited),
-        monstersEncountered: data.achievements.monstersEncountered,
-      });
-    }
+    useAchievementStore.setState({
+      unlocked: new Set(data.achievements.unlocked),
+      totalKills: data.achievements.totalKills,
+      totalDeaths: data.achievements.totalDeaths,
+      itemsCrafted: data.achievements.itemsCrafted,
+      chestsOpened: data.achievements.chestsOpened,
+      bossesKilled: data.achievements.bossesKilled,
+      zonesVisited: new Set(data.achievements.zonesVisited),
+      monstersEncountered: data.achievements.monstersEncountered,
+    });
 
     // Restore dungeon items
-    if (data.dungeonItems) {
-      useDungeonItemStore.setState({ found: new Set(data.dungeonItems) });
-    }
-    if (data.activeDungeonItem !== undefined) {
-      usePlayerStore.setState({ activeDungeonItem: data.activeDungeonItem });
-    }
-    if (typeof data.lanternLit === 'boolean') {
-      usePlayerStore.setState({ lanternLit: data.lanternLit });
-    }
+    useDungeonItemStore.setState({ found: new Set(data.dungeonItems) });
+    usePlayerStore.setState({ activeDungeonItem: data.activeDungeonItem });
+    usePlayerStore.setState({ lanternLit: data.lanternLit });
     useWorldStateStore.getState().loadFrom(
-      data.worldState?.litTorches ?? [],
-      data.worldState?.minedObjects ?? [],
-      data.worldState?.pickedObjects ?? [],
-      data.worldState?.unlockedDoors ?? [],
+      data.worldState.litTorches,
+      data.worldState.minedObjects,
+      data.worldState.pickedObjects,
+      data.worldState.unlockedDoors,
     );
 
     // Restore play time
-    if (typeof data.playTimeMs === 'number') {
-      useGameStatsStore.getState().loadTime(data.playTimeMs);
-    }
+    useGameStatsStore.getState().loadTime(data.playTimeMs);
 
     // Restore lore
-    if (data.lore) {
-      useLoreStore.setState({ entries: data.lore });
-    }
+    useLoreStore.setState({ entries: data.lore });
 
     // Restore commissions
-    if (data.commissions) {
-      useCommissionStore.setState({
-        commissions: data.commissions.commissions,
-        transitionCount: data.commissions.transitionCount,
-      });
-    }
+    useCommissionStore.setState({
+      commissions: data.commissions.commissions,
+      transitionCount: data.commissions.transitionCount,
+    });
 
-    // Restore bounty
+    // Restore bounty (null when there's no active bounty — leave the
+    // store at its initial empty state in that case).
     if (data.bounty) {
       useBountyStore.setState({
         active: data.bounty.active,
@@ -344,19 +418,17 @@ export function loadGame(slot: string): boolean {
       usePlayerStore.setState({ newGamePlus: true });
     }
 
-    if (data.time) {
-      useTimeStore.setState({
-        phase: data.time.phase,
-        transitionsSincePhase: data.time.transitionsSincePhase,
-        weather: data.time.weather ?? 'clear',
-      });
-    }
+    useTimeStore.setState({
+      phase: data.time.phase,
+      transitionsSincePhase: data.time.transitionsSincePhase,
+      weather: data.time.weather,
+    });
 
     // Restore NPC greeting familiarity. Missing field on older saves
     // defaults to empty so the player just sees first-meeting lines
     // again rather than the load failing.
     useDialogueMemoryStore.setState({
-      greetingCount: { ...(data.dialogueMemory ?? {}) },
+      greetingCount: { ...data.dialogueMemory },
     });
 
     return true;
