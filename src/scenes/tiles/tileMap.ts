@@ -192,12 +192,23 @@ export const TILE_VARIANT_POOL: Partial<Record<number, number[]>> = {
   // (because those mappings were wrong) showed as DOOR sprites all
   // over the grass — the "chest icons everywhere" playtest report.
   //
-  // Now: only homogeneous variants (cobble accent on path/stone).
-  // Flora variants will be re-added once GRASS_FLOWER_* coords are
-  // pixel-verified against tools/_out/contact-sheet-mapped.png.
+  // Now: only homogeneous variants (cobble accent on path/stone) plus
+  // the procedurally-painted GRASS_VAR_A/B/C variants, which share the
+  // same forest-base palette as GRASS_DARK/LIGHT but have different
+  // blade-stroke seeds, cluster positions, and wildflower offsets so
+  // adjacent grass cells don't read as repeating wallpaper.
+  // Flora-sprite variants will be re-added once GRASS_FLOWER_* coords
+  // are pixel-verified against tools/_out/contact-sheet-mapped.png.
   [TILE.PATH]:        [TILE.PATH, TILE.PATH, TILE.PATH, TILE.PATH, TILE.PATH, TILE.COBBLE],
   [TILE.FLOOR_STONE]: [TILE.FLOOR_STONE, TILE.FLOOR_STONE, TILE.FLOOR_STONE,
                        TILE.FLOOR_STONE, TILE.COBBLE],
+  // Grass — base id stays dominant (2× weight) so the field still reads
+  // as one biome, but the three variants mix in often enough to break
+  // the visible repeat pattern and distribute wildflowers irregularly.
+  [TILE.GRASS_DARK]:  [TILE.GRASS_DARK, TILE.GRASS_DARK,
+                       TILE.GRASS_VAR_A, TILE.GRASS_VAR_B, TILE.GRASS_VAR_C],
+  [TILE.GRASS_LIGHT]: [TILE.GRASS_LIGHT, TILE.GRASS_LIGHT,
+                       TILE.GRASS_VAR_A, TILE.GRASS_VAR_B, TILE.GRASS_VAR_C],
 };
 
 /**

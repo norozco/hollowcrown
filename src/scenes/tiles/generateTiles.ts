@@ -57,10 +57,16 @@ export const TILE = {
   TABLE_SMALL: 100, BENCH: 101, CHAIR_WOOD: 102,
   // Wadeable water — passable only with the Water Charm dungeon item.
   SHALLOW_WATER: 103,
+  // Grass tile variants — same forest-base palette as GRASS_DARK/LIGHT,
+  // but painted with different scatter seeds + cluster positions +
+  // wildflower offsets. Wired into TILE_VARIANT_POOL so applyTileVariants
+  // mixes them in deterministically per cell, breaking the visible
+  // "wallpaper" repeat pattern of the field.
+  GRASS_VAR_A: 104, GRASS_VAR_B: 105, GRASS_VAR_C: 106,
 } as const;
 
 export const TILE_SIZE = 32;
-const TILE_COUNT = 104;
+const TILE_COUNT = 107;
 const S = TILE_SIZE;
 
 export function generateTileset(scene: Phaser.Scene): void {
@@ -108,6 +114,24 @@ export function generateTileset(scene: Phaser.Scene): void {
   // making every tile look speckled.)
   if (USE_SPRITE_TILES) {
     overlaySpriteTiles(scene, ctx);
+    // Kenney's grass cell is a bright flat emerald that doesn't match
+    // the deeper foliage greens of the bush/tree sprites that sit on
+    // top of it. Override with a forest-matched base + blade-stroke
+    // texture so the open field reads as the same biome as the trees.
+    paintGrassBase(ctx, TILE.GRASS_DARK);
+    paintGrassBase(ctx, TILE.GRASS_LIGHT);
+    paintGrassBase(ctx, TILE.GRASS_VAR_A);
+    paintGrassBase(ctx, TILE.GRASS_VAR_B);
+    paintGrassBase(ctx, TILE.GRASS_VAR_C);
+    paintGrassDarkDecorations(ctx, TILE.GRASS_DARK);
+    paintGrassLightDecorations(ctx, TILE.GRASS_LIGHT);
+    // Variants share paintGrassBase but get unique scatter seeds,
+    // cluster positions, and wildflower offsets so cells painted with
+    // them don't repeat the GRASS_DARK/LIGHT pattern. Together with
+    // TILE_VARIANT_POOL in tileMap.ts, this breaks the wallpaper look.
+    paintGrassVarADecorations(ctx, TILE.GRASS_VAR_A);
+    paintGrassVarBDecorations(ctx, TILE.GRASS_VAR_B);
+    paintGrassVarCDecorations(ctx, TILE.GRASS_VAR_C);
   }
 
   const tex = scene.textures.addCanvas('tileset', canvas);
@@ -158,14 +182,25 @@ function blk(c: Ctx, i: number, x: number, y: number, w: number, h: number, col:
 function fill(c: Ctx, i: number, col: string) { blk(c, i, 0, 0, S, S, col); }
 
 /**
- * Fallback fill for the expanded TILE ids (44-102). Each tile is either
- * grass-green, dirt-brown, stone-grey, water-blue, terracotta-red, or
- * wood-tan — matched roughly to what the Kenney overlay will paint on
- * top. If the overlay lands (99% case) these pixels are invisible; if
- * the sheet fails to load, the fallback still reads as the right biome.
+ * Fallback fill for the expanded TILE ids (44-102, plus grass variants
+ * 104-106). Each tile is either grass-green, dirt-brown, stone-grey,
+ * water-blue, terracotta-red, or wood-tan — matched roughly to what the
+ * Kenney overlay will paint on top. If the overlay lands (99% case)
+ * these pixels are invisible; if the sheet fails to load, the fallback
+ * still reads as the right biome.
+ *
+ * B15: every fallback also gets a small high-contrast magenta diagonal
+ * stripe in the top-left corner. When the Kenney overlay paints, the
+ * marker is hidden (the sprite covers the whole 32×32 cell). When the
+ * sheet fails to load, the stripe makes the broken-sprite state
+ * visually obvious instead of letting unmapped tiles read as a uniform
+ * green block.
  */
 function drawKenneyFallbacks(c: Ctx): void {
-  const biome = (id: number, col: string) => fill(c, id, col);
+  const biome = (id: number, col: string) => {
+    fill(c, id, col);
+    drawBrokenSpriteMarker(c, id);
+  };
   const G = '#3ca41c', D = '#ae8050', K = '#a0a0a0', W = '#69c5cd';
   const R = '#b65e26', N = '#c8b890', T = '#2a2a2a';
   // Grass decorations 44-47 — base green.
@@ -201,105 +236,239 @@ function drawKenneyFallbacks(c: Ctx): void {
   biome(TILE.CARPET_RED, '#8a2020'); biome(TILE.CARPET_BLUE, '#203a8a');
   biome(TILE.CARPET_EDGE, '#503020');
   biome(TILE.TABLE_SMALL, D); biome(TILE.BENCH, D); biome(TILE.CHAIR_WOOD, D);
+  // Grass variants — green base. The post-overlay paint pass replaces
+  // these with the forest-base + variant-specific blade pattern; this
+  // fill is purely a backstop for the (extremely rare) failure mode
+  // where both the Kenney overlay AND the post-overlay paint pass
+  // somehow don't run for these IDs.
+  biome(TILE.GRASS_VAR_A, G); biome(TILE.GRASS_VAR_B, G); biome(TILE.GRASS_VAR_C, G);
+}
+
+/**
+ * B15: small visible marker drawn in the top-left corner of unmapped
+ * tiles' fallback fill. Magenta is intentionally never used by the
+ * grass / dirt / stone / water / wood biome palettes, so its presence
+ * is an unambiguous signal that the Kenney sheet didn't paint over the
+ * cell — i.e. the sprite-load failed or the tile ID isn't mapped.
+ *
+ * Drawn as a 2-pixel-thick diagonal stripe running ~5 cells in the
+ * top-left corner. Tiny enough not to dominate the cell during normal
+ * play (the Kenney sprite, when loaded, completely covers it), but
+ * obvious in a zoom-out when the sprite is missing — turning a
+ * uniform green block into a clearly-broken cell.
+ */
+function drawBrokenSpriteMarker(c: Ctx, i: number) {
+  const M = '#ff00aa';
+  // Two parallel diagonal lines = 2px-thick stripe across (0,0)-(4,4).
+  for (let k = 0; k < 5; k++) {
+    px(c, i, k, k, M);
+    if (k + 1 < S) px(c, i, k + 1, k, M);
+  }
 }
 
 // ═══════════════════════════════════════════════════════════════
 // TERRAIN TILES (0-15) — same ALTTP-quality as before
 // ═══════════════════════════════════════════════════════════════
 
+// Unified grass palette — shadow / mid-dark / mid / highlight. Both
+// GRASS_DARK and GRASS_LIGHT now share this dark ramp; what used to be
+// "sunlit meadow" is just a second cluster pattern over the same base
+// so adjacent grass cells don't read as a repeating wallpaper.
 function drawGrassDark(c: Ctx, i: number) {
-  // Forest grass — cluster-based texture, NOT random scatter
-  // Ramp: shadow #1a6818, mid-dark #288818, mid #3ca41c, highlight #84d040
   fill(c, i, '#3ca41c');
-
-  // Subtle ground variation — flat patches of slightly different mid-tones
   blk(c,i,0,0,5,4,'#38a018'); blk(c,i,16,8,6,5,'#40a820');
   blk(c,i,8,20,7,5,'#38a018'); blk(c,i,26,16,6,6,'#40a820');
-
-  // === GRASS TUFT CLUSTERS (5 clusters, each 3-5px, deliberate shapes) ===
-  // Cluster 1 — top-left area, L-shaped tuft (wraps top edge for tiling)
-  px(c,i,4,0,'#84d040'); px(c,i,5,0,'#84d040');  // tips at tile top edge
-  px(c,i,4,1,'#288818'); px(c,i,5,1,'#3ca41c');
-  px(c,i,3,2,'#1a6818'); px(c,i,4,2,'#288818');
-  px(c,i,3,3,'#1a6818');
-
-  // Cluster 2 — upper-right, V-shaped tuft
-  px(c,i,22,4,'#1a6818'); px(c,i,24,4,'#1a6818');
-  px(c,i,22,3,'#288818'); px(c,i,23,3,'#3ca41c'); px(c,i,24,3,'#288818');
-  px(c,i,23,2,'#84d040');
-
-  // Cluster 3 — center, inverted-T tuft
-  px(c,i,14,14,'#1a6818'); px(c,i,15,14,'#1a6818'); px(c,i,16,14,'#1a6818');
-  px(c,i,15,13,'#288818'); px(c,i,15,12,'#84d040');
-
-  // Cluster 4 — lower-left, diagonal tuft
-  px(c,i,6,24,'#1a6818'); px(c,i,7,23,'#288818');
-  px(c,i,8,22,'#84d040'); px(c,i,7,24,'#288818');
-  px(c,i,6,25,'#1a6818');
-
-  // Cluster 5 — lower-right, wraps right edge for seamless tiling
-  px(c,i,30,20,'#1a6818'); px(c,i,31,20,'#288818');
-  px(c,i,30,19,'#288818'); px(c,i,31,19,'#84d040');
-  px(c,i,30,21,'#1a6818');
-
-  // === NEGATIVE SPACE — large flat areas of base color left untouched ===
-
-  // === SINGLE-PIXEL SHADOW DIPS (ground depressions) ===
-  px(c,i,10,10,'#1a6818'); px(c,i,27,6,'#1a6818');
-
-  // === SCATTERED FLOWERS (2-3 single pixels) ===
-  px(c,i,12,7,'#fff8e8');   // white wildflower
-  px(c,i,20,18,'#f098b0');  // pink wildflower
-  px(c,i,2,28,'#fff8e8');   // white wildflower
+  paintGrassDarkDecorations(c, i);
 }
 
 function drawGrassLight(c: Ctx, i: number) {
-  // Sunlit meadow — brighter palette, same cluster technique, more flowers
-  // Ramp: shadow #1a6818, mid #54b424, bright #84d040, highlight #b0e860
-  fill(c, i, '#54b424');
+  fill(c, i, '#3ca41c');
+  blk(c,i,6,2,7,5,'#40a820'); blk(c,i,22,14,6,5,'#40a820');
+  blk(c,i,2,22,5,4,'#38a018');
+  paintGrassLightDecorations(c, i);
+}
 
-  // Sunlit variation patches (warm bright areas)
-  blk(c,i,6,2,7,5,'#5cbc28'); blk(c,i,22,14,6,5,'#5cbc28');
-  blk(c,i,2,22,5,4,'#58b820');
+/** Tufts/flowers/dips for GRASS_DARK. Pulled out of drawGrassDark so it
+ *  can be re-applied after overlaySpriteTiles paints the Kenney emerald
+ *  on top — without this re-application, the open field renders as a
+ *  flat solid green that doesn't match the dotted bases of bush/tree
+ *  sprites. Same dark palette as before. */
+/** Forest grass palette tuned to sit just below the Kenney bush/tree
+ *  foliage greens — close enough that the open field reads as the same
+ *  biome as the trees, but with enough contrast that canopies still
+ *  read as elevated above the ground plane. */
+const GRASS_BASE      = '#4a8830';  // medium forest green — new tile fill
+const GRASS_BLADE_DRK = '#1f4818';  // deepest blade shadow
+const GRASS_BLADE_MID = '#2a5a20';  // mid-dark blade
+const GRASS_HIGHLIGHT = '#88c845';  // sunlit blade tip
 
-  // === GRASS TUFT CLUSTERS (5 clusters, brighter tips than dark grass) ===
-  // Cluster 1 — upper area, arc-shaped tuft
-  px(c,i,8,5,'#1a6818'); px(c,i,9,5,'#1a6818'); px(c,i,10,5,'#1a6818');
-  px(c,i,8,4,'#54b424'); px(c,i,9,4,'#84d040'); px(c,i,10,4,'#54b424');
-  px(c,i,9,3,'#b0e860');
+/** Override the Kenney emerald with a forest-matched base green and
+ *  paint a few subtle ground patches. Called per grass tile after
+ *  overlaySpriteTiles, before the blade decorations. */
+function paintGrassBase(c: Ctx, i: number) {
+  fill(c, i, GRASS_BASE);
+  // Slightly varied patches so the base isn't perfectly uniform.
+  blk(c,i,4,6,6,4,'#4e9034'); blk(c,i,18,4,5,4,'#46802c');
+  blk(c,i,2,18,4,5,'#4e9034'); blk(c,i,22,20,6,4,'#46802c');
+  blk(c,i,12,24,5,4,'#4e9034');
+}
 
-  // Cluster 2 — right side, diagonal tuft wrapping right edge
-  px(c,i,28,10,'#1a6818'); px(c,i,29,9,'#288818');
-  px(c,i,30,8,'#84d040'); px(c,i,31,8,'#b0e860');
-  px(c,i,29,10,'#1a6818');
+/** Draw a single grass blade — a 1px-wide, 2px-tall vertical stroke
+ *  with optional brighter tip. Reads as a directional blade rather
+ *  than random noise. */
+function blade(c: Ctx, i: number, x: number, y: number, dark: string, tip?: string) {
+  px(c, i, x, y + 1, dark);
+  px(c, i, x, y, tip ?? dark);
+}
 
-  // Cluster 3 — center, small T-shape
-  px(c,i,16,16,'#1a6818'); px(c,i,17,16,'#1a6818');
-  px(c,i,16,15,'#54b424'); px(c,i,17,15,'#84d040');
-  px(c,i,17,14,'#b0e860');
+/** Scatter blade-style strokes deterministically across the tile. Each
+ *  blade is 2px tall (1×2 vertical), keeping it inside (1, 28) on Y so
+ *  it doesn't clip the bottom edge or stack against the next tile. */
+function scatterBlades(c: Ctx, i: number, seed: number, count: number, dark: string, tip?: string) {
+  let s = (seed * 2654435761) >>> 0;
+  for (let n = 0; n < count; n++) {
+    s = (s * 1664525 + 1013904223) >>> 0;
+    const x = 1 + (s % 30);
+    s = (s * 1664525 + 1013904223) >>> 0;
+    const y = 1 + (s % 28);
+    blade(c, i, x, y, dark, tip);
+  }
+}
 
-  // Cluster 4 — lower-left, L-shape wrapping bottom edge
-  px(c,i,4,28,'#1a6818'); px(c,i,5,28,'#288818');
-  px(c,i,4,29,'#1a6818'); px(c,i,5,29,'#54b424');
-  px(c,i,4,30,'#288818'); px(c,i,4,31,'#84d040');
+function paintGrassDarkDecorations(c: Ctx, i: number) {
+  // Two blade layers — dense darker shadows, sparser bright tips.
+  // ~28 blades × 2px each = ~56px shadow blades, plus ~10 tip-bladed
+  // ones on top. Reads as grass texture, not random pixel noise.
+  scatterBlades(c, i, 0xA1, 28, GRASS_BLADE_DRK);
+  scatterBlades(c, i, 0xB2, 16, GRASS_BLADE_MID);
+  scatterBlades(c, i, 0xD4, 8,  GRASS_BLADE_MID, GRASS_HIGHLIGHT);
 
-  // Cluster 5 — top-left, wraps left edge
-  px(c,i,0,12,'#84d040'); px(c,i,0,13,'#54b424');
-  px(c,i,1,13,'#288818'); px(c,i,0,14,'#1a6818');
-  px(c,i,1,14,'#1a6818');
+  // Authored tufts — small directional clumps that read as deliberate
+  // grass clusters rather than random scatter.
+  // Cluster 1 — upper-left
+  px(c,i,4,3,GRASS_BLADE_DRK); px(c,i,5,3,GRASS_BLADE_DRK);
+  px(c,i,4,2,GRASS_BLADE_MID); px(c,i,5,2,GRASS_HIGHLIGHT);
+  // Cluster 2 — upper-right
+  px(c,i,23,5,GRASS_BLADE_DRK); px(c,i,24,5,GRASS_BLADE_DRK); px(c,i,25,5,GRASS_BLADE_DRK);
+  px(c,i,23,4,GRASS_BLADE_MID); px(c,i,24,4,GRASS_HIGHLIGHT); px(c,i,25,4,GRASS_BLADE_MID);
+  // Cluster 3 — middle
+  px(c,i,14,15,GRASS_BLADE_DRK); px(c,i,15,15,GRASS_BLADE_DRK); px(c,i,16,15,GRASS_BLADE_DRK);
+  px(c,i,15,14,GRASS_HIGHLIGHT);
+  // Cluster 4 — lower
+  px(c,i,7,25,GRASS_BLADE_DRK); px(c,i,8,25,GRASS_BLADE_DRK);
+  px(c,i,7,24,GRASS_BLADE_MID); px(c,i,8,24,GRASS_HIGHLIGHT);
 
-  // === GOLDEN LIGHT SPOTS (single warm-yellow pixels, sunlit effect) ===
-  px(c,i,12,2,'#dcd848'); px(c,i,24,6,'#d4d040'); px(c,i,18,20,'#dcd848');
+  // (Wildflowers intentionally omitted — they used to be hard-coded
+  // here, which made the same flower appear at the same tile-relative
+  // offset in every cell that used GRASS_DARK. Flowers are now scattered
+  // across GRASS_VAR_A/B/C at varied positions; TILE_VARIANT_POOL mixes
+  // those variants in deterministically per-cell, breaking the grid.)
+}
 
-  // === SCATTERED FLOWERS (more than dark grass — bright meadow) ===
-  px(c,i,3,8,'#fff8e8');    // white
-  px(c,i,14,10,'#f098b0');  // pink
-  px(c,i,26,4,'#fff8e8');   // white
-  px(c,i,20,24,'#f098b0');  // pink
-  px(c,i,8,18,'#fff8e8');   // white
+/** GRASS_LIGHT shares the dark base + palette but with a different
+ *  seed offset and different authored clusters so adjacent tiles don't
+ *  alternate as a visible repeat pattern. */
+function paintGrassLightDecorations(c: Ctx, i: number) {
+  scatterBlades(c, i, 0xE5, 28, GRASS_BLADE_DRK);
+  scatterBlades(c, i, 0xF6, 16, GRASS_BLADE_MID);
+  scatterBlades(c, i, 0x18, 8,  GRASS_BLADE_MID, GRASS_HIGHLIGHT);
 
-  // === SHADOW DIPS ===
-  px(c,i,22,22,'#1a6818'); px(c,i,10,26,'#1a6818');
+  // Cluster 1 — upper-mid
+  px(c,i,9,4,GRASS_BLADE_DRK); px(c,i,10,4,GRASS_BLADE_DRK); px(c,i,11,4,GRASS_BLADE_DRK);
+  px(c,i,10,3,GRASS_HIGHLIGHT);
+  // Cluster 2 — right edge
+  px(c,i,27,11,GRASS_BLADE_DRK); px(c,i,28,11,GRASS_BLADE_DRK);
+  px(c,i,27,10,GRASS_BLADE_MID); px(c,i,28,10,GRASS_HIGHLIGHT);
+  // Cluster 3 — center-low
+  px(c,i,17,18,GRASS_BLADE_DRK); px(c,i,18,18,GRASS_BLADE_DRK);
+  px(c,i,17,17,GRASS_BLADE_MID); px(c,i,18,17,GRASS_HIGHLIGHT);
+  // Cluster 4 — lower-left
+  px(c,i,4,27,GRASS_BLADE_DRK); px(c,i,5,27,GRASS_BLADE_DRK); px(c,i,6,27,GRASS_BLADE_DRK);
+  px(c,i,5,26,GRASS_HIGHLIGHT);
+
+  // (Wildflowers moved to GRASS_VAR_A/B/C — see paintGrassDarkDecorations.)
+}
+
+// Variant wildflower palette — same cream + warm pink as before.
+const FLOWER_CREAM = '#fff8e8';
+const FLOWER_PINK  = '#f098b0';
+
+/** GRASS_VAR_A — different blade seeds, clusters drifted off the
+ *  GRASS_DARK/LIGHT positions, and 2 wildflowers placed in the upper
+ *  half of the tile. Together with the other variants, applyTileVariants
+ *  picks one of {GRASS_DARK, GRASS_VAR_A, GRASS_VAR_B} per cell so
+ *  flowers never sit at the same tile-relative offset twice in a row. */
+function paintGrassVarADecorations(c: Ctx, i: number) {
+  scatterBlades(c, i, 0x2C, 28, GRASS_BLADE_DRK);
+  scatterBlades(c, i, 0x3D, 16, GRASS_BLADE_MID);
+  scatterBlades(c, i, 0x4E, 8,  GRASS_BLADE_MID, GRASS_HIGHLIGHT);
+
+  // Cluster 1 — upper edge, slightly right of center
+  px(c,i,18,2,GRASS_BLADE_DRK); px(c,i,19,2,GRASS_BLADE_DRK); px(c,i,20,2,GRASS_BLADE_DRK);
+  px(c,i,19,1,GRASS_HIGHLIGHT);
+  // Cluster 2 — left side, mid
+  px(c,i,2,12,GRASS_BLADE_DRK); px(c,i,3,12,GRASS_BLADE_DRK);
+  px(c,i,2,11,GRASS_BLADE_MID); px(c,i,3,11,GRASS_HIGHLIGHT);
+  // Cluster 3 — center-right, lower-mid
+  px(c,i,21,17,GRASS_BLADE_DRK); px(c,i,22,17,GRASS_BLADE_DRK); px(c,i,23,17,GRASS_BLADE_DRK);
+  px(c,i,22,16,GRASS_BLADE_MID); px(c,i,23,16,GRASS_HIGHLIGHT);
+  // Cluster 4 — bottom edge
+  px(c,i,11,28,GRASS_BLADE_DRK); px(c,i,12,28,GRASS_BLADE_DRK);
+  px(c,i,12,27,GRASS_HIGHLIGHT);
+
+  // Wildflowers — upper half, distinct positions from VAR_B/VAR_C.
+  px(c,i,6,4,FLOWER_CREAM); px(c,i,26,9,FLOWER_PINK);
+}
+
+/** GRASS_VAR_B — third seed set, clusters in different cells than
+ *  GRASS_DARK/LIGHT/VAR_A, and wildflowers placed in the lower half. */
+function paintGrassVarBDecorations(c: Ctx, i: number) {
+  scatterBlades(c, i, 0x5F, 28, GRASS_BLADE_DRK);
+  scatterBlades(c, i, 0x71, 16, GRASS_BLADE_MID);
+  scatterBlades(c, i, 0x82, 8,  GRASS_BLADE_MID, GRASS_HIGHLIGHT);
+
+  // Cluster 1 — top-right corner
+  px(c,i,26,3,GRASS_BLADE_DRK); px(c,i,27,3,GRASS_BLADE_DRK);
+  px(c,i,26,2,GRASS_BLADE_MID); px(c,i,27,2,GRASS_HIGHLIGHT);
+  // Cluster 2 — center-left
+  px(c,i,8,13,GRASS_BLADE_DRK); px(c,i,9,13,GRASS_BLADE_DRK); px(c,i,10,13,GRASS_BLADE_DRK);
+  px(c,i,9,12,GRASS_HIGHLIGHT);
+  // Cluster 3 — right edge, lower
+  px(c,i,28,21,GRASS_BLADE_DRK); px(c,i,29,21,GRASS_BLADE_DRK);
+  px(c,i,28,20,GRASS_BLADE_MID); px(c,i,29,20,GRASS_HIGHLIGHT);
+  // Cluster 4 — lower-center
+  px(c,i,15,26,GRASS_BLADE_DRK); px(c,i,16,26,GRASS_BLADE_DRK); px(c,i,17,26,GRASS_BLADE_DRK);
+  px(c,i,16,25,GRASS_BLADE_MID); px(c,i,17,25,GRASS_HIGHLIGHT);
+
+  // Wildflowers — lower half, different cells from VAR_A/VAR_C.
+  px(c,i,10,22,FLOWER_PINK); px(c,i,24,28,FLOWER_CREAM);
+}
+
+/** GRASS_VAR_C — fourth seed set, clusters offset diagonally, and a
+ *  single wildflower in the dead center (somewhere neither VAR_A nor
+ *  VAR_B place one). */
+function paintGrassVarCDecorations(c: Ctx, i: number) {
+  scatterBlades(c, i, 0x93, 28, GRASS_BLADE_DRK);
+  scatterBlades(c, i, 0xA5, 16, GRASS_BLADE_MID);
+  scatterBlades(c, i, 0xB7, 8,  GRASS_BLADE_MID, GRASS_HIGHLIGHT);
+
+  // Cluster 1 — far left, mid-upper
+  px(c,i,1,7,GRASS_BLADE_DRK); px(c,i,2,7,GRASS_BLADE_DRK);
+  px(c,i,1,6,GRASS_BLADE_MID); px(c,i,2,6,GRASS_HIGHLIGHT);
+  // Cluster 2 — upper-mid right
+  px(c,i,20,9,GRASS_BLADE_DRK); px(c,i,21,9,GRASS_BLADE_DRK);
+  px(c,i,21,8,GRASS_HIGHLIGHT);
+  // Cluster 3 — lower-left
+  px(c,i,3,21,GRASS_BLADE_DRK); px(c,i,4,21,GRASS_BLADE_DRK); px(c,i,5,21,GRASS_BLADE_DRK);
+  px(c,i,4,20,GRASS_BLADE_MID); px(c,i,5,20,GRASS_HIGHLIGHT);
+  // Cluster 4 — far right, mid
+  px(c,i,28,15,GRASS_BLADE_DRK); px(c,i,29,15,GRASS_BLADE_DRK);
+  px(c,i,28,14,GRASS_BLADE_MID); px(c,i,29,14,GRASS_HIGHLIGHT);
+
+  // Single wildflower near center — neither VAR_A nor VAR_B touches
+  // this cell, so packs of three variants always show three different
+  // flower positions side-by-side instead of a repeating pair.
+  px(c,i,14,14,FLOWER_CREAM);
 }
 
 function drawPath(c: Ctx, i: number) {
