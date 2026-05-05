@@ -8,6 +8,43 @@ This file is the source-of-truth issue list as of the audit. Cross-reference wit
 
 ---
 
+## Resolution status
+
+The audit was followed by an 8-agent parallel fix pass (2026-05-01). Result:
+
+| ID  | Status     | Commit / note |
+|-----|------------|---------------|
+| A1  | ✅ Fixed   | `25880b6` HUD (player bars) + `aa6a92a` Combat (multi-enemy adds) |
+| A2  | ✅ Fixed   | `7a9ffdb` WorldMap added 9 missing zones |
+| A3  | ✅ Fixed   | `7a9ffdb` WorldMap hub-and-branch layout |
+| A4  | ⏸ Deferred | Architecture sprite mappings — 3 prior reverts in repo history; needs interactive pixel-verification, not solo agent work |
+| A5  | ✅ Fixed   | `b89d594` Tiles grass overhaul |
+| B1  | ✅ Fixed   | `25880b6` cheats panel gated to `import.meta.env.DEV` (verified absent from prod bundle) |
+| B2  | ✅ Fixed   | `1819a05` `applyStoredOptions` at app boot |
+| B3  | ✅ Fixed   | `25880b6` weather span suppressed when icon duplicates time icon |
+| B4  | ✅ Fixed   | `25880b6` body overflow lock on every modal |
+| B5  | ⏸ Skipped | Phaser internal state, non-bug |
+| B6  | ✅ Fixed   | `b89d594` 3 grass variants + variant pool |
+| B7  | ✅ Fixed   | `fe7667c` cellHash mixes scene key |
+| B8  | ✅ Fixed   | `fe7667c` density cull mixes scene key |
+| B9  | ✅ Fixed   | `f7eeabd` `import.meta.hot.dispose` cleanup |
+| B10 | ⏸ Deferred | Resume → Main Menu bounce — needs reliable repro |
+| B11 | ✅ Fixed   | `25880b6` `new Function` eval branch removed (verified absent from prod bundle) |
+| B12 | ✅ Fixed   | `9ee24bd` `normalizeSaveData` + 4 tests |
+| B13 | ❌ Wrong   | Audit was incorrect — Tab/Shift+Tab is wired (`aa6a92a` commit message documents) |
+| B14 | ⏸ Skipped | Multi-enemy primary panel — design choice, not a bug |
+| B15 | ✅ Fixed   | `b89d594` magenta diagonal-stripe marker on unmapped tiles |
+| B16 | ✅ Fixed   | `fd7dc82` deleted unused `addAmbientVignette` |
+| B17 | ✅ Fixed   | `b89d594` wildflowers redistributed across variants |
+| B18 | ⏸ Deferred | UUID texture leak — needs targeted profiling |
+| B19 | ✅ Fixed   | PROJECT_STATUS.md row added (separate doc commit) |
+| B20 | ✅ Audited | `f7eeabd` — verified no real React-side dependency to defer; comment added |
+| C   | ✅ Fixed   | `f7eeabd` `preserveDrawingBuffer: import.meta.env.DEV` |
+
+**Net:** 19 issues fixed across 9 commits, 1 audit error caught, 5 issues deferred or skipped with rationale.
+
+---
+
 ## A. Issues the user explicitly called out
 
 ### A1. Health bars look wrong
