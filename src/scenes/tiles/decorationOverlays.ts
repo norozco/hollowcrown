@@ -148,11 +148,30 @@ export function renderDecoration(
 }
 
 /**
- * Stable hash for (x, y). Used by both pickTreeVariant and the
- * density culling — same input, same output across reloads.
+ * FNV-1a 32-bit string hash. Stable, dependency-free, single-pass.
+ * Used to fold the scene key into a numeric salt so that the same
+ * (x, y) cell produces a different tree variant in different scenes.
  */
-function cellHash(x: number, y: number): number {
-  let h = (x * 73856093) ^ (y * 19349663);
+function hashString(s: string): number {
+  let h = 0x811c9dc5; // FNV offset basis
+  for (let i = 0; i < s.length; i++) {
+    h ^= s.charCodeAt(i);
+    h = Math.imul(h, 0x01000193); // FNV prime
+  }
+  return h >>> 0;
+}
+
+/**
+ * Stable hash for (x, y) within a given scene. Used by both
+ * pickTreeVariant and the density culling — same input, same output
+ * across reloads. Mixing in `sceneSalt` (derived from scene.scene.key)
+ * ensures the same cell coordinates produce different results in
+ * Greenhollow vs Duskmere vs Mossbarrow, etc. — so the tree variant
+ * pattern doesn't repeat scene-to-scene (B7) and the 55% density gate
+ * gaps fall in different places (B8).
+ */
+function cellHash(x: number, y: number, sceneSalt: number): number {
+  let h = (x * 73856093) ^ (y * 19349663) ^ (sceneSalt | 0);
   h = (h ^ (h >>> 13)) >>> 0;
   h = Math.imul(h, 1274126177) >>> 0;
   return h;
@@ -167,11 +186,11 @@ function cellHash(x: number, y: number): number {
  * trees, there is no coherence." Skipping ~half gives visible
  * grass + clearings between trees.
  *
- * The hash is biased so adjacent cells DON'T cluster predictably:
- * we mix in a checker pattern so even/odd rows get different bias.
+ * `sceneKey` is mixed into the hash so the gap pattern differs
+ * between scenes; without it, every scene shares the same cull mask.
  */
-export function shouldRenderTreeHere(x: number, y: number): boolean {
-  const h = cellHash(x, y);
+export function shouldRenderTreeHere(x: number, y: number, sceneKey: string): boolean {
+  const h = cellHash(x, y, hashString(sceneKey));
   // ~55% chance of tree, 45% chance of plain grass. Higher than 50%
   // so the forest still reads as forest, just with breathing room.
   return (h % 100) < 55;
@@ -183,8 +202,16 @@ export function shouldRenderTreeHere(x: number, y: number): boolean {
  * texture. The previous 1-in-6 spread of variants made the forest
  * look like "every tree is a different species" — a more natural
  * forest is dominantly one species with occasional accents.
+ *
+ * `sceneKey` is mixed into the hash so the same (x, y) yields a
+ * different variant per scene — otherwise Greenhollow row 3 col 5
+ * is the exact same tree as Duskmere row 3 col 5.
  */
-export function pickTreeVariant(x: number, y: number): keyof typeof DECORATION_LIBRARY {
+export function pickTreeVariant(
+  x: number,
+  y: number,
+  sceneKey: string,
+): keyof typeof DECORATION_LIBRARY {
   // Weighted pool: 6 oak entries (mostly oak), 2 autumn (sprinkled),
   // 1 pine (rare conifer). Hash mod 9 picks an index.
   const weighted: Array<keyof typeof DECORATION_LIBRARY> = [
@@ -193,7 +220,7 @@ export function pickTreeVariant(x: number, y: number): keyof typeof DECORATION_L
     'deco_tree_autumn', 'deco_tree_autumn2',
     'deco_tree_pine',
   ];
-  const h = cellHash(x, y);
+  const h = cellHash(x, y, hashString(sceneKey));
   return weighted[h % weighted.length];
 }
 
@@ -267,12 +294,14 @@ export function applyTreeOverlays(
   layer: Phaser.Tilemaps.TilemapLayer,
 ): Phaser.GameObjects.Image[] {
   const created: Phaser.GameObjects.Image[] = [];
+  const sceneKey = scene.scene.key;
   layer.forEachTile((tile) => {
     if (tile.index !== TILE.BUSH) return;
     // Density gate — only ~55% of bush cells become full trees so
-    // the forest has visible grass between them.
-    if (!shouldRenderTreeHere(tile.x, tile.y)) return;
-    const variant = pickTreeVariant(tile.x, tile.y);
+    // the forest has visible grass between them. Salted by scene key
+    // so the gap pattern doesn't repeat scene-to-scene.
+    if (!shouldRenderTreeHere(tile.x, tile.y, sceneKey)) return;
+    const variant = pickTreeVariant(tile.x, tile.y, sceneKey);
     // Tile pixel center in world space — Phaser tile.pixelX/Y is
     // the top-left of the cell; add half the tile width to centre.
     const wx = tile.pixelX + tile.width / 2;
