@@ -355,6 +355,12 @@ export function PhaserGame() {
     const worldScenes = ['TownScene', 'GreenhollowScene', 'MossbarrowScene', 'MossbarrowDepthsScene', 'DepthsFloor2Scene', 'DepthsFloor3Scene', 'AshenmereScene', 'IronveilScene', 'DrownedSanctumF1Scene', 'DrownedSanctumF2Scene', 'BogDungeonF1Scene', 'BogDungeonF2Scene', 'BogDungeonF3Scene', 'DuskmereScene', 'AshfieldsScene', 'AshenTowerF1Scene', 'AshenTowerF2Scene', 'AshenTowerF3Scene', 'FrosthollowScene', 'FrozenHollowF1Scene', 'FrozenHollowF2Scene', 'FrozenHollowF3Scene', 'ShatteredCoastScene', 'ThroneBeneathF1Scene', 'ThroneBeneathF2Scene', 'ThroneBeneathF3Scene', 'ForgottenCaveScene', 'InteriorScene', 'CombatScene'];
 
     if (shouldShowTown) {
+      // B20 audit note: a previous bug audit flagged this stop→start as a
+      // potential UI desync risk if React-side code awaited a Placeholder
+      // shutdown event. Verified 2026-05-04: PlaceholderScene has no
+      // shutdown handler, dispatches no events, and is not listened to
+      // anywhere on the React side (only BootScene/this file reference
+      // it). No deferral needed — synchronous flow is safe.
       if (mgr.isActive('PlaceholderScene')) mgr.stop('PlaceholderScene');
       // Only start TownScene fresh if no world scene is already running
       // (an internal zone transition may have us in Greenhollow already).
@@ -369,4 +375,18 @@ export function PhaserGame() {
   }, [character, screen]);
 
   return <div ref={containerRef} id="phaser-container" />;
+}
+
+// Vite HMR-aware cleanup. Without this, hot-replacing this module in dev
+// spins up a new Phaser.Game without destroying the previous instance,
+// so canvas count + WebGL contexts + the "Phaser v4" banner accumulate
+// across saves (B9 in BUG_AUDIT.md — banner observed ~12× per session).
+// The dispose hook fires before the new module evaluates, guaranteeing
+// the old game tears down first.
+if (import.meta.hot) {
+  import.meta.hot.dispose(() => {
+    const g = (window as any).__phaserGame;
+    if (g) { try { g.destroy(true); } catch { /* ignore */ } }
+    (window as any).__phaserGame = null;
+  });
 }

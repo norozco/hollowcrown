@@ -48,6 +48,11 @@ export const gameConfig: Phaser.Types.Core.GameConfig = {
   render: {
     antialias: false,
     roundPixels: true,
+    // Dev-only: keep the WebGL backbuffer between frames so headless
+    // screenshot tooling (used by the bug audit) can capture running
+    // scenes. Has a real perf cost — gated to DEV via Vite's
+    // import.meta.env.DEV (replaced with `false` in production builds).
+    preserveDrawingBuffer: import.meta.env.DEV,
   },
   // FPS / loop config — smoothStep clamps large dt spikes after the tab was
   // backgrounded or the window minimized, preventing catch-up stutter.
